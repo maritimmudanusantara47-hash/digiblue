@@ -19,7 +19,8 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       setAuth: (user, token) => {
-        Cookies.set('auth_token', token, { expires: 7, secure: true, sameSite: 'Strict' });
+        const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+        Cookies.set('auth_token', token, { expires: 7, secure: isSecure, sameSite: 'Lax' });
         set({ user, token, isAuthenticated: true });
       },
 

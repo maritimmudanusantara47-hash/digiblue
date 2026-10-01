@@ -26,6 +26,9 @@ export default function StudentDashboard() {
         setEnrollments(e.data.data);
         setCertificates(c.data.data);
       })
+      .catch((err) => {
+        console.error('Failed to load student dashboard data:', err);
+      })
       .finally(() => setLoading(false));
   }, []);
 

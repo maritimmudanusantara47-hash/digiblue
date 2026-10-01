@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import MarkdownViewer from '@/components/MarkdownViewer';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface QuizOption  { id: number; option_text: string }
@@ -608,6 +609,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
 }) {
   const [essay, setEssay]             = useState('');
   const [fileShareUrl, setFileUrl]    = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting]   = useState(false);
   const alreadySubmitted = submission !== null;
 
@@ -615,7 +617,6 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
   const colorClass = isCriticalThinking ? 'indigo' : 'teal';
   const bgClass    = isCriticalThinking ? 'bg-indigo-50 border-indigo-200' : 'bg-teal-50 border-teal-200';
   const textClass  = isCriticalThinking ? 'text-indigo-700' : 'text-teal-700';
-  const subTextCl  = isCriticalThinking ? 'text-indigo-800' : 'text-teal-800';
 
   // Show soal PDF if admin uploaded one
   const soalPdfUrl = content.file_path
@@ -625,28 +626,31 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
   if (alreadySubmitted) {
     return (
       <div className="flex flex-col gap-4">
-        <div className={`${bgClass} border rounded-2xl p-5`}>
-          <p className={`font-bold ${textClass} mb-1`}>✅ Tugas Sudah Dikumpulkan</p>
+        <div className={`${bgClass} border rounded-2xl p-6`}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">✅</span>
+            <p className={`font-extrabold ${textClass} text-base`}>Tugas Studi Kasus Sudah Dikumpulkan</p>
+          </div>
           {submission.essay_text && (
-            <div className="mt-3">
-              <p className={`text-xs ${isCriticalThinking ? 'text-indigo-600' : 'text-teal-600'} font-semibold mb-1`}>Jawaban kamu:</p>
-              <div className="bg-white rounded-xl p-4 text-sm text-slate-700 leading-relaxed max-h-48 overflow-y-auto">
+            <div className="mt-4">
+              <p className={`text-xs ${isCriticalThinking ? 'text-indigo-600' : 'text-teal-600'} font-semibold mb-1.5`}>Naskah jawaban kamu:</p>
+              <div className="bg-white rounded-2xl p-5 text-sm text-slate-700 leading-relaxed max-h-60 overflow-y-auto border border-slate-200 whitespace-pre-wrap font-sans">
                 {submission.essay_text}
               </div>
             </div>
           )}
           {submission.file_share_url && (
-            <div className="mt-3">
-              <p className={`text-xs ${isCriticalThinking ? 'text-indigo-600' : 'text-teal-600'} font-semibold mb-1`}>File yang dilampirkan:</p>
+            <div className="mt-4">
+              <p className={`text-xs ${isCriticalThinking ? 'text-indigo-600' : 'text-teal-600'} font-semibold mb-1`}>Berkas dokumen terlampir:</p>
               <a href={submission.file_share_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-navy font-medium hover:underline">
-                📎 Buka File →
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 text-sm text-navy font-semibold hover:border-navy transition-all">
+                📎 Buka Berkas Tugas →
               </a>
             </div>
           )}
           {submission.score === null && (
-            <p className={`text-sm ${isCriticalThinking ? 'text-indigo-600' : 'text-teal-600'} mt-3 flex items-center gap-2`}>
-              <span className="animate-pulse">⏳</span> Menunggu penilaian assessor...
+            <p className={`text-sm ${isCriticalThinking ? 'text-indigo-700' : 'text-teal-700'} mt-4 flex items-center gap-2 font-medium bg-white/70 p-3 rounded-xl border border-slate-100`}>
+              <span className="animate-pulse">⏳</span> Menunggu proses penilaian & feedback dari Tim Asesor DigiBlueCamp...
             </p>
           )}
         </div>
@@ -656,92 +660,154 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!essay.trim() && !fileShareUrl.trim()) {
-      alert('Isi jawaban esai atau lampirkan link file terlebih dahulu.'); return;
+    if (!essay.trim() && !fileShareUrl.trim() && !selectedFile) {
+      alert('Mohon unggah file jawaban (PDF/DOCX), cantumkan link dokumen, atau ketikkan esai jawaban Anda.');
+      return;
     }
+
     setSubmitting(true);
     try {
-      await api.post('/submissions', {
-        enrollment_id: enrollmentId,
-        content_id: content.id,
-        essay_text: essay || null,
-        file_share_url: fileShareUrl || null,
+      const formData = new FormData();
+      formData.append('enrollment_id', String(enrollmentId));
+      formData.append('content_id', String(content.id));
+      if (selectedFile) formData.append('file', selectedFile);
+      if (fileShareUrl.trim()) formData.append('file_share_url', fileShareUrl.trim());
+      if (essay.trim()) formData.append('essay_text', essay.trim());
+
+      const res = await api.post('/submissions', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
+
+      const savedSub = res.data.data;
       onDone({
         content_id: content.id,
         score: null,
         assessor_feedback: null,
         graded_at: null,
         status: 'submitted',
-        essay_text: essay,
-        file_share_url: fileShareUrl || null,
+        essay_text: essay || null,
+        file_share_url: savedSub.file_share_url || fileShareUrl || null,
       });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal mengumpulkan tugas.');
+      alert(msg ?? 'Gagal mengumpulkan tugas studi kasus.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {/* Instructions */}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {/* Instructions / Case Study Markdown Prompt */}
       {content.instruction_text && (
-        <div className={`${bgClass} border rounded-2xl p-5`}>
-          <p className={`text-sm font-semibold ${textClass} mb-2`}>
-            {isCriticalThinking ? '💡' : '📋'} Petunjuk Pengerjaan
-          </p>
-          <p className={`text-sm ${subTextCl} leading-relaxed whitespace-pre-line`}>{content.instruction_text}</p>
-        </div>
-      )}
-
-      {/* Soal PDF from Admin */}
-      {soalPdfUrl && (
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col gap-3">
-          <p className="font-semibold text-navy-dark text-sm">📄 File Soal / Materi Studi Kasus</p>
-          <div className="rounded-xl overflow-hidden border border-slate-200" style={{ height: '50vh' }}>
-            <iframe src={`${soalPdfUrl}#toolbar=1`} className="w-full h-full" title="Soal" />
+        <div className={`${bgClass} border rounded-3xl p-6 sm:p-8 shadow-sm`}>
+          <div className="flex items-center gap-2.5 mb-4 pb-2 border-b border-navy/10">
+            <span className="text-2xl">{isCriticalThinking ? '💡' : '📋'}</span>
+            <h3 className={`text-lg font-extrabold ${textClass}`}>
+              Naskah Soal & Panduan Studi Kasus
+            </h3>
           </div>
-          <a href={soalPdfUrl} target="_blank" rel="noreferrer"
-            className="btn btn-secondary self-start text-sm">
-            📂 Unduh Soal (PDF)
-          </a>
+          <MarkdownViewer content={content.instruction_text} />
         </div>
       )}
 
-      {/* File Share URL */}
-      <div className="card flex flex-col gap-3">
-        <label className="text-sm font-bold text-navy-dark">
-          📎 Upload Jawaban via Link <span className="text-slate-400 font-normal">(Google Drive / OneDrive / Dropbox)</span>
-        </label>
-        <input type="url" value={fileShareUrl} onChange={e => setFileUrl(e.target.value)}
-          placeholder="https://drive.google.com/file/d/..."
-          className="form-input" />
-        <div className="bg-slate-50 rounded-xl p-4 text-xs text-slate-500 leading-relaxed">
-          <p className="font-semibold text-slate-600 mb-1">📌 Cara share file:</p>
-          <p><strong>Google Drive:</strong> Klik kanan file → Share → Change to &ldquo;Anyone with link&rdquo; → Copy link</p>
-          <p className="mt-1"><strong>OneDrive:</strong> Klik ... → Share → Anyone with link → Copy</p>
+      {/* Soal PDF from Admin if available */}
+      {soalPdfUrl && (
+        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="font-bold text-navy-dark text-sm flex items-center gap-2">
+              <span>📄</span> Lembar Soal Dokumen PDF
+            </p>
+            <a href={soalPdfUrl} target="_blank" rel="noreferrer"
+              className="btn btn-secondary btn-sm text-xs">
+              📂 Unduh Soal (PDF)
+            </a>
+          </div>
+          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-inner" style={{ height: '45vh' }}>
+            <iframe src={`${soalPdfUrl}#toolbar=1`} className="w-full h-full" title="Soal PDF" />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Essay Text */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-navy-dark">
-          ✍️ Atau Tulis Jawaban Langsung <span className="text-slate-400 font-normal">(opsional)</span>
-        </label>
-        <textarea rows={10} value={essay} onChange={e => setEssay(e.target.value)}
-          placeholder="Tulis esai atau jawaban studi kasus kamu di sini..."
-          className="form-input resize-none leading-relaxed" />
-        <div className="flex justify-between text-xs text-slate-400">
-          <span>{essay.length} karakter</span>
-          <span>{essay.split(/\s+/).filter(Boolean).length} kata</span>
+      {/* Form Pengumpulan Jawaban */}
+      <div className="card flex flex-col gap-5 border border-slate-200 shadow-sm">
+        <div>
+          <h4 className="font-bold text-navy-dark text-base">📤 Formulir Pengumpulan Jawaban</h4>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Anda dapat mengunggah berkas dokumen (PDF/DOCX), melampirkan tautan drive, dan/atau menulis esai langsung.
+          </p>
         </div>
-      </div>
 
-      <button type="submit" disabled={submitting} className="btn btn-primary btn-lg">
-        {submitting ? 'Mengumpulkan...' : '📤 Kumpulkan Tugas'}
-      </button>
+        {/* Opsi 1: Upload File Langsung */}
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col gap-2">
+          <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+            <span>📄</span> Opsi 1: Upload Berkas Jawaban (PDF / DOCX)
+          </label>
+          <input
+            type="file"
+            accept=".pdf,.docx,.doc"
+            onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
+            className="text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-navy/10 file:text-navy hover:file:bg-navy/20 cursor-pointer border border-slate-200 rounded-xl p-2 bg-white"
+          />
+          {selectedFile && (
+            <p className="text-xs text-emerald-600 font-semibold">
+              ✅ Berkas dipilih: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+            </p>
+          )}
+        </div>
+
+        {/* Opsi 2: Link File Share */}
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col gap-2">
+          <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+            <span>📎</span> Opsi 2: Tautan Berkas Cloud (Google Drive / OneDrive)
+          </label>
+          <input
+            type="url"
+            value={fileShareUrl}
+            onChange={e => setFileUrl(e.target.value)}
+            placeholder="https://drive.google.com/file/d/..."
+            className="form-input text-xs"
+          />
+          <p className="text-[11px] text-slate-400">
+            * Pastikan izin akses link Google Drive / OneDrive sudah diatur ke <em>&quot;Anyone with the link can view&quot;</em>.
+          </p>
+        </div>
+
+        {/* Opsi 3: Tulis Esai Langsung */}
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+              <span>✍️</span> Opsi 3: Ketik Jawaban Esai Langsung (Mendukung Format Teks / Markdown)
+            </label>
+            <div className="flex gap-2 text-[11px] text-slate-400 font-mono">
+              <span>{essay.length} karakter</span>
+              <span>•</span>
+              <span className="font-semibold text-navy">{essay.split(/\s+/).filter(Boolean).length} kata</span>
+            </div>
+          </div>
+          <textarea
+            rows={10}
+            value={essay}
+            onChange={e => setEssay(e.target.value)}
+            placeholder="Tuliskan naskah jawaban studi kasus Anda secara terstruktur di sini..."
+            className="form-input text-xs leading-relaxed resize-y font-sans"
+          />
+        </div>
+
+        <button type="submit" disabled={submitting} className="btn btn-primary btn-lg w-full flex items-center justify-center gap-2 mt-2">
+          {submitting ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Mengunggah & Mengumpulkan Jawaban...
+            </>
+          ) : (
+            '📤 Kumpulkan Jawaban Studi Kasus'
+          )}
+        </button>
+      </div>
     </form>
   );
 }
