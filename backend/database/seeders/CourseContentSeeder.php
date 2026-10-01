@@ -13,12 +13,19 @@ class CourseContentSeeder extends Seeder
 {
     public function run(): void
     {
+        // Simpan file_path yang mungkin sudah di-upload admin
+        $existingModule = CourseContent::where('content_type', 'pdf_module')
+            ->whereNotNull('file_path')
+            ->first();
+        $savedPdfPath = $existingModule?->file_path;
+
         // ─── Foundation Level — CBEc ────────────────────────────────────────────
         $foundation = Course::where('slug', 'like', '%foundation%')->first();
         if ($foundation) {
-            // Hapus semua section + contents lama (cascade ke quiz_questions, quiz_options, submissions)
+            // Hapus semua section + contents lama
             $foundation->sections()->delete();
-            $this->seedFoundationLevel($foundation);
+            $this->seedFoundationLevel($foundation, $savedPdfPath);
+            $this->command->info("Re-seeded Foundation course: {$foundation->title}");
         } else {
             $this->command->warn('Foundation course not found. Skipping.');
         }
@@ -26,10 +33,10 @@ class CourseContentSeeder extends Seeder
         // ─── Specialization Tracks ──────────────────────────────────────────────
         $specs = Course::whereHas('certificationLevel', fn ($q) => $q->where('code', 'SPEC'))->get();
         foreach ($specs as $specCourse) {
-            // Hanya seed jika belum ada konten
-            if ($specCourse->sections()->count() === 0) {
-                $this->seedSpecializationLevel($specCourse);
-            }
+            // Hapus section + contents lama dan re-seed sesuai format baru
+            $specCourse->sections()->delete();
+            $this->seedSpecializationLevel($specCourse);
+            $this->command->info("Re-seeded Specialization course: {$specCourse->title}");
         }
     }
 
@@ -37,7 +44,7 @@ class CourseContentSeeder extends Seeder
     //  FOUNDATION LEVEL
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private function seedFoundationLevel(Course $course): void
+    private function seedFoundationLevel(Course $course, ?string $savedPdfPath = null): void
     {
         $section = CourseSection::create([
             'course_id'   => $course->id,
@@ -50,6 +57,7 @@ class CourseContentSeeder extends Seeder
             'section_id'       => $section->id,
             'content_type'     => 'pdf_module',
             'title'            => 'Foundation Learning Modules',
+            'file_path'        => $savedPdfPath,
             'instruction_text' => "Unduh dan pelajari modul pembelajaran Foundation Level berikut sebelum mengerjakan ujian.\n\nModul ini mencakup:\n• Konsep dasar Blue Economy & Ekonomi Kelautan\n• Ekosistem kelautan dan nilai ekonominya\n• Kebijakan & regulasi maritim Indonesia\n• SDG 14 dan hubungannya dengan Blue Economy\n\nBaca dengan seksama, catat poin-poin penting, dan siapkan dirimu untuk ujian.",
             'max_score'        => 0,
             'is_prerequisite'  => true,
@@ -180,7 +188,7 @@ class CourseContentSeeder extends Seeder
             ],
         ];
 
-        foreach ($questions as $i => $qData) {
+        foreach ($questions as $qData) {
             $q = QuizQuestion::create([
                 'content_id'   => $quiz->id,
                 'question_text'=> $qData['question'],
@@ -202,85 +210,109 @@ class CourseContentSeeder extends Seeder
 
     private function seedSpecializationLevel(Course $course): void
     {
+        $trackTitle = str_replace('CBEc Specialization — ', '', $course->title);
+
         $section = CourseSection::create([
             'course_id'   => $course->id,
-            'title'       => 'Specialization Program',
+            'title'       => 'Program Spesialisasi — ' . $trackTitle,
             'order_index' => 1,
         ]);
 
-        // 1. Learning Module
+        // ── 1. Learning Module ──────────────────────────────────────────────────
         CourseContent::create([
             'section_id'       => $section->id,
             'content_type'     => 'pdf_module',
-            'title'            => 'Foundation Learning Modules',
-            'instruction_text' => 'Pelajari modul spesialisasi ini sebelum mengerjakan ujian dan tugas.',
+            'title'            => 'Specialization Learning Modules — ' . $trackTitle,
+            'instruction_text' => "Unduh dan pelajari modul spesialisasi {$trackTitle} berikut sebelum mengerjakan ujian dan tugas.\n\nModul ini mencakup:\n• Konsep dasar dan prinsip mendalam mengenai {$trackTitle}\n• Implementasi teknis dan operasional dalam konteks Blue Economy\n• Studi kasus best-practice nasional dan global\n• Analisis dampak lingkungan dan keberlanjutan ekonomi\n\nBaca dengan seksama, catat poin-poin penting, dan siapkan dirimu untuk ujian.",
             'max_score'        => 0,
             'is_prerequisite'  => true,
             'order_index'      => 1,
         ]);
 
-        // 2. MCQ Exam
+        // ── 2. MCQ Exam ─────────────────────────────────────────────────────────
         $quiz = CourseContent::create([
             'section_id'       => $section->id,
             'content_type'     => 'mcq_quiz',
             'title'            => 'Multiple-Choice Examination — Specialization Level',
-            'instruction_text' => "Kerjakan semua soal pilihan ganda berikut. Nilai minimum kelulusan: 70 dari 100.",
+            'instruction_text' => "Kerjakan semua soal pilihan ganda spesialisasi {$trackTitle} berikut dengan teliti.\n\nPetunjuk Ujian:\n• Pilih satu jawaban yang paling tepat untuk setiap soal\n• Nilai minimum kelulusan: 70 dari 100\n• Jika belum lulus, kamu dapat mengulang ujian ini\n• Pastikan sudah membaca Learning Modules sebelum mengerjakan",
             'max_score'        => 100,
             'is_prerequisite'  => false,
             'order_index'      => 2,
         ]);
 
-        $this->seedSpecQuizQuestions($quiz);
+        $this->seedSpecQuizQuestions($quiz, $trackTitle);
 
-        // 3. Essay Task
+        // ── 3. Essay Task ───────────────────────────────────────────────────────
         CourseContent::create([
             'section_id'       => $section->id,
             'content_type'     => 'essay_task',
             'title'            => 'Case-Study Essay Submission — Specialization Level',
-            'instruction_text' => "Unduh soal studi kasus spesialisasi di bawah ini dan kerjakan sesuai petunjuk.\n\nKumpulkan jawaban via Google Drive (Anyone with link) atau tulis langsung. Minimum 500 kata.",
+            'instruction_text' => "Unduh soal studi kasus spesialisasi {$trackTitle} di bawah ini. Kerjakan dengan sebaik-baiknya, kemudian kumpulkan jawaban kamu melalui salah satu cara berikut:\n\n📎 Opsi 1 — Google Drive / OneDrive:\nUpload file jawaban kamu ke Google Drive, aktifkan akses \"Anyone with link\", lalu paste link-nya di kolom yang tersedia.\n\n📝 Opsi 2 — Tulis Langsung:\nKamu juga dapat menulis jawaban langsung di kolom teks yang disediakan.\n\nKetentuan:\n• Format file: PDF atau DOCX\n• Panjang esai minimum: 500 kata\n• Sertakan analisis berbasis data, bukti empiris, dan rekomendasi konkret untuk {$trackTitle}\n• Plagiarisme tidak ditoleransi",
             'max_score'        => 100,
             'is_prerequisite'  => false,
             'order_index'      => 3,
         ]);
+
+        // ── 4. Training Course (Field Study) ────────────────────────────────────
+        CourseContent::create([
+            'section_id'       => $section->id,
+            'content_type'     => 'field_study',
+            'title'            => 'Training Course (Field Study)',
+            'instruction_text' => "Field Study adalah komponen penting dari program spesialisasi {$trackTitle} DigiBlueCamp. Peserta akan diajak untuk berinteraksi langsung di lapangan dengan ekosistem maritim dan pelaku industri {$trackTitle} di Indonesia.\n\nApa yang akan kamu lakukan:\n🌊 Kunjungan lapangan ke lokasi implementasi {$trackTitle}\n🤝 Diskusi dengan praktisi, pakar kelautan, dan komunitas pesisir\n📊 Pengumpulan data primer untuk validasi proyek studi kasus\n🎯 Presentasi dan refleksi temuan lapangan\n\nKonfirmasikan kehadiranmu di bawah ini. Jika kamu mengikuti Field Study, modul Case-Study Essay Examination — Critical Thinking tidak perlu dikerjakan.",
+            'max_score'        => 0,
+            'is_prerequisite'  => false,
+            'order_index'      => 4,
+        ]);
+
+        // ── 5. Case-Study Essay Examination — Critical Thinking ─────────────────
+        CourseContent::create([
+            'section_id'       => $section->id,
+            'content_type'     => 'critical_thinking',
+            'title'            => 'Case-Study Essay Examination — Critical Thinking',
+            'instruction_text' => "Modul ini diperuntukkan bagi peserta spesialisasi {$trackTitle} yang TIDAK mengikuti program Field Study.\n\nJika kamu mengikuti Field Study, modul ini secara otomatis terkunci dan tidak perlu dikerjakan.\n\nUnduh soal studi kasus di bawah ini dan kerjakan analisis kritis secara mendalam terkait {$trackTitle}. Kumpulkan jawaban melalui link Google Drive atau tulis langsung di formulir yang tersedia.\n\nKetentuan:\n• Minimum 500 kata\n• Sertakan referensi ilmiah dan tinjauan kritis terhadap kebijakan/praktik terkini\n• Format file: PDF / DOCX atau tulis langsung",
+            'max_score'        => 100,
+            'is_prerequisite'  => false,
+            'order_index'      => 5,
+        ]);
     }
 
-    private function seedSpecQuizQuestions(CourseContent $quiz): void
+    private function seedSpecQuizQuestions(CourseContent $quiz, string $trackTitle): void
     {
         $questions = [
             [
-                'question' => 'Prinsip utama yang membedakan pendekatan spesialisasi Blue Economy dari pendekatan konvensional adalah?',
+                'question' => "Prinsip utama yang membedakan pendekatan {$trackTitle} dalam Blue Economy dari pendekatan konvensional adalah?",
                 'options'  => [
                     ['Fokus pada profit jangka pendek tanpa memperhatikan lingkungan', false],
-                    ['Integrasi keberlanjutan ekologis dengan pembangunan ekonomi', true],
+                    ['Integrasi keberlanjutan ekologis dengan pembangunan ekonomi maritim yang berkeadilan', true],
                     ['Hanya mengutamakan pertumbuhan produksi semaksimal mungkin', false],
-                    ['Penggunaan teknologi tanpa mempertimbangkan dampak lingkungan', false],
+                    ['Penggunaan teknologi tanpa mempertimbangkan daya dukung ekosistem', false],
                 ],
             ],
             [
-                'question' => 'Indonesia memiliki potensi besar di bidang kelautan karena?',
+                'question' => "Dalam konteks {$trackTitle}, apa pilar utama yang harus dijaga untuk mencapai keberlanjutan jangka panjang?",
                 'options'  => [
-                    ['Memiliki populasi terbesar di dunia', false],
-                    ['Letak geografis sebagai negara kepulauan terbesar dengan biodiversitas tinggi', true],
-                    ['Memiliki teknologi kelautan paling maju', false],
-                    ['Anggaran pemerintah terbesar untuk sektor kelautan', false],
+                    ['Daya dukung lingkungan (carrying capacity) dan inklusi sosial masyarakat pesisir', true],
+                    ['Eksploitasi sumber daya secara intensif sebelum regulasi diperketat', false],
+                    ['Sentralisasi seluruh kegiatan usaha di tangan korporasi besar', false],
+                    ['Pengurangan anggaran pemeliharaan habitat maritim', false],
                 ],
             ],
             [
-                'question' => 'SDG yang paling berkaitan dengan Blue Economy adalah?',
+                'question' => "SDG yang menjadi acuan paling mendasar dalam implementasi {$trackTitle} adalah?",
                 'options'  => [
                     ['SDG 1: No Poverty', false],
                     ['SDG 9: Industry, Innovation and Infrastructure', false],
-                    ['SDG 14: Life Below Water', true],
+                    ['SDG 14: Life Below Water & SDG 13: Climate Action', true],
                     ['SDG 17: Partnerships for the Goals', false],
                 ],
             ],
             [
-                'question' => 'Pendekatan yang tepat dalam mengelola sumber daya kelautan secara berkelanjutan adalah?',
+                'question' => "Langkah strategis pertama dalam menyusun roadmap implementasi {$trackTitle} di Indonesia adalah?",
                 'options'  => [
-                    ['Eksploitasi maksimum untuk pertumbuhan ekonomi tertinggi', false],
-                    ['Moratorium total semua kegiatan di laut', false],
-                    ['Pengelolaan berbasis ekosistem dengan mempertimbangkan daya dukung alam', true],
-                    ['Menyerahkan sepenuhnya kepada mekanisme pasar bebas', false],
+                    ['Langsung meluncurkan proyek tanpa kajian baseline lingkungan', false],
+                    ['Penilaian baseline sains, pemetaan pemangku kepentingan, dan mitigasi risiko ekologis', true],
+                    ['Menunggu ketersediaan hibah internasional sepenuhnya', false],
+                    ['Menyerahkan seluruh pengelolaan kepada entitas asing tanpa alih teknologi', false],
                 ],
             ],
         ];
