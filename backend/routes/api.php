@@ -98,6 +98,7 @@ Route::prefix('v1')->group(function () {
             Route::post('certificates/{id}/sync',   [AdminCertificateController::class, 'syncToTBE']); // Push ke The Blue Economist
             Route::post('certificates/resync-failed', [AdminCertificateController::class, 'resyncFailed']); // Re-sync semua yg gagal
             Route::get('certificates/export',       [AdminCertificateController::class, 'export']);     // Export Excel
+            Route::get('certificates/{id}/download',[AdminCertificateController::class, 'download']);   // Download PDF
         });
     });
 });

@@ -38,11 +38,18 @@ class CertificateController extends Controller
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
+        $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
+            . "/certification/{$cert->serial_url_key}";
+        
+        $qrSvg = \QrCode::format('svg')->size(140)->generate($verificationUrl);
+        $qrImageBase64 = base64_encode($qrSvg);
+
         $pdf = Pdf::loadView('certificates.template', [
-            'certificate' => $cert,
-            'user'        => $cert->user,
-            'course'      => $cert->enrollment->course,
-            'level'       => $cert->enrollment->course->certificationLevel,
+            'certificate'   => $cert,
+            'user'          => $cert->user,
+            'course'        => $cert->enrollment->course,
+            'level'         => $cert->enrollment->course->certificationLevel,
+            'qrImageBase64' => $qrImageBase64,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";

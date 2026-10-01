@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import api from '@/lib/api';
 
 interface User { id: number; name: string; email: string; institution?: string }
@@ -304,6 +305,13 @@ export default function AdminEnrollmentsPage() {
                       >
                         ✏️
                       </button>
+                      <Link
+                        href="/admin/certificates"
+                        className="btn btn-sm btn-secondary text-xs px-2.5 flex items-center justify-center"
+                        title="Kelola / Terbitkan Sertifikat"
+                      >
+                        🎓
+                      </Link>
                       <button
                         id={`del-btn-${en.id}`}
                         onClick={() => setDeleteTarget(en)}

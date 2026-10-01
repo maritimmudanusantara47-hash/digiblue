@@ -180,7 +180,7 @@
             <!-- QR Code kiri -->
             <div class="qr-box">
                 @if($qrImageBase64 ?? false)
-                    <img src="data:image/png;base64,{{ $qrImageBase64 }}" alt="QR Code">
+                    <img src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code" width="70" height="70">
                 @endif
             </div>
 
@@ -205,7 +205,7 @@
             <!-- QR Code kanan (sama) -->
             <div class="qr-box">
                 @if($qrImageBase64 ?? false)
-                    <img src="data:image/png;base64,{{ $qrImageBase64 }}" alt="QR Code">
+                    <img src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code" width="70" height="70">
                 @endif
             </div>
         </div>
