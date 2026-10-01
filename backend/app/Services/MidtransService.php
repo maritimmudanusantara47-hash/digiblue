@@ -72,10 +72,10 @@ class MidtransService
                 'finish' => config('app.frontend_url', 'http://localhost:3000') . '/student/dashboard?payment=success',
             ],
         ];
-
         try {
-            $snapToken   = \Midtrans\Snap::getSnapToken($params);
-            $redirectUrl = \Midtrans\Snap::createTransaction($params)->redirect_url ?? "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}";
+            $transaction = \Midtrans\Snap::createTransaction($params);
+            $snapToken   = $transaction->token ?? null;
+            $redirectUrl = $transaction->redirect_url ?? "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}";
 
             // Simpan token dan order_id sementara di enrollment
             $enrollment->update([
