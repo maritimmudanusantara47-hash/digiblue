@@ -12,6 +12,7 @@
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "maatwebsite/excel": "^4.0",
+        "midtrans/midtrans-php": "*",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^8.3"
     },

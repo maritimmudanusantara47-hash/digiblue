@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\AdminCertificateController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminCourseController;
+use App\Http\Controllers\Api\PaymentController;
 
 // ─── Public Routes ───────────────────────────────────────────────────────────
 Route::prefix('v1')->group(function () {
@@ -27,6 +28,7 @@ Route::prefix('v1')->group(function () {
     Route::get('courses',              [CourseController::class, 'index']);
     Route::get('courses/{slug}',       [CourseController::class, 'show']);
     Route::get('verify/{serialUrlKey}',[CertificateController::class, 'verify']); // Halaman verifikasi publik QR Code
+    Route::post('payments/notification',[PaymentController::class, 'handleNotification']); // Webhook Midtrans
 
     // ─── Protected Routes (All Authenticated Users) ───────────────────────────
     Route::middleware('auth:sanctum')->group(function () {
@@ -58,6 +60,9 @@ Route::prefix('v1')->group(function () {
         Route::get('certificates',          [CertificateController::class, 'index']);
         Route::get('certificates/{id}',     [CertificateController::class, 'show']);
         Route::get('certificates/{id}/download', [CertificateController::class, 'download']); // Download PDF
+
+        // Pembayaran Midtrans Snap
+        Route::post('payments/create-snap-token', [PaymentController::class, 'createSnapToken']);
 
         // ─── Assessor & Admin Routes ─────────────────────────────────────────
         Route::middleware('role:assessor|admin')->group(function () {
