@@ -151,6 +151,33 @@ class EnrollmentController extends Controller
         ]);
     }
 
+    /** Student: Konfirmasi kehadiran Field Study (self-report) */
+    public function studentConfirmFieldStudy(Request $request, int $id): JsonResponse
+    {
+        $enrollment = Enrollment::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'attending' => 'required|boolean', // true = hadir, false = tidak hadir
+        ]);
+
+        // Hanya boleh set ke true jika admin belum mengkonfirmasi
+        // Student tidak bisa membatalkan konfirmasi admin
+        if (! $enrollment->attended_field_trip) {
+            $enrollment->update([
+                'attended_field_trip' => $validated['attending'],
+            ]);
+        }
+
+        return response()->json([
+            'message'             => $validated['attending']
+                ? 'Kehadiran Field Study berhasil dicatat. Menunggu konfirmasi admin.'
+                : 'Kamu memilih untuk tidak mengikuti Field Study.',
+            'attended_field_trip' => $enrollment->fresh()->attended_field_trip,
+        ]);
+    }
+
     /** Admin: Hapus enrollment */
     public function destroy(int $id): JsonResponse
     {

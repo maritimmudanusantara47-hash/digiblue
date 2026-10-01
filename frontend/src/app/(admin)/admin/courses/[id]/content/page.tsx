@@ -25,12 +25,13 @@ interface CourseDetail {
 }
 
 const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
-  pdf_module:       { icon: '📄', label: 'Learning Module',     color: 'blue' },
-  video_embed:      { icon: '🎬', label: 'Video Lecture',       color: 'purple' },
-  mcq_quiz:         { icon: '📝', label: 'Multiple Choice Exam',color: 'amber' },
-  essay_task:       { icon: '✍️', label: 'Case-Study Essay',     color: 'teal' },
-  oral_video_task:  { icon: '🎥', label: 'Oral Video Exam',     color: 'rose' },
-  critical_thinking:{ icon: '💡', label: 'Critical Thinking',   color: 'indigo' },
+  pdf_module:       { icon: '📄', label: 'Learning Module',              color: 'blue' },
+  video_embed:      { icon: '🎬', label: 'Video Lecture',                color: 'purple' },
+  mcq_quiz:         { icon: '📝', label: 'Multiple-Choice Examination',  color: 'amber' },
+  essay_task:       { icon: '✍️', label: 'Case-Study Essay Submission',  color: 'teal' },
+  oral_video_task:  { icon: '🎥', label: 'Oral Video Exam',              color: 'rose' },
+  critical_thinking:{ icon: '💡', label: 'Critical Thinking Exam',       color: 'indigo' },
+  field_study:      { icon: '🌊', label: 'Training Course (Field Study)', color: 'emerald' },
 };
 
 export default function AdminCourseContentPage() {
@@ -188,7 +189,7 @@ export default function AdminCourseContentPage() {
                         <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold' : ''}`}>
                           {content.title}
                         </span>
-                        {content.content_type === 'pdf_module' && content.file_path && (
+                        {(content.content_type === 'pdf_module' || content.content_type === 'essay_task' || content.content_type === 'critical_thinking') && content.file_path && (
                           <span className="text-xs opacity-70">✅</span>
                         )}
                       </button>
@@ -240,10 +241,17 @@ export default function AdminCourseContentPage() {
                 <div className="card flex flex-col gap-5">
                   <h3 className="font-bold text-navy-dark">✏️ Edit Konten</h3>
 
-                  {/* PDF Upload (for pdf_module) */}
-                  {selectedContent.content_type === 'pdf_module' && (
+                  {/* PDF Upload (for pdf_module and essay_task and critical_thinking) */}
+                  {(selectedContent.content_type === 'pdf_module' ||
+                    selectedContent.content_type === 'essay_task' ||
+                    selectedContent.content_type === 'critical_thinking') && (
                     <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex flex-col gap-4">
-                      <p className="font-semibold text-blue-800 text-sm">📄 Upload File PDF</p>
+                      <p className="font-semibold text-blue-800 text-sm">
+                        📄 {selectedContent.content_type === 'pdf_module' ? 'Upload File Modul PDF' : 'Upload File Soal (PDF)'}
+                      </p>
+                      {selectedContent.content_type !== 'pdf_module' && (
+                        <p className="text-xs text-blue-600">File ini akan ditampilkan kepada user sebagai soal/materi studi kasus yang harus dikerjakan.</p>
+                      )}
                       {selectedContent.file_path && (
                         <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-blue-200">
                           <span>✅</span>
@@ -266,6 +274,18 @@ export default function AdminCourseContentPage() {
                       {uploadFile && (
                         <p className="text-xs text-slate-500">File dipilih: {uploadFile.name} ({(uploadFile.size/1024/1024).toFixed(2)} MB)</p>
                       )}
+                    </div>
+                  )}
+
+                  {/* Field Study: admin note */}
+                  {selectedContent.content_type === 'field_study' && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+                      <p className="font-semibold text-emerald-800 text-sm mb-2">🌊 Training Course (Field Study)</p>
+                      <p className="text-xs text-emerald-700 leading-relaxed">
+                        Konten ini akan menampilkan formulir konfirmasi kepada user: apakah mereka mengikuti Field Study atau tidak.
+                        Jika ya, modul Critical Thinking akan terkunci otomatis.
+                        Verifikasi kehadiran user dilakukan oleh admin di panel manajemen enrollment.
+                      </p>
                     </div>
                   )}
 

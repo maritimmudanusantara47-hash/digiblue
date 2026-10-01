@@ -144,7 +144,7 @@ class AdminCourseController extends Controller
         $section = CourseSection::findOrFail($sectionId);
 
         $validated = $request->validate([
-            'content_type'     => 'required|in:pdf_module,video_embed,mcq_quiz,essay_task,oral_video_task,critical_thinking',
+            'content_type'     => 'required|in:pdf_module,video_embed,mcq_quiz,essay_task,oral_video_task,critical_thinking,field_study',
             'title'            => 'required|string|max:255',
             'embed_url'        => 'nullable|url',
             'instruction_text' => 'nullable|string',

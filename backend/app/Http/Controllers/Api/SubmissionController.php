@@ -115,6 +115,12 @@ class SubmissionController extends Controller
             $mcqAnswersLog          = $quizAnswers;
         }
 
+        // Jika Field Study: konfirmasi kehadiran, auto-complete
+        if ($content->content_type === 'field_study') {
+            $score  = 100;
+            $status = 'graded';
+        }
+
         $submission = StudentSubmission::create([
             'user_id'          => $user->id,
             'content_id'       => $content->id,

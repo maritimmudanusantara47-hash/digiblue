@@ -52,6 +52,9 @@ Route::prefix('v1')->group(function () {
         Route::post('scholarships/apply',   [ScholarshipController::class, 'apply']);         // Upload berkas & surat motivasi
         Route::post('scholarships/{id}/appeal', [ScholarshipController::class, 'appeal']);    // Ajukan negosiasi biaya
 
+        // Student: Konfirmasi kehadiran Field Study
+        Route::patch('enrollments/{id}/confirm-field-study', [EnrollmentController::class, 'studentConfirmFieldStudy']);
+
         // Submission (Kuis, Esai, Video)
         Route::post('submissions',          [SubmissionController::class, 'store']);
         Route::get('submissions/my',        [SubmissionController::class, 'mySubmissions']); // Submission milik sendiri
