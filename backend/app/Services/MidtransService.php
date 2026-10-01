@@ -77,9 +77,10 @@ class MidtransService
             $snapToken   = $transaction->token ?? null;
             $redirectUrl = $transaction->redirect_url ?? "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}";
 
-            // Simpan token dan order_id sementara di enrollment
+            // Simpan token dan order_id di enrollment
             $enrollment->update([
                 'payment_token'        => $snapToken,
+                'order_id'             => $orderId,
                 'final_payment_amount' => $amount,
                 'payment_status'       => 'pending',
             ]);
@@ -93,6 +94,54 @@ class MidtransService
         } catch (Exception $e) {
             Log::error('Midtrans Snap Error: ' . $e->getMessage());
             throw $e;
+        }
+    }
+
+    /**
+     * Sinkronkan status transaksi langsung dari API Midtrans
+     */
+    public function syncTransactionStatus(Enrollment $enrollment): array
+    {
+        $this->initMidtrans();
+
+        if (!$enrollment->order_id) {
+            return ['status' => 'no_order_id', 'message' => 'Belum ada transaksi'];
+        }
+
+        try {
+            $midtransStatus = \Midtrans\Transaction::status($enrollment->order_id);
+            $trxStatus      = $midtransStatus->transaction_status ?? null;
+            $fraudStatus    = $midtransStatus->fraud_status ?? null;
+
+            if ($trxStatus === 'capture') {
+                if ($fraudStatus === 'accept') {
+                    $enrollment->update([
+                        'status'         => 'active',
+                        'payment_status' => 'paid',
+                        'paid_at'        => now(),
+                    ]);
+                }
+            } elseif ($trxStatus === 'settlement') {
+                $enrollment->update([
+                    'status'         => 'active',
+                    'payment_status' => 'paid',
+                    'paid_at'        => now(),
+                ]);
+            } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
+                $enrollment->update([
+                    'payment_status' => 'failed',
+                ]);
+            }
+
+            return [
+                'status'             => 'synced',
+                'is_active'          => in_array($enrollment->fresh()->status, ['active', 'completed']),
+                'enrollment_status'  => $enrollment->fresh()->status,
+                'transaction_status' => $trxStatus,
+            ];
+        } catch (Exception $e) {
+            Log::warning("Gagal sync status order {$enrollment->order_id}: " . $e->getMessage());
+            return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
 

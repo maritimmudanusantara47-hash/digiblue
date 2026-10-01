@@ -59,12 +59,20 @@ export default function StudentCatalogPage() {
       const res = await api.post('/payments/create-snap-token', {
         enrollment_id: enrollmentId,
       });
+
+      if (res.data.data?.is_paid) {
+        alert('🎉 Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
+        await loadData();
+        return;
+      }
+
       const snapToken = res.data.data?.snap_token;
       const redirectUrl = res.data.data?.redirect_url;
 
       if (typeof window !== 'undefined' && window.snap && snapToken) {
         window.snap.pay(snapToken, {
-          onSuccess: () => {
+          onSuccess: async () => {
+            await api.post('/payments/verify-status', { enrollment_id: enrollmentId }).catch(() => {});
             alert('🎉 Pembayaran berhasil! Kursus kamu sudah aktif.');
             loadData();
           },
@@ -75,7 +83,16 @@ export default function StudentCatalogPage() {
           onError: () => {
             alert('❌ Pembayaran gagal atau dibatalkan.');
           },
-          onClose: () => {
+          onClose: async () => {
+            // Sinkronkan status saat pop-up ditutup (jika user membayar lewat tab/simulator lain)
+            try {
+              const v = await api.post('/payments/verify-status', { enrollment_id: enrollmentId });
+              if (v.data?.data?.is_active) {
+                alert('🎉 Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.');
+              }
+            } catch {
+              // ignore
+            }
             loadData();
           },
         });

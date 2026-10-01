@@ -16,6 +16,7 @@ class Enrollment extends Model
         'attended_field_trip',
         'final_payment_amount',
         'payment_token',
+        'order_id',
         'payment_status',
         'paid_at',
     ];

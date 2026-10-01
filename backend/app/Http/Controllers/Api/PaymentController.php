@@ -35,6 +35,20 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Enrollment ini sudah aktif / lunas.'], 409);
         }
 
+        // Cek dulu apakah transaksi sebelumnya di Midtrans sebetulnya sudah lunas
+        if ($enrollment->order_id) {
+            $sync = $this->midtransService->syncTransactionStatus($enrollment);
+            if (!empty($sync['is_active'])) {
+                return response()->json([
+                    'message' => 'Pembayaran sudah terverifikasi lunas!',
+                    'data'    => [
+                        'is_paid'           => true,
+                        'enrollment_status' => 'active',
+                    ],
+                ]);
+            }
+        }
+
         try {
             $paymentData = $this->midtransService->createSnapToken($enrollment);
 
@@ -47,6 +61,29 @@ class PaymentController extends Controller
                 'message' => 'Gagal menghubungkan ke Midtrans: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Mahasiswa / sistem memverifikasi status pembayaran langsung ke Midtrans API
+     */
+    public function verifyStatus(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:enrollments,id',
+        ]);
+
+        $enrollment = Enrollment::findOrFail($validated['enrollment_id']);
+
+        if ($enrollment->user_id !== $request->user()->id && !$request->user()->hasRole('admin')) {
+            return response()->json(['message' => 'Tidak memiliki hak akses.'], 403);
+        }
+
+        $result = $this->midtransService->syncTransactionStatus($enrollment);
+
+        return response()->json([
+            'message' => 'Status pembayaran berhasil disinkronkan.',
+            'data'    => $result,
+        ]);
     }
 
     /**
