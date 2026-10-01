@@ -171,6 +171,33 @@ class AdminCourseController extends Controller
         return response()->json([
             'message'   => 'File berhasil diupload.',
             'file_path' => $path,
+            'url'       => url("storage/{$path}"),
         ]);
+    }
+
+    public function updateContent(Request $request, int $id): JsonResponse
+    {
+        $content = CourseContent::findOrFail($id);
+
+        $validated = $request->validate([
+            'title'            => 'sometimes|string|max:255',
+            'embed_url'        => 'nullable|url',
+            'instruction_text' => 'nullable|string',
+            'max_score'        => 'nullable|integer|min:0',
+            'is_prerequisite'  => 'nullable|boolean',
+            'order_index'      => 'nullable|integer',
+        ]);
+
+        $content->update($validated);
+
+        return response()->json(['message' => 'Konten berhasil diperbarui.', 'data' => $content->fresh()]);
+    }
+
+    public function destroyContent(int $id): JsonResponse
+    {
+        $content = CourseContent::findOrFail($id);
+        $content->delete();
+
+        return response()->json(['message' => 'Konten berhasil dihapus.']);
     }
 }

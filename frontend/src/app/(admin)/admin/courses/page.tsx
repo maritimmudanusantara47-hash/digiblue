@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
 interface CertLevel { id: number; code: string; name: string }
@@ -431,6 +432,7 @@ function CourseCard({
   onDelete: (c: Course) => void;
   onToggle: (c: Course) => void;
 }) {
+  const router = useRouter();
   const code  = course.certification_level?.code ?? 'SPEC';
   const badge = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
 
@@ -472,11 +474,18 @@ function CourseCard({
       {/* Actions */}
       <div className="flex gap-2 pt-1">
         <button
+          id={`content-course-${course.id}`}
+          onClick={() => router.push(`/admin/courses/${course.id}/content`)}
+          className="btn btn-sm text-xs bg-navy/10 text-navy border border-navy/20 hover:bg-navy hover:text-white transition-colors flex-1"
+        >
+          📚 Kelola Konten
+        </button>
+        <button
           id={`edit-course-${course.id}`}
           onClick={() => onEdit(course)}
-          className="btn btn-secondary btn-sm flex-1 text-xs"
+          className="btn btn-secondary btn-sm text-xs"
         >
-          ✏️ Edit
+          ✏️
         </button>
         <button
           id={`delete-course-${course.id}`}

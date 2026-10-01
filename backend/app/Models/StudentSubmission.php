@@ -12,6 +12,9 @@ class StudentSubmission extends Model
         'content_id',
         'essay_text',
         'video_url',
+        'file_share_url',
+        'mcq_answers_json',
+        'correct_count',
         'score',
         'assessor_feedback',
         'graded_by',
@@ -20,8 +23,10 @@ class StudentSubmission extends Model
     ];
 
     protected $casts = [
-        'score'     => 'float',
-        'graded_at' => 'datetime',
+        'score'            => 'float',
+        'graded_at'        => 'datetime',
+        'mcq_answers_json' => 'array',
+        'correct_count'    => 'integer',
     ];
 
     public function user(): BelongsTo

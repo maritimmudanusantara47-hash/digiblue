@@ -53,30 +53,46 @@ class SubmissionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'content_id'    => 'required|exists:course_contents,id',
-            'enrollment_id' => 'nullable|exists:enrollments,id',
-            'essay_text'    => 'nullable|string',
-            'video_url'     => 'nullable|url',
+            'content_id'     => 'required|exists:course_contents,id',
+            'enrollment_id'  => 'nullable|exists:enrollments,id',
+            'essay_text'     => 'nullable|string',
+            'video_url'      => 'nullable|url',
+            'file_share_url' => 'nullable|url',
             // Frontend bisa pakai 'quiz_answers' atau 'mcq_answers'
-            'quiz_answers'  => 'nullable|array',
-            'mcq_answers'   => 'nullable|array',
+            'quiz_answers'   => 'nullable|array',
+            'mcq_answers'    => 'nullable|array',
         ]);
 
         $content = CourseContent::findOrFail($validated['content_id']);
         $user    = $request->user();
 
-        // Cek sudah pernah submit
+        // Cek sudah pernah submit — untuk MCQ boleh retry jika belum lulus
         $existing = StudentSubmission::where('user_id', $user->id)
             ->where('content_id', $content->id)->first();
+
         if ($existing) {
-            return response()->json([
-                'message' => 'Kamu sudah pernah mengumpulkan tugas ini.',
-                'data'    => $existing,
-            ], 409);
+            // MCQ: kalau sudah lulus (score >= 70) tidak boleh retry
+            if ($content->content_type === 'mcq_quiz' && ($existing->score ?? 0) >= 70) {
+                return response()->json([
+                    'message' => 'Kamu sudah lulus kuis ini.',
+                    'data'    => $existing,
+                ], 409);
+            }
+            // MCQ: boleh retry — hapus submission lama
+            if ($content->content_type === 'mcq_quiz') {
+                $existing->delete();
+            } else {
+                return response()->json([
+                    'message' => 'Kamu sudah pernah mengumpulkan tugas ini.',
+                    'data'    => $existing,
+                ], 409);
+            }
         }
 
-        $score  = null;
-        $status = 'submitted';
+        $score         = null;
+        $status        = 'submitted';
+        $correctCount  = null;
+        $mcqAnswersLog = null;
 
         // Normalisasi quiz_answers / mcq_answers → format { question_id: option_id }
         $quizAnswers = $validated['quiz_answers'] ?? $validated['mcq_answers'] ?? null;
@@ -94,22 +110,28 @@ class SubmissionController extends Controller
 
         // Jika MCQ: hitung skor otomatis
         if ($content->content_type === 'mcq_quiz' && !empty($quizAnswers)) {
-            $score  = $this->autoGradeMcq($quizAnswers);
-            $status = 'graded';
+            [$score, $correctCount] = $this->autoGradeMcq($quizAnswers);
+            $status                 = 'graded';
+            $mcqAnswersLog          = $quizAnswers;
         }
 
         $submission = StudentSubmission::create([
-            'user_id'     => $user->id,
-            'content_id'  => $content->id,
-            'essay_text'  => $validated['essay_text'] ?? null,
-            'video_url'   => $validated['video_url'] ?? null,
-            'score'       => $score,
-            'status'      => $status,
+            'user_id'          => $user->id,
+            'content_id'       => $content->id,
+            'essay_text'       => $validated['essay_text'] ?? null,
+            'video_url'        => $validated['video_url'] ?? null,
+            'file_share_url'   => $validated['file_share_url'] ?? null,
+            'mcq_answers_json' => $mcqAnswersLog,
+            'correct_count'    => $correctCount,
+            'score'            => $score,
+            'status'           => $status,
         ]);
 
         $responseData = $submission->toArray();
         if ($content->content_type === 'mcq_quiz') {
-            $responseData['correct_count'] = null; // bisa dihitung jika perlu
+            $responseData['correct_count'] = $correctCount;
+            $questions = \App\Models\QuizQuestion::where('content_id', $content->id)->count();
+            $responseData['total_questions'] = $questions;
         }
 
         return response()->json([
@@ -150,16 +172,17 @@ class SubmissionController extends Controller
         ]);
     }
 
-    /** Hitung skor MCQ otomatis berdasarkan bobot tiap soal */
-    private function autoGradeMcq(array $answers): float
+    /** Hitung skor MCQ otomatis berdasarkan bobot tiap soal — returns [score, correctCount] */
+    private function autoGradeMcq(array $answers): array
     {
-        if (empty($answers)) return 0;
+        if (empty($answers)) return [0, 0];
 
         $questionIds = array_keys($answers);
         $questions   = QuizQuestion::with('options')->whereIn('id', $questionIds)->get();
 
         $totalWeight  = $questions->sum('weight_score');
         $earnedWeight = 0;
+        $correctCount = 0;
 
         foreach ($questions as $question) {
             $selectedOptionId = $answers[$question->id] ?? null;
@@ -168,12 +191,14 @@ class SubmissionController extends Controller
             $correctOption = $question->options->firstWhere('is_correct', true);
             if ($correctOption && (int)$selectedOptionId === $correctOption->id) {
                 $earnedWeight += $question->weight_score;
+                $correctCount++;
             }
         }
 
-        if ($totalWeight === 0) return 0;
+        if ($totalWeight === 0) return [0, 0];
 
         // Konversi ke skala 100
-        return round(($earnedWeight / $totalWeight) * 100, 2);
+        $score = round(($earnedWeight / $totalWeight) * 100, 2);
+        return [$score, $correctCount];
     }
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\CertificateController;
 use App\Http\Controllers\Api\AdminCertificateController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminCourseController;
+use App\Http\Controllers\Api\AdminQuizController;
 use App\Http\Controllers\Api\PaymentController;
 
 // ─── Public Routes ───────────────────────────────────────────────────────────
@@ -89,8 +90,16 @@ Route::prefix('v1')->group(function () {
 
             // Course Management (CRUD Dinamis)
             Route::apiResource('courses',  AdminCourseController::class);
-            Route::apiResource('courses.sections',  AdminCourseController::class); // Sections per kursus
-            Route::post('contents/{id}/upload',     [AdminCourseController::class, 'uploadFile']); // Upload PDF modul
+            Route::post('contents/{id}/upload',           [AdminCourseController::class, 'uploadFile']);     // Upload PDF modul
+            Route::post('sections/{sectionId}/contents',  [AdminCourseController::class, 'storeContent']);   // Tambah konten ke seksi
+            Route::patch('contents/{id}',                 [AdminCourseController::class, 'updateContent']);  // Edit konten
+            Route::delete('contents/{id}',                [AdminCourseController::class, 'destroyContent']); // Hapus konten
+
+            // Quiz Question CRUD (untuk MCQ)
+            Route::get('contents/{id}/questions',         [AdminQuizController::class, 'index']);   // List soal
+            Route::post('contents/{id}/questions',        [AdminQuizController::class, 'store']);   // Tambah soal
+            Route::patch('questions/{id}',                [AdminQuizController::class, 'update']);  // Edit soal
+            Route::delete('questions/{id}',               [AdminQuizController::class, 'destroy']); // Hapus soal
 
             // Scholarship Management
             Route::get('scholarships',              [ScholarshipController::class, 'adminIndex']);
