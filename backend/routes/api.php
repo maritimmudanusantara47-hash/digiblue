@@ -101,6 +101,7 @@ Route::prefix('v1')->group(function () {
             // Quiz Question CRUD (untuk MCQ)
             Route::get('contents/{id}/questions',         [AdminQuizController::class, 'index']);   // List soal
             Route::post('contents/{id}/questions',        [AdminQuizController::class, 'store']);   // Tambah soal
+            Route::post('contents/{id}/questions/import', [AdminQuizController::class, 'import']);  // Import soal dari PDF/Text/JSON
             Route::patch('questions/{id}',                [AdminQuizController::class, 'update']);  // Edit soal
             Route::delete('questions/{id}',               [AdminQuizController::class, 'destroy']); // Hapus soal
 

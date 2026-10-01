@@ -57,7 +57,8 @@ class SubmissionController extends Controller
             'enrollment_id'  => 'nullable|exists:enrollments,id',
             'essay_text'     => 'nullable|string',
             'video_url'      => 'nullable|url',
-            'file_share_url' => 'nullable|url',
+            'file_share_url' => 'nullable|string|max:1000',
+            'file'           => 'nullable|file|mimes:pdf,docx,doc|max:20480',
             // Frontend bisa pakai 'quiz_answers' atau 'mcq_answers'
             'quiz_answers'   => 'nullable|array',
             'mcq_answers'    => 'nullable|array',
@@ -121,12 +122,18 @@ class SubmissionController extends Controller
             $status = 'graded';
         }
 
+        $fileShareUrl = $validated['file_share_url'] ?? null;
+        if ($request->hasFile('file')) {
+            $path = $request->file('file')->store('submissions/' . $user->id, 'public');
+            $fileShareUrl = url('storage/' . $path);
+        }
+
         $submission = StudentSubmission::create([
             'user_id'          => $user->id,
             'content_id'       => $content->id,
             'essay_text'       => $validated['essay_text'] ?? null,
             'video_url'        => $validated['video_url'] ?? null,
-            'file_share_url'   => $validated['file_share_url'] ?? null,
+            'file_share_url'   => $fileShareUrl,
             'mcq_answers_json' => $mcqAnswersLog,
             'correct_count'    => $correctCount,
             'score'            => $score,

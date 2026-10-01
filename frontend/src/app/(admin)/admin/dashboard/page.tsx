@@ -32,7 +32,11 @@ export default function AdminDashboard() {
         certificates_issued:       certs.data.data?.meta?.total ?? 0,
         certificates_pending_sync: failedSync.data.data?.meta?.total ?? 0,
       });
-    }).finally(() => setLoading(false));
+    })
+    .catch((err) => {
+      console.error('Failed to load dashboard stats:', err);
+    })
+    .finally(() => setLoading(false));
   }, []);
 
   const statCards = [

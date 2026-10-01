@@ -34,7 +34,11 @@ export default function AssessorDashboard() {
         graded_count:  gradedTotal,
         recent:        list.slice(0, 5),
       });
-    }).finally(() => setLoading(false));
+    })
+    .catch((err) => {
+      console.error('Failed to load assessor dashboard stats:', err);
+    })
+    .finally(() => setLoading(false));
   }, []);
 
   const TYPE_LABEL: Record<string, string> = {
