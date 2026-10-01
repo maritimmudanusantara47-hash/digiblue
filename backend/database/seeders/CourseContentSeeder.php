@@ -15,13 +15,17 @@ class CourseContentSeeder extends Seeder
     {
         // Foundation Level — CBEc
         $foundation = Course::where('slug', 'like', '%foundation%')->first();
-
-        if (!$foundation) {
+        if ($foundation) {
+            $this->seedFoundationLevel($foundation);
+        } else {
             $this->command->warn('Foundation course not found. Skipping.');
-            return;
         }
 
-        $this->seedFoundationLevel($foundation);
+        // All Specialization Tracks
+        $specs = Course::whereHas('certificationLevel', fn ($q) => $q->where('code', 'SPEC'))->get();
+        foreach ($specs as $specCourse) {
+            $this->seedSpecializationLevel($specCourse);
+        }
     }
 
     private function seedFoundationLevel(Course $course): void
@@ -124,6 +128,169 @@ class CourseContentSeeder extends Seeder
                 'order_index'  => 3,
             ]
         );
+    }
+
+    private function seedSpecializationLevel(Course $course): void
+    {
+        $topic = $course->title; // e.g. "CBEc Specialization — The Blue Carbon"
+
+        // ─── Seksi 1: Materi Spesialisasi ─────────────────────────────────────
+        $sectionMateri = CourseSection::firstOrCreate([
+            'course_id' => $course->id,
+            'title'     => 'Materi Spesialisasi',
+        ], ['order_index' => 1]);
+
+        // Video Pengantar
+        CourseContent::firstOrCreate(
+            ['section_id' => $sectionMateri->id, 'title' => 'Pengantar: ' . $course->title],
+            [
+                'content_type'    => 'video_embed',
+                'embed_url'       => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'instruction_text'=> 'Simak video pengantar untuk memahami konsep dasar spesialisasi ini.',
+                'max_score'       => 0,
+                'is_prerequisite' => true,
+                'order_index'     => 1,
+            ]
+        );
+
+        // Modul Utama
+        CourseContent::firstOrCreate(
+            ['section_id' => $sectionMateri->id, 'title' => 'Modul Utama: Konsep & Teori'],
+            [
+                'content_type'    => 'pdf_module',
+                'instruction_text'=> 'Baca dan pahami modul utama ini sebelum mengerjakan tugas.',
+                'max_score'       => 0,
+                'is_prerequisite' => true,
+                'order_index'     => 2,
+            ]
+        );
+
+        // Modul Lanjutan
+        CourseContent::firstOrCreate(
+            ['section_id' => $sectionMateri->id, 'title' => 'Modul Lanjutan: Implementasi & Studi Kasus'],
+            [
+                'content_type'    => 'pdf_module',
+                'instruction_text'=> 'Pelajari implementasi nyata dan studi kasus terkini.',
+                'max_score'       => 0,
+                'is_prerequisite' => false,
+                'order_index'     => 3,
+            ]
+        );
+
+        // Critical Thinking
+        CourseContent::firstOrCreate(
+            ['section_id' => $sectionMateri->id, 'title' => 'Critical Thinking: Analisis Mendalam'],
+            [
+                'content_type'     => 'critical_thinking',
+                'instruction_text' => "Berdasarkan materi yang telah dipelajari, tuliskan analisis kritis kamu:\n1. Apa relevansi topik ini terhadap kondisi Indonesia saat ini?\n2. Apa tantangan dan peluang yang ada?\n3. Rekomendasikan langkah konkret yang bisa dilakukan.\n\nMinimum 300 kata dengan referensi dari modul yang dipelajari.",
+                'max_score'       => 100,
+                'is_prerequisite' => false,
+                'order_index'     => 4,
+            ]
+        );
+
+        // ─── Seksi 2: Ujian & Penilaian ───────────────────────────────────────
+        $sectionUjian = CourseSection::firstOrCreate([
+            'course_id' => $course->id,
+            'title'     => 'Ujian & Penilaian',
+        ], ['order_index' => 2]);
+
+        // MCQ Quiz
+        $quiz = CourseContent::firstOrCreate(
+            ['section_id' => $sectionUjian->id, 'title' => 'Kuis: Uji Pemahaman Spesialisasi'],
+            [
+                'content_type'    => 'mcq_quiz',
+                'instruction_text'=> 'Jawab semua pertanyaan. Nilai minimum kelulusan adalah 70.',
+                'max_score'       => 100,
+                'is_prerequisite' => false,
+                'order_index'     => 1,
+            ]
+        );
+
+        $this->seedSpecQuizQuestions($quiz, $course->slug);
+
+        // Essay Task
+        CourseContent::firstOrCreate(
+            ['section_id' => $sectionUjian->id, 'title' => 'Tugas Esai: Proposal Inovasi'],
+            [
+                'content_type'     => 'essay_task',
+                'instruction_text' => "Susunlah sebuah proposal singkat (500–800 kata) mengenai:\n\"Inovasi apa yang dapat kamu usulkan untuk mengembangkan sektor ini di Indonesia?\"\n\nSertakan:\n- Latar belakang permasalahan\n- Solusi inovatif yang diusulkan\n- Potensi dampak dan keberlanjutan\n- Rencana implementasi singkat",
+                'max_score'       => 100,
+                'is_prerequisite' => false,
+                'order_index'     => 2,
+            ]
+        );
+
+        // Oral Video Exam
+        CourseContent::firstOrCreate(
+            ['section_id' => $sectionUjian->id, 'title' => 'Ujian Oral Video: Presentasi Spesialisasi'],
+            [
+                'content_type'     => 'oral_video_task',
+                'instruction_text' => "Rekam video presentasi (5–10 menit) mengenai topik yang kamu pilih dari spesialisasi ini.\n\nPersyaratan:\n- Gunakan slide atau visualisasi pendukung\n- Upload ke YouTube (unlisted) atau Google Drive\n- Paste link video di kolom jawaban\n- Presentasi dalam Bahasa Indonesia atau Inggris",
+                'max_score'       => 100,
+                'is_prerequisite' => false,
+                'order_index'     => 3,
+            ]
+        );
+    }
+
+    private function seedSpecQuizQuestions(CourseContent $quiz, string $slug): void
+    {
+        // Generic 4-soal kuis untuk semua specialization
+        $questions = [
+            [
+                'question' => 'Prinsip utama yang membedakan spesialisasi ini dari pendekatan konvensional adalah?',
+                'options'  => [
+                    ['Fokus pada profit jangka pendek tanpa memperhatikan lingkungan', false],
+                    ['Integrasi keberlanjutan ekologis dengan pembangunan ekonomi', true],
+                    ['Hanya mengutamakan pertumbuhan produksi', false],
+                    ['Penggunaan teknologi tanpa mempertimbangkan dampak lingkungan', false],
+                ],
+            ],
+            [
+                'question' => 'Indonesia memiliki potensi besar di bidang kelautan karena?',
+                'options'  => [
+                    ['Populasi terbesar di dunia', false],
+                    ['Letak geografis sebagai negara kepulauan terbesar dengan biodiversitas tinggi', true],
+                    ['Memiliki teknologi kelautan paling maju', false],
+                    ['Anggaran pemerintah terbesar untuk sektor kelautan', false],
+                ],
+            ],
+            [
+                'question' => 'SDG (Sustainable Development Goals) yang paling berkaitan dengan Blue Economy adalah?',
+                'options'  => [
+                    ['SDG 1: No Poverty', false],
+                    ['SDG 9: Industry, Innovation and Infrastructure', false],
+                    ['SDG 14: Life Below Water', true],
+                    ['SDG 17: Partnerships for the Goals', false],
+                ],
+            ],
+            [
+                'question' => 'Pendekatan yang tepat dalam mengelola sumber daya kelautan secara berkelanjutan adalah?',
+                'options'  => [
+                    ['Eksploitasi maksimum untuk mencapai pertumbuhan ekonomi tertinggi', false],
+                    ['Moratorium total semua kegiatan di laut', false],
+                    ['Pengelolaan berbasis ekosistem dengan mempertimbangkan daya dukung alam', true],
+                    ['Menyerahkan sepenuhnya kepada mekanisme pasar', false],
+                ],
+            ],
+        ];
+
+        foreach ($questions as $i => $qData) {
+            $q = QuizQuestion::firstOrCreate(
+                ['content_id' => $quiz->id, 'question_text' => $qData['question']],
+                ['weight_score' => 25]
+            );
+            if ($q->options()->count() === 0) {
+                foreach ($qData['options'] as $opt) {
+                    QuizOption::create([
+                        'question_id' => $q->id,
+                        'option_text' => $opt[0],
+                        'is_correct'  => $opt[1],
+                    ]);
+                }
+            }
+        }
     }
 
     private function seedQuizQuestions(CourseContent $quiz): void
