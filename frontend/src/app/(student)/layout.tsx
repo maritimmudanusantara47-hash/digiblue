@@ -44,7 +44,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             </div>
             <div className="min-w-0">
               <p className="text-white text-sm font-semibold truncate">{user?.name ?? 'Peserta'}</p>
-              <p className="text-white/40 text-[11px] truncate">{user?.institution ?? ''}</p>
+              <p className="text-white/40 text-[11px] truncate">{user?.country ?? user?.institution ?? ''}</p>
             </div>
           </div>
         </div>

@@ -18,6 +18,7 @@ class AdminUserController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('country', 'like', "%{$search}%")
                   ->orWhere('institution', 'like', "%{$search}%");
             });
         }
@@ -44,6 +45,7 @@ class AdminUserController extends Controller
 
         $validated = $request->validate([
             'name'        => 'sometimes|string|max:255',
+            'country'     => 'sometimes|string|max:100',
             'institution' => 'sometimes|string|max:255',
             'phone_number'=> 'sometimes|string|max:30',
             'role'        => 'sometimes|in:admin,assessor,student',

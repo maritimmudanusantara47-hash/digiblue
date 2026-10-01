@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   phone_number?: string;
+  country?: string;
   institution?: string;
   email_verified_at: string | null;
   created_at: string;
@@ -93,7 +94,7 @@ export default function AdminUsersPage() {
                 <th className="px-4 py-3 text-left font-semibold">#</th>
                 <th className="px-4 py-3 text-left font-semibold">Nama</th>
                 <th className="px-4 py-3 text-left font-semibold">Email</th>
-                <th className="px-4 py-3 text-left font-semibold">Institusi</th>
+                <th className="px-4 py-3 text-left font-semibold">Negara / Country</th>
                 <th className="px-4 py-3 text-left font-semibold">Role</th>
                 <th className="px-4 py-3 text-left font-semibold">Verifikasi</th>
                 <th className="px-4 py-3 text-left font-semibold">Bergabung</th>
@@ -132,7 +133,7 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{u.email}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">{u.institution ?? '—'}</td>
+                    <td className="px-4 py-3 text-slate-500 text-xs">{u.country ?? u.institution ?? '—'}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border capitalize ${ROLE_BADGE[role] ?? 'bg-slate-100 text-slate-600 border-slate-300'}`}>
                         {role}

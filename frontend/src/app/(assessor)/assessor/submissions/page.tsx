@@ -6,7 +6,7 @@ import api from '@/lib/api';
 
 interface Submission {
   id: number;
-  user: { id: number; name: string; email: string; institution?: string };
+  user: { id: number; name: string; email: string; country?: string; institution?: string };
   content: { id: number; title: string; content_type: string; max_score: number };
   essay_text: string | null;
   video_url: string | null;
@@ -144,7 +144,7 @@ export default function AssessorSubmissionsPage() {
                 <tr key={sub.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-3">
                     <p className="font-medium text-navy-dark">{sub.user?.name}</p>
-                    <p className="text-xs text-slate-400">{sub.user?.institution ?? sub.user?.email}</p>
+                    <p className="text-xs text-slate-400">{sub.user?.country ?? sub.user?.institution ?? sub.user?.email}</p>
                   </td>
                   <td className="px-4 py-3 max-w-[180px]">
                     <p className="font-medium text-sm text-navy-dark truncate">{sub.content?.title}</p>

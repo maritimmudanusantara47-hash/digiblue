@@ -10,13 +10,52 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { AuthResponse } from '@/types';
 
+const COUNTRIES = [
+  { code: 'ID', name: 'Indonesia', flag: '🇮🇩' },
+  { code: 'MY', name: 'Malaysia', flag: '🇲🇾' },
+  { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
+  { code: 'PH', name: 'Philippines', flag: '🇵🇭' },
+  { code: 'TH', name: 'Thailand', flag: '🇹🇭' },
+  { code: 'VN', name: 'Vietnam', flag: '🇻🇳' },
+  { code: 'BN', name: 'Brunei Darussalam', flag: '🇧🇳' },
+  { code: 'TL', name: 'Timor-Leste', flag: '🇹🇱' },
+  { code: 'KH', name: 'Cambodia', flag: '🇰🇭' },
+  { code: 'LA', name: 'Laos', flag: '🇱🇦' },
+  { code: 'MM', name: 'Myanmar', flag: '🇲🇲' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'KR', name: 'South Korea', flag: '🇰🇷' },
+  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'NZ', name: 'New Zealand', flag: '🇳🇿' },
+  { code: 'FJ', name: 'Fiji', flag: '🇫🇯' },
+  { code: 'PG', name: 'Papua New Guinea', flag: '🇵🇬' },
+  { code: 'NA', name: 'Namibia', flag: '🇳🇦' },
+  { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
+  { code: 'EG', name: 'Egypt', flag: '🇪🇬' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'ES', name: 'Spain', flag: '🇪🇸' },
+  { code: 'IT', name: 'Italy', flag: '🇮🇹' },
+  { code: 'NO', name: 'Norway', flag: '🇳🇴' },
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
+  { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪' },
+  { code: 'SA', name: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: 'TR', name: 'Turkey', flag: '🇹🇷' },
+  { code: 'OTHER', name: 'Other / Lainnya', flag: '🌍' },
+];
+
 const registerSchema = z.object({
   name:             z.string().min(3, 'Nama minimal 3 karakter'),
   email:            z.string().email('Format email tidak valid'),
   password:         z.string().min(8, 'Password minimal 8 karakter'),
   password_confirmation: z.string(),
   phone_number:     z.string().optional(),
-  institution:      z.string().min(2, 'Masukkan nama institusi / universitas'),
+  country:          z.string().min(2, 'Pilih Negara / Country asal'),
 }).refine(d => d.password === d.password_confirmation, {
   message: 'Konfirmasi password tidak cocok',
   path: ['password_confirmation'],
@@ -31,6 +70,9 @@ export default function RegisterPage() {
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      country: 'Indonesia',
+    },
   });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -68,12 +110,22 @@ export default function RegisterPage() {
           {errors.email && <span className="form-error">{errors.email.message}</span>}
         </div>
 
-        {/* Institusi */}
+        {/* Negara / Country */}
         <div className="flex flex-col gap-1.5">
-          <label className="form-label">Institusi / Universitas</label>
-          <input id="reg-institution" type="text" placeholder="Universitas Indonesia"
-            className={`form-input ${errors.institution ? 'error' : ''}`} {...register('institution')} />
-          {errors.institution && <span className="form-error">{errors.institution.message}</span>}
+          <label className="form-label">Negara / Country</label>
+          <select
+            id="reg-country"
+            className={`form-input ${errors.country ? 'error' : ''}`}
+            {...register('country')}
+          >
+            <option value="" disabled>-- Pilih Negara / Country --</option>
+            {COUNTRIES.map(c => (
+              <option key={c.name} value={c.name}>
+                {c.flag} {c.name}
+              </option>
+            ))}
+          </select>
+          {errors.country && <span className="form-error">{errors.country.message}</span>}
         </div>
 
         {/* No. WhatsApp */}

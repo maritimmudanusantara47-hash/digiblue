@@ -18,6 +18,7 @@ class AuthController extends Controller
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|string|min:8|confirmed',
             'phone_number' => 'nullable|string|max:20',
+            'country'      => 'nullable|string|max:100',
             'institution'  => 'nullable|string|max:255',
         ]);
 
@@ -26,7 +27,8 @@ class AuthController extends Controller
             'email'        => $validated['email'],
             'password'     => Hash::make($validated['password']),
             'phone_number' => $validated['phone_number'] ?? null,
-            'institution'  => $validated['institution'] ?? null,
+            'country'      => $validated['country'] ?? 'Indonesia',
+            'institution'  => $validated['institution'] ?? $validated['country'] ?? null,
         ]);
 
         $user->assignRole('student');

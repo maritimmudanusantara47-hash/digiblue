@@ -12,7 +12,8 @@ export interface User {
   name: string;
   email: string;
   phone_number: string;
-  institution: string;
+  country?: string;
+  institution?: string;
   roles: Role[];  // Dari Spatie Permission
   created_at: string;
 }

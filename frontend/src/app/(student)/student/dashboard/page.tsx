@@ -43,7 +43,7 @@ export default function StudentDashboard() {
         <h1 className="text-2xl font-extrabold text-navy-dark">
           Selamat datang, {user?.name?.split(' ')[0] ?? 'Peserta'} 👋
         </h1>
-        <p className="text-slate-500 text-sm mt-1">{user?.institution}</p>
+        <p className="text-slate-500 text-sm mt-1">{user?.country ?? user?.institution}</p>
       </div>
 
       {/* Stats */}
