@@ -168,8 +168,8 @@ export default function AdminCourseContentPage() {
 
       <div className="flex gap-6">
         {/* Sidebar: Section & Content List */}
-        <aside className="w-72 flex-shrink-0">
-          <div className="card p-0 overflow-hidden sticky top-4">
+        <aside className="w-72 flex-shrink-0 self-start">
+          <div className="card p-0 overflow-hidden sticky top-6">
             <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Daftar Konten</p>
             </div>

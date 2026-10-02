@@ -107,7 +107,24 @@
   /* Dashboard Sidebar */
   .sidebar {
     background: linear-gradient(180deg, #0F1E33 0%, #1E3A5F 100%);
-    @apply w-64 min-h-screen sticky top-0 flex flex-col flex-shrink-0;
+    @apply w-64 h-screen sticky top-0 flex flex-col flex-shrink-0 z-30 overflow-hidden;
+    height: 100vh;
+    align-self: flex-start;
+  }
+  .sidebar-nav {
+    @apply flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+  .sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+  }
+  .sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
   }
   .sidebar-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium

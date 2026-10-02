@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen bg-slate-50">
       <aside className="sidebar">
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/10">
+        <div className="px-6 py-6 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center font-extrabold text-navy-dark">D</div>
             <div>
@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Admin info */}
-        <div className="px-5 py-4 border-b border-white/10">
+        <div className="px-5 py-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-gold font-bold text-sm">
               {user?.name?.[0]?.toUpperCase() ?? 'A'}
@@ -53,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
+        <nav className="sidebar-nav">
           {adminNav.map(item => (
             <Link key={item.href} href={item.href}
               className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}>
@@ -63,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
 
-        <div className="px-3 pb-6">
+        <div className="px-3 pb-6 flex-shrink-0 mt-auto">
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
             <span>🚪</span><span>Keluar</span>
@@ -71,7 +71,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-y-auto max-w-[calc(100vw-256px)]">
+      <main className="flex-1 min-w-0 p-8 max-w-[calc(100vw-256px)]">
         {children}
       </main>
     </div>
