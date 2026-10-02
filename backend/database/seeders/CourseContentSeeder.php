@@ -353,7 +353,8 @@ Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
 
     private function seedSpecializationLevel(Course $course): void
     {
-        $trackTitle = str_replace('CBEc Specialization — ', '', $course->title);
+        $rawTitle = str_replace('CBEc Specialization — ', '', $course->title);
+        $trackTitle = trim(explode(':', $rawTitle)[0]);
 
         $section = CourseSection::create([
             'course_id'   => $course->id,
@@ -424,17 +425,20 @@ Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
     private function seedTrackSpecificQuizQuestions(CourseContent $quiz, string $track): void
     {
         $questions = match ($track) {
-            'The Blue Carbon'             => $this->getBlueCarbonQuestions(),
-            'Blue Business Development'   => $this->getBlueBusinessQuestions(),
-            'Blue Data Intelligence'      => $this->getBlueDataQuestions(),
-            'Circular Economy'            => $this->getCircularEconomyQuestions(),
-            'Blue Community Development'  => $this->getBlueCommunityQuestions(),
-            'Blue Farming'                => $this->getBlueFarmingQuestions(),
-            'Blue Tourism'                => $this->getBlueTourismQuestions(),
-            'Blue Shipping'               => $this->getBlueShippingQuestions(),
-            'Blue Finance'                => $this->getBlueFinanceQuestions(),
-            'Blue Food & Energy Circular' => $this->getBlueFoodEnergyQuestions(),
-            default                       => $this->getDefaultSpecQuestions($track),
+            'The Blue Carbon', 'Blue Carbon'             => $this->getBlueCarbonQuestions(),
+            'Blue Business Development'                  => $this->getBlueBusinessQuestions(),
+            'Blue Community Development'                 => $this->getBlueCommunityQuestions(),
+            'Circular Economy', 'Blue Circular Economy'  => $this->getCircularEconomyQuestions(),
+            'Blue Data Intelligence'                     => $this->getBlueDataQuestions(),
+            'Blue Energy'                                => $this->getBlueEnergyQuestions(),
+            'Blue Farming'                               => $this->getBlueFarmingQuestions(),
+            'Blue Finance'                               => $this->getBlueFinanceQuestions(),
+            'Blue Food'                                  => $this->getBlueFoodQuestions(),
+            'Blue Port'                                  => $this->getBluePortQuestions(),
+            'Blue Shipping'                              => $this->getBlueShippingQuestions(),
+            'Blue Tourism'                               => $this->getBlueTourismQuestions(),
+            'Blue Food & Energy Circular'                => $this->getBlueFoodEnergyQuestions(),
+            default                                      => $this->getDefaultSpecQuestions($track),
         };
 
         $this->insertQuestionsAndOptions($quiz, $questions);
@@ -1504,6 +1508,324 @@ Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
         ];
     }
 
+    private function getBlueEnergyQuestions(): array
+    {
+        return [
+            [
+                'question' => 'Pembangkit Listrik Tenaga Arus Laut (PLTAL) memiliki keunggulan komparatif terbesar dibanding energi surya dan angin di selat-selat sempit Indonesia karena sifat energinya yang:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Sangat dapat diprediksi secara astronomis sepanjang tahun (*highly predictable*) dengan densitas energi kinetik air laut yang jauh lebih rapat daripada udara', true],
+                    ['Hanya dapat beroperasi secara optimal pada siang hari saat terik matahari bersinar', false],
+                    ['Memerlukan bahan bakar solar diesel tambahan untuk memutar turbin laut', false],
+                    ['Menghasilkan radiasi elektromagnetik frekuensi tinggi yang memanaskan air laut', false],
+                ],
+            ],
+            [
+                'question' => 'Teknologi Ocean Thermal Energy Conversion (OTEC) menghasilkan daya listrik baseload kontinu dengan memanfaatkan perbedaan temperatur antara:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Air laut permukaan yang hangat (25–29°C) dan air laut dalam yang dingin (4–6°C pada kedalaman 800–1.000 meter) dengan selisih gradien minimal 20°C', true],
+                    ['Air buangan kondensor kapal dan air es kutub samudra', false],
+                    ['Suhu udara pesisir pantai siang hari dan suhu pasir malam hari', false],
+                    ['Uap panas bumi kawah bawah laut dan air sungai tawar', false],
+                ],
+            ],
+            [
+                'question' => 'Pembangkit Listrik Tenaga Gelombang Laut (PLTGL) bertipe Oscillating Water Column (OWC) mengubah gerak naik-turun ombak menjadi putaran generator melalui komponen unik:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Turbin Wells (*Wells Turbine*) yang terus berputar ke arah yang sama meskipun aliran udara bolak-balik terkompresi dan terdekompresi oleh ombak', true],
+                    ['Baling-baling kapal konvensional yang diikat langsung ke jangkar pantai', false],
+                    ['Dinamo sepeda motor air yang dipasang mengapung di atas pelampung gabus', false],
+                    ['Roda kincir air kayu bertingkat seperti pada irigasi pertanian darat', false],
+                ],
+            ],
+            [
+                'question' => 'Pemasangan PLTS Terapung Laut (*Offshore Floating Solar PV*) di teluk perairan tenang pesisir memiliki keunggulan teknis dibandingkan PLTS darat, yaitu:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Efek pendinginan alami oleh air laut meningkatkan efisiensi modul surya hingga 10–15% serta tidak memakan lahan daratan pulau yang terbatas', true],
+                    ['Panel surya tidak memerlukan kabel transmisi karena listrik ditransmisikan via gelombang radio', false],
+                    ['Bebas dari risiko korosi air laut meskipun menggunakan material logam besi biasa tanpa pelapis', false],
+                    ['Dapat menyerap sinar matahari di malam hari melalui pantulan cahaya bintang', false],
+                ],
+            ],
+            [
+                'question' => 'Untuk perairan laut dalam di atas 60–100 meter, teknologi turbin angin lepas pantai (*Offshore Wind*) bertumpu pada struktur pondasi bertipe:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Pondasi terapung (*Floating Substructures*) seperti spar-buoy, semi-submersible, atau Tension Leg Platform (TLP) dengan sistem tambat jangkar dasar laut', true],
+                    ['Tiang pancang beton monopause permanen yang ditancapkan sedalam 500 meter', false],
+                    ['Pondasi batu kali konvensional seperti pembangunan dermaga beton pelabuhan', false],
+                    ['Tumpukan karung pasir laut yang ditumpuk di dasar samudra', false],
+                ],
+            ],
+            [
+                'question' => 'Pembangkit Listrik Tenaga Pasang Surut (*Tidal Energy*) tipe Tidal Stream berbeda dengan tipe Tidal Barrage dalam hal:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Tidal Stream memanfaatkan kecepatan aliran air laut di selat sempit tanpa perlu membangun bendungan waduk masif yang mengubah dinamika estuari pesisir', true],
+                    ['Tidal Stream memerlukan bendungan bendungan raksasa yang menutup teluk secara permanen', false],
+                    ['Tidal Stream hanya bekerja saat terjadi badai topan tropis di laut lepas', false],
+                    ['Tidal Barrage tidak menggunakan turbin generator dalam konversi energinya', false],
+                ],
+            ],
+            [
+                'question' => 'Pemanfaatan listrik bersih dari energi laut untuk memproduksi *Green Hydrogen* (Hidrogen Hijau) dilakukan melalui proses:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Elektrolisis air laut yang telah didesalinasi untuk memisahkan molekul hidrogen dan oksigen tanpa menghasilkan emisi gas rumah kaca', true],
+                    ['Pembakaran minyak bumi mentah di dalam ruang hampa udara kapal tanker', false],
+                    ['Pencampuran gas elpiji dengan air laut bersalinitas tinggi di tangki penyimpanan', false],
+                    ['Penyulingan batubara muda di bawah tekanan air laut dalam', false],
+                ],
+            ],
+            [
+                'question' => 'Dalam arsitektur *Smart Microgrid* pulau-pulau kecil terpencil (3T), peran Battery Energy Storage System (BESS) sangat vital untuk:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Menstabilkan fluktuasi pasokan daya (*grid stability*), menyimpan surplus energi laut/surya, dan menjamin ketersediaan listrik 24 jam tanpa ketergantungan PLTD solar', true],
+                    ['Menggantikan seluruh trafo distribusi jaringan listrik desa', false],
+                    ['Menaikkan voltase tegangan listrik rumah tangga hingga 10.000 Volt', false],
+                    ['Menghilangkan kebutuhan kabel tiang listrik di permukiman warga', false],
+                ],
+            ],
+            [
+                'question' => 'Kajian Analisis Mengenai Dampak Lingkungan (AMDAL) pada proyek instalasi turbin arus laut bawah air wajib memitigasi risiko ekologis utama berupa:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Dampak kebisingan bawah air (*underwater acoustic noise*) terhadap navigasi mamalia laut (lumba-lumba/paus) serta risiko benturan biota dengan sudu-sudu turbin yang berputar lambat', true],
+                    ['Risiko berkurangnya kadar garam air laut secara drastis hingga menjadi tawar', false],
+                    ['Ancaman kenaikan temperatur air laut global sebesar 10 derajat Celcius', false],
+                    ['Risiko punahnya plankton akibat tersedot oleh kabel listrik tembaga', false],
+                ],
+            ],
+            [
+                'question' => 'Parameter ekonomi utama untuk menilai daya saing biaya pembangkitan listrik proyek energi terbarukan laut sepanjang siklus hidup asetnya adalah:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Levelized Cost of Electricity (LCOE) yang memperhitungkan total biaya Capex investasi, Opex pemeliharaan laut, dan total produksi listrik selama masa konsesi', true],
+                    ['Tarif pajak penghasilan tahunan pengembang listrik swasta', false],
+                    ['Harga jual besi tua bekas rangka turbin di pasar loak', false],
+                    ['Biaya sewa kamar hotel bagi teknisi selama peresmian proyek', false],
+                ],
+            ],
+        ];
+    }
+
+    private function getBlueFoodQuestions(): array
+    {
+        return [
+            [
+                'question' => 'Istilah *Blue Foods* (Pangan Biru) merujuk pada keunggulan komparatif bahan pangan hewani dan nabati yang dipanen dari lingkungan perairan karena:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Mengandung spektrum mikronutrien esensial padat (Omega-3 DHA/EPA, vitamin B12, vitamin A, zat besi, zinc) dengan intensitas emisi karbon dan jejak air daratan yang jauh lebih rendah daripada protein ternak darat', true],
+                    ['Diberi zat pewarna kimia sintetis biru cerah agar menarik perhatian anak-anak', false],
+                    ['Hanya berasal dari makanan kalengan impor yang diawetkan dengan natrium benzoat', false],
+                    ['Merupakan makanan beku cepat saji impor yang dimasak menggunakan oven microwave', false],
+                ],
+            ],
+            [
+                'question' => 'Mikroalga *Spirulina* (*Arthrospira platensis*) diposisikan sebagai superfood maritim unggulan dalam penanganan stunting anak di desa pesisir karena:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Memiliki densitas protein sangat tinggi (60–70% berat kering), asam amino esensial lengkap, zat besi bioavailable, dan antioksidan fikosianin', true],
+                    ['Mengandung kadar lemak trans tinggi yang setara dengan mentega industri', false],
+                    ['Dapat menggantikan fungsi garam dapur murni secara langsung dalam masakan', false],
+                    ['Hanya dapat tumbuh pada air limbah pabrik industri tekstil', false],
+                ],
+            ],
+            [
+                'question' => 'Budidaya makroalga rumput laut (*Eucheuma cottonii* dan *Gracilaria*) menyumbang ketahanan pangan dan gizi melalui produk pangan bernilai tambah berupa:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Sumber serat pangan larut (*dietary fiber*), hidrokoloid agar-agar dan karaginan sebagai penstabil makanan alami, serta fortifikan mineral iodium alami', true],
+                    ['Bahan bakar bensin beroktan tinggi pengganti minyak bumi', false],
+                    ['Pengawet kimia berbahaya pengganti boraks dan formalin', false],
+                    ['Bahan baku plastik sintetis beracun yang tidak dapat terurai', false],
+                ],
+            ],
+            [
+                'question' => 'Pemanfaatan Air Laut Dalam (*Deep Sea Water* / DSW) pada industri pangan laut fungsional memiliki keunggulan mutu alami karena:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Berasal dari kedalaman >200–500 meter yang sangat steril bebas patogen permukaan, kaya garam mineral esensial (magnesium, kalsium, kalium), dan bersuhu dingin konstan', true],
+                    ['Mengandung minyak bumi mentah yang siap diekstraksi menjadi minyak goreng', false],
+                    ['Memiliki tingkat keasaman pekat yang mampu melarutkan tulang ikan seketika', false],
+                    ['Bebas sama sekali dari kandungan garam sehingga terasa manis seperti air tebu', false],
+                ],
+            ],
+            [
+                'question' => 'Penerapan teknologi *Solar-Powered Slurry Ice Machine* di sentra pendaratan ikan pulau kecil bertujuan mengatasi masalah struktural berupa:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Tingginya *post-harvest fish loss* (kerusakan mutu ikan hasil tangkapan) akibat ketiadaan pabrik es konvensional dan mahalnya pasokan BBM solar di pulau terluar', true],
+                    ['Kelebihan pasokan ikan segar di pasar lokal yang menyebabkan harga melambung tinggi', false],
+                    ['Kurangnya garam dapur untuk membuat ikan asin kering tradisional', false],
+                    ['Tuntutan konsumen perkotaan yang hanya menyukai ikan asin berformalin', false],
+                ],
+            ],
+            [
+                'question' => 'Sistem Ketertelusuran Pangan Laut (*Seafood Traceability*) berbasis kode QR dan blockchain pada produk perikanan memberikan nilai tambah ekonomi berupa:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Jaminan transparansi legalitas tangkapan (bebas IUU Fishing), keaslian spesies, asal perairan WPPNRI, dan riwayat suhu rantai dingin bagi konsumen dan pasar ekspor premium', true],
+                    ['Kenaikan biaya bea masuk impor di negara tujuan perdagangan', false],
+                    ['Kewajiban nelayan membayar komisi harian kepada perantara calo tengkulak', false],
+                    ['Penghapusan kewajiban pemeriksaan karantina ikan di pelabuhan muat', false],
+                ],
+            ],
+            [
+                'question' => 'Budidaya kerang-kerangan (Bivalve Aquaculture seperti tiram dan kerang hijau) dikenal sebagai *Extractive Aquaculture* ramah lingkungan karena:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Bersifat filter feeder yang menyaring plankton dan partikel organik dari kolom air tanpa membutuhkan pakan buatan pelet komersial serta membantu menjernihkan perairan', true],
+                    ['Membutuhkan antibiotik kimia dosis tinggi yang dicampur ke dalam air tambak', false],
+                    ['Membabat habis vegetasi hutan bakau untuk dijadikan kolam beton tertutup', false],
+                    ['Menghasilkan limbah lumpur beracun yang mengendap di dasar laut lepas', false],
+                ],
+            ],
+            [
+                'question' => 'Pemanfaatan hasil samping pengolahan ikan (tulang, kulit, kepala, jeroan) menjadi Hidrolisat Protein Ikan (HPI) berperan strategis dalam:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Pencegahan *food waste* dengan mengubah limbah biomassa menjadi konsentrat asam amino peptida bernilai gizi tinggi untuk fortifikasi makanan balita dan lansia', true],
+                    ['Pembuatan pakan ternak murah berbau busuk tanpa proses biokimia terstandar', false],
+                    ['Pembuangan limbah organik cair langsung ke perairan pantai wisata', false],
+                    ['Penggantian seluruh asupan protein hewani dengan zat kimia sintetis', false],
+                ],
+            ],
+            [
+                'question' => 'Penerapan standar sistem Hazard Analysis Critical Control Point (HACCP) pada pengolahan produk perikanan tangkap dan budidaya difokuskan pada:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Pencegahan dan pengendalian bahaya biologi (bakteri Salmonella/Vibrio), bahaya kimia (histamin, merkuri, antibiotik), dan bahaya fisik di setiap tahapan kritis pengolahan', true],
+                    ['Penetapan harga jual eceran tertinggi produk olahan ikan di pasar swalayan', false],
+                    ['Pewajiban penggunaan kemasan plastik sekali pakai tanpa daur ulang', false],
+                    ['Pembatasan jumlah karyawan wanita pada lini produksi pabrik pengolahan', false],
+                ],
+            ],
+            [
+                'question' => 'Strategi kedaulatan pangan berbasis Blue Foods di wilayah pesisir kepulauan Indonesia diarahkan untuk:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Diversifikasi konsumsi pangan lokal berbasis protein laut guna mengurangi ketergantungan pada komoditas pangan impor dan daging ternak daratan', true],
+                    ['Melarang masyarakat pesisir mengonsumsi ikan segar hasil tangkapannya sendiri', false],
+                    ['Mengekspor seluruh komoditas hasil laut mentah tanpa hilirisasi di dalam negeri', false],
+                    ['Mengganti pola makan tradisional masyarakat pesisir dengan makanan cepat saji instan', false],
+                ],
+            ],
+        ];
+    }
+
+    private function getBluePortQuestions(): array
+    {
+        return [
+            [
+                'question' => 'Konsep *Green Port* (Pelabuhan Hijau) dan standar sertifikasi internasional pelabuhan ramah lingkungan menekankan pada:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Pengelolaan operasional pelabuhan yang menyeimbangkan efisiensi logistik perdagangan maritim dengan dekarbonisasi emisi, pencegahan polusi laut, dan konservasi biodiversitas pesisir', true],
+                    ['Pengecatan seluruh dinding dermaga pelabuhan dengan warna cat hijau daun', false],
+                    ['Penutupan akses kapal kargo internasional agar perairan pelabuhan tetap tenang', false],
+                    ['Pembebasan bea labuh tambat bagi kapal-kapal yang menggunakan bahan bakar minyak kotor', false],
+                ],
+            ],
+            [
+                'question' => 'Fasilitas *Onshore Power Supply* (OPS) atau *Cold Ironing* di dermaga pelabuhan memberikan dampak dekarbonisasi signifikan dengan cara:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Menyediakan sambungan listrik dari darat (*shore-to-ship power*) sehingga kapal dapat mematikan mesin bantu diesel saat bersandar untuk bongkar muat', true],
+                    ['Menyemprotkan air es dingin ke lambung kapal agar muatan tidak kepanasan', false],
+                    ['Mengharuskan kapal mematikan lampu navigasi saat berlabuh di malam hari', false],
+                    ['Memasang panel surya mini di atas tali tambat kapal di bibir dermaga', false],
+                ],
+            ],
+            [
+                'question' => 'Regulasi IMO MARPOL Annex VI membatasi kadar sulfur pada bahan bakar minyak kapal secara global (*IMO 2020 Sulphur Cap*) maksimal sebesar:',
+                'weight'   => 10,
+                'options'  => [
+                    ['0,50% m/m (mass by mass) di luar area kontrol emisi (ECA) untuk memangkas polusi partikulat SOx di kawasan perairan dan pelabuhan padat penduduk', true],
+                    ['5,00% m/m tanpa batasan jenis bahan bakar minyak yang digunakan', false],
+                    ['15,0% m/m untuk kapal penangkap ikan tradisional skala kecil', false],
+                    ['50,0% m/m khusus bagi kapal kargo pengangkut batubara curah', false],
+                ],
+            ],
+            [
+                'question' => 'Kewajiban penyediaan *Port Reception Facilities* (PRF) yang memadai di pelabuhan sesuai Konvensi MARPOL Annex V bertujuan untuk:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Menampung dan mengolah limbah sampah padat, sampah plastik, sisa muatan, dan limbah minyak kapal agar tidak dibuang secara ilegal ke laut lepas', true],
+                    ['Tempat penampungan hewan peliharaan penumpang kapal pesiar selama bersandar', false],
+                    ['Pusat perbelanjaan bebas bea (duty-free shopping mall) bagi awak kapal kargo', false],
+                    ['Tempat pembuangan langsung limbah industri pelabuhan ke dalam terumbu karang terdekat', false],
+                ],
+            ],
+            [
+                'question' => 'Konvensi Pengelolaan Air Balas Kapal (*Ballast Water Management Convention* / BWM 2004) diwajibkan bagi pelabuhan internasional guna mencegah:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Invasi spesies laut asing berbahaya dan patogen berbahaya (*invasive aquatic species*) yang terbawa dalam tangki balas kapal dari wilayah biogeografi lain', true],
+                    ['Pencurian air tawar pelabuhan oleh awak kapal kargo niaga', false],
+                    ['Kelebihan muatan peti kemas yang melebihi batas sarat air kapal (*draft limit*)', false],
+                    ['Kerusakan cat anti-fouling pada lambung kapal saat berlayar di laut dangkal', false],
+                ],
+            ],
+            [
+                'question' => 'Transisi menuju pelabuhan rendah emisi mendorong penyediaan infrastruktur pengisian bahan bakar kapal rendah/nol karbon (*Alternative Marine Bunkering*) seperti:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Fasilitas bunkering LNG (Liquefied Natural Gas), Biofuel terverifikasi, Metanol hijau, dan Amonia hijau untuk kapal pelayaran masa depan', true],
+                    ['Pengisian minyak tanah mentah bersubsidi untuk seluruh kapal kargo asing', false],
+                    ['Penyediaan tangki batubara serbuk di setiap sudut dermaga curah', false],
+                    ['Penggunaan oli pelumas bekas motor darat sebagai bahan bakar mesin induk kapal', false],
+                ],
+            ],
+            [
+                'question' => 'Sistem *Smart Port System* terintegrasi (seperti Port Community System / Inaportnet dan *Just-In-Time Arrival*) berkontribusi pada efisiensi hijau melalui:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Pengurangan waktu tunggu kapal berlabuh (*waiting time* & *turnaround time*) sehingga kapal dapat mengatur kecepatan pelayaran (*slow steaming*) dan menghemat konsumsi BBM', true],
+                    ['Penghapusan seluruh pemeriksaan bea cukai dan karantina satwa liar laut', false],
+                    ['Pewajiban seluruh transaksi logistik menggunakan uang tunai fisik koin perak', false],
+                    ['Pemberian izin berlayar bagi kapal yang tidak laik laut tanpa inspeksi fisik', false],
+                ],
+            ],
+            [
+                'question' => 'Pengerukan alur pelayaran pelabuhan berkelanjutan (*Green Capital & Maintenance Dredging*) wajib menerapkan mitigasi lingkungan berupa:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Pemantauan sebaran sedimentasi lumpur (*turbidity plume*), penggunaan *silt curtain*, dan pemanfaatan kembali material kerukan yang tidak tercemar untuk restorasi pesisir (*beneficial use*)', true],
+                    ['Pembuangan seluruh material lumpur kerukan di atas kawasan terumbu karang hidup', false],
+                    ['Pengerukan alur menggunakan bahan peledak dinamit bawah air berdaya ledak tinggi', false],
+                    ['Penghentian seluruh kegiatan patroli pengawasan pencemaran laut oleh syahbandar', false],
+                ],
+            ],
+            [
+                'question' => 'Elektrifikasi peralatan penanganan peti kemas di terminal pelabuhan, seperti konversi dari diesel RTG menjadi Electric Rubber Tyred Gantry (e-RTG), menghasilkan manfaat:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Penurunan konsumsi bahan bakar solar hingga 60–80%, pengurangan kebisingan operasional di area terminal, dan eliminasi emisi gas buang lokal', true],
+                    ['Peningkatan getaran dermaga yang mempercepat keretakan beton pelabuhan', false],
+                    ['Kewajiban operator crane untuk bekerja tanpa menggunakan alat pelindung diri', false],
+                    ['Penurunan kecepatan bongkar muat peti kemas per jam hingga separuhnya', false],
+                ],
+            ],
+            [
+                'question' => 'Dalam menghadapi ancaman kenaikan muka air laut (*Sea Level Rise*) dan gelombang pasang ekstrem, pelabuhan modern menerapkan pendekatan ketahanan iklim berbasis:',
+                'weight'   => 10,
+                'options'  => [
+                    ['Kombinasi infrastruktur teknik keras (*hard engineering*) yang adaptif dengan restorasi ekosistem alami (*Nature-based Solutions* seperti sabuk hijau mangrove peredam ombak)', true],
+                    ['Pembiaran air laut menenggelamkan fasilitas dermaga tanpa rencana perbaikan', false],
+                    ['Pemindahan lokasi pelabuhan laut utama ke kawasan pegunungan tinggi di pedalaman', false],
+                    ['Penimbunan seluruh perairan teluk pelabuhan dengan sampah plastik padat', false],
+                ],
+            ],
+        ];
+    }
+
     private function getDefaultSpecQuestions(string $track): array
     {
         return [
@@ -1617,13 +1939,13 @@ Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
     private function getTrackSpecificEssayPrompt(string $track): string
     {
         return match ($track) {
-            'The Blue Carbon' => "### Studi Kasus: Valuasi Ekonomi Karbon Biru & Perancangan Proyek Restorasi Mangrove Skema Karbon Sukarela di Berau, Kalimantan Timur
+            'The Blue Carbon', 'Blue Carbon' => "### Studi Kasus: Valuasi Ekonomi Karbon Biru & Perancangan Proyek Restorasi Mangrove Skema Karbon Sukarela di Berau, Kalimantan Timur
 
 #### Latar Belakang Masalah
 Kawasan pesisir Delta Berau memiliki hutan mangrove seluas 45.000 hektar dengan potensi stok karbon tanah mencapai 850 ton C/ha. Namun, dalam satu dekade terakhir, sekitar 12.000 hektar telah terfragmentasi akibat ekspansi tambak udang tradisional dan pembukaan lahan industri. Pemerintah daerah bersama konsorsium masyarakat lokal berniat mengajukan proyek restorasi karbon biru ke pasar karbon sukarela (*Voluntary Carbon Market*) dengan standar Verra VCS (VM0033) untuk mendanai pemulihan ekosistem seluas 5.000 hektar sekaligus membuka lapangan kerja hijau (*green jobs*) bagi masyarakat lokal.
 
 #### Tugas Peserta:
-Sebagai seorang spesialis *The Blue Carbon*, susunlah naskah dokumen kajian komprehensif (minimal 500 kata) yang menjawab 3 pertanyaan pokok:
+Sebagai seorang spesialis *Blue Carbon*, susunlah naskah dokumen kajian komprehensif (minimal 500 kata) yang menjawab 3 pertanyaan pokok:
 
 1. **Perhitungan Baseline & Metodologi MRV**: Jelaskan langkah-langkah metodologis penentuan *carbon baseline*, estimasi *Additionality*, serta desain protokol MRV (*Measurement, Reporting, and Verification*) berkala untuk mengukur cadangan karbon atas permukaan (AGB) dan karbon sedimen bawah permukaan (SOC).
 2. **Mitigasi Risiko Kebocoran (Leakage) & Permanence**: Analisis potensi risiko *leakage* (misalnya perpindahan pembabatan mangrove ke area tetangga) dan risiko *permanence* (seperti kenaikan muka air laut atau abrasi badai), serta rumuskan strategi mitigasi konkritnya.
@@ -1653,7 +1975,7 @@ Rancang arsitektur sistem intelijen data maritim komprehensif (minimal 500 kata)
 2. **Penerapan Algoritma Kecerdasan Buatan (Machine Learning)**: Jelaskan bagaimana model Deep Learning/Computer Vision diterapkan untuk mendeteksi anomali pola trajektori pelayaran kapal (seperti manuver melingkar indikasi penarikan pukat harimau ilegal) secara otomatis.
 3. **Mekanisme Diseminasi Operasional**: Rancang protokol respons cepat terintegrasi dari pusat komando data (*command center*) ke armada kapal patroli PSDKP-KKP dan TNI AL di garis depan agar operasi pencegatan di laut berjalan efektif dan hemat bahan bakar.",
 
-            'Circular Economy' => "### Studi Kasus: Transformasi Rantai Nilai Pengelolaan Sampah Jaring Ikan (*Ghost Nets*) dan Plastik Pesisir Menjadi Produk Nilai Tambah di Kepulauan Seribu
+            'Circular Economy', 'Blue Circular Economy' => "### Studi Kasus: Transformasi Rantai Nilai Pengelolaan Sampah Jaring Ikan (*Ghost Nets*) dan Plastik Pesisir Menjadi Produk Nilai Tambah di Kepulauan Seribu
 
 #### Latar Belakang Masalah
 Kawasan Taman Nasional Kepulauan Seribu menerima kiriman sampah plastik dan serpihan alat tangkap jaring terbengkalai (*ALDFG / Ghost Nets*) rata-rata 30–50 ton per pekan dari muara sungai daratan Jakarta. Jaring nilon yang tersangkut di terumbu karang terus membunuh penyu, hiu karang, dan merusak karang bercabang. Sementara itu, biaya pengangkutan sampah kembali ke daratan utama sangat mahal dan kapasitas bank sampah lokal masih sangat terbatas.
@@ -1724,6 +2046,42 @@ Susun naskah Blue Bond Framework dan Analisis Risiko Investasi (minimal 500 kata
 1. **Kriteria Kelayakan Penggunaan Dana (*Use of Proceeds*)**: Rincikan kriteria seleksi proyek yang memenuhi syarat (*Eligible Blue Projects*) dan batasan tegas proyek yang dilarang (*Exclusion List*) guna mencegah tuduhan *blue-washing*.
 2. **Tata Kelola Evaluasi & Pelaporan Transparansi (*Project Evaluation & Reporting*)**: Rancang struktur komite evaluasi seleksi proyek serta indikator kinerja utama (KPI) lingkungan yang wajib dilaporkan setiap tahun (misalnya: tonase CO₂ yang dihindari, hektar habitat terpulihkan, jumlah nelayan terberdayakan).
 3. **Mitigasi Risiko Keuangan & Pengembalian Investasi**: Analisis skema arus kas pengembalian obligasi (*debt service mechanism*), pemanfaatan jaminan kredit (*credit enhancement/blended finance*), dan mitigasi risiko fluktuasi nilai tukar serta risiko biofisik kelautan.",
+
+            'Blue Energy' => "### Studi Kasus: Perancangan Masterplan Ekosistem Energi Baru Terbarukan Laut (Marine Renewable Energy) dan Ketahanan Sistem Kelistrikan Pulau Mandiri di Selat Pantar, NTT
+
+#### Latar Belakang Masalah
+Wilayah kepulauan di sekitar Selat Pantar, Nusa Tenggara Timur, memiliki potensi arus laut pasang surut yang sangat deras dan konsisten (kecepatan puncak > 3,5 m/s), namun masyarakatnya masih bergantung pada pembangkit listrik diesel (PLTD) berbahan bakar fosil yang mahal, bising, dan sering mengalami pemadaman akibat keterlambatan pasokan tongkang solar saat cuaca buruk. Pemerintah daerah menginisiasi studi kelayakan integrasi Pembangkit Listrik Tenaga Arus Laut (PLTAL) dan microgrid pulau mandiri emisi nol.
+
+#### Tugas Peserta:
+Rancang dokumen masterplan sistem Blue Energy mandiri (minimal 500 kata):
+
+1. **Analisis Teknis & Pemilihan Turbin Arus Laut**: Evaluasi kriteria pemilihan desain turbin arus laut (Horizontal Axis Tidal Turbine vs Vertical Axis) yang tahan terhadap *biofouling* teritip laut, memiliki sistem tambat kokoh terhadap gempa tektonik dasar laut, dan ramah terhadap mamalia laut yang bermigrasi.
+2. **Desain Smart Microgrid & BESS**: Rancang arsitektur sistem integrasi daya antara PLTAL, cadangan PLTS terapung pesisir, dan Battery Energy Storage System (BESS) agar frekuensi jaringan listrik pulau tetap stabil pada beban puncak siang dan malam.
+3. **Kelayakan Investasi & Dampak Sosial-Ekonomi**: Analisis proyeksi LCOE (Levelized Cost of Electricity) terhadap tarif listrik subsidi PLN, potensi transfer keahlian bagi pemuda lokal sebagai teknisi pemeliharaan laut, dan pasokan listrik murah bagi cold storage perikanan rakyat.",
+
+            'Blue Food' => "### Studi Kasus: Transformasi Rantai Pasok Pangan Biru Berkelanjutan (Sustainable Blue Foods) Berbasis Makroalga dan Hasil Samping Perikanan di Maluku Tenggara
+
+#### Latar Belakang Masalah
+Kabupaten Maluku Tenggara merupakan salah satu sentra rumput laut terbesar di Indonesia, namun sebagian besar produksi hanya dijual dalam bentuk kering mentah (*raw dried seaweed*) dengan harga sangat fluktuatif di tingkat petani. Di sisi lain, angka stunting balita dan defisiensi mikronutrien (zat besi dan Omega-3) di desa-desa pesisir masih tinggi, sementara limbah kepala dan tulang ikan dari Tempat Pelelangan Ikan (TPI) belum termanfaatkan secara optimal.
+
+#### Tugas Peserta:
+Susun dokumen strategi transformasi sistem Pangan Biru terintegrasi (minimal 500 kata):
+
+1. **Hilirisasi Pangan Fungsional Berbasis Alga**: Rancang model unit pengolahan terdesentralisasi untuk mengolah rumput laut menjadi bahan pangan kaya serat, kapsul fortifikan pangan lokal, dan penstabil makanan alami yang dapat diproduksi oleh kelompok perempuan pesisir.
+2. **Valuasi Limbah Ikan Menjadi Hidrolisat Protein Ikan (HPI)**: Jelaskan alur proses biokonversi limbah hasil tangkapan menjadi konsentrat protein cair/tepung peptida bermutu tinggi bebas bau amis untuk program makanan tambahan gizi anak dan lansia.
+3. **Ketertelusuran & Sertifikasi Mutu Pangan**: Rancang sistem penjaminan mutu rantai dingin bertenaga surya (*Solar Cold Chain*) dan kode ketertelusuran digital (QR Code Traceability) dari titik panen nelayan hingga ke pasar konsumen akhir guna menjamin keamanan pangan bebas kontaminan.",
+
+            'Blue Port' => "### Studi Kasus: Cetak Biru Transformasi Green Port & Dekarbonisasi Pelabuhan Peti Kemas Berkelanjutan di Pelabuhan Tanjung Priok
+
+#### Latar Belakang Masalah
+Pelabuhan Tanjung Priok sebagai pelabuhan hub internasional tersibuk di Indonesia melayani jutaan TEUs peti kemas per tahun. Tingginya frekuensi kapal bersandar dan pergerakan ribuan truk kontainer berbahan bakar diesel memicu beban emisi karbon yang tinggi, polusi udara partikulat di kawasan perkotaan sekitar, serta risiko pencemaran limbah cair pelayaran di perairan kolam pelabuhan. Otoritas pelabuhan menargetkan transformasi komprehensif menuju standar internasional Eco-Port/Green Port.
+
+#### Tugas Peserta:
+Susun naskah cetak biru transformasi Green Port berkelanjutan (minimal 500 kata):
+
+1. **Implementasi Onshore Power Supply (OPS / Cold Ironing)**: Rancang rencana teknis dan operasional penyediaan daya listrik dari darat ke kapal (*shore-to-ship power*) di dermaga internasional utama agar kapal peti kemas wajib mematikan mesin bantu diesel saat bongkar muat.
+2. **Elektrifikasi Peralatan & Smart Digital Port**: Evaluasi roadmap konversi armada RTG crane menjadi e-RTG elektrik, integrasi sistem pemanggilan truk otomatis (*Truck Booking System*) untuk memangkas waktu tunggu kemacetan terminal, dan kesiapan fasilitas bunkering bahan bakar hijau (LNG/Metanol).
+3. **Sistem Pengelolaan Limbah Kapal (MARPOL) & Ekosistem Pesisir**: Rancang optimalisasi Port Reception Facilities (PRF) terpadu untuk limbah sampah dan sisa minyak kapal, pengelolaan sedimentasi pengerukan alur yang ramah lingkungan, serta pembangunan sabuk hijau mangrove sebagai benteng alami peredam abrasi rob.",
 
             'Blue Food & Energy Circular' => "### Studi Kasus: Perancangan Ekosistem Pulau Mandiri Energi dan Pangan (*Self-Sustaining Island*) Menggunakan PLTAL dan Biorefineri Alga di Pulau Rote, NTT
 

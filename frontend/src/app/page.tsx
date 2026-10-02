@@ -16,7 +16,7 @@ export default function LandingPage() {
 
   const programs = [
     { code: 'FND',  name: 'Foundation Level',        desc: 'Program dasar CBEc untuk memahami ekosistem Blue Economy secara komprehensif', count: '1 Program' },
-    { code: 'SPEC', name: 'Specialization Level',    desc: '10 jalur peminatan mendalam dari Blue Carbon hingga Blue Finance', count: '10 Program' },
+    { code: 'SPEC', name: 'Specialization Level',    desc: '12 jalur peminatan mendalam dari Blue Business Development hingga Blue Tourism', count: '12 Program' },
   ];
 
   return (
