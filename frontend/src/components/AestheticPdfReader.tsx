@@ -217,9 +217,9 @@ export default function AestheticPdfReader({
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => { });
     } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => { });
     }
   };
 
@@ -291,28 +291,21 @@ export default function AestheticPdfReader({
           triggerProtectionNotice();
         }
       }}
-      className={`relative flex flex-col rounded-3xl overflow-hidden border transition-all duration-300 select-none ${
-        theme === 'dark'
-          ? 'bg-slate-950 border-slate-800 text-slate-100 shadow-2xl'
-          : 'bg-slate-100 border-slate-300 text-slate-800 shadow-xl'
-      } ${isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen' : ''} ${className}`}
+      className={`relative flex flex-col rounded-3xl overflow-hidden border transition-all duration-300 select-none ${theme === 'dark'
+        ? 'bg-slate-950 border-slate-800 text-slate-100 shadow-2xl'
+        : 'bg-slate-100 border-slate-300 text-slate-800 shadow-xl'
+        } ${isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen' : ''} ${className}`}
       style={!isFullscreen ? { height } : undefined}
     >
       {/* ─── Top Control Toolbar ─────────────────────────────────────────── */}
       <header
-        className={`flex-shrink-0 flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b backdrop-blur-md transition-colors ${
-          theme === 'dark'
-            ? 'bg-slate-900/90 border-slate-800 text-white'
-            : 'bg-white/95 border-slate-200 text-slate-800'
-        }`}
+        className={`flex-shrink-0 flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b backdrop-blur-md transition-colors ${theme === 'dark'
+          ? 'bg-slate-900/90 border-slate-800 text-white'
+          : 'bg-white/95 border-slate-200 text-slate-800'
+          }`}
       >
         {/* Left: Title & Status Badge */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
           <div className="min-w-0">
             <h4 className="text-xs sm:text-sm font-bold truncate max-w-[220px] sm:max-w-[340px] md:max-w-md">
               {title}
@@ -323,7 +316,7 @@ export default function AestheticPdfReader({
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                   </svg>
-                  Mode Baca Langsung Terproteksi
+                  Mode Baca
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-400 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded-full">
@@ -479,9 +472,8 @@ export default function AestheticPdfReader({
 
       {/* ─── Reading Canvas & Document Body ─────────────────────────────── */}
       <main
-        className={`flex-1 overflow-auto relative p-4 sm:p-8 flex items-center justify-center transition-colors ${
-          theme === 'dark' ? 'bg-slate-900/95' : 'bg-slate-200/90'
-        }`}
+        className={`flex-1 overflow-auto relative p-4 sm:p-8 flex items-center justify-center transition-colors ${theme === 'dark' ? 'bg-slate-900/95' : 'bg-slate-200/90'
+          }`}
       >
         {/* Loading Spinner */}
         {loading && (
@@ -555,11 +547,10 @@ export default function AestheticPdfReader({
 
       {/* ─── Bottom Footer Status Bar ───────────────────────────────────── */}
       <footer
-        className={`flex-shrink-0 flex items-center justify-between px-5 py-2 text-[11px] font-medium border-t ${
-          theme === 'dark'
-            ? 'bg-slate-950 border-slate-800 text-slate-400'
-            : 'bg-white border-slate-200 text-slate-500'
-        }`}
+        className={`flex-shrink-0 flex items-center justify-between px-5 py-2 text-[11px] font-medium border-t ${theme === 'dark'
+          ? 'bg-slate-950 border-slate-800 text-slate-400'
+          : 'bg-white border-slate-200 text-slate-500'
+          }`}
       >
         <div className="flex items-center gap-2">
           <span>DigiBlueCamp Smart Reader v2.0</span>
@@ -569,7 +560,6 @@ export default function AestheticPdfReader({
 
         <div className="flex items-center gap-3">
           <span className="hidden sm:inline">Pintasan: [←/→] Balik Halaman, [+/-] Zoom</span>
-          <span className="text-emerald-500 font-semibold">● Terhubung Aman</span>
         </div>
       </footer>
     </div>
