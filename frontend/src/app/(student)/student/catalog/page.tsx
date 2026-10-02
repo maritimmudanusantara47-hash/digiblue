@@ -274,6 +274,11 @@ export default function StudentCatalogPage() {
     (c) => c.certification_level?.code === 'SPEC'
   ).length;
 
+  const hasSpecEnrollment = Array.from(enrollmentMap.values()).some(e => 
+    ['pending_review', 'payment_pending', 'active', 'completed'].includes(e.status) &&
+    courses.find(c => c.id === e.course_id)?.certification_level?.code === 'SPEC'
+  );
+
   return (
     <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
       <div className="mb-8">
@@ -559,6 +564,7 @@ function CourseCard({
   enrollment: EnrollmentInfo | null;
   isEnrolling: boolean;
   isPaying: boolean;
+  isLocked?: boolean;
   onEnroll: (id: number, slug: string) => void;
   onPay: (enrollmentId: number) => void;
 }) {

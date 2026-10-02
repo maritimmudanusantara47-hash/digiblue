@@ -32,7 +32,10 @@ export default function StudentCertificatesPage() {
       link.href = url;
       link.download = `Sertifikat-${cert.serial_number.replace(/\//g, '-')}.pdf`;
       link.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 1000);
     } catch {
       alert('Gagal mengunduh PDF. Silakan coba lagi.');
     } finally {

@@ -72,6 +72,14 @@ class SubmissionController extends Controller
             ->where('content_id', $content->id)->first();
 
         if ($existing) {
+            // PDF Module & Video: jika sudah ditandai, kembalikan data existing tanpa error
+            if (in_array($content->content_type, ['pdf_module', 'video_embed'])) {
+                return response()->json([
+                    'message' => 'Materi ini sudah ditandai selesai.',
+                    'data'    => $existing,
+                ], 200);
+            }
+
             // MCQ: kalau sudah lulus (score >= 70) tidak boleh retry
             if ($content->content_type === 'mcq_quiz' && ($existing->score ?? 0) >= 70) {
                 return response()->json([
@@ -122,6 +130,12 @@ class SubmissionController extends Controller
             $status = 'graded';
         }
 
+        // Jika PDF Module / Video: peserta menandai telah selesai mempelajari materi
+        if (in_array($content->content_type, ['pdf_module', 'video_embed'])) {
+            $score  = 100;
+            $status = 'graded';
+        }
+
         $fileShareUrl = $validated['file_share_url'] ?? null;
         if ($request->hasFile('file')) {
             $path = $request->file('file')->store('submissions/' . $user->id, 'public');
@@ -131,13 +145,14 @@ class SubmissionController extends Controller
         $submission = StudentSubmission::create([
             'user_id'          => $user->id,
             'content_id'       => $content->id,
-            'essay_text'       => $validated['essay_text'] ?? null,
+            'essay_text'       => $validated['essay_text'] ?? (in_array($content->content_type, ['pdf_module', 'video_embed']) ? 'completed_reading' : null),
             'video_url'        => $validated['video_url'] ?? null,
             'file_share_url'   => $fileShareUrl,
             'mcq_answers_json' => $mcqAnswersLog,
             'correct_count'    => $correctCount,
             'score'            => $score,
             'status'           => $status,
+            'graded_at'        => in_array($content->content_type, ['pdf_module', 'video_embed', 'field_study']) ? now() : null,
         ]);
 
         $responseData = $submission->toArray();
@@ -147,12 +162,38 @@ class SubmissionController extends Controller
             $responseData['total_questions'] = $questions;
         }
 
+        $message = match ($content->content_type) {
+            'mcq_quiz'    => "Kuis selesai! Skor kamu: {$score}",
+            'pdf_module'  => 'Modul berhasil ditandai selesai dipelajari!',
+            'video_embed' => 'Video materi berhasil ditandai selesai ditonton!',
+            'field_study' => 'Kehadiran field study berhasil dikonfirmasi.',
+            default       => 'Tugas berhasil dikumpulkan. Tunggu penilaian dari asesor.',
+        };
+
         return response()->json([
-            'message' => $content->content_type === 'mcq_quiz'
-                ? "Kuis selesai! Skor kamu: {$score}"
-                : 'Tugas berhasil dikumpulkan. Tunggu penilaian dari asesor.',
+            'message' => $message,
             'data'    => $responseData,
         ], 201);
+    }
+
+    /** Peserta / Admin: Hapus submission (misalnya membatalkan tanda selesai baca modul) */
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $submission = StudentSubmission::where('id', $id)
+            ->where(function ($q) use ($user) {
+                if (!in_array($user->role, ['admin', 'assessor'])) {
+                    $q->where('user_id', $user->id);
+                }
+            })
+            ->firstOrFail();
+
+        $submission->delete();
+
+        return response()->json([
+            'message' => 'Tanda selesai berhasil dibatalkan.',
+        ]);
     }
 
     public function show(int $id): JsonResponse

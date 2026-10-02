@@ -29,6 +29,22 @@ class EnrollmentController extends Controller
             'course_id' => 'required|exists:courses,id',
         ]);
 
+        $targetCourse = Course::with('certificationLevel')->findOrFail($validated['course_id']);
+
+        if ($targetCourse->certificationLevel?->code === 'SPEC') {
+            $existingSpec = Enrollment::where('user_id', $request->user()->id)
+                ->whereHas('course.certificationLevel', fn($q) => $q->where('code', 'SPEC'))
+                ->whereIn('status', ['pending_review', 'payment_pending', 'active', 'completed'])
+                ->with('course')
+                ->first();
+
+            if ($existingSpec && $existingSpec->course_id !== $targetCourse->id) {
+                return response()->json([
+                    'message' => "Kamu sudah terdaftar pada spesialisasi {$existingSpec->course->title}. Setiap peserta hanya diperbolehkan memilih 1 bidang spesialisasi.",
+                ], 422);
+            }
+        }
+
         if (Enrollment::where('user_id', $request->user()->id)
             ->where('course_id', $validated['course_id'])->exists()) {
             return response()->json(['message' => 'Kamu sudah terdaftar di kursus ini.'], 409);

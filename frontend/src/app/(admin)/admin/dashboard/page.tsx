@@ -18,26 +18,41 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Ambil data dari berbagai endpoint lalu gabungkan
-    Promise.all([
-      api.get('/admin/users?per_page=1'),
-      api.get('/enrollments?status=active&per_page=1'),
-      api.get('/admin/scholarships?status=pending&per_page=1'),
-      api.get('/admin/certificates?per_page=1'),
-      api.get('/admin/certificates?sync_status=failed&per_page=1'),
-    ]).then(([users, enrollments, scholarships, certs, failedSync]) => {
-      setStats({
-        total_users:               users.data.data?.meta?.total ?? 0,
-        active_enrollments:        enrollments.data.data?.meta?.total ?? 0,
-        pending_scholarships:      scholarships.data.data?.meta?.total ?? 0,
-        certificates_issued:       certs.data.data?.meta?.total ?? 0,
-        certificates_pending_sync: failedSync.data.data?.meta?.total ?? 0,
-      });
-    })
-    .catch((err) => {
-      console.error('Failed to load dashboard stats:', err);
-    })
-    .finally(() => setLoading(false));
+    // 1. Coba ambil dari endpoint terpadu /admin/dashboard-stats
+    api.get('/admin/dashboard-stats')
+      .then(res => {
+        if (res.data?.data) {
+          setStats(res.data.data);
+        }
+      })
+      .catch(() => {
+        // 2. Fallback jika mengambil metrik per modul
+        const extractTotal = (res: any) =>
+          res?.data?.data?.total ??
+          res?.data?.data?.meta?.total ??
+          res?.data?.meta?.total ??
+          res?.data?.total ??
+          (Array.isArray(res?.data?.data) ? res.data.data.length : 0);
+
+        Promise.all([
+          api.get('/admin/users?per_page=1'),
+          api.get('/admin/enrollments?status=active&per_page=1'),
+          api.get('/admin/scholarships?status=pending&per_page=1'),
+          api.get('/admin/certificates?per_page=1'),
+          api.get('/admin/certificates?sync_status=failed&per_page=1'),
+        ]).then(([users, enrollments, scholarships, certs, failedSync]) => {
+          setStats({
+            total_users:               extractTotal(users),
+            active_enrollments:        extractTotal(enrollments),
+            pending_scholarships:      extractTotal(scholarships),
+            certificates_issued:       extractTotal(certs),
+            certificates_pending_sync: extractTotal(failedSync),
+          });
+        }).catch(err => {
+          console.error('Failed to load fallback dashboard stats:', err);
+        });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const statCards = [

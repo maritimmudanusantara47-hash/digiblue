@@ -55,10 +55,11 @@ Route::prefix('v1')->group(function () {
         // Student: Konfirmasi kehadiran Field Study
         Route::patch('enrollments/{id}/confirm-field-study', [EnrollmentController::class, 'studentConfirmFieldStudy']);
 
-        // Submission (Kuis, Esai, Video)
+        // Submission (Kuis, Esai, Video, Self-Assessment Modul)
         Route::post('submissions',          [SubmissionController::class, 'store']);
         Route::get('submissions/my',        [SubmissionController::class, 'mySubmissions']); // Submission milik sendiri
         Route::get('submissions/{id}',      [SubmissionController::class, 'show']);
+        Route::delete('submissions/{id}',   [SubmissionController::class, 'destroy']);
 
         // Sertifikat Peserta
         Route::get('certificates',          [CertificateController::class, 'index']);
@@ -78,6 +79,19 @@ Route::prefix('v1')->group(function () {
 
         // ─── Admin Only Routes ────────────────────────────────────────────────
         Route::middleware('role:admin')->prefix('admin')->group(function () {
+
+            // Dashboard Metrics
+            Route::get('dashboard-stats', function () {
+                return response()->json([
+                    'data' => [
+                        'total_users'               => \App\Models\User::count(),
+                        'active_enrollments'        => \App\Models\Enrollment::where('status', 'active')->count(),
+                        'pending_scholarships'      => \App\Models\ScholarshipApplication::where('decision_status', 'pending')->count(),
+                        'certificates_issued'       => \App\Models\Certificate::count(),
+                        'certificates_pending_sync' => \App\Models\Certificate::where('sync_status', 'failed')->count(),
+                    ]
+                ]);
+            });
 
             // User Management
             Route::get('users',         [AdminUserController::class, 'index']);
