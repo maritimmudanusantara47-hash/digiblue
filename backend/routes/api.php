@@ -125,13 +125,17 @@ Route::prefix('v1')->group(function () {
             Route::patch('scholarships/{id}/appeal/{appealId}/resolve', [ScholarshipController::class, 'resolveAppeal']); // Setujui negosiasi
 
             // Certificate Management
-            Route::get('certificates',              [AdminCertificateController::class, 'index']);
-            Route::post('certificates',             [AdminCertificateController::class, 'issue']);      // Terbitkan sertifikat
-            Route::patch('certificates/{id}',       [AdminCertificateController::class, 'update']);     // Override nomor seri
-            Route::post('certificates/{id}/sync',   [AdminCertificateController::class, 'syncToTBE']); // Push ke The Blue Economist
-            Route::post('certificates/resync-failed', [AdminCertificateController::class, 'resyncFailed']); // Re-sync semua yg gagal
-            Route::get('certificates/export',       [AdminCertificateController::class, 'export']);     // Export Excel
-            Route::get('certificates/{id}/download',[AdminCertificateController::class, 'download']);   // Download PDF
+            Route::get('certificates',                   [AdminCertificateController::class, 'index']);
+            Route::post('certificates',                  [AdminCertificateController::class, 'issue']);        // Terbitkan sertifikat
+            Route::patch('certificates/{id}',            [AdminCertificateController::class, 'update']);       // Override nomor seri
+            Route::post('certificates/{id}/sync',        [AdminCertificateController::class, 'syncToTBE']);    // Push ke The Blue Economist
+            Route::post('certificates/resync-failed',    [AdminCertificateController::class, 'resyncFailed']); // Re-sync semua yg gagal
+            Route::get('certificates/export',            [AdminCertificateController::class, 'export']);       // Export Excel
+            Route::get('certificates/{id}/download',     [AdminCertificateController::class, 'download']);     // Download PDF
+            // Template Layout Designer
+            Route::get('certificates/template/layout',   [AdminCertificateController::class, 'getLayout']);    // Ambil konfigurasi posisi field
+            Route::put('certificates/template/layout',   [AdminCertificateController::class, 'saveLayout']);   // Simpan konfigurasi posisi field
+            Route::get('certificates/template/image',    [AdminCertificateController::class, 'getTemplateImage']); // Template image sebagai base64
         });
     });
 });

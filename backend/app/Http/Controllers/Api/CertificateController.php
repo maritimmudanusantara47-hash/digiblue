@@ -44,12 +44,19 @@ class CertificateController extends Controller
         $qrSvg = \QrCode::format('svg')->size(140)->generate($verificationUrl);
         $qrImageBase64 = base64_encode($qrSvg);
 
+        // Load template background image as base64 for inline embedding in PDF
+        $templatePath = resource_path('images/template_CBEc.png');
+        $templateBase64 = file_exists($templatePath)
+            ? base64_encode(file_get_contents($templatePath))
+            : null;
+
         $pdf = Pdf::loadView('certificates.template', [
-            'certificate'   => $cert,
-            'user'          => $cert->user,
-            'course'        => $cert->enrollment->course,
-            'level'         => $cert->enrollment->course->certificationLevel,
-            'qrImageBase64' => $qrImageBase64,
+            'certificate'    => $cert,
+            'user'           => $cert->user,
+            'course'         => $cert->enrollment->course,
+            'level'          => $cert->enrollment->course->certificationLevel,
+            'qrImageBase64'  => $qrImageBase64,
+            'templateBase64' => $templateBase64,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";

@@ -150,16 +150,22 @@ class AdminCertificateController extends Controller
 
         $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
             . "/certification/{$cert->serial_url_key}";
-        
+
         $qrSvg = \QrCode::format('svg')->size(140)->generate($verificationUrl);
         $qrImageBase64 = base64_encode($qrSvg);
 
+        $templatePath = resource_path('images/template_CBEc.png');
+        $templateBase64 = file_exists($templatePath)
+            ? base64_encode(file_get_contents($templatePath))
+            : null;
+
         $pdf = Pdf::loadView('certificates.template', [
-            'certificate'   => $cert,
-            'user'          => $cert->user,
-            'course'        => $cert->enrollment->course,
-            'level'         => $cert->enrollment->course->certificationLevel,
-            'qrImageBase64' => $qrImageBase64,
+            'certificate'    => $cert,
+            'user'           => $cert->user,
+            'course'         => $cert->enrollment->course,
+            'level'          => $cert->enrollment->course->certificationLevel,
+            'qrImageBase64'  => $qrImageBase64,
+            'templateBase64' => $templateBase64,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";
@@ -167,4 +173,67 @@ class AdminCertificateController extends Controller
 
         return $pdf->download($filename);
     }
+
+    /* ──────────────────────────────────────────────
+       TEMPLATE DESIGNER
+    ────────────────────────────────────────────── */
+
+    /** Default field layout dalam mm (A4 landscape: 297 × 210 mm) */
+    private function defaultLayout(): array
+    {
+        return [
+            'serial_no'      => ['top' => 13.0, 'right' => 14.0, 'width' => 105, 'font_size' => 8.8, 'label' => 'Nomor Seri'],
+            'recipient_name' => ['top' => 67.0, 'font_size' => 27, 'label' => 'Nama Peserta'],
+            'ribbon_text'    => ['top' => 100.5, 'height' => 14.0, 'font_size' => 14.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
+            'level_value'    => ['top' => 124.5, 'font_size' => 11.5, 'label' => 'Level Sertifikasi'],
+            'meta_block'     => ['top' => 138.2, 'font_size' => 8.4, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
+            'qr_left'        => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
+            'qr_right'       => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
+        ];
+    }
+
+    /** Ambil layout konfigurasi saat ini */
+    public function getLayout(): JsonResponse
+    {
+        $layoutPath = storage_path('app/cert_layout.json');
+        $layout = file_exists($layoutPath)
+            ? json_decode(file_get_contents($layoutPath), true)
+            : $this->defaultLayout();
+
+        return response()->json(['data' => $layout]);
+    }
+
+    /** Simpan layout konfigurasi baru */
+    public function saveLayout(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['fields' => 'required|array']);
+
+        $layoutPath = storage_path('app/cert_layout.json');
+        file_put_contents($layoutPath, json_encode($validated['fields'], JSON_PRETTY_PRINT));
+
+        return response()->json([
+            'message' => 'Layout template berhasil disimpan.',
+            'data'    => $validated['fields'],
+        ]);
+    }
+
+    /** Return template image sebagai base64 untuk frontend designer */
+    public function getTemplateImage(): JsonResponse
+    {
+        $templatePath = resource_path('images/template_CBEc.png');
+
+        if (! file_exists($templatePath)) {
+            return response()->json(['message' => 'Template image tidak ditemukan.'], 404);
+        }
+
+        return response()->json([
+            'data' => [
+                'base64'    => base64_encode(file_get_contents($templatePath)),
+                'mime_type' => 'image/png',
+                'width_mm'  => 297,
+                'height_mm' => 210,
+            ],
+        ]);
+    }
 }
+

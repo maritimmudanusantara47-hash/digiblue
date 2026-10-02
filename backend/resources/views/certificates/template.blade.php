@@ -2,213 +2,250 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate - {{ $user->name }}</title>
+    <title>Certificate – {{ $user->name }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         @page { margin: 0; size: A4 landscape; }
 
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            background: #ffffff;
             width: 297mm;
             height: 210mm;
             position: relative;
             overflow: hidden;
+            font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+            background: #F8F8F8;
         }
 
-        /* Corner decorations — Navy Blue & Orange/Gold */
-        .corner-tl, .corner-tr, .corner-bl, .corner-br {
+        .bg-template {
             position: absolute;
-            width: 80px;
-            height: 80px;
-        }
-        .corner-tl { top: 0; left: 0; border-top: 20px solid #1E3A5F; border-left: 20px solid #1E3A5F; }
-        .corner-tr { top: 0; right: 0; border-top: 20px solid #F4A820; border-right: 20px solid #F4A820; }
-        .corner-bl { bottom: 0; left: 0; border-bottom: 20px solid #F4A820; border-left: 20px solid #F4A820; }
-        .corner-br { bottom: 0; right: 0; border-bottom: 20px solid #1E3A5F; border-right: 20px solid #1E3A5F; }
-
-        /* Serial number top right */
-        .serial-top {
-            position: absolute;
-            top: 18px;
-            right: 100px;
-            font-size: 9px;
-            color: #555;
+            top: 0; left: 0;
+            width: 297mm;
+            height: 210mm;
+            z-index: 1;
         }
 
-        /* Main content wrapper */
-        .content {
+        .overlay {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            top: 0; left: 0;
+            width: 297mm;
+            height: 210mm;
+            z-index: 2;
+        }
+
+        /* ── Serial Number (Covers template placeholder completely) ── */
+        .f-serial {
+            position: absolute;
+            top: 13.0mm;
+            right: 14.0mm;
+            width: 105mm;
+            height: 7.5mm;
+            line-height: 7.5mm;
+            background: #F8F8F8;
+            font-size: 8.8pt;
+            color: #111827;
+            text-align: right;
+            z-index: 3;
+        }
+
+        /* ── Recipient Name (Centered right above the blue line) ── */
+        .f-name {
+            position: absolute;
+            top: 67.0mm;
+            left: 0;
+            right: 0;
+            height: 16mm;
+            line-height: 16mm;
             text-align: center;
-            padding: 30px 80px;
-        }
-
-        /* Logo area */
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-        .org-name {
-            font-size: 11px;
+            font-size: 27pt;
             font-weight: bold;
-            color: #1E3A5F;
-            line-height: 1.4;
-            text-align: left;
+            color: #000000;
+            letter-spacing: 0.3px;
+            z-index: 3;
         }
 
-        /* Title */
-        h1.cert-title {
-            font-size: 34px;
-            font-family: 'DejaVu Serif', Georgia, serif;
-            color: #1E3A5F;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .subtitle { font-size: 12px; color: #444; margin-bottom: 6px; }
-
-        /* Recipient name */
-        .recipient-name {
-            font-size: 26px;
+        /* ── Ribbon Specialization / Course Title ── */
+        .f-ribbon {
+            position: absolute;
+            top: 100.5mm;
+            left: 20mm;
+            right: 20mm;
+            height: 14mm;
+            line-height: 14mm;
+            text-align: center;
+            font-size: 14.5pt;
             font-weight: bold;
-            color: #1E3A5F;
-            border-bottom: 2px solid #1E3A5F;
-            padding-bottom: 4px;
-            margin: 8px 0 10px;
-            min-width: 300px;
+            color: #173874;
+            letter-spacing: 0.1px;
+            z-index: 3;
         }
 
-        .recognized-text { font-size: 11px; color: #555; margin-bottom: 8px; }
-
-        /* Badge */
-        .badge {
-            background: #F4A820;
-            color: #1E3A5F;
-            font-size: 15px;
+        /* ── Level Value (Directly below "Level:") ── */
+        .f-level {
+            position: absolute;
+            top: 124.5mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11.5pt;
             font-weight: bold;
-            padding: 8px 30px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            display: inline-block;
+            color: #000000;
+            z-index: 3;
         }
 
-        .level-text { font-size: 11px; color: #333; margin-bottom: 4px; }
-        .level-value { font-size: 14px; font-weight: bold; color: #1E3A5F; margin-bottom: 8px; }
-        .rights-text { font-size: 9px; color: #777; margin-bottom: 12px; }
-
-        /* Grade & Date */
-        .meta-row { font-size: 11px; color: #333; margin-bottom: 3px; }
-        .meta-row strong { color: #1E3A5F; }
-
-        /* Bottom section: QR + Logo + QR */
-        .bottom-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 14px;
+        /* ── Grade, Date of issue, Place of issue (Blends seamlessly into #F8F8F8) ── */
+        .f-meta-block {
+            position: absolute;
+            top: 138.2mm;
+            left: 103.5mm;
+            width: 90mm;
+            height: 18.5mm;
+            background: #F8F8F8;
+            text-align: center;
+            font-size: 8.4pt;
+            line-height: 1.55;
+            color: #111827;
+            z-index: 3;
         }
 
-        .qr-box { width: 70px; height: 70px; }
-        .qr-box img { width: 70px; height: 70px; }
-
-        .signatories {
-            display: flex;
-            gap: 60px;
-            justify-content: center;
-            flex: 1;
+        .f-meta-block strong {
+            font-weight: bold;
+            color: #000000;
         }
 
-        .signatory { text-align: center; font-size: 9px; color: #333; }
-        .signatory .sig-name { font-weight: bold; font-size: 10px; color: #1E3A5F; margin-top: 4px; }
-        .signatory .sig-title { color: #777; line-height: 1.3; }
+        /* ── QR Codes (Left and Right of TBE bottom logo) ── */
+        .f-qr-left {
+            position: absolute;
+            top: 147.5mm;
+            left: 67.0mm;
+            width: 26mm;
+            height: 26mm;
+            z-index: 3;
+        }
+
+        .f-qr-right {
+            position: absolute;
+            top: 147.5mm;
+            left: 196.4mm;
+            width: 26mm;
+            height: 26mm;
+            z-index: 3;
+        }
+
+        .f-qr-img {
+            width: 26mm;
+            height: 26mm;
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <!-- Corner decorations -->
-    <div class="corner-tl"></div>
-    <div class="corner-tr"></div>
-    <div class="corner-bl"></div>
-    <div class="corner-br"></div>
 
-    <!-- Serial number -->
-    <div class="serial-top">Certificate Serial No. {{ $certificate->serial_number }}</div>
+    @php
+        // Dynamic course/level text formatting
+        $courseTitle = $course->title ?? '';
+        $levelName   = $level->name ?? '';
+        $levelCode   = $level->code ?? '';
 
-    <div class="content">
-        <!-- Logo & Org -->
-        <div class="logo-area">
-            <div class="org-name">
-                The Blue<br>Economist<br>
-                <span style="font-weight:normal;font-size:9px">International Association</span>
-            </div>
+        $isFoundation = str_contains(strtolower($courseTitle), 'foundation');
+
+        if ($isFoundation) {
+            $ribbonText   = 'Certified Blue Economist (CBEc) — Foundation Level';
+            $levelDisplay = 'Foundation Level';
+        } else {
+            // Extract specialization name
+            $specName = preg_replace('/^Certified Blue Economist\s*(in)?\s*/i', '', $courseTitle);
+            $specName = trim(str_replace(['—', '-'], '', $specName));
+            if (empty($specName)) {
+                $specName = $levelName ?: 'Specialization';
+            }
+
+            $codeSuffix = $levelCode ? "({$levelCode}.)" : "";
+            $ribbonText = "Certified Blue Economist in {$specName} - CBEc. {$codeSuffix}";
+            $ribbonText = trim($ribbonText);
+
+            $levelDisplay = str_contains(strtolower($levelName), 'specialization')
+                ? $levelName
+                : "{$specName} Specialization";
+        }
+        // Load optional layout overrides from cert_layout.json
+        $layoutPath = storage_path('app/cert_layout.json');
+        $L = file_exists($layoutPath) ? json_decode(file_get_contents($layoutPath), true) : [];
+
+        $sTop   = $L['serial_no']['top'] ?? 13.0;
+        $sRight = $L['serial_no']['right'] ?? 14.0;
+        $sWidth = $L['serial_no']['width'] ?? 105;
+        $sFs    = $L['serial_no']['font_size'] ?? 8.8;
+
+        $nTop = $L['recipient_name']['top'] ?? 67.0;
+        $nFs  = $L['recipient_name']['font_size'] ?? 27;
+
+        $rTop = $L['ribbon_text']['top'] ?? 100.5;
+        $rFs  = $L['ribbon_text']['font_size'] ?? 14.5;
+        $rH   = $L['ribbon_text']['height'] ?? 14.0;
+
+        $lTop = $L['level_value']['top'] ?? 124.5;
+        $lFs  = $L['level_value']['font_size'] ?? 11.5;
+
+        $mTop = $L['meta_block']['top'] ?? 138.2;
+        $mFs  = $L['meta_block']['font_size'] ?? 8.4;
+
+        $qlTop  = $L['qr_left']['top'] ?? 147.5;
+        $qlLeft = $L['qr_left']['left'] ?? 67.0;
+        $qSize  = $L['qr_left']['size'] ?? 26;
+
+        $qrTop  = $L['qr_right']['top'] ?? 147.5;
+        $qrLeft = $L['qr_right']['left'] ?? 196.4;
+    @endphp
+
+    {{-- Background Template Image --}}
+    @if($templateBase64 ?? false)
+        <img class="bg-template" src="data:image/png;base64,{{ $templateBase64 }}" alt="Certificate Template">
+    @endif
+
+    <div class="overlay">
+
+        {{-- Serial Number --}}
+        <div class="f-serial" style="top: {{ $sTop }}mm; right: {{ $sRight }}mm; width: {{ $sWidth }}mm; font-size: {{ $sFs }}pt;">
+            Certificate Serial No. {{ $certificate->serial_number }}
         </div>
 
-        <!-- Title -->
-        <h1 class="cert-title">Certificate of Competence</h1>
-        <p class="subtitle">This is to certify:</p>
-
-        <!-- Recipient -->
-        <div class="recipient-name">{{ $user->name }}</div>
-
-        <p class="recognized-text">has successfully completed the requirements to be recognized as a:</p>
-
-        <!-- Badge -->
-        <div class="badge">Certified Blue Economist (CBEc)</div>
-
-        <!-- Level -->
-        <p class="level-text">Level:</p>
-        <p class="level-value">{{ $level->name }}</p>
-
-        <p class="rights-text">with all the rights, honours and privileges thereto appertaining.</p>
-
-        <!-- Grade & Date -->
-        <p class="meta-row"><strong>Grade:</strong> {{ $certificate->grade }}</p>
-        <p class="meta-row"><strong>Date of issue:</strong> {{ \Carbon\Carbon::parse($certificate->date_of_issue)->format('F j, Y') }}</p>
-        <p class="meta-row"><strong>Place of issue:</strong> {{ $certificate->place_of_issue }}</p>
-
-        <!-- Bottom row: QR | Signatories | QR -->
-        <div class="bottom-row">
-            <!-- QR Code kiri -->
-            <div class="qr-box">
-                @if($qrImageBase64 ?? false)
-                    <img src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code" width="70" height="70">
-                @endif
-            </div>
-
-            <!-- Signatories -->
-            <div class="signatories">
-                <div class="signatory">
-                    <div class="sig-name">Prof. Dr. Nurul Taufiqu Rochman, MEng, PhD, CBEc</div>
-                    <div class="sig-title">
-                        President<br>
-                        The Blue Economist International Association
-                    </div>
-                </div>
-                <div class="signatory">
-                    <div class="sig-name">Leena Ndahafa Kadhila, MSc, MBA, CBEc</div>
-                    <div class="sig-title">
-                        Director of Blue Economy Education and Social Affairs<br>
-                        The Blue Economist International Association
-                    </div>
-                </div>
-            </div>
-
-            <!-- QR Code kanan (sama) -->
-            <div class="qr-box">
-                @if($qrImageBase64 ?? false)
-                    <img src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code" width="70" height="70">
-                @endif
-            </div>
+        {{-- Recipient Name --}}
+        <div class="f-name" style="top: {{ $nTop }}mm; font-size: {{ $nFs }}pt;">
+            {{ $user->name }}
         </div>
+
+        {{-- Gold Ribbon Specialization Text --}}
+        <div class="f-ribbon" style="top: {{ $rTop }}mm; height: {{ $rH }}mm; line-height: {{ $rH }}mm; font-size: {{ $rFs }}pt;">
+            {{ $ribbonText }}
+        </div>
+
+        {{-- Level Value --}}
+        <div class="f-level" style="top: {{ $lTop }}mm; font-size: {{ $lFs }}pt;">
+            {{ $levelDisplay }}
+        </div>
+
+        {{-- Grade, Date, Place block --}}
+        <div class="f-meta-block" style="top: {{ $mTop }}mm; font-size: {{ $mFs }}pt;">
+            <div><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
+            <div><strong>Date of issue:</strong> {{ \Carbon\Carbon::parse($certificate->date_of_issue)->format('F j, Y') }}</div>
+            <div><strong>Place of issue:</strong> {{ $certificate->place_of_issue ?? 'Jakarta' }}</div>
+        </div>
+
+        {{-- Left QR Code --}}
+        @if($qrImageBase64 ?? false)
+            <div class="f-qr-left" style="top: {{ $qlTop }}mm; left: {{ $qlLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
+                <img class="f-qr-img" style="width: {{ $qSize }}mm; height: {{ $qSize }}mm;" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Left">
+            </div>
+        @endif
+
+        {{-- Right QR Code --}}
+        @if($qrImageBase64 ?? false)
+            <div class="f-qr-right" style="top: {{ $qrTop }}mm; left: {{ $qrLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
+                <img class="f-qr-img" style="width: {{ $qSize }}mm; height: {{ $qSize }}mm;" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Right">
+            </div>
+        @endif
+
     </div>
+
 </body>
 </html>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import api from '@/lib/api';
 import type { Certificate } from '@/types';
 
@@ -223,6 +224,12 @@ export default function AdminCertificatesPage() {
           <p className="text-slate-500 text-sm mt-1">Terbitkan, kelola nomor seri, unduh PDF, dan sinkronkan ke The Blue Economist</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/certificates/template"
+            className="btn btn-secondary btn-sm flex items-center gap-1.5"
+          >
+            🎨 Design Template
+          </Link>
           <button
             onClick={handleOpenIssue}
             className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
