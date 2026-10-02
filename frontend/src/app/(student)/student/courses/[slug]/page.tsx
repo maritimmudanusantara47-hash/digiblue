@@ -403,8 +403,8 @@ function GradedBanner({ submission, content }: { submission: Submission; content
             <div className={`h-full rounded-full transition-all duration-700 ${passed ? 'bg-emerald-500' : 'bg-orange-400'}`}
               style={{ width: `${pct}%` }} />
           </div>
-          {submission.correct_count != null && submission.total_questions != null && (
-            <p className="text-xs mt-1.5 text-slate-500">{submission.correct_count} dari {submission.total_questions} soal benar</p>
+          {submission.correct_count != null && (
+            <p className="text-xs mt-1.5 text-slate-500">{submission.correct_count} dari {submission.total_questions || content.quiz_questions?.length || 30} soal benar</p>
           )}
           {submission.assessor_feedback && (
             <p className="text-sm mt-2 text-slate-600 italic">💬 &ldquo;{submission.assessor_feedback}&rdquo;</p>
@@ -869,7 +869,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
         <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-4xl">✅</div>
         <h3 className="font-extrabold text-navy-dark text-xl">Kamu Sudah Lulus!</h3>
         <p className="text-slate-500 text-sm">
-          Nilai: <strong>{submission!.score}</strong> • {submission!.correct_count}/{submission!.total_questions} benar
+          Nilai: <strong>{submission!.score}</strong> • {submission!.correct_count}/{submission!.total_questions || questions.length || 30} benar
         </p>
       </div>
     );
