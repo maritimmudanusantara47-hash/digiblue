@@ -150,12 +150,17 @@ export default function AdminCertificatesPage() {
       const res = await api.get(`/admin/certificates/${cert.id}/download`, {
         responseType: 'blob',
       });
-      const url  = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      link.download = `Sertifikat-${cert.user?.name ?? 'Peserta'}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`;
+      link.setAttribute('download', `Sertifikat-${cert.user?.name ?? 'Peserta'}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 1000);
     } catch {
       alert('Gagal mengunduh PDF sertifikat.');
     } finally {
