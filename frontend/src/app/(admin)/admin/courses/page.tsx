@@ -41,6 +41,13 @@ export default function AdminCoursesPage() {
   const [search, setSearch]         = useState('');
   const [filterLevel, setFilter]    = useState('');
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage]         = useState(5);
+  const [lastPage, setLastPage]       = useState(1);
+  const [total, setTotal]             = useState(0);
+  const [from, setFrom]               = useState(0);
+  const [to, setTo]                   = useState(0);
+
   // Modal
   const [modal, setModal]           = useState<ModalMode>(null);
   const [editTarget, setEditTarget] = useState<Course | null>(null);
@@ -57,19 +64,62 @@ export default function AdminCoursesPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (search)      params.set('search', search);
-      if (filterLevel) params.set('level', filterLevel);
-      const res = await api.get(`/admin/courses?${params}`);
-      const d   = res.data.data;
-      setCourses(Array.isArray(d) ? d : d?.data ?? []);
+      params.set('paginate', 'true');
+      params.set('per_page', String(perPage));
+      params.set('page', String(currentPage));
+      if (search.trim()) params.set('search', search.trim());
+      if (filterLevel)   params.set('level', filterLevel);
+
+      const res = await api.get(`/admin/courses?${params.toString()}`);
+      const payload = res.data.data;
+
+      if (payload && Array.isArray(payload.data)) {
+        setCourses(payload.data);
+        setCurrentPage(payload.current_page ?? 1);
+        setLastPage(payload.last_page ?? 1);
+        setTotal(payload.total ?? 0);
+        setFrom(payload.from ?? (payload.data.length > 0 ? (payload.current_page - 1) * perPage + 1 : 0));
+        setTo(payload.to ?? (payload.data.length > 0 ? (payload.current_page - 1) * perPage + payload.data.length : 0));
+      } else if (Array.isArray(payload)) {
+        setCourses(payload);
+        setTotal(payload.length);
+        setLastPage(1);
+        setFrom(payload.length > 0 ? 1 : 0);
+        setTo(payload.length);
+      } else {
+        setCourses([]);
+        setTotal(0);
+        setLastPage(1);
+        setFrom(0);
+        setTo(0);
+      }
     } catch {
       setCourses([]);
+      setTotal(0);
+      setLastPage(1);
+      setFrom(0);
+      setTo(0);
     } finally {
       setLoading(false);
     }
-  }, [search, filterLevel]);
+  }, [currentPage, perPage, search, filterLevel]);
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (lvl: string) => {
+    setFilter(lvl);
+    setCurrentPage(1);
+  };
+
+  const handlePerPageChange = (val: number) => {
+    setPerPage(val);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     // Fetch certification levels for dropdown
@@ -142,7 +192,11 @@ export default function AdminCoursesPage() {
     try {
       await api.delete(`/admin/courses/${deleteTarget.id}`);
       setDeleteTarget(null);
-      fetchCourses();
+      if (courses.length === 1 && currentPage > 1) {
+        setCurrentPage(p => p - 1);
+      } else {
+        fetchCourses();
+      }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       alert(msg ?? 'Gagal menghapus kursus.');
@@ -160,24 +214,18 @@ export default function AdminCoursesPage() {
     }
   };
 
-  // ── Filtered ───────────────────────────────────────────────────────────────
-  const displayed = courses.filter(c => {
-    const matchSearch = !search || c.title.toLowerCase().includes(search.toLowerCase());
-    const matchLevel  = !filterLevel || c.certification_level?.code === filterLevel;
-    return matchSearch && matchLevel;
-  });
-
-  const foundation     = displayed.filter(c => c.certification_level?.code === 'FND');
-  const specialization = displayed.filter(c => c.certification_level?.code === 'SPEC');
+  // ── Slices per level for current page ─────────────────────────────────────
+  const foundation     = courses.filter(c => c.certification_level?.code === 'FND');
+  const specialization = courses.filter(c => c.certification_level?.code === 'SPEC');
 
   return (
-    <div className="animate-fadeup">
+    <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
       {/* Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-navy-dark">Manajemen Kursus</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Kelola kurikulum Foundation & Specialization — {courses.length} kursus terdaftar
+            Kelola kurikulum Foundation & Specialization — {total} kursus terdaftar
           </p>
         </div>
         <button id="btn-create-course" onClick={openCreate} className="btn btn-primary whitespace-nowrap">
@@ -194,7 +242,7 @@ export default function AdminCoursesPage() {
             type="text"
             placeholder="Cari nama kursus..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => handleSearchChange(e.target.value)}
             className="form-input pl-9 py-2 text-sm w-full"
           />
         </div>
@@ -202,7 +250,7 @@ export default function AdminCoursesPage() {
           {(['', 'FND', 'SPEC'] as const).map(lvl => (
             <button
               key={lvl || 'all'}
-              onClick={() => setFilter(lvl)}
+              onClick={() => handleFilterChange(lvl)}
               className={`btn btn-sm ${filterLevel === lvl ? 'btn-primary' : 'btn-secondary'}`}
             >
               {lvl === '' ? 'Semua' : lvl === 'FND' ? 'Foundation' : 'Specialization'}
@@ -213,15 +261,15 @@ export default function AdminCoursesPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400 gap-2">
+        <div className="flex-1 flex items-center justify-center py-20 text-slate-400 gap-2">
           <svg className="animate-spin h-5 w-5 text-navy" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
           </svg>
           Memuat kursus...
         </div>
-      ) : displayed.length === 0 ? (
-        <div className="card py-16 text-center">
+      ) : courses.length === 0 ? (
+        <div className="flex-1 card py-16 text-center">
           <div className="text-5xl mb-4">📚</div>
           <p className="font-semibold text-navy-dark">Tidak ada kursus ditemukan</p>
           <p className="text-slate-400 text-sm mt-1">Coba ubah filter atau tambah kursus baru</p>
@@ -230,35 +278,101 @@ export default function AdminCoursesPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-8">
-          {/* Foundation */}
-          {foundation.length > 0 && (
-            <section>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-emerald-100 text-emerald-700 border-emerald-300">
-                  Foundation Level
-                </span>
-                <span className="text-slate-400 text-sm">{foundation.length} program</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                {foundation.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
-              </div>
-            </section>
-          )}
+        <div className="flex-1 flex flex-col justify-between">
+          <div className="space-y-8">
+            {/* Foundation */}
+            {foundation.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-emerald-100 text-emerald-700 border-emerald-300">
+                    Foundation Level
+                  </span>
+                  <span className="text-slate-400 text-sm">{foundation.length} program</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {foundation.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                </div>
+              </section>
+            )}
 
-          {/* Specialization */}
-          {specialization.length > 0 && (
-            <section>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">
-                  Specialization Level
+            {/* Specialization */}
+            {specialization.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">
+                    Specialization Level
+                  </span>
+                  <span className="text-slate-400 text-sm">{specialization.length} track</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {specialization.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Pagination Controls */}
+          {total > 0 && (
+            <div className="card mt-8 sticky bottom-0 sm:bottom-4 z-20 shadow-lg shadow-navy/5 backdrop-blur-md bg-white/95 border border-slate-200/90 p-4 flex flex-col md:flex-row items-center justify-between gap-4 rounded-2xl">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                <span>
+                  Menampilkan <strong className="text-navy-dark font-bold">{from}</strong> – <strong className="text-navy-dark font-bold">{to}</strong> dari <strong className="text-navy-dark font-bold">{total}</strong> kursus
                 </span>
-                <span className="text-slate-400 text-sm">{specialization.length} track</span>
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 border-l border-slate-200 pl-3">
+                  <span>Tampilkan:</span>
+                  <select
+                    value={perPage}
+                    onChange={e => handlePerPageChange(Number(e.target.value))}
+                    className="form-input py-1 px-2 text-xs rounded-lg border-slate-200 bg-white text-navy font-semibold outline-none cursor-pointer"
+                  >
+                    <option value={5}>5 per halaman</option>
+                    <option value={10}>10 per halaman</option>
+                    <option value={20}>20 per halaman</option>
+                  </select>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                {specialization.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  id="btn-prev-page"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1 || loading}
+                  className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
+                >
+                  ← Sebelumnya
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {getPageNumbers(currentPage, lastPage).map((p, idx) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 font-medium">...</span>
+                    ) : (
+                      <button
+                        key={`page-${p}`}
+                        onClick={() => setCurrentPage(Number(p))}
+                        disabled={loading}
+                        className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                          currentPage === p
+                            ? 'bg-navy text-white shadow-sm'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-navy-dark'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  id="btn-next-page"
+                  onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))}
+                  disabled={currentPage >= lastPage || loading}
+                  className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
+                >
+                  Selanjutnya →
+                </button>
               </div>
-            </section>
+            </div>
           )}
         </div>
       )}
@@ -421,6 +535,20 @@ export default function AdminCoursesPage() {
       )}
     </div>
   );
+}
+
+// ── Helper: Pagination Page Numbers ──────────────────────────────────────────
+function getPageNumbers(current: number, last: number): (number | string)[] {
+  if (last <= 7) {
+    return Array.from({ length: last }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, '...', last];
+  }
+  if (current >= last - 3) {
+    return [1, '...', last - 4, last - 3, last - 2, last - 1, last];
+  }
+  return [1, '...', current - 1, current, current + 1, '...', last];
 }
 
 // ── Course Card Component ────────────────────────────────────────────────────

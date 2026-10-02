@@ -138,33 +138,97 @@ export default function StudentCatalogPage() {
     }
   };
 
-  const filtered       = courses.filter(c => c.title.toLowerCase().includes(search.toLowerCase()));
-  const foundation     = filtered.filter(c => c.certification_level?.code === 'FND');
-  const specialization = filtered.filter(c => c.certification_level?.code === 'SPEC');
+  type TabCategory = 'ALL' | 'FND' | 'SPEC';
+  const [activeTab, setActiveTab]       = useState<TabCategory>('ALL');
+  const [currentPage, setCurrentPage]   = useState(1);
+  const perPage                         = 6;
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setCurrentPage(1);
+  };
+
+  const handleTabChange = (tab: TabCategory) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  const searchFiltered = courses.filter(c =>
+    c.title.toLowerCase().includes(search.toLowerCase()) ||
+    (c.description && c.description.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const tabFiltered = searchFiltered.filter(c => {
+    if (activeTab === 'FND') return c.certification_level?.code === 'FND';
+    if (activeTab === 'SPEC') return c.certification_level?.code === 'SPEC';
+    return true;
+  });
+
+  const totalPages       = Math.max(1, Math.ceil(tabFiltered.length / perPage));
+  const startIndex       = (currentPage - 1) * perPage;
+  const paginatedCourses = tabFiltered.slice(startIndex, startIndex + perPage);
+
+  const foundation       = paginatedCourses.filter(c => c.certification_level?.code === 'FND');
+  const specialization   = paginatedCourses.filter(c => c.certification_level?.code === 'SPEC');
+
+  const countAll         = courses.length;
+  const countFnd         = courses.filter(c => c.certification_level?.code === 'FND').length;
+  const countSpec        = courses.filter(c => c.certification_level?.code === 'SPEC').length;
 
   return (
-    <div className="animate-fadeup">
+    <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold text-navy-dark">Katalog Kursus</h1>
         <p className="text-slate-500 text-sm mt-1">Pilih program sertifikasi Blue Economy yang ingin kamu ikuti</p>
       </div>
 
       {/* Search */}
-      <div className="card mb-8">
+      <div className="card mb-6">
         <div className="relative">
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
           <input
             type="text"
             placeholder="Cari kursus atau bidang peminatan..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => handleSearchChange(e.target.value)}
             className="form-input pl-10 w-full"
           />
         </div>
       </div>
 
+      {/* Category Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-3 mb-8">
+        {[
+          { id: 'ALL' as const, label: 'Semua', count: countAll, icon: '🌟' },
+          { id: 'FND' as const, label: 'Foundation Level', count: countFnd, icon: '🎓' },
+          { id: 'SPEC' as const, label: 'Spesialisasi Track', count: countSpec, icon: '🚀' },
+        ].map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              id={`tab-catalog-${tab.id.toLowerCase()}`}
+              onClick={() => handleTabChange(tab.id)}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                isActive
+                  ? 'bg-navy text-white shadow-md shadow-navy/20 scale-[1.02]'
+                  : 'bg-white text-slate-600 hover:text-navy hover:bg-slate-100 border border-slate-200 shadow-sm'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold transition-colors ${
+                isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array(6).fill(0).map((_, i) => (
             <div key={i} className="card flex flex-col gap-4 animate-pulse">
               <div className="h-4 bg-slate-200 rounded w-1/3" />
@@ -175,49 +239,99 @@ export default function StudentCatalogPage() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col gap-10">
-          {foundation.length > 0 && (
-            <section>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-gold/10 text-gold-dark border-gold/30">Foundation Level</span>
-                <span className="text-slate-400 text-sm">Wajib diikuti sebelum peminatan</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {foundation.map(course => (
-                  <CourseCard key={course.id} course={course}
-                    enrollment={enrollmentMap.get(course.id) ?? null}
-                    isEnrolling={enrolling === course.id}
-                    isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
-                    onEnroll={handleEnroll}
-                    onPay={handlePay} />
-                ))}
-              </div>
-            </section>
-          )}
+        <div className="flex-1 flex flex-col justify-between gap-10">
+          <div className="flex flex-col gap-10">
+            {/* Foundation Section */}
+            {foundation.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-gold/10 text-gold-dark border-gold/30">Foundation Level</span>
+                  <span className="text-slate-400 text-sm">Wajib diikuti sebelum peminatan</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {foundation.map(course => (
+                    <CourseCard key={course.id} course={course}
+                      enrollment={enrollmentMap.get(course.id) ?? null}
+                      isEnrolling={enrolling === course.id}
+                      isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
+                      onEnroll={handleEnroll}
+                      onPay={handlePay} />
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {specialization.length > 0 && (
-            <section>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">Specialization Level</span>
-                <span className="text-slate-400 text-sm">{specialization.length} track</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                {specialization.map(course => (
-                  <CourseCard key={course.id} course={course}
-                    enrollment={enrollmentMap.get(course.id) ?? null}
-                    isEnrolling={enrolling === course.id}
-                    isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
-                    onEnroll={handleEnroll}
-                    onPay={handlePay} />
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Specialization Section */}
+            {specialization.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">Specialization Level</span>
+                  <span className="text-slate-400 text-sm">{activeTab === 'SPEC' ? `${tabFiltered.length} track tersedia` : `${countSpec} track tersedia`}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {specialization.map(course => (
+                    <CourseCard key={course.id} course={course}
+                      enrollment={enrollmentMap.get(course.id) ?? null}
+                      isEnrolling={enrolling === course.id}
+                      isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
+                      onEnroll={handleEnroll}
+                      onPay={handlePay} />
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {filtered.length === 0 && (
-            <div className="card py-16 text-center text-slate-400">
-              <div className="text-4xl mb-4">🔎</div>
-              <p className="font-medium">Kursus tidak ditemukan</p>
+            {tabFiltered.length === 0 && (
+              <div className="card py-16 text-center text-slate-400">
+                <div className="text-4xl mb-4">🔎</div>
+                <p className="font-medium text-navy-dark">Kursus tidak ditemukan</p>
+                <p className="text-xs text-slate-400 mt-1">Coba kata kunci lain atau pilih tab kategori yang berbeda</p>
+              </div>
+            )}
+          </div>
+
+          {/* Catalog Pagination Controls */}
+          {tabFiltered.length > perPage && (
+            <div className="card mt-auto sticky bottom-0 sm:bottom-4 z-20 shadow-lg shadow-navy/5 backdrop-blur-md bg-white/95 border border-slate-200/90 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl">
+              <span className="text-sm text-slate-500">
+                Menampilkan <strong className="text-navy-dark font-bold">{startIndex + 1}</strong> – <strong className="text-navy-dark font-bold">{Math.min(startIndex + perPage, tabFiltered.length)}</strong> dari <strong className="text-navy-dark font-bold">{tabFiltered.length}</strong> kursus
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  id="btn-catalog-prev"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
+                >
+                  ← Sebelumnya
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <button
+                      key={`cat-page-${p}`}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                        currentPage === p
+                          ? 'bg-navy text-white shadow-sm'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-navy-dark'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  id="btn-catalog-next"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
+                >
+                  Selanjutnya →
+                </button>
+              </div>
             </div>
           )}
         </div>
