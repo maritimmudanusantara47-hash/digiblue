@@ -14,14 +14,13 @@ class CourseContentSeeder extends Seeder
 {
     public function run(): void
     {
-        // Simpan file_path yang mungkin sudah di-upload admin
         $existingModule = CourseContent::where('content_type', 'pdf_module')
             ->whereNotNull('file_path')
             ->first();
         $savedPdfPath = $existingModule?->file_path;
 
         DB::transaction(function () use ($savedPdfPath) {
-            // ─── Foundation Level — CBEc ────────────────────────────────────────────
+            // ─── 1. Foundation Level — CBEc ─────────────────────────────────────────
             $foundation = Course::where('slug', 'like', '%foundation%')->first();
             if ($foundation) {
                 $foundation->sections()->delete();
@@ -31,13 +30,18 @@ class CourseContentSeeder extends Seeder
                 $this->command->warn('Foundation course not found. Skipping.');
             }
 
-            // ─── 10 Specialization Tracks ───────────────────────────────────────────
-            $specs = Course::whereHas('certificationLevel', fn ($q) => $q->where('code', 'SPEC'))->get();
+            // ─── 2. 10 Specialization Tracks (Hanya Modul & Essay, Tanpa MCQ) ───────
+            $specs = Course::whereHas('certificationLevel', fn($q) => $q->where('code', 'SPEC'))->get();
             foreach ($specs as $specCourse) {
                 $specCourse->sections()->delete();
                 $this->seedSpecializationLevel($specCourse);
                 $this->command->info("Re-seeded Specialization course: {$specCourse->title}");
             }
+
+            // Clean up any remaining mcq_quiz contents on specialization courses
+            CourseContent::where('content_type', 'mcq_quiz')
+                ->whereHas('section.course.certificationLevel', fn($q) => $q->where('code', 'SPEC'))
+                ->delete();
         });
     }
 
@@ -48,41 +52,41 @@ class CourseContentSeeder extends Seeder
     private function seedFoundationLevel(Course $course, ?string $savedPdfPath = null): void
     {
         $section = CourseSection::create([
-            'course_id'   => $course->id,
-            'title'       => 'Foundation Level Program',
+            'course_id' => $course->id,
+            'title' => 'Foundation Level Program',
             'order_index' => 1,
         ]);
 
-        // ── 1. Learning Modules ────────────────────────────────────────────────
+        // 1. Learning Modules
         CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'pdf_module',
-            'title'            => 'Foundation Learning Modules — Blue Economy Core',
-            'file_path'        => $savedPdfPath,
+            'section_id' => $section->id,
+            'content_type' => 'pdf_module',
+            'title' => 'Foundation Learning Modules — Blue Economy Core',
+            'file_path' => $savedPdfPath,
             'instruction_text' => "Unduh dan pelajari modul pembelajaran Foundation Level berikut sebelum mengerjakan ujian.\n\nModul ini mencakup:\n• Konsep dasar Blue Economy & Ekonomi Kelautan berkelanjutan\n• Ekosistem pesisir utama (mangrove, padang lamun, terumbu karang) dan nilai valuasinya\n• Target SDG 14 (Life Below Water) dan integrasi ke dalam kebijakan nasional\n• Kerangka hukum UNCLOS 1982, batas maritim, dan tata kelola perikanan WPPNRI\n• Pencegahan pencemaran laut, mikroplastik, serta instrumen Keuangan Biru Indonesia\n\nBaca dengan seksama, catat poin-poin penting, dan siapkan dirimu untuk ujian.",
-            'max_score'        => 0,
-            'is_prerequisite'  => true,
-            'order_index'      => 1,
+            'max_score' => 0,
+            'is_prerequisite' => true,
+            'order_index' => 1,
         ]);
 
-        // ── 2. Multiple-Choice Examination (20 Soal, 5 poin/soal = 100 poin) ────
+        // 2. Multiple-Choice Examination (30 Soal, Total Bobot 100 Poin)
         $quiz = CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'mcq_quiz',
-            'title'            => 'Multiple-Choice Examination — Foundation Level',
-            'instruction_text' => "Kerjakan semua soal ujian pilihan ganda berikut dengan teliti.\n\nPetunjuk Ujian:\n• Terdiri dari 20 butir soal komprehensif seputar konsep dasar Blue Economy, SDG 14, ekosistem maritim, dan regulasi kelautan.\n• Setiap butir soal bernilai 5 poin (Total Bobot Nilai = 100 poin).\n• Nilai minimum kelulusan: 70 dari 100 (minimal 14 soal benar).\n• Pilih satu jawaban yang paling tepat (A, B, C, atau D).\n• Jika belum memenuhi batas kelulusan, Anda dapat mengulang ujian kembali.",
-            'max_score'        => 100,
-            'is_prerequisite'  => false,
-            'order_index'      => 2,
+            'section_id' => $section->id,
+            'content_type' => 'mcq_quiz',
+            'title' => 'Multiple-Choice Examination — Foundation Level',
+            'instruction_text' => "Kerjakan semua soal ujian pilihan ganda berikut dengan teliti.\n\nPetunjuk Ujian:\n• Terdiri dari 30 butir soal pilihan ganda seputar Blue Economy, Blue Carbon, Blue Finance, dan Tata Kelola Maritim.\n• Total bobot nilai ujian adalah 100 poin (Skala 0 - 100).\n• Nilai minimum kelulusan: 70 dari 100.\n• Pilih satu jawaban yang paling tepat (A, B, C, atau D).\n• Jika belum memenuhi batas kelulusan, Anda dapat mengulang ujian kembali.",
+            'max_score' => 100,
+            'is_prerequisite' => false,
+            'order_index' => 2,
         ]);
 
         $this->seedFoundationQuestions($quiz);
 
-        // ── 3. Case-Study Essay Submission ──────────────────────────────────────
+        // 3. Case-Study Essay Submission
         CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'essay_task',
-            'title'            => 'Case-Study Essay Submission — Foundation Level',
+            'section_id' => $section->id,
+            'content_type' => 'essay_task',
+            'title' => 'Case-Study Essay Submission — Foundation Level',
             'instruction_text' => "### Studi Kasus: Valuasi Ekonomi Ekosistem Pesisir & Transisi Menuju Blue Economy Berkelanjutan di Teluk Tomini
 
 #### Latar Belakang Masalah
@@ -100,27 +104,27 @@ Sebagai seorang kandidat *Certified Blue Economist (CBEc)*, Anda diminta menyusu
 - Unggah berkas dokumen tugas dalam format PDF/DOCX (maksimal 20 MB), ATAU
 - Cantumkan tautan penyimpanan berkas (Google Drive / OneDrive) dengan izin akses *'Anyone with link can view'*.
 - Penilaian dilakukan secara manual oleh Tim Asesor DigiBlueCamp berdasarkan ketajaman analisis, orisinalitas ide, dan kelayakan solusi.",
-            'max_score'        => 100,
-            'is_prerequisite'  => false,
-            'order_index'      => 3,
+            'max_score' => 100,
+            'is_prerequisite' => false,
+            'order_index' => 3,
         ]);
 
-        // ── 4. Training Course (Field Study) ────────────────────────────────────
+        // 4. Training Course (Field Study)
         CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'field_study',
-            'title'            => 'Training Course (Field Study)',
+            'section_id' => $section->id,
+            'content_type' => 'field_study',
+            'title' => 'Training Course (Field Study)',
             'instruction_text' => "Field Study adalah komponen praktikum lapangan terpadu program Foundation Level DigiBlueCamp.\n\nAktivitas Lapangan:\n🌊 Observasi habitat pesisir dan verifikasi baseline ekosistem mangrove/lamun\n🤝 Dialog interaktif dengan kelompok nelayan dan pengelola kawasan konservasi laut\n📊 Pengambilan data primer sosial-ekonomi pesisir\n🎯 Diskusi kelompok terarah (FGD) dan perumusan rekomendasi praktis\n\nSilakan konfirmasikan keikutsertaan Anda di bawah ini. Peserta yang mengikuti Field Study secara otomatis dibebaskan dari modul Critical Thinking Exam.",
-            'max_score'        => 0,
-            'is_prerequisite'  => false,
-            'order_index'      => 4,
+            'max_score' => 0,
+            'is_prerequisite' => false,
+            'order_index' => 4,
         ]);
 
-        // ── 5. Case-Study Essay Examination — Critical Thinking ─────────────────
+        // 5. Case-Study Essay Examination — Critical Thinking
         CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'critical_thinking',
-            'title'            => 'Case-Study Essay Examination — Critical Thinking',
+            'section_id' => $section->id,
+            'content_type' => 'critical_thinking',
+            'title' => 'Case-Study Essay Examination — Critical Thinking',
             'instruction_text' => "### Ujian Analisis Kritis: Tata Kelola Perikanan Tangkap vs Kebijakan Kawasan Konservasi Laut (KKL) di Indonesia
 
 *Catatan: Modul ini diperuntukkan khusus bagi peserta yang TIDAK mengikuti kegiatan Field Study.*
@@ -133,1807 +137,351 @@ Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
 1. **Evaluasi Kritis Keseimbangan Ekologi dan Ekonomi**: Apakah kebijakan alokasi kuota perikanan saat ini sudah cukup melindungi stok ikan dari penangkapan berlebih (*overfishing*) dan memitigasi risiko *bycatch* satwa terancam punah?
 2. **Keadilan Sosial & Kearifan Lokal**: Bagaimana regulasi kelautan nasional dapat mengakomodasi hak-hak masyarakat hukum adat laut (seperti kearifan Sasi, Awig-awig, dan Panglima Laot) agar tidak terpinggirkan oleh zona industri penangkapan skala besar?
 3. **Rekomendasi Kebijakan**: Rekomendasikan 3 langkah konkret berbasis sains (*evidence-based policy*) untuk meningkatkan efektivitas pengawasan laut terhadap IUU Fishing di perairan kepulauan terluar Indonesia.",
-            'max_score'        => 100,
-            'is_prerequisite'  => false,
-            'order_index'      => 5,
+            'max_score' => 100,
+            'is_prerequisite' => false,
+            'order_index' => 5,
         ]);
     }
 
     private function seedFoundationQuestions(CourseContent $quiz): void
     {
-        $questions = [
+        $rawQuestions = [
             [
-                'question' => 'Konsep Blue Economy yang diperkenalkan oleh Gunter Pauli dan diadopsi secara luas oleh PBB menekankan pada prinsip utama apa?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Pemanfaatan sumber daya laut secara berkelanjutan untuk pertumbuhan ekonomi, peningkatan taraf hidup, dan kelestarian ekosistem laut tanpa menghasilkan limbah (zero-waste)', true],
-                    ['Eksploitasi sumber daya laut secara maksimal dalam jangka pendek untuk mengejar target devisa ekspor perikanan nasional', false],
-                    ['Moratorium total terhadap seluruh aktivitas ekonomi manusia di wilayah pesisir dan perairan teritorial', false],
-                    ['Privatisasi pulau-pulau kecil untuk pengelolaan pariwisata eksklusif oleh investor internasional', false],
+                'q' => 'What does the term Blue Economy primarily refer to?',
+                'options' => [
+                    ['Coastal housing development', false],
+                    ['Sustainable use of ocean resources for economic growth', true],
+                    ['Inland water infrastructure', false],
+                    ['Maritime defense systems', false],
                 ],
             ],
             [
-                'question' => 'Target SDG 14 (Life Below Water) nomor 14.1 secara spesifik berfokus pada upaya apa?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Mencegah dan secara signifikan mengurangi semua jenis pencemaran laut, terutama dari aktivitas berbasis daratan termasuk serpihan sampah plastik dan polusi nutrisi', true],
-                    ['Menghapus seluruh subsidi bahan bakar kapal penangkap ikan skala industri di negara berkembang', false],
-                    ['Menggandakan kapasitas produksi armada kapal penangkap ikan samudra', false],
-                    ['Melarang ekspor produk perikanan air tawar ke pasar Uni Eropa', false],
+                'q' => 'Gender equity in blue economy development is important because:',
+                'options' => [
+                    ['Women are not usually involved in fisheries', false],
+                    ['It helps increase population in island nations', false],
+                    ['Women play key roles in coastal economies and decision-making', true],
+                    ['Men dominate marine professions', false],
                 ],
             ],
             [
-                'question' => 'Mengapa hutan mangrove dan padang lamun (*seagrass beds*) memiliki nilai strategis yang sangat tinggi dalam mitigasi perubahan iklim global?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Mampu menyerap dan mengunci karbon biru (blue carbon) di dalam sedimen anaerobik hingga ratusan hingga ribuan tahun dengan laju penyerapan per hektar lebih tinggi dari hutan daratan', true],
-                    ['Menghasilkan gas metana dalam jumlah besar yang mempercepat penurunan suhu permukaan laut', false],
-                    ['Dapat menggantikan fungsi bahan bakar fosil secara langsung sebagai bahan bakar nabati cair tanpa pengolahan', false],
-                    ['Mencegah terjadinya siklus pasang surut air laut di kawasan pesisir pulau terluar', false],
+                'q' => 'Which of the following represents a sustainable blue business model?',
+                'options' => [
+                    ['Trawling in sensitive habitats', false],
+                    ['Open-loop cruise ship discharge', false],
+                    ['Eco-tourism with marine conservation focus', true],
+                    ['Export-focused shark finning', false],
                 ],
             ],
             [
-                'question' => 'Fenomena pemutihan karang (*coral bleaching*) secara massal paling sering dipicu oleh faktor stres lingkungan apa?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Kenaikan anomali suhu permukaan laut (Sea Surface Temperature/SST) yang menyebabkan polip karang melepaskan alga simbiotik *zooxanthellae*', true],
-                    ['Tingginya kadar garam (salinitas) akibat penguapan air laut saat musim dingin berlangsung', false],
-                    ['Tumbuhnya populasi alga cokelat akibat berkurangnya konsentrasi karbon dioksida di kolom air', false],
-                    ['Aktivitas kapal feri penyeberangan yang melintasi alur laut kepulauan', false],
+                'q' => 'Marine biotechnology businesses often focus on:',
+                'options' => [
+                    ['Coral mining', false],
+                    ['Deep-sea drilling', false],
+                    ['Pharmaceutical products from marine organisms', true],
+                    ['Oil-to-gas conversion', false],
                 ],
             ],
             [
-                'question' => 'Deklarasi Djuanda yang dicetuskan pada tanggal 13 Desember 1957 merupakan tonggak sejarah kemaritiman Indonesia karena berhasil menetapkan prinsip apa?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Asas Negara Kepulauan (*Archipelagic State Principle*), bahwa seluruh perairan di sekitar, di antara, dan yang menghubungkan pulau-pulau Indonesia adalah bagian integral dari kedaulatan NKRI', true],
-                    ['Pemberian konsesi eksploitasi perikanan teritorial kepada perusahaan multinasional', false],
-                    ['Penetapan batas teritorial laut Indonesia sejauh 200 mil laut dari garis pantai surut terendah', false],
-                    ['Penutupan alur laut kepulauan Indonesia (ALKI) bagi pelayaran kapal niaga internasional', false],
+                'q' => 'What is a major challenge for small blue businesses?',
+                'options' => [
+                    ['Access to international waters', false],
+                    ['Limited access to blue finance', true],
+                    ['Overabundance of marine land', false],
+                    ['High fish prices', false],
                 ],
             ],
             [
-                'question' => 'Berdasarkan Konvensi Hukum Laut PBB (UNCLOS 1982), hak apa yang dimiliki oleh negara pantai di Zona Ekonomi Eksklusif (ZEE) sejauh 200 mil laut?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Hak berdaulat (*sovereign rights*) untuk eksplorasi, eksploitasi, konservasi, dan pengelolaan sumber daya alam hayati maupun non-hayati', true],
-                    ['Kedaulatan mutlak (*absolute sovereignty*) yang mencakup kedaulatan wilayah daratan, laut, dan ruang udara di atasnya tanpa kebebasan navigasi kapal asing', false],
-                    ['Hak memungut pajak bea masuk terhadap setiap kapal asing yang hanya melintas damai (*innocent passage*)', false],
-                    ['Hak untuk mengklaim seluruh dasar laut samudra internasional sebagai wilayah properti pribadi negara', false],
+                'q' => 'Certification schemes like the Marine Stewardship Council (MSC) help businesses by:',
+                'options' => [
+                    ['Increasing fishing rights', false],
+                    ['Providing market credibility for sustainable practices', true],
+                    ['Securing exclusive fishing zones', false],
+                    ['Reducing taxes', false],
                 ],
             ],
             [
-                'question' => 'Praktik penangkapan ikan ilegal, tidak dilaporkan, dan tidak diatur dikenal dengan istilah IUU Fishing. Instrumen internasional FAO yang mewajibkan pelabuhan menolak kapal pelaku IUU Fishing adalah?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Agreement on Port State Measures (PSMA)', true],
-                    ['Convention on International Trade in Endangered Species (CITES)', false],
-                    ['International Convention for the Safety of Life at Sea (SOLAS)', false],
-                    ['Ballast Water Management Convention (BWMC)', false],
+                'q' => 'Which is an example of value addition in blue businesses?',
+                'options' => [
+                    ['Selling fresh fish only', false],
+                    ['Processing tuna into ready-to-eat products', true],
+                    ['Selling fish before weighing', false],
+                    ['Avoiding labeling practices', false],
                 ],
             ],
             [
-                'question' => 'Dalam kerangka Valuasi Ekonomi Total (Total Economic Value/TEV), manfaat ekosistem mangrove dalam menahan abrasi dan badai pesisir diklasifikasikan sebagai?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Indirect Use Value (Nilai Manfaat Tidak Langsung)', true],
-                    ['Direct Use Value (Nilai Manfaat Langsung)', false],
-                    ['Option Value (Nilai Pilihan Masa Depan)', false],
-                    ['Existence Value (Nilai Keberadaan)', false],
+                'q' => 'What is a blue bond?',
+                'options' => [
+                    ['Fishing permit', false],
+                    ['Debt to build warships', false],
+                    ['A financial instrument for marine sustainability projects', true],
+                    ['Carbon credit substitute', false],
                 ],
             ],
             [
-                'question' => 'Berapa target luas Kawasan Konservasi Laut (KKL / Marine Protected Area) yang dicanangkan pemerintah Indonesia untuk dicapai pada tahun 2030 sebagai komitmen global?',
-                'weight'   => 5,
-                'options'  => [
-                    ['32,5 juta hektar (10% dari luas perairan teritorial Indonesia)', true],
-                    ['5 juta hektar (1% dari perairan)', false],
-                    ['80 juta hektar (50% dari perairan)', false],
-                    ['15 juta hektar (3% dari perairan)', false],
+                'q' => 'Which country issued the world’s first sovereign blue bond in 2018?',
+                'options' => [
+                    ['Indonesia', false],
+                    ['Norway', false],
+                    ['Seychelles', true],
+                    ['Maldives', false],
                 ],
             ],
             [
-                'question' => 'Proses pengasaman laut (*ocean acidification*) disebabkan oleh penyerapan berlebih gas atmosfer apa ke dalam air laut, dan apa dampaknya?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Penyerapan karbon dioksida (CO₂), yang menurunkan pH air laut dan menghambat pembentukan cangkang kalsium karbonat pada karang serta kerang-kerangan', true],
-                    ['Penyerapan gas nitrogen (N₂), yang menyebabkan eutrofikasi dan ledakan populasi ubur-ubur secara masif', false],
-                    ['Penyerapan sulfur dioksida (SO₂), yang memutihkan air laut menjadi transparan', false],
-                    ['Penyerapan gas metana (CH₄), yang menaikkan tingkat keasaman hingga mematikan fitoplankton', false],
+                'q' => 'Blue finance refers to:',
+                'options' => [
+                    ['Money from fossil fuel sectors', false],
+                    ['Financial tools for sustainable ocean-based development', true],
+                    ['Maritime tax', false],
+                    ['Offshore tax', false],
                 ],
             ],
             [
-                'question' => 'Konsep Maximum Sustainable Yield (MSY) dalam biologi perikanan didefinisikan sebagai?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Tingkat tangkapan terbesar yang dapat diambil dari stok ikan secara terus-menerus tanpa mengganggu kapasitas regenerasi alami populasi ikan tersebut', true],
-                    ['Volume tangkapan ikan tertinggi yang dapat ditampung oleh kapasitas kapal penangkap ikan dalam satu kali trip berlayar', false],
-                    ['Jumlah subsidi perikanan maksimum yang boleh diberikan oleh pemerintah kepada nelayan tradisional', false],
-                    ['Batas penangkapan ikan di mana seluruh induk ikan dewasa di perairan ditangkap untuk diproses di industri hilir', false],
+                'q' => 'What is a key principle of blue financing?',
+                'options' => [
+                    ['Linking returns to ecological sustainable oceans outcomes', true],
+                    ['Short-term industrial expansion', false],
+                    ['Increasing subsidies for trawling', false],
+                    ['Centralizing ocean industry and tax', false],
                 ],
             ],
             [
-                'question' => 'Indonesia membagi wilayah pengelolaan perikanan lautnya ke dalam Wilayah Pengelolaan Perikanan Negara Republik Indonesia (WPPNRI). Berapakah jumlah total WPPNRI saat ini?',
-                'weight'   => 5,
-                'options'  => [
-                    ['11 WPPNRI (mencakup perairan laut kepulauan, laut teritorial, dan ZEE Indonesia)', true],
-                    ['5 WPPNRI', false],
-                    ['8 WPPNRI', false],
-                    ['17 WPPNRI', false],
+                'q' => 'Which SDG most closely aligns with the principles of the blue economy?',
+                'options' => [
+                    ['SDG 9', false],
+                    ['SDG 1', false],
+                    ['SDG 14', true],
+                    ['SDG 5', false],
                 ],
             ],
             [
-                'question' => 'Kearifan lokal masyarakat pesisir di Maluku dan Papua yang melarang penangkapan hasil laut tertentu pada periode waktu tertentu demi pemulihan populasi disebut?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Sasi Laut', true],
-                    ['Subak Abian', false],
-                    ['Awig-awig Hutan', false],
-                    ['Bawine Pondang', false],
+                'q' => 'Which financial tool can help de-risk investment in blue economy startups?',
+                'options' => [
+                    ['Trade tariffs', false],
+                    ['Blended blue finance', true],
+                    ['Export licensing', false],
+                    ['Fisheries stockpiling', false],
                 ],
             ],
             [
-                'question' => 'Partikel plastik berukuran kurang dari 5 milimeter yang mencemari kolom air laut dan berbahaya karena termakan oleh biota laut dan terakumulasi dalam rantai pangan manusia disebut?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Mikroplastik', true],
-                    ['Makroplastik', false],
-                    ['Biopolimer aktif', false],
-                    ['Polietilena densitas tinggi murni', false],
+                'q' => 'A key step in developing a blue economy project proposal is:',
+                'options' => [
+                    ['Estimating oil reserves', false],
+                    ['Maximizing profit projections only', false],
+                    ['Avoiding local consultation', false],
+                    ['Conducting an environmental and social impact assessment', true],
                 ],
             ],
             [
-                'question' => 'Apa yang dimaksud dengan *carrying capacity* (daya dukung lingkungan) dalam konteks destinasi pariwisata bahari berkelanjutan?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Batas intensitas kunjungan dan aktivitas wisatawan maksimum yang dapat ditoleransi suatu kawasan pesisir tanpa menimbulkan kerusakan permanen pada ekosistem setempat', true],
-                    ['Kapasitas muatan penumpang maksimal kapal penyeberangan wisata antarpulau', false],
-                    ['Jumlah total kamar hotel berbintang yang diizinkan dibangun di sempadan pantai', false],
-                    ['Pendapatan retribusi tiket masuk maksimal yang diperbolehkan dipungut oleh pengelola wisata bahari', false],
+                'q' => 'What is a “bankable blue project”?',
+                'options' => [
+                    ['Any project in a coastal area', false],
+                    ['A defense investment', false],
+                    ['A financially viable, sustainable marine project', true],
+                    ['A cruise ship expansion plan', false],
                 ],
             ],
             [
-                'question' => 'Metode restorasi terumbu karang yang memanfaatkan aliran arus listrik tegangan rendah untuk mempercepat proses akresi mineral kalsium karbonat pada struktur logam dikenal dengan teknologi?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Biorock', true],
-                    ['Artificial Coral Spray', false],
-                    ['Reef Netting Barrier', false],
-                    ['Sediment Filtration Trap', false],
+                'q' => 'Which of these is part of blue project management best practices?',
+                'options' => [
+                    ['Ignore local knowledge', false],
+                    ['Stakeholder engagement and sustainable monitoring', true],
+                    ['Focus only on financial ROI', false],
+                    ['Delay environmental reporting', false],
                 ],
             ],
             [
-                'question' => 'Dalam model ekonomi sirkular pada industri pengolahan hasil perikanan, limbah cangkang udang dan kepiting yang melimpah dapat diekstraksi menjadi bahan bernilai tinggi apa?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Kitin dan Kitosan (*Chitosan*) yang digunakan untuk bioplastik, kosmetik, dan koagulan limbah', true],
-                    ['Bahan bakar bensin beroktan tinggi untuk mesin tempel perahu', false],
-                    ['Pengganti semen instan untuk pengecoran konstruksi pelabuhan laut dalam', false],
-                    ['Zat pewarna tekstil sintetis tahan luntur', false],
+                'q' => 'The success of blue investment relies on:',
+                'options' => [
+                    ['Military support', false],
+                    ['Policy certainty of blue economy and good governance', true],
+                    ['Port privatization', false],
+                    ['Exclusive fishing rights', false],
                 ],
             ],
             [
-                'question' => 'Otoritas Jasa Keuangan (OJK) bersama kementerian terkait menyusun Taksonomi Keuangan Berkelanjutan Indonesia (TKBI). Apa fungsi utama taksonomi ini dalam Blue Finance?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Memberikan klasifikasi baku bagi lembaga keuangan untuk menentukan apakah suatu proyek kelautan memenuhi kriteria ramah lingkungan/biru guna mencegah praktik *blue-washing*', true],
-                    ['Menetapkan tarif suku bunga pinjaman tetap sebesar 0% bagi seluruh importir hasil laut', false],
-                    ['Menggantikan seluruh regulasi perbankan konvensional di kawasan pesisir pulau terpencil', false],
-                    ['Menghapus kewajiban analisis mengenai dampak lingkungan (AMDAL) bagi investasi maritim', false],
+                'q' => 'PPPs (Public-Private Partnerships) in the blue economy are useful for:',
+                'options' => [
+                    ['Limiting foreign investment', false],
+                    ['Avoiding regulatory processes', false],
+                    ['Leveraging resources and sharing risks', true],
+                    ['Promoting tax invasion', false],
                 ],
             ],
             [
-                'question' => 'Manakah di antara ekosistem berikut yang bertindak sebagai benteng pertahanan alami paling efektif dalam mereduksi energi gelombang tsunami dan gelombang pasang di garis pantai?',
-                'weight'   => 5,
-                'options'  => [
-                    ['Hutan Mangrove yang rapat dengan sistem perakaran tunjang dan nafas (*pneumatophores*)', true],
-                    ['Hamparan pasir pantai terbuka tanpa vegetasi', false],
-                    ['Tambak udang tanah terbuka dengan tanggul buatan tanah liat', false],
-                    ['Zona perairan laut lepas berkedalaman lebih dari 200 meter', false],
+                'q' => 'What are “blue carbon ecosystems”?',
+                'options' => [
+                    ['Mountains and volcanoes', false],
+                    ['Mangroves and seagrasses', true],
+                    ['Turtle and Sharks', false],
+                    ['Submerged pipelines', false],
                 ],
             ],
             [
-                'question' => 'Prinsip kehati-hatian (*Precautionary Approach*) dalam pengelolaan sumber daya laut internasional (Deklarasi Rio 1992) menegaskan bahwa:',
-                'weight'   => 5,
-                'options'  => [
-                    ['Ketiadaan bukti ilmiah yang konklusif tidak boleh dijadikan alasan untuk menunda tindakan pencegahan degradasi lingkungan laut ketika terdapat ancaman kerusakan serius atau permanen', true],
-                    ['Setiap aktivitas eksploitasi laut boleh dijalankan tanpa izin selama belum ada protes dari masyarakat lokal', false],
-                    ['Kegiatan riset kelautan hanya boleh dilakukan jika didanai 100% oleh lembaga donor internasional', false],
-                    ['Pemerintah harus menunggu terjadinya kepunahan spesies sebelum menetapkan kuota penangkapan ikan', false],
+                'q' => 'Blue carbon refers to carbon stored in?',
+                'options' => [
+                    ['Marine mammals', false],
+                    ['Oceans Pipelines', false],
+                    ['Coastal and marine vegetated ecosystems', true],
+                    ['Submarine', false],
+                ],
+            ],
+            [
+                'q' => 'Which blue carbon ecosystem is the most efficient at carbon sequestration?',
+                'options' => [
+                    ['Coral reef', false],
+                    ['Sandbanks', false],
+                    ['Algae', false],
+                    ['Mangroves', true],
+                ],
+            ],
+            [
+                'q' => 'A threat to blue carbon ecosystems includes',
+                'options' => [
+                    ['Turtle and Sharks', false],
+                    ['Eco-certification', false],
+                    ['Fish exports', false],
+                    ['Coastal urban development and marine pollution', true],
+                ],
+            ],
+            [
+                'q' => 'Which of the following is NOT a sector of the blue economy?',
+                'options' => [
+                    ['Aquaculture', false],
+                    ['Maritime transport', false],
+                    ['Marine biotechnology', false],
+                    ['Fashion', true],
+                ],
+            ],
+            [
+                'q' => 'Protecting blue carbon ecosystems contributes to',
+                'options' => [
+                    ['Increasing oil reserves', false],
+                    ['Climate change mitigation and adaptation', true],
+                    ['Expanding shipping routes', false],
+                    ['Enhancing ocean salinity', false],
+                ],
+            ],
+            [
+                'q' => 'The concept of the Blue Economy aims to:',
+                'options' => [
+                    ['Promote inclusive and sustainable ocean-based economies', true],
+                    ['Maximize short-term exploitation of ocean resources', false],
+                    ['Privatize international waters', false],
+                    ['Focus solely on industrial fisheries', false],
+                ],
+            ],
+            [
+                'q' => 'Who popularized the modern interpretation of the Blue Economy in 2010?',
+                'options' => [
+                    ['Ban Ki-moon', false],
+                    ['Gunter Pauli', true],
+                    ['David Attenborough', false],
+                    ['Will Martin', false],
+                ],
+            ],
+            [
+                'q' => 'A “Blue Society” promotes',
+                'options' => [
+                    ['Privatization of coastlines', false],
+                    ['Equity, participation, and stewardship of marine resources', true],
+                    ['Exclusive ocean zoning for industry', false],
+                    ['Deep-sea mining prioritization', false],
+                ],
+            ],
+            [
+                'q' => 'Which community group is critical to the success of blue society development?',
+                'options' => [
+                    ['Coporations only', false],
+                    ['Coastal communities and indigenous peoples', true],
+                    ['Military forces', false],
+                    ['Urban developers', false],
+                ],
+            ],
+            [
+                'q' => 'Marine spatial planning (MSP) supports blue societies by:',
+                'options' => [
+                    ['Increasing taxation in coastal regions', false],
+                    ['Managing marine space equitably among users', true],
+                    ['Promoting offshore oil fields', false],
+                    ['Prioritizing tourism over traditional fishing', false],
+                ],
+            ],
+            [
+                'q' => 'The term “ocean stewardship” refers to:',
+                'options' => [
+                    ['Responsible and proactive care for marine ecosystems', true],
+                    ['Fishing quota enforcement', false],
+                    ['Maritime trade', false],
+                    ['Taxation of coastal landowners', false],
                 ],
             ],
         ];
 
-        $this->insertQuestionsAndOptions($quiz, $questions);
+        // Total 30 soal didistribusikan sehingga jumlah bobot tepat 100 poin (10 soal x 4 poin + 20 soal x 3 poin = 100 poin)
+        $totalQuestions = count($rawQuestions);
+        $remainder = 100 % $totalQuestions; // 10 soal bernilai 4 poin, sisanya bernilai 3 poin
+
+        foreach ($rawQuestions as $idx => $qData) {
+            $weight = intdiv(100, $totalQuestions) + ($idx < $remainder ? 1 : 0);
+
+            $question = QuizQuestion::create([
+                'content_id' => $quiz->id,
+                'question_text' => $qData['q'],
+                'weight_score' => $weight,
+                'order_index' => $idx + 1,
+            ]);
+
+            foreach ($qData['options'] as $optIdx => $opt) {
+                QuizOption::create([
+                    'question_id' => $question->id,
+                    'option_text' => $opt[0],
+                    'is_correct' => $opt[1],
+                ]);
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  SPECIALIZATION LEVEL (10 TRACKS)
+    //  SPECIALIZATION LEVEL (10 TRACKS) — HANYA MODUL & ESSAY (TANPA MCQ)
     // ═══════════════════════════════════════════════════════════════════════════
 
     private function seedSpecializationLevel(Course $course): void
     {
-        $rawTitle = str_replace('CBEc Specialization — ', '', $course->title);
-        $trackTitle = trim(explode(':', $rawTitle)[0]);
+        $trackTitle = str_replace('CBEc Specialization — ', '', $course->title);
 
         $section = CourseSection::create([
-            'course_id'   => $course->id,
-            'title'       => 'Program Spesialisasi — ' . $trackTitle,
+            'course_id' => $course->id,
+            'title' => 'Program Spesialisasi — ' . $trackTitle,
             'order_index' => 1,
         ]);
 
-        // ── 1. Learning Module ──────────────────────────────────────────────────
+        // 1. Learning Module
         CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'pdf_module',
-            'title'            => 'Specialization Learning Modules — ' . $trackTitle,
-            'instruction_text' => "Unduh dan pelajari modul spesialisasi {$trackTitle} berikut sebelum mengerjakan ujian dan tugas studi kasus.\n\nModul ini mencakup:\n• Konsep fundamental dan kerangka operasional mendalam mengenai {$trackTitle}\n• Metodologi teknis, regulasi nasional, dan standar internasional terkini\n• Kajian kasus komersial, mitigasi risiko ekologis, dan kelayakan finansial\n• Instrumen pemantauan, verifikasi dampak, dan tata kelola berkelanjutan\n\nPelajari materi ini dengan cermat untuk mempersiapkan diri menghadapi ujian pilihan ganda dan tugas esai.",
-            'max_score'        => 0,
-            'is_prerequisite'  => true,
-            'order_index'      => 1,
+            'section_id' => $section->id,
+            'content_type' => 'pdf_module',
+            'title' => 'Specialization Learning Modules — ' . $trackTitle,
+            'instruction_text' => "Unduh dan pelajari modul spesialisasi {$trackTitle} berikut sebelum mengerjakan tugas studi kasus.\n\nModul ini mencakup:\n• Konsep fundamental dan kerangka operasional mendalam mengenai {$trackTitle}\n• Metodologi teknis, regulasi nasional, dan standar internasional terkini\n• Kajian kasus komersial, mitigasi risiko ekologis, dan kelayakan finansial\n• Instrumen pemantauan, verifikasi dampak, dan tata kelola berkelanjutan\n\nPelajari materi ini dengan cermat untuk mempersiapkan diri menyusun analisis tugas studi kasus.",
+            'max_score' => 0,
+            'is_prerequisite' => true,
+            'order_index' => 1,
         ]);
 
-        // ── 2. MCQ Examination (10 Soal, 10 poin/soal = 100 poin) ───────────────
-        $quiz = CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'mcq_quiz',
-            'title'            => "Multiple-Choice Examination — Specialization {$trackTitle}",
-            'instruction_text' => "Kerjakan seluruh soal pilihan ganda spesialisasi {$trackTitle} dengan cermat.\n\nPetunjuk Ujian:\n• Terdiri dari 10 butir soal spesifik, analitis, dan aplikatif seputar topik {$trackTitle}.\n• Masing-masing soal berbobot 10 poin (Total Bobot Nilai = 100 poin).\n• Nilai kelulusan minimum: 70 dari 100 (minimal 7 soal dijawab dengan benar).\n• Pilihlah satu jawaban yang paling tepat (A, B, C, atau D).\n• Anda dapat mengulang ujian jika nilai yang diperoleh belum mencapai batas minimum kelulusan.",
-            'max_score'        => 100,
-            'is_prerequisite'  => false,
-            'order_index'      => 2,
-        ]);
-
-        $this->seedTrackSpecificQuizQuestions($quiz, $trackTitle);
-
-        // ── 3. Case-Study Essay Submission ──────────────────────────────────────
+        // 2. Case-Study Essay Submission (Satu-satunya ujian untuk Spesialisasi)
         $essayPrompt = $this->getTrackSpecificEssayPrompt($trackTitle);
         CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'essay_task',
-            'title'            => "Case-Study Essay Submission — {$trackTitle}",
+            'section_id' => $section->id,
+            'content_type' => 'essay_task',
+            'title' => "Case-Study Essay Submission — {$trackTitle}",
             'instruction_text' => $essayPrompt,
-            'max_score'        => 100,
-            'is_prerequisite'  => false,
-            'order_index'      => 3,
-        ]);
-
-        // ── 4. Training Course (Field Study) ────────────────────────────────────
-        CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'field_study',
-            'title'            => "Training Course (Field Study) — {$trackTitle}",
-            'instruction_text' => "Field Study spesialisasi {$trackTitle} memberikan kesempatan verifikasi empiris dan keterlibatan langsung di lapangan bersama praktisi industri, komunitas maritim, dan pakar riset kelautan di Indonesia.\n\nAktivitas Lapangan:\n🌊 Kunjungan langsung ke lokasi penerapan teknologi dan ekosistem {$trackTitle}\n🤝 Diskusi teknis dengan pelaku usaha, regulator, dan komunitas pesisir lokal\n📊 Pengambilan data primer untuk penyempurnaan proyek studi kasus spesialisasi\n🎯 Presentasi hasil pengamatan dan validasi model solusi di hadapan mentor\n\nKonfirmasikan keikutsertaan Anda di bawah ini. Peserta Field Study dibebaskan dari modul Critical Thinking Exam.",
-            'max_score'        => 0,
-            'is_prerequisite'  => false,
-            'order_index'      => 4,
-        ]);
-
-        // ── 5. Case-Study Essay Examination — Critical Thinking ─────────────────
-        $criticalPrompt = $this->getTrackSpecificCriticalThinkingPrompt($trackTitle);
-        CourseContent::create([
-            'section_id'       => $section->id,
-            'content_type'     => 'critical_thinking',
-            'title'            => "Case-Study Essay Examination — Critical Thinking ({$trackTitle})",
-            'instruction_text' => $criticalPrompt,
-            'max_score'        => 100,
-            'is_prerequisite'  => false,
-            'order_index'      => 5,
+            'max_score' => 100,
+            'is_prerequisite' => false,
+            'order_index' => 2,
         ]);
     }
 
-    private function seedTrackSpecificQuizQuestions(CourseContent $quiz, string $track): void
-    {
-        $questions = match ($track) {
-            'The Blue Carbon', 'Blue Carbon'             => $this->getBlueCarbonQuestions(),
-            'Blue Business Development'                  => $this->getBlueBusinessQuestions(),
-            'Blue Community Development'                 => $this->getBlueCommunityQuestions(),
-            'Circular Economy', 'Blue Circular Economy'  => $this->getCircularEconomyQuestions(),
-            'Blue Data Intelligence'                     => $this->getBlueDataQuestions(),
-            'Blue Energy'                                => $this->getBlueEnergyQuestions(),
-            'Blue Farming'                               => $this->getBlueFarmingQuestions(),
-            'Blue Finance'                               => $this->getBlueFinanceQuestions(),
-            'Blue Food'                                  => $this->getBlueFoodQuestions(),
-            'Blue Port'                                  => $this->getBluePortQuestions(),
-            'Blue Shipping'                              => $this->getBlueShippingQuestions(),
-            'Blue Tourism'                               => $this->getBlueTourismQuestions(),
-            'Blue Food & Energy Circular'                => $this->getBlueFoodEnergyQuestions(),
-            default                                      => $this->getDefaultSpecQuestions($track),
-        };
-
-        $this->insertQuestionsAndOptions($quiz, $questions);
-    }
-
     // ───────────────────────────────────────────────────────────────────────────
-    //  BANK SOAL 10 SPESIALISASI (10 SOAL MASING-MASING @ 10 POIN = 100 POIN)
-    // ───────────────────────────────────────────────────────────────────────────
-
-    private function getBlueCarbonQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Apa perbedaan mendasar antara mekanisme penyimpanan karbon pada Blue Carbon (mangrove dan lamun) dibandingkan Green Carbon (hutan daratan tropis)?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Sebagian besar karbon biru tersimpan di lapisan sedimen anaerobik dasar yang sangat minim oksigen, sehingga dekomposisi organik berjalan sangat lambat dan karbon terkunci ribuan tahun', true],
-                    ['Karbon biru hanya tersimpan di daun dan batang tumbuhan saja serta akan terurai menjadi CO₂ dalam hitungan minggu', false],
-                    ['Hutan daratan tidak dapat menyerap karbon sama sekali di dalam struktur biomasanya', false],
-                    ['Karbon biru menghasilkan emisi metana yang jauh lebih tinggi daripada hutan rawa gambut daratan', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam penyusunan proyek kredit karbon berbasis lahan basah pesisir, prinsip *Additionality* (penambahan) bermakna bahwa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Penurunan emisi atau penyerapan karbon hanya dapat diklaim sebagai kredit karbon jika proyek tersebut terbukti tidak akan terlaksana tanpa adanya insentif pendanaan karbon', true],
-                    ['Setiap pohon mangrove yang ditanam harus memiliki minimal dua cabang tunas tambahan', false],
-                    ['Jumlah kredit karbon yang diterbitkan harus selalu bertambah sebesar 10% setiap tahunnya', false],
-                    ['Proyek boleh mengklaim kawasan konservasi pemerintah yang sudah eksis tanpa ada aktivitas intervensi baru', false],
-                ],
-            ],
-            [
-                'question' => 'Metodologi MRV merupakan pilar utama integritas perdagangan karbon internasional. Kepanjangan dari akronim MRV adalah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Measurement, Reporting, and Verification (Pengukuran, Pelaporan, dan Verifikasi)', true],
-                    ['Management, Restoration, and Valuation (Manajemen, Restorasi, dan Valuasi)', false],
-                    ['Maritime Regulation and Validation (Regulasi Maritim dan Validasi)', false],
-                    ['Monitoring, Reduction, and Vulnerability (Pemantauan, Reduksi, dan Kerentanan)', false],
-                ],
-            ],
-            [
-                'question' => 'Berdasarkan Peraturan Presiden Nomor 98 Tahun 2021 tentang Penyelenggaraan Nilai Ekonomi Karbon (NEK), sistem registri nasional yang mencatat seluruh aksi mitigasi perubahan iklim di Indonesia adalah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['SRN-PPI (Sistem Registri Nasional Pengendalian Perubahan Iklim)', true],
-                    ['OJK ESG Portal', false],
-                    ['SIMPONI Kementerian Keuangan', false],
-                    ['Indonesia Carbon Trading Gateway (ICTG)', false],
-                ],
-            ],
-            [
-                'question' => 'Salah satu risiko terbesar proyek karbon adalah *Leakage* (kebocoran). Apa yang dimaksud dengan *leakage* dalam proyek konservasi mangrove?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Perlindungan mangrove di area proyek menyebabkan aktivitas perusakan/pembabatan berpindah ke area mangrove di luar batas proyek yang tidak terlindungi', true],
-                    ['Rembesan air laut yang masuk ke dalam tanggul tambak budidaya garam', false],
-                    ['Terjadinya kebocoran data digital pada sistem bursa karbon bursa efek', false],
-                    ['Keluarnya lumpur sedimen akibat hempasan gelombang tsunami ekstrem', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam penghitungan cadangan karbon mangrove menggunakan persamaan alometrik, komponen biomassa manakah yang umumnya menyimpan porsi karbon terbesar?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Karbon tanah/sedimen bawah permukaan (Soil Organic Carbon) hingga kedalaman 1–3 meter', true],
-                    ['Biomassa daun yang gugur di atas permukaan tanah (Litterfall)', false],
-                    ['Biomassa ranting dan bunga pohon mangrove muda', false],
-                    ['Karbon yang larut sementara di dalam air pasang surut (DOC)', false],
-                ],
-            ],
-            [
-                'question' => 'Standar sertifikasi karbon sukarela (*voluntary carbon market*) internasional yang menerbitkan metodologi VM0033 untuk restorasi ekosistem lahan basah pasang surut adalah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Verra (Verified Carbon Standard / VCS)', true],
-                    ['Fairtrade International', false],
-                    ['Forest Stewardship Council (FSC)', false],
-                    ['International Organization for Standardization (ISO 9001)', false],
-                ],
-            ],
-            [
-                'question' => 'Bagaimana dampak alih fungsi hutan mangrove menjadi tambak udang intensif terhadap neraca karbon lingkungan?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Memicu oksidasi pirit dan dekomposisi cepat sedimen anaerobik, melepaskan ribuan ton emisi CO₂ yang tersimpan ratusan tahun ke atmosfer', true],
-                    ['Meningkatkan kapasitas penyerapan karbon dioksida karena fitoplankton di air tambak berkembang pesat', false],
-                    ['Tidak berpengaruh sama sekali terhadap emisi gas rumah kaca', false],
-                    ['Menyerap gas metana dari udara secara alami', false],
-                ],
-            ],
-            [
-                'question' => 'Padang lamun (*seagrass*) memiliki peran ganda dalam ekosistem karbon biru. Selain menyerap karbon, fungsi biofisik lamun adalah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menjebak dan mengendapkan partikel sedimen tersuspensi serta meredam energi gelombang sehingga menstabilkan dasar laut', true],
-                    ['Menetralkan kadar garam air laut menjadi air tawar murni', false],
-                    ['Mengeluarkan racun alami untuk mematikan fitoplankton berlebih di muara sungai', false],
-                    ['Meningkatkan suhu air laut secara konstan untuk mempercepat penetasan telur ikan tuna', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam dokumen Enhanced NDC (Nationally Determined Contribution) Indonesia, target pengurangan emisi dari sektor FOLU (Forestry and Other Land Use) termasuk lahan basah pesisir ditargetkan mencapai *net sink* pada tahun berapa?',
-                'weight'   => 10,
-                'options'  => [
-                    ['2030 (Indonesia FOLU Net Sink 2030)', true],
-                    ['2045', false],
-                    ['2060', false],
-                    ['2025', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueBusinessQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Model bisnis sirkular maritim (Circular Marine Business Model) berfokus pada inovasi rantai nilai yang bertujuan untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menjaga nilai bahan baku hasil laut dan produk olahannya selama mungkin di dalam siklus ekonomi serta meminimalkan limbah pada setiap mata rantai pasok', true],
-                    ['Meningkatkan volume penangkapan ikan sebanyak mungkin tanpa perlu memperhatikan pengolahan limbah sampingan', false],
-                    ['Menjual komoditas mentah hasil laut ke luar negeri tanpa sentuhan proses hilirisasi lokal', false],
-                    ['Memusatkan seluruh kendali usaha di tangan perusahaan monopoli milik pemerintah daerah', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam mengevaluasi kelayakan finansial proyek investasi ekonomi biru, metrik Net Present Value (NPV) dikatakan layak secara investasi apabila:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Nilai NPV lebih besar dari nol (NPV > 0), menunjukkan bahwa arus kas masuk yang didiskontokan melampaui total nilai investasi awal', true],
-                    ['Nilai NPV bernilai negatif karena mencerminkan subsidi lingkungan', false],
-                    ['Nilai Internal Rate of Return (IRR) lebih kecil daripada suku bunga bebas risiko perbankan', false],
-                    ['Waktu pengembalian modal (Payback Period) lebih dari 30 tahun', false],
-                ],
-            ],
-            [
-                'question' => 'Sertifikasi ekolabel internasional yang mengakui praktik perikanan tangkap yang dikelola secara berkelanjutan dan meminimalkan dampak lingkungan adalah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Marine Stewardship Council (MSC)', true],
-                    ['LEED Certified Green Building', false],
-                    ['Hazard Analysis Critical Control Point (HACCP)', false],
-                    ['Rainforest Alliance Agriculture', false],
-                ],
-            ],
-            [
-                'question' => 'Apa tantangan paling kritis yang dihadapi startup berbasis teknologi kelautan (*Ocean Tech*) pada fase awal (seed stage)?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Kebutuhan belanja modal (Capex) tinggi untuk pengujian perangkat keras di lingkungan laut yang korosif dan siklus validasi produk yang lebih panjang', true],
-                    ['Ketiadaan regulasi izin berusaha dari Kementerian Hukum dan HAM', false],
-                    ['Terlalu banyaknya pasokan modal ventura internasional yang berebut mendanai sektor kelautan', false],
-                    ['Tidak tersedianya koneksi internet seluler di gedung perkantoran ibu kota', false],
-                ],
-            ],
-            [
-                'question' => 'Pemanfaatan teknologi *blockchain* dalam rantai pasok produk perikanan (Fishery Traceability) memberikan keunggulan kompetitif bisnis berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Transparansi data asal-usul ikan (*vessel to table*) yang tidak dapat diubah (*immutable*), menjamin produk berasal dari kapal berizin legal dan bukan hasil IUU Fishing', true],
-                    ['Kemampuan mengubah berat timbangan ikan secara otomatis pada saat ekspor', false],
-                    ['Penghapusan kewajiban sertifikasi mutu karantina ikan dari kementerian terkait', false],
-                    ['Pengurangan tarif pajak penghasilan perusahaan menjadi nol persen', false],
-                ],
-            ],
-            [
-                'question' => 'Senyawa aktif *Astaxanthin* yang diekstraksi dari mikroalga laut (*Haematococcus pluvialis*) memiliki nilai jual sangat tinggi di pasar global terutama untuk industri:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Antioksidan farmasi, suplemen nutrisi premium, dan kosmetik anti-penuaan', true],
-                    ['Bahan peledak industri tambang mineral bawah tanah', false],
-                    ['Pelumas mesin turbin uap pembangkit listrik tenaga batu bara', false],
-                    ['Bahan pengawet kayu konstruksi dermaga pelabuhan', false],
-                ],
-            ],
-            [
-                'question' => 'Apa yang dimaksud dengan pendekatan *Inclusive Business Model* pada kemitraan rantai pasok industri pengolahan perikanan?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menjadikan nelayan tradisional skala kecil sebagai mitra setara dengan jaminan harga beli yang adil (*fair trade*), kepastian pasar, dan pendampingan teknologi', true],
-                    ['Mewajibkan nelayan menjual seluruh hasil tangkapan dengan harga di bawah standar pasar', false],
-                    ['Mengharuskan nelayan menanggung seluruh kerugian kerusakan produk selama pengiriman kontainer ekspor', false],
-                    ['Menggantikan seluruh tenaga kerja nelayan lokal dengan tenaga kerja asing dari luar negeri', false],
-                ],
-            ],
-            [
-                'question' => 'Konsep *Blended Finance* dalam struktur pendanaan usaha kelautan berkelanjutan merupakan strategi:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Penggabungan dana filantropi atau hibah konsesional (*catalytic capital*) untuk memitigasi risiko awal agar mampu menarik modal investasi komersial swasta skala besar', true],
-                    ['Pencampuran mata uang rupiah dan dolar dalam satu rekening giro bank daerah', false],
-                    ['Penggunaan 100% pinjaman komersial berbunga tinggi tanpa jaminan agunan', false],
-                    ['Pengalihan seluruh aset kas operasional perusahaan ke dalam mata uang kripto', false],
-                ],
-            ],
-            [
-                'question' => 'Pada mata rantai logistik dingin (*cold chain*) hasil perikanan, teknologi pendinginan portabel berbasis energi surya sangat penting di pulau kecil untuk mengatasi masalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tingginya susut mutu hasil tangkapan (*post-harvest loss*) akibat keterbatasan pasokan listrik jaringan dan kelangkaan es balok', true],
-                    ['Kelebihan muatan kapal feri penyeberangan antarpulau', false],
-                    ['Biaya sertifikasi izin berlayar dari syahbandar pelabuhan', false],
-                    ['Fluktuasi kurs mata uang asing pada transaksi pasar tradisional', false],
-                ],
-            ],
-            [
-                'question' => 'Indikator ESG (Environmental, Social, Governance) menjadi syarat mutlak bagi korporasi maritim modern dalam mengakses pendanaan hijau global. Aspek "Governance" berfokus pada:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Transparansi manajemen, integritas kepatuhan hukum, pencegahan korupsi, dan perlindungan hak-hak pemegang saham minoritas serta mitra usaha', true],
-                    ['Pengurangan volume limbah plastik yang dibuang ke laut oleh pabrik', false],
-                    ['Pemberian beasiswa pendidikan kepada anak-anak nelayan di sekitar pabrik', false],
-                    ['Penggunaan panel surya pada atap gedung kantor pusat', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueDataQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Dalam penginderaan jauh (*remote sensing*) kelautan, kombinasi data parameter oseanografi apa yang paling efektif untuk menentukan Zona Potensi Penangkapan Ikan (ZPPI)?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Suhu Permukaan Laut (Sea Surface Temperature/SST) dan Konsentrasi Klorofil-a', true],
-                    ['Kecepatan angin ketinggian 10.000 meter dan kelembapan udara gurun pasir', false],
-                    ['Tingkat keasaman air hujan di perkotaan dan kedalaman air tanah daratan', false],
-                    ['Densitas tutupan vegetasi hutan pinus di pegunungan pesisir', false],
-                ],
-            ],
-            [
-                'question' => 'Kapal penangkap ikan ilegal sering kali mematikan transponder AIS (Automatic Identification System) untuk menghindari pantauan. Fenomena kapal ini disebut:',
-                'weight'   => 10,
-                'options'  => [
-                    ['*Dark Vessels*', true],
-                    ['*Ghost Fleets*', false],
-                    ['*Phantom Shippers*', false],
-                    ['*Stealth Cargo*', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi satelit radar Synthetic Aperture Radar (SAR) memiliki keunggulan utama dalam pengawasan maritim dibandingkan satelit optik karena:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Mampu menembus tutupan awan tebal dan dapat beroperasi optimal baik pada siang maupun malam hari untuk mendeteksi lambung kapal dan tumpahan minyak', true],
-                    ['Dapat merekam suara percakapan awak kapal di ruang kemudi secara langsung', false],
-                    ['Menghasilkan citra berwarna alami seperti kamera foto udara konvensional', false],
-                    ['Hanya dapat beroperasi jika ada pencahayaan matahari tegak lurus di khatulistiwa', false],
-                ],
-            ],
-            [
-                'question' => 'Sensor IoT maritim yang dipasang pada pelampung pemantau (*ocean buoys*) telemetry di kawasan budidaya laut secara *real-time* memantau variabel krusial apa?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Oksigen terlarut (Dissolved Oxygen/DO), pH, salinitas, kekeruhan air (*turbidity*), dan suhu kolom air', true],
-                    ['Tekanan ban kendaraan pengangkut pakan di dermaga darat', false],
-                    ['Kecepatan transmisi sinyal radio televisi digital nasional', false],
-                    ['Kadar keasaman debu atmosfer di kawasan perkantoran pusat kota', false],
-                ],
-            ],
-            [
-                'question' => 'Konsep *Digital Twin of the Ocean* (Kembaran Digital Samudra) merujuk pada integrasi teknologi mutakhir berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Model simulasi komputasi digital resolusi tinggi berbasis data riil laut yang mampu mensimulasikan skenario perubahan iklim, sebaran polusi, dan dinamika stok perikanan', true],
-                    ['Pembuatan video animasi 3D fiksi tentang biota laut untuk wahana hiburan anak-anak', false],
-                    ['Penggandaan dokumen izin berlayar kapal niaga ke dalam dua salinan kertas fisik', false],
-                    ['Pemindaian fotokopi peta navigasi laut lama buatan abad ke-18', false],
-                ],
-            ],
-            [
-                'question' => 'Kementerian Kelautan dan Perikanan (KKP) mewajibkan kapal perikanan dengan ukuran tertentu memasang VMS. Kepanjangan VMS adalah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Vessel Monitoring System', true],
-                    ['Virtual Marine Simulator', false],
-                    ['Variable Maritime Sensor', false],
-                    ['Verified Movement Standards', false],
-                ],
-            ],
-            [
-                'question' => 'Analisis data spasial menggunakan GIS (Geographic Information System) sangat krusial dalam penyusunan dokumen perencanaan pesisir Indonesia yang dikenal sebagai:',
-                'weight'   => 10,
-                'options'  => [
-                    ['RZWP-3-K (Rencana Zonasi Wilayah Pesisir dan Pulau-Pulau Kecil)', true],
-                    ['RUTW (Rencana Umum Tata Wilayah Perkotaan)', false],
-                    ['AMDAL Industri Manufaktur Daratan', false],
-                    ['Masterplan Kawasan Ekonomi Khusus Pertambangan', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi hidroakustik (*scientific echo-sounder*) dalam penelitian oseanografi perikanan digunakan untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Memperkirakan kelimpahan biomassa, sebaran spasial, dan struktur ukuran stok ikan di kolom perairan melalui pantulan gelombang suara', true],
-                    ['Mengukur konsentrasi mikroplastik berukuran mikrometer pada permukaan sedimen laut', false],
-                    ['Mengirim pesan suara darurat ke satelit cuaca internasional', false],
-                    ['Menghancurkan terumbu karang yang mengganggu jalur kapal cepat', false],
-                ],
-            ],
-            [
-                'question' => 'Penerapan algoritma Computer Vision dan Deep Learning pada sistem kamera di kapal penangkap ikan modern berfungsi untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Otomasi pencatatan spesies ikan, estimasi panjang/berat tubuh, dan deteksi tangkapan sampingan (*bycatch*) secara akurat saat penarikan jaring', true],
-                    ['Memutar siaran televisi otomatis untuk hiburan anak buah kapal', false],
-                    ['Mengontrol arah angin laut agar kapal tidak oleng saat gelombang besar', false],
-                    ['Menggantikan seluruh fungsi kemudi mekanis kapal tanpa kapten', false],
-                ],
-            ],
-            [
-                'question' => 'Prinsip tata kelola data FAIR (*FAIR Data Principles*) dalam sains data kelautan internasional mewajibkan data penelitian bersifat:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Findable, Accessible, Interoperable, and Reusable (Mudah Ditemukan, Diakses, Dioperasikan Silang, dan Digunakan Kembali)', true],
-                    ['Fast, Accurate, Independent, and Restricted (Cepat, Akurat, Mandiri, dan Tertutup Rahasia)', false],
-                    ['Financial, Audited, Inspected, and Registered (Terkait Keuangan, Diaudit, Diinspeksi, dan Terdaftar)', false],
-                    ['Flexible, Automated, Integrated, and Redundant (Fleksibel, Otomatis, Terpadu, dan Berlebih)', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getCircularEconomyQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Fenomena *Ghost Fishing* (penangkapan hantu) merupakan ancaman serius ekonomi sirkular maritim yang disebabkan oleh:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Alat tangkap jaring ikan berbahan sintetis yang hilang, terbengkalai, atau dibuang di laut (*ALDFG*) yang terus memerangkap dan membunuh biota laut selama puluhan tahun', true],
-                    ['Aktivitas kapal penangkap ikan yang beroperasi tanpa menyalakan lampu pada malam hari', false],
-                    ['Penangkapan ikan menggunakan zat racun sianida di kawasan terumbu karang', false],
-                    ['Munculnya predator laut berukuran raksasa di dekat pantai wisata', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam hierarki pengelolaan limbah sirkular (9R), langkah manakah yang menempati prioritas tertinggi dalam mencegah sampah plastik masuk ke laut?',
-                'weight'   => 10,
-                'options'  => [
-                    ['*Refuse* (Menolak penggunaan plastik sekali pakai yang tidak perlu pada sumbernya)', true],
-                    ['*Recycle* (Mendaur ulang kemasan plastik yang sudah terlanjur diproduksi)', false],
-                    ['*Recover* (Membakar limbah plastik di tempat pembuangan akhir untuk energi panas)', false],
-                    ['*Remanufacture* (Merakit kembali komponen kapal yang rusak di galangan)', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi daur ulang jaring ikan nilon bekas (Poliamida-6) yang dikumpulkan dari pelabuhan perikanan dapat dipolimerisasi ulang menjadi produk bernilai tinggi apa?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Benang tekstil sintetis berkualitas tinggi (seperti Econyl) untuk pakaian renang, karpet komersial, dan kacamata ramah lingkungan', true],
-                    ['Aspal jalan raya minyak bumi murni tanpa campuran agregat', false],
-                    ['Bahan peledak dinamit untuk penangkapan ikan karang', false],
-                    ['Minyak goreng nabati untuk konsumsi rumah tangga pesisir', false],
-                ],
-            ],
-            [
-                'question' => 'Kementerian Lingkungan Hidup dan Kehutanan mewajibkan produsen manufaktur mengimplementasikan kebijakan EPR. Kepanjangan dari EPR adalah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Extended Producer Responsibility (Tanggung Jawab Produsen yang Diperluas)', true],
-                    ['Environmental Protection Requirement (Persyaratan Perlindungan Lingkungan)', false],
-                    ['Ecological Plastic Recycling (Daur Ulang Plastik Ekologis)', false],
-                    ['European Port Regulations (Regulasi Pelabuhan Eropa)', false],
-                ],
-            ],
-            [
-                'question' => 'Pengolahan sisa industri perikanan dengan prinsip *Zero Waste Processing* mengonversi jeroan, kepala, dan tulang ikan menjadi:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Minyak ikan kaya asam lemak Omega-3, kolagen kosmetik, hidrolisat protein ikan, dan pupuk organik cair bermutu tinggi', true],
-                    ['Bahan bakar briket batu bara sintetis padat', false],
-                    ['Detergen pembersih porselen berbahan kimia keras', false],
-                    ['Plastik polietilena sekali pakai yang sulit terurai', false],
-                ],
-            ],
-            [
-                'question' => 'Inovasi bioplastik berbasis rumput laut (*seaweed-based bioplastics*) memiliki keunggulan kompetitif utama dibandingkan bioplastik berbahan pati jagung/singkong yaitu:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tidak berkompetisi dengan lahan pertanian pangan daratan, tidak membutuhkan air tawar dan pupuk kimia, serta dapat terurai hayati alami di air laut (*marine biodegradable*)', true],
-                    ['Dapat bertahan di air laut selama ratusan tahun tanpa mengalami degradasi struktur', false],
-                    ['Memiliki biaya produksi yang jauh lebih murah daripada plastik polimer konvensional berbasis minyak bumi', false],
-                    ['Hanya dapat diproduksi di kawasan kutub utara yang dingin', false],
-                ],
-            ],
-            [
-                'question' => 'Fasilitas penerimaan limbah pelabuhan (*Port Reception Facilities*) yang diwajibkan oleh Konvensi Internasional MARPOL 73/78 berfungsi untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menampung dan mengelola residu minyak, air berminyak bilga, sampah padat, dan kotoran dari kapal niaga agar tidak dibuang langsung ke perairan laut', true],
-                    ['Menampung ikan hasil tangkapan lelang nelayan tradisional di dermaga', false],
-                    ['Menjual suku cadang mesin kapal impor bebas bea masuk pelabuhan', false],
-                    ['Memproduksi air tawar kemasan botol untuk kebutuhan awak kapal', false],
-                ],
-            ],
-            [
-                'question' => 'Konvensi Pengelolaan Air Balas Kapal (Ballast Water Management Convention) bertujuan mencegah ancaman ekologis serius berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Penyebaran dan introduksi spesies laut asing invasif (*invasive alien species*) antar-ekosistem samudra yang dapat menghancurkan keanekaragaman hayati lokal', true],
-                    ['Pemanasan temperatur air laut akibat pembuangan uap boiler kapal', false],
-                    ['Pengurangan kadar oksigen atmosfer di sekitar alur pelayaran sempit', false],
-                    ['Kenaikan muka air laut global akibat volume air yang dipindahkan kapal', false],
-                ],
-            ],
-            [
-                'question' => 'Strategi integrasi pemulung pesisir (*coastal waste pickers*) dan bank sampah bahari ke dalam rantai pasok industri daur ulang formal berkontribusi pada:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Peningkatan angka daur ulang sampah pesisir sekaligus memberikan kepastian pendapatan yang adil dan jaminan keselamatan kerja bagi pekerja sektor informal', true],
-                    ['Pelarangan total warga pesisir untuk memilah sampah plastik di tempat tinggalnya', false],
-                    ['Kewajiban seluruh sampah pesisir dibuang langsung ke laut dalam menggunakan kapal tongkang', false],
-                    ['Penurunan harga jual plastik bekas menjadi nol rupiah di tingkat lapak', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam siklus hidup kapal niaga, konvensi internasional Hong Kong Convention (2009) mengatur standar keberlanjutan untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Daur ulang kapal yang aman dan ramah lingkungan (*Safe and Environmentally Sound Recycling of Ships*) untuk mencegah pencemaran bahan berbahaya saat pembongkaran lambung kapal', true],
-                    ['Standar minimum gaji kapten kapal pesiar internasional', false],
-                    ['Aturan warna cat lambung kapal kargo pengangkut kontainer', false],
-                    ['Sistem reservasi tiket feri penumpang antarpulau', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueCommunityQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Prinsip FPIC merupakan standar perlindungan hak masyarakat hukum adat pesisir yang diakui hukum internasional. FPIC merupakan singkatan dari:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Free, Prior, and Informed Consent (Persetujuan atas Dasar Informasi Awal Tanpa Paksaan)', true],
-                    ['Fisheries Protection and Integrated Community', false],
-                    ['Formal Partnership for Indigenous Conservation', false],
-                    ['Financial Participation in Ocean Investment Capital', false],
-                ],
-            ],
-            [
-                'question' => 'Lembaga adat maritim *Panglima Laot* di Provinsi Aceh memiliki kewenangan tradisional dalam hal apa?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Mengatur tata cara penangkapan ikan, memelihara hukum adat laut, menyelesaikan sengketa antarnelayan, dan memimpin upacara adat pantang melaut', true],
-                    ['Memungut pajak ekspor minyak mentah lepas pantai untuk pemerintah pusat', false],
-                    ['Menjual sertifikat kepemilikan pulau karang kepada korporasi pariwisata swasta', false],
-                    ['Menerbitkan paspor pelaut internasional bagi warga negara asing', false],
-                ],
-            ],
-            [
-                'question' => 'Mengapa sistem kelembagaan Koperasi Nelayan modern sangat krusial dalam pemberdayaan ekonomi masyarakat pesisir skala kecil?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Meningkatkan daya tawar kolektif nelayan, memutus jeratan rentenir/tengkulak melalui pembiayaan adil, dan memfasilitasi pengadaan sarana produksi bersama', true],
-                    ['Mewajibkan nelayan membagikan 50% hasil tangkapan kepada pengurus koperasi tanpa kompensasi', false],
-                    ['Melarang anggota koperasi membeli perlengkapan melaut dari toko swasta', false],
-                    ['Menggantikan seluruh peran dinas kelautan dan perikanan kabupaten/kota', false],
-                ],
-            ],
-            [
-                'question' => 'Pengarusutamaan gender (Gender Mainstreaming) dalam pembangunan masyarakat pesisir menitikberatkan pada pengakuan bahwa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Perempuan pesisir memegang peranan vital dalam pengelolaan keuangan rumah tangga, pascapanen, pengolahan produk hasil laut, dan pemasaran nilai tambah', true],
-                    ['Perempuan dilarang terlibat dalam kegiatan ekonomi perikanan apa pun di desa pesisir', false],
-                    ['Seluruh anggota armada kapal penangkap ikan samudra harus berjenis kelamin perempuan', false],
-                    ['Peran perempuan di wilayah pesisir hanya terbatas pada urusan domestik tanpa hak berorganisasi', false],
-                ],
-            ],
-            [
-                'question' => 'Konsep *Social-Ecological Resilience* (Ketahanan Sosio-Ekologis) masyarakat pesisir diukur berdasarkan kapasitas komunitas untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menyerap guncangan krisis iklim dan ekonomi, beradaptasi dengan perubahan kondisi perairan, serta mentransformasikan mata pencaharian tanpa merusak daya dukung ekosistem', true],
-                    ['Menolak semua bentuk bantuan teknologi modern dan menutup diri dari dunia luar', false],
-                    ['Meninggalkan kawasan pesisir secara permanen untuk bermigrasi ke kota metropolitan', false],
-                    ['Mengandalkan bantuan sembako dan subsidi darurat dari pemerintah secara terus-menerus', false],
-                ],
-            ],
-            [
-                'question' => 'Metodologi Participatory Rural Appraisal (PRA) dalam penyusunan program desa pesisir menekankan pada prinsip:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Masyarakat lokal berperan aktif sebagai subjek utama yang menganalisis masalah, memetakan potensi, dan merancang rencana aksi pembangunan mereka sendiri', true],
-                    ['Konsultan dari ibu kota menentukan seluruh daftar proyek tanpa perlu berkonsultasi dengan warga desa', false],
-                    ['Penggunaan kuesioner tertutup yang hanya boleh diisi oleh kepala desa dan aparat keamanan', false],
-                    ['Pelaksanaan proyek secara rahasia untuk menghindari dinamika politik lokal', false],
-                ],
-            ],
-            [
-                'question' => 'Kearifan lokal *Awig-awig* di kalangan masyarakat pesisir Lombok dan Bali mengatur tentang:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Aturan kesepakatan adat bersama mengenai larangan penggunaan alat tangkap merusak (seperti bom dan racun) serta perlindungan terumbu karang komunal', true],
-                    ['Tata cara pembangunan hotel megah di atas sempadan pantai publik', false],
-                    ['Sistem bagi hasil pertambangan pasir besi pesisir dengan kontraktor luar', false],
-                    ['Aturan penjualan tanah ulayat pesisir kepada wisatawan mancanegara', false],
-                ],
-            ],
-            [
-                'question' => 'Strategi diversifikasi mata pencaharian alternatif (*alternative livelihoods*) bagi nelayan tradisional sangat krusial pada saat:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Musim ombak besar / paceklik (musim barat/timur) ketika nelayan tidak memungkinkan melaut secara aman, sehingga stabilitas pangan keluarga tetap terjaga', true],
-                    ['Terjadi surplus hasil tangkapan ikan tuna di pasar lelang lokal', false],
-                    ['Harga bahan bakar solar bersubsidi turun drastis di pangkalan pendaratan ikan', false],
-                    ['Pemerintah mengadakan festival tahunan perlombaan perahu hias nelayan', false],
-                ],
-            ],
-            [
-                'question' => 'Pembangunan sanitasi ramah lingkungan di permukiman nelayan atas air (*waterfront ecovillage*) bertujuan mengatasi permasalahan darurat apa?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pencemaran bakteri coliform dan limbah tinja domestik tanpa pengolahan (*blackwater*) yang dibuang langsung ke kolom perairan pantai dangkal', true],
-                    ['Tingginya kadar garam pada atap seng rumah warga pesisir', false],
-                    ['Ketiadaan lampu hias penerangan jalan di jembatan kayu desa', false],
-                    ['Keluarnya aroma khas ikan asin saat proses penjemuran tradisional', false],
-                ],
-            ],
-            [
-                'question' => 'Protokol Nagoya mengatur tentang *Access and Benefit-Sharing* (ABS). Dalam konteks keanekaragaman hayati laut pesisir, prinsip ini mewajibkan:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pembagian keuntungan yang adil dan merata kepada komunitas lokal atas pemanfaatan komersial sumber daya genetik dan pengetahuan tradisional laut mereka', true],
-                    ['Penyerahan seluruh hak paten obat-obatan berbahan biota laut kepada negara maju tanpa royalti', false],
-                    ['Kewajiban nelayan membayar denda apabila menangkap spesies ikan endemik', false],
-                    ['Pelarangan total terhadap seluruh kegiatan riset universitas di wilayah kepulauan', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueFarmingQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Sistem budidaya perikanan laut terpadu multi-trofik (Integrated Multi-Trophic Aquaculture / IMTA) menciptakan efisiensi ekologis dengan cara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menggabungkan spesies target yang diberi pakan (ikan laut) dengan organisme pemakan partikel sisa (kerang) dan penyerap nutrien anorganik (rumput laut) dalam satu kawasan terpadu', true],
-                    ['Memelihara spesies predator agresif dalam satu jaring apung dengan benih udang kecil', false],
-                    ['Menggunakan antibiotik spektrum luas setiap hari di seluruh kolam budidaya', false],
-                    ['Membuang seluruh lumpur dasar tambak ke pantai setiap pergantian air', false],
-                ],
-            ],
-            [
-                'question' => 'Metrik Food Conversion Ratio (FCR) merupakan indikator efisiensi pakan pada budidaya akuakultur. Nilai FCR sebesar 1,2 bermakna bahwa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Dibutuhkan 1,2 kilogram pakan untuk menghasilkan pertambahan 1 kilogram bobot tubuh biomassa ikan/udang', true],
-                    ['Ikan bertumbuh sebesar 1,2 kilogram setiap hari secara konstan', false],
-                    ['Biaya pakan mencakup 12% dari total biaya operasional tambak', false],
-                    ['Sebanyak 12 ekor ikan mati dari setiap 100 ekor benih yang ditebar', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi Bioflok pada budidaya perikanan intensif memanfaatkan mikroorganisme apa untuk mengolah limbah nitrogen beracun menjadi pakan alami berprotein?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Bakteri heterotrof yang distimulasi pertumbuhannya melalui penambahan sumber karbon organik (molase/tepung) dengan menjaga rasio C:N > 10', true],
-                    ['Virus bakteriofag yang mematikan seluruh populasi alga di kolom air', false],
-                    ['Alga beracun dinoflagellata merah (*Red Tide*)', false],
-                    ['Cacing parasit nematoda dasar kolam air payau', false],
-                ],
-            ],
-            [
-                'question' => 'Penyakit *Ice-Ice* pada budidaya rumput laut komersial (*Kappaphycus alvarezii*) ditandai dengan pemutihan dan patahnya thallus. Faktor pemicu utamanya adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Stres lingkungan akibat perubahan drastis salinitas air laut, kenaikan suhu permukaan air, dan rendahnya arus perairan', true],
-                    ['Serangan kepiting karang pemakan pucuk rumput laut', false],
-                    ['Tercemarnya air laut oleh tumpahan aspal minyak mentah', false],
-                    ['Pembekuan air laut oleh es kutub di perairan tropis Indonesia', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi Recirculating Aquaculture Systems (RAS) memiliki keunggulan lingkungan paling signifikan dibandingkan sistem kolam konvensional berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Penggunaan kembali air budidaya hingga lebih dari 90–95% melalui filtrasi mekanis, biofilter nitrifikasi, dan sterilisasi UV/Ozon, sehingga sangat hemat air dan minim limbah', true],
-                    ['Ketiadaan kebutuhan energi listrik untuk pompa dan aerasi oksigen', false],
-                    ['Biaya investasi konstruksi awal yang paling rendah di antara semua metode budidaya', false],
-                    ['Kemampuan beroperasi tanpa memerlukan benih ikan bersertifikat', false],
-                ],
-            ],
-            [
-                'question' => 'Salah satu tantangan keberlanjutan terbesar industri akuakultur global adalah ketergantungan pada tepung ikan (*fishmeal*). Alternatif bahan baku pakan ramah lingkungan terdepan adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tepung larva serangga Black Soldier Fly (BSF) dan biomassa mikroalga yang kaya protein serta asam lemak esensial', true],
-                    ['Serbuk kayu gergajian pohon jati hutan lindung', false],
-                    ['Limbah styrofoam kemasan makanan cepat saji', false],
-                    ['Batu kapur kalsium karbonat giling tanpa nutrisi', false],
-                ],
-            ],
-            [
-                'question' => 'Mengapa kerang-kerangan (Bivalvia seperti tiram dan kerang hijau) dikategorikan sebagai komoditas budidaya Blue Farming paling ramah lingkungan?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Merupakan organisme pemakan saring (*filter feeder*) yang memakan fitoplankton alami di air laut tanpa memerlukan pakan buatan komersial dan menyerap karbon ke cangkangnya', true],
-                    ['Membutuhkan pasokan antibiotik dosis tinggi agar cepat berkembang biak', false],
-                    ['Membutuhkan pemanasan air laut menggunakan pemanas listrik bertenaga diesel', false],
-                    ['Menghasilkan limbah kotoran pelet beracun di dasar perairan', false],
-                ],
-            ],
-            [
-                'question' => 'Penerapan Instalasi Pengolahan Air Limbah (IPAL) pada tambak udang intensif wajib menyertakan kolam sedimentasi dan kolam bio-filter sebelum air dibuang ke laut guna mencegah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Eutrofikasi (pengayaan nutrisi fosfat/nitrat berlebih) yang memicu *Harmful Algal Blooms* (HABs) dan penurunan kadar oksigen drastis di perairan pantai', true],
-                    ['Kenaikan kadar garam air laut di muara sungai', false],
-                    ['Terjadinya gempa bumi tektonik bawah laut di sekitar kawasan pesisir', false],
-                    ['Masuknya kapal ikan berukuran besar ke dalam saluran irigasi tambak', false],
-                ],
-            ],
-            [
-                'question' => 'Penyakit AHPND (Acute Hepatopancreatic Necrosis Disease) atau EMS yang menyerang budidaya udang vaname disebabkan oleh patogen bakteri apa?',
-                'weight'   => 10,
-                'options'  => [
-                    ['*Vibrio parahaemolyticus* galur virulen yang membawa plasmid toksin mematikan', true],
-                    ['*Escherichia coli* non-patogenik dari air hujan', false],
-                    ['*Lactobacillus acidophilus* yang digunakan pada pembuatan yogurt', false],
-                    ['*Spirulina platensis* yang mengapung di permukaan kolam', false],
-                ],
-            ],
-            [
-                'question' => 'Sertifikasi nasional resmi yang dikeluarkan oleh Kementerian Kelautan dan Perikanan untuk menjamin unit usaha budidaya memenuhi standar biosekuriti, keamanan pangan, dan kelestarian lingkungan adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['CBIB (Cara Budidaya Ikan yang Baik)', true],
-                    ['SNI Bangunan Gedung Bertingkat', false],
-                    ['Surat Izin Mengemudi Kapal Nelayan', false],
-                    ['Sertifikat Laik Operasi Menara Telekomunikasi', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueTourismQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Dalam konsep daya dukung pariwisata bahari (*Tourism Carrying Capacity*), Physical Carrying Capacity (PCC) didefinisikan sebagai:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Jumlah maksimum wisatawan yang secara fisik dapat ditampung dalam ruang dan waktu tertentu di suatu destinasi pesisir/pantai', true],
-                    ['Kekuatan fisik pemandu wisata dalam mengawal penyelaman di laut dalam', false],
-                    ['Daya tahan struktur beton dermaga terhadap terjangan ombak badai', false],
-                    ['Kapasitas muatan bagasi pesawat terbang rute kepulauan', false],
-                ],
-            ],
-            [
-                'question' => 'Pedoman Green Fins yang diadopsi oleh UNEP dalam industri wisata selam (*scuba diving*) secara tegas melarang penyelam untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menyentuh karang, menginjak terumbu karang hidup, memprovokasi biota laut, dan menggunakan sarung tangan pelindung yang mendorong kontak fisik dengan karang', true],
-                    ['Menggunakan tabung udara bertekanan standar internasional', false],
-                    ['Menyewa pemandu selam lokal yang memiliki sertifikat instruktur resmi', false],
-                    ['Mengambil foto terumbu karang menggunakan kamera bawah air tanpa lampu kilat', false],
-                ],
-            ],
-            [
-                'question' => 'Pada sistem zonasi Kawasan Konservasi Perairan (KKP), zona manakah yang mutlak ditutup dari seluruh aktivitas pariwisata dan penangkapan ikan komersial demi perlindungan mutlak plasma nutfah?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Zona Inti (*Core Zone*)', true],
-                    ['Zona Pemanfaatan Terbatas (*Limited Utilization Zone*)', false],
-                    ['Zona Perikanan Berkelanjutan', false],
-                    ['Zona Rehabilitasi Pesisir Terbuka', false],
-                ],
-            ],
-            [
-                'question' => 'Model pariwisata berbasis masyarakat (Community-Based Marine Tourism / CBMT) menjamin keberlanjutan destinasi bahari dengan cara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Masyarakat lokal memiliki kendali kepemilikan usaha (homestay, kuliner, atraksi), mengambil keputusan manajemen, dan menikmati mayoritas perputaran ekonomi wisata', true],
-                    ['Menyerahkan 100% pengelolaan pulau wisata kepada pengembang resor asing eksklusif', false],
-                    ['Menutup kawasan wisata bagi warga lokal dan hanya melayani turis kapal pesiar mewah', false],
-                    ['Menghapus seluruh kearifan budaya dan tradisi pesisir demi menyerupai destinasi luar negeri', false],
-                ],
-            ],
-            [
-                'question' => 'Penerapan retribusi jasa lingkungan (*Environmental / Conservation Fee*) pada tiket masuk taman nasional laut bertujuan untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menyediakan dana abadi mandiri untuk pembiayaan patroli pengawasan, pengelolaan sampah wisatawan, dan restorasi terumbu karang di kawasan konservasi', true],
-                    ['Membeli armada mobil dinas mewah bagi pejabat birokrasi ibu kota', false],
-                    ['Mensubsidi harga tiket pesawat kelas bisnis bagi pelancong asing', false],
-                    ['Menghilangkan kewajiban audit anggaran pendapatan daerah tahunan', false],
-                ],
-            ],
-            [
-                'question' => 'Aktivitas wisata mengamati lumba-lumba atau hiu paus (*whale shark tourism*) yang bertanggung jawab wajib mematuhi aturan etika:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menjaga jarak aman minimal perahu mesin (minimal 50–100 meter), mematikan baling-baling saat mendekat, tidak mengejar kawanan, dan melarang menyentuh satwa', true],
-                    ['Memberi makan roti dan mie instan setiap hari agar satwa tidak berpindah lokasi', false],
-                    ['Memasang tali pengikat pada sirip ekor lumba-lumba untuk atraksi sirkus', false],
-                    ['Menyalakan sirine kapal dengan volume maksimal untuk memanggil kawanan mamalia laut', false],
-                ],
-            ],
-            [
-                'question' => 'Konsep *Citizen Science* pada industri ekowisata bahari memberikan peluang bagi wisatawan untuk berkontribusi langsung melalui:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Membantu pengumpulan data keanekaragaman hayati (seperti foto identifikasi pola totol hiu paus atau pari manta) yang diunggah ke basis data sains global', true],
-                    ['Mengambil spesimen karang hidup langka untuk diawetkan di rumah pribadi', false],
-                    ['Membuat peraturan perundang-undangan hukum pidana kelautan sendiri', false],
-                    ['Mengemudikan kapal patroli pengawas perikanan tanpa izin syahbandar', false],
-                ],
-            ],
-            [
-                'question' => 'Polusi cahaya (*light pollution*) dari lampu resor di tepi pantai sangat berbahaya bagi kelestarian penyu laut karena:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Membingungkan tukik (bayi penyu) yang baru menetas sehingga bergerak menuju daratan ke arah lampu alih-alih menuju pantulan cahaya bulan di laut lepas', true],
-                    ['Menaikkan suhu pasir pantai hingga membuat cangkang telur penyu meleleh', false],
-                    ['Mempercepat pertumbuhan cangkang penyu dewasa menjadi terlalu berat untuk berenang', false],
-                    ['Mengubah warna kulit penyu dari hijau zaitun menjadi transparan', false],
-                ],
-            ],
-            [
-                'question' => 'Standar sertifikasi global terdepan untuk pariwisata berkelanjutan yang diakui oleh UN Tourism adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Global Sustainable Tourism Council (GSTC)', true],
-                    ['International Maritime Organization (IMO Certification)', false],
-                    ['World Trade Organization Trade Standard', false],
-                    ['Federal Aviation Administration (FAA Marine)', false],
-                ],
-            ],
-            [
-                'question' => 'Untuk mencegah dampak buruk *overtourism* pada ekosistem pulau-pulau kecil (seperti di Pulau Komodo atau Raja Ampat), instrumen manajemen terbaik adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Penerapan sistem reservasi digital kuota harian pengunjung (*carrying capacity pacing*) yang terintegrasi dengan pemantauan kesehatan terumbu karang berkala', true],
-                    ['Pembangunan bandara internasional berkapasitas 10 juta penumpang di atas terumbu karang hidup', false],
-                    ['Pemberian diskon tiket promosi besar-besaran pada musim puncak liburan sekolah', false],
-                    ['Penghapusan pos pemeriksaan karantina dan tiket konservasi di pintu masuk pelabuhan', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueShippingQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Regulasi IMO 2020 Sulphur Cap yang ditetapkan oleh International Maritime Organization secara drastis membatasi kandungan sulfur pada bahan bakar kapal laut dari 3,5% m/m menjadi:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Maksimal 0,50% m/m (dan 0,10% m/m di kawasan Emission Control Areas/ECA)', true],
-                    ['Maksimal 2,00% m/m', false],
-                    ['Maksimal 10,00% m/m', false],
-                    ['Bebas tanpa batasan selama berlayar di laut lepas internasional', false],
-                ],
-            ],
-            [
-                'question' => 'Indikator EEXI (Energy Efficiency Existing Ship Index) yang diwajibkan oleh MARPOL Annex VI diberlakukan untuk mengukur:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Efisiensi energi teknis armada kapal yang sudah beroperasi (*existing ships*) dibandingkan dengan nilai garis dasar emisi CO₂ yang dipersyaratkan IMO', true],
-                    ['Tingkat kecepatan maksimal kapal kargo saat menghadapi gelombang badai', false],
-                    ['Jumlah total muatan kontainer kosong yang dapat diangkut kapal kargo', false],
-                    ['Efisiensi konsumsi air minum awak kapal selama pelayaran samudra', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi *Cold Ironing* atau *Onshore Power Supply* (OPS) di pelabuhan laut ramah lingkungan (*Green Port*) bekerja dengan cara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menghubungkan kapal yang sedang bersandar ke jaringan listrik darat sehingga mesin bantu (*auxiliary diesel engine*) kapal dapat dimatikan, mengeliminasi emisi lokal di dermaga', true],
-                    ['Mendinginkan lambung kapal menggunakan balok es sebelum memuat kargo', false],
-                    ['Membekukan air limbah kapal menjadi balok padat untuk dibuang ke darat', false],
-                    ['Mengganti cat lambung kapal dengan lapisan baja nirkarat tahan es kutub', false],
-                ],
-            ],
-            [
-                'question' => 'Bahan bakar nol karbon masa depan yang paling menjanjikan untuk kapal pelayaran jarak jauh tanpa emisi CO₂ langsung dari cerobong pembakaran adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Amonia Hijau (*Green Ammonia*) dan Metanol Hijau (*Green Methanol*) yang diproduksi menggunakan hidrogen terbarukan', true],
-                    ['Bahan bakar minyak solar bersubsidi kadar sulfur tinggi', false],
-                    ['Batubara antrasit murni yang dihancurkan menjadi bubuk serbuk', false],
-                    ['Gas alam cair (LNG) tanpa sistem penangkap emisi metana lolos (*methane slip*)', false],
-                ],
-            ],
-            [
-                'question' => 'Sistem propulsi bantuan angin (*Wind-Assisted Ship Propulsion* seperti Rotor Flettner atau Layar Kaku/Rigid Wingsails) mampu menghemat konsumsi bahan bakar kapal niaga sebesar:',
-                'weight'   => 10,
-                'options'  => [
-                    ['5% hingga 20% melalui pemanfaatan gaya aerodinamis angin (*Magnus effect* atau gaya angkat aerofoil) saat berlayar di laut terbuka', true],
-                    ['100% secara mutlak di segala arah angin tanpa perlu mesin utama sama sekali', false],
-                    ['Kurang dari 0,01% sehingga tidak memiliki kelayakan komersial', false],
-                    ['Hanya berfungsi jika kapal ditarik oleh kawanan paus samudra', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi *Air Lubrication System* pada lambung kapal niaga mengurangi hambatan gesek (*frictional resistance*) dengan air laut melalui mekanisme:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Mengalirkan jutaan gelembung udara mikro secara kontinu di sepanjang pelat dasar lambung kapal sehingga mengurangi gesekan permukaan dengan air laut', true],
-                    ['Menyemprotkan minyak pelumas silikon cair ke kolom air laut di sekitar lambung', false],
-                    ['Mengangkat seluruh badan kapal melayang di atas bantalan magnetik rel kereta', false],
-                    ['Mengecat lambung kapal dengan lilin parafin setebal satu meter', false],
-                ],
-            ],
-            [
-                'question' => 'Carbon Intensity Indicator (CII) merupakan peringkat operasional tahunan yang dikeluarkan IMO bagi kapal niaga berukuran besar. Peringkat efisiensi karbon CII dinyatakan dalam skala:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Skala huruf A sampai E (di mana kapal berperingkat D selama 3 tahun berturut-turut atau peringkat E wajib menyusun rencana perbaikan korektif SEEMP)', true],
-                    ['Skala angka desimal 1 sampai 100 tanpa konsekuensi regulasi', false],
-                    ['Peringkat warna sabuk bela diri internasional', false],
-                    ['Klasifikasi bintang hotel bintang satu hingga bintang lima', false],
-                ],
-            ],
-            [
-                'question' => 'Inisiatif *Green Shipping Corridors* (Koridor Pelayaran Hijau) yang disepakati dalam Deklarasi Clydebank bertujuan untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menciptakan rute pelayaran maritim khusus antarpelabuhan utama dunia yang bebas emisi melalui penyediaan rantai pasok bahan bakar hijau dan infrastruktur pelabuhan terintegrasi', true],
-                    ['Mengecat seluruh mercusuar di sepanjang selat internasional dengan cat hijau neon', false],
-                    ['Membatasi alur pelayaran kapal hanya boleh melewati perairan dangkal pinggir pantai', false],
-                    ['Melarang kapal asing melintasi alur laut kepulauan Indonesia pada hari libur nasional', false],
-                ],
-            ],
-            [
-                'question' => 'Standar Green Port Rating di Indonesia menilai kinerja pelabuhan ramah lingkungan berdasarkan parameter utama apa?',
-                'weight'   => 10,
-                'options'  => [
-                    ['Efisiensi energi dermaga, pengendalian emisi udara pelabuhan, pengelolaan limbah cair/padat kapal, kesiapsiagaan tumpahan minyak (*oil spill response*), dan digitalisasi alur logistik', true],
-                    ['Jumlah total toko cinderamata dan restoran cepat saji di dalam terminal penumpang', false],
-                    ['Tingkat kedalaman kolam labuh buatan tanpa memedulikan sedimentasi terumbu karang', false],
-                    ['Volume penjualan tiket penyeberangan kapal cepat secara manual dengan uang tunai', false],
-                ],
-            ],
-            [
-                'question' => 'Metode manajemen kecepatan kapal (*Slow Steaming*) terbukti mampu memangkas konsumsi bahan bakar dan emisi emisi karbon secara signifikan karena:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Konsumsi bahan bakar mesin kapal berbanding pangkat tiga (kubik) terhadap kecepatan kapal (*Cubic Law of Power and Speed*), sehingga sedikit penurunan kecepatan memangkas konsumsi bahan bakar secara drastis', true],
-                    ['Mesin kapal otomatis beralih menggunakan tenaga baterai lithium saat kapal berlayar lambat', false],
-                    ['Arus laut selalu mendorong kapal ke arah tujuan tanpa hambatan gesek saat kapal bergerak perlahan', false],
-                    ['Awak kapal dapat mematikan radar navigasi utama saat kapal berlayar santai', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueFinanceQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Instrumen Obligasi Biru (Blue Bond) secara spesifik didefinisikan sebagai instrumen surat utang yang hasil penerbitan dananya (*proceeds*) wajib digunakan khusus untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Membiayai atau membiayai kembali (*refinancing*) proyek-proyek kelautan dan perairan berkelanjutan, seperti restorasi ekosistem pesisir, perikanan lestari, energi laut, dan pengelolaan limbah plastik', true],
-                    ['Menutup defisit anggaran belanja rutin aparatur sipil negara di kementerian keuangan', false],
-                    ['Membeli armada kapal selam perang militer untuk pertahanan laut terluar', false],
-                    ['Memberikan pinjaman spekulatif valuta asing kepada pedagang valas swasta', false],
-                ],
-            ],
-            [
-                'question' => 'Prinsip panduan internasional yang diterbitkan oleh UNEP Finance Initiative untuk memastikan integritas pendanaan kelautan berkelanjutan adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Sustainable Blue Economy Finance Principles (SBEFP)', true],
-                    ['Equator Principles for Mining Extraction', false],
-                    ['Basel III Accord for Capital Adequacy', false],
-                    ['Financial Action Task Force Recommendations', false],
-                ],
-            ],
-            [
-                'question' => 'Mekanisme *Debt-for-Nature Swap* (Pertukaran Utang dengan Konservasi Alam) dalam konteks Blue Economy dilakukan melalui:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Restrukturisasi atau pemotongan sebagian utang luar negeri suatu negara dengan komitmen bahwa penghematan pembayaran utang tersebut dialihkan untuk mendanai perlindungan laut dan kawasan konservasi perairan', true],
-                    ['Penyitaan seluruh pulau terluar oleh negara kreditur sebagai ganti pelunasan utang macet', false],
-                    ['Pembayaran utang menggunakan mata uang komoditas ikan asin kering curah', false],
-                    ['Penghapusan seluruh utang luar negeri tanpa syarat dan tanpa komitmen lingkungan', false],
-                ],
-            ],
-            [
-                'question' => 'Instrumen Asuransi Parametrik Terumbu Karang (*Parametric Coral Reef Insurance*) bekerja dengan mekanisme klaim unik berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Dana asuransi dicairkan secara instan otomatis ketika parameter fisik terukur (seperti kecepatan angin siklon topan melampaui ambang batas tertentu) terpenuhi, untuk mendanai restorasi darurat karang tanpa menunggu proses taksasi klaim panjang', true],
-                    ['Klaim hanya dibayarkan jika ada kapal kargo asing yang terbukti menabrak karang hingga tenggelam', false],
-                    ['Pembayaran premi asuransi menggunakan bibit karang hidup hasil transplantasi', false],
-                    ['Klaim asuransi hanya mencakup biaya pengobatan luka bagi penyelam yang terkena bulu babi', false],
-                ],
-            ],
-            [
-                'question' => 'Prinsip *Do No Significant Harm* (DNSH) dalam Taksonomi Keuangan Berkelanjutan Indonesia (TKBI) mewajibkan bahwa proyek yang didanai:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tidak boleh menimbulkan dampak degradasi lingkungan yang signifikan terhadap tujuan keberlanjutan lainnya (misalnya proyek tambak udang tidak boleh membabat mangrove)', true],
-                    ['Harus menjamin keuntungan imbal hasil finansial minimal 50% dalam tahun pertama operasional', false],
-                    ['Boleh mengabaikan izin lingkungan selama proyek menyerap tenaga kerja lokal dalam jumlah besar', false],
-                    ['Hanya berlaku bagi proyek yang berlokasi di dalam kawasan perkotaan metropolitan', false],
-                ],
-            ],
-            [
-                'question' => 'Pada struktur pembiayaan campuran (*Blended Finance*), fungsi modal filantropi atau *First-Loss Guarantee* (Jaminan Kerugian Pertama) adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menyerap risiko kerugian pertama jika proyek gagal, sehingga profil risiko proyek menurun dan menarik perbankan komersial untuk masuk menyalurkan kredit', true],
-                    ['Membayar gaji bonus bagi manajemen puncak korporasi peminjam', false],
-                    ['Menghapus kewajiban pengembalian pokok pinjaman bagi seluruh peminjam', false],
-                    ['Menjual aset jaminan debitur sebelum proyek mulai dibangun di lapangan', false],
-                ],
-            ],
-            [
-                'question' => 'Pemerintah Republik Indonesia mencetak sejarah pada tahun 2023 dengan menerbitkan Sovereign Blue Bond pertama di pasar publik internasional dalam denominasi mata uang:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Yen Jepang (Samurai Bond) senilai 20,7 miliar Yen di bursa Tokyo', true],
-                    ['Dolar Amerika Serikat di bursa New York', false],
-                    ['Poundsterling di bursa London', false],
-                    ['Euro di bursa Frankfurt Jerman', false],
-                ],
-            ],
-            [
-                'question' => 'Tantangan struktural paling nyata dalam pembiayaan sektor usaha kelautan skala kecil (Small-Scale Marine Enterprises) oleh perbankan konvensional adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tingginya persepsi risiko (volatilitas cuaca/musim), ketiadaan aset agunan formal bersertifikat tanah, dan skala proyek yang terfragmentasi (*pipeline aggregation challenge*)', true],
-                    ['Tingginya suku bunga acuan bank sentral internasional yang melarang pinjaman perikanan', false],
-                    ['Ketidakinginan masyarakat nelayan untuk menerima fasilitas permodalan usaha', false],
-                    ['Larangan OJK bagi perbankan nasional untuk mendanai usaha berbasis kelautan', false],
-                ],
-            ],
-            [
-                'question' => 'Lembaga Keuangan Mikro Biru (*Blue Microfinance*) menyalurkan pembiayaan khusus bagi nelayan dan pembudidaya pesisir dengan skema inovatif seperti:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tanggung renteng kelompok (*group lending*), jadwal pembayaran fleksibel menyesuaikan musim tangkap/panen, dan integrasi dengan asuransi cuaca mikro', true],
-                    ['Penyitaan perahu nelayan secara sepihak saat gelombang laut sedang tinggi', false],
-                    ['Penetapan bunga pinjaman harian sebesar 20% seperti praktik rentenir keliling', false],
-                    ['Kewajiban kepemilikan sertifikat deposito berjangka minimal satu miliar rupiah', false],
-                ],
-            ],
-            [
-                'question' => 'Praktik manipulasi pemasaran di mana suatu korporasi mengklaim proyek investasinya ramah lingkungan laut padahal sebenarnya merusak ekosistem pesisir disebut:',
-                'weight'   => 10,
-                'options'  => [
-                    ['*Blue-washing*', true],
-                    ['*Green-hedging*', false],
-                    ['*Ocean-factoring*', false],
-                    ['*Marine-arbitrage*', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueFoodEnergyQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Pembangkit Listrik Tenaga Arus Laut (PLTAL) memiliki potensi teoretis sangat besar di perairan Indonesia karena memanfaatkan energi kinetik dari:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Arus pasang surut air laut yang mengalir deras di selat-selat sempit antarpulau (seperti Selat Larantuka, Selat Alas, dan Selat Pantar)', true],
-                    ['Aliran sungai air tawar di daratan sebelum mencapai muara pantai', false],
-                    ['Angin puting beliung yang terjadi di atas permukaan samudra', false],
-                    ['Gelombang panas matahari yang memanaskan pasir pesisir pada siang hari', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi Ocean Thermal Energy Conversion (OTEC) menghasilkan energi listrik bersih dengan mengeksploitasi perbedaan temperatur antara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Air laut permukaan yang hangat (sekitar 25–29°C) dan air laut dalam yang dingin (sekitar 4–6°C pada kedalaman 800–1.000 meter) dengan selisih minimal 20°C', true],
-                    ['Air laut kutub es dan air tawar sungai tropis', false],
-                    ['Uap air boiler kapal dan air es pendingin kabin mesin', false],
-                    ['Suhu udara pantai siang hari dan suhu udara malam hari', false],
-                ],
-            ],
-            [
-                'question' => 'Istilah *Blue Foods* (Pangan Biru) merujuk pada keunggulan gizi pangan berbasis perairan yang berkelanjutan, yaitu:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Kaya akan mikronutrien esensial (vitamin A, B12, zat besi, zinc, dan Omega-3 DHA/EPA) dengan jejak emisi karbon dan kebutuhan lahan air tawar yang jauh lebih rendah daripada protein ternak darat', true],
-                    ['Semua jenis makanan yang diberi zat pewarna sintetis biru cerah', false],
-                    ['Pangan kalengan impor yang diawetkan dengan senyawa natrium nitrit dosis tinggi', false],
-                    ['Makanan beku siap saji yang dipanaskan di dalam oven gelombang mikro', false],
-                ],
-            ],
-            [
-                'question' => 'Mikroalga *Spirulina* (*Arthrospira platensis*) dikembangkan secara luas dalam program fortifikasi pangan pesisir karena keunggulannya berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Kandungan protein sangat tinggi (mencapai 60–70% berat kering), asam amino lengkap, dan antioksidan fikosianin untuk pencegahan stunting pada anak pesisir', true],
-                    ['Kandungan lemak jenuh tinggi yang setara dengan minyak kelapa sawit mentah', false],
-                    ['Kemampuan menggantikan fungsi garam dapur murni secara langsung', false],
-                    ['Dapat tumbuh optimal di tempat gelap tanpa memerlukan cahaya fotosintesis', false],
-                ],
-            ],
-            [
-                'question' => 'Pemanfaatan Air Laut Dalam (*Deep Sea Water* / DSW) yang diambil dari kedalaman lebih dari 200–500 meter memiliki nilai ekonomis tinggi karena sifat alaminya yang:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Sangat murni bebas bakteri patogen, kaya akan nutrien anorganik (nitrat/fosfat), bertemperatur dingin stabil, dan kaya mineral laut seimbang', true],
-                    ['Mengandung kadar minyak bumi mentah yang siap disuling menjadi bahan bakar bensin', false],
-                    ['Memiliki tingkat keasaman ekstrem yang mampu melarutkan logam berat limbah industri', false],
-                    ['Bebas dari kadar garam sehingga dapat langsung diminum tanpa proses desalinasi', false],
-                ],
-            ],
-            [
-                'question' => 'Pembangkit Listrik Tenaga Gelombang Laut (PLTGL) bertipe Oscillating Water Column (OWC) mengubah energi kinetik ombak laut menjadi listrik melalui perantara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Kolom udara tertutup di atas permukaan air yang terkompresi dan terdekompresi oleh naik-turunnya gelombang ombak untuk memutar turbin udara dua arah (*Wells Turbine*)', true],
-                    ['Pemanasan kumparan tembaga secara langsung oleh gesekan air laut', false],
-                    ['Pembakaran gas metana yang terperangkap di buih gelombang pantai', false],
-                    ['Penampungan air laut di waduk pegunungan untuk dialirkan ke kincir air kayu', false],
-                ],
-            ],
-            [
-                'question' => 'Konsep *Integrated Solar-Marine Ice Maker* di pulau-pulau kecil terluar menciptakan sirkularitas energi dan rantai pasok pangan dengan cara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Memanfaatkan panel surya fotovoltaik atau energi arus laut untuk memproduksi es balok/slurry ice secara mandiri guna mendinginkan hasil tangkapan nelayan tanpa bergantung pada pasokan BBM diesel', true],
-                    ['Mencairkan es kutub untuk disemprotkan ke kapal nelayan yang melintas', false],
-                    ['Mengimpor es batu dari kota besar setiap hari menggunakan helikopter sewaan', false],
-                    ['Mengganti fungsi es dengan bahan kimia formalin agar ikan tidak membusuk', false],
-                ],
-            ],
-            [
-                'question' => 'Biomassa limbah rumput laut sisa ekstraksi agar-agar dan karaginan dapat diintegrasikan ke dalam ekonomi sirkular energi sebagai bahan baku pembuatan:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Bioetanol generasi ketiga dan biogas melalui fermentasi anaerobik polisakarida rumput laut', true],
-                    ['Bahan bakar avtur sintetis untuk pesawat jet supersonik militer', false],
-                    ['Baterai asam timbal untuk kendaraan bermotor roda dua konvensional', false],
-                    ['Minyak pelumas transmisi otomatis mobil balap formula', false],
-                ],
-            ],
-            [
-                'question' => 'Sistem desalinasi air laut bertenaga energi terbarukan (*Solar Desalination / SWRO*) memecahkan masalah krusial di pulau-pulau kecil yaitu:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Penyediaan air minum dan air tawar bersih yang layak konsumsi bagi masyarakat pesisir tanpa menimbulkan ketergantungan pada kapal tongkang pengangkut air dari daratan utama', true],
-                    ['Kelebihan pasokan air tawar tanah yang menggenangi permukiman nelayan', false],
-                    ['Penurunan salinitas laut yang menyebabkan ikan karang berpindah habitat', false],
-                    ['Peningkatan curah hujan badai tropis di kawasan khatulistiwa', false],
-                ],
-            ],
-            [
-                'question' => 'Model *Zero-Emission Self-Sustaining Island* (Pulau Mandiri Emisi Nol) menyatukan sistem pulau kecil terpadu dengan pilar utama berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Kombinasi energi laut/surya terbarukan, desalinasi air tawar bersih, budidaya pangan laut sirkular (IMTA), dan pengelolaan limbah organik menjadi kompos/energi biogas', true],
-                    ['Pembangunan pembangkit listrik tenaga nuklir raksasa di atas terumbu karang hidup', false],
-                    ['Pengalihan seluruh aktivitas warga menjadi pekerja tambang pasir laut ekspor', false],
-                    ['Penutupan pulau dari seluruh akses telekomunikasi dan transportasi laut', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueEnergyQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Pembangkit Listrik Tenaga Arus Laut (PLTAL) memiliki keunggulan komparatif terbesar dibanding energi surya dan angin di selat-selat sempit Indonesia karena sifat energinya yang:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Sangat dapat diprediksi secara astronomis sepanjang tahun (*highly predictable*) dengan densitas energi kinetik air laut yang jauh lebih rapat daripada udara', true],
-                    ['Hanya dapat beroperasi secara optimal pada siang hari saat terik matahari bersinar', false],
-                    ['Memerlukan bahan bakar solar diesel tambahan untuk memutar turbin laut', false],
-                    ['Menghasilkan radiasi elektromagnetik frekuensi tinggi yang memanaskan air laut', false],
-                ],
-            ],
-            [
-                'question' => 'Teknologi Ocean Thermal Energy Conversion (OTEC) menghasilkan daya listrik baseload kontinu dengan memanfaatkan perbedaan temperatur antara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Air laut permukaan yang hangat (25–29°C) dan air laut dalam yang dingin (4–6°C pada kedalaman 800–1.000 meter) dengan selisih gradien minimal 20°C', true],
-                    ['Air buangan kondensor kapal dan air es kutub samudra', false],
-                    ['Suhu udara pesisir pantai siang hari dan suhu pasir malam hari', false],
-                    ['Uap panas bumi kawah bawah laut dan air sungai tawar', false],
-                ],
-            ],
-            [
-                'question' => 'Pembangkit Listrik Tenaga Gelombang Laut (PLTGL) bertipe Oscillating Water Column (OWC) mengubah gerak naik-turun ombak menjadi putaran generator melalui komponen unik:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Turbin Wells (*Wells Turbine*) yang terus berputar ke arah yang sama meskipun aliran udara bolak-balik terkompresi dan terdekompresi oleh ombak', true],
-                    ['Baling-baling kapal konvensional yang diikat langsung ke jangkar pantai', false],
-                    ['Dinamo sepeda motor air yang dipasang mengapung di atas pelampung gabus', false],
-                    ['Roda kincir air kayu bertingkat seperti pada irigasi pertanian darat', false],
-                ],
-            ],
-            [
-                'question' => 'Pemasangan PLTS Terapung Laut (*Offshore Floating Solar PV*) di teluk perairan tenang pesisir memiliki keunggulan teknis dibandingkan PLTS darat, yaitu:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Efek pendinginan alami oleh air laut meningkatkan efisiensi modul surya hingga 10–15% serta tidak memakan lahan daratan pulau yang terbatas', true],
-                    ['Panel surya tidak memerlukan kabel transmisi karena listrik ditransmisikan via gelombang radio', false],
-                    ['Bebas dari risiko korosi air laut meskipun menggunakan material logam besi biasa tanpa pelapis', false],
-                    ['Dapat menyerap sinar matahari di malam hari melalui pantulan cahaya bintang', false],
-                ],
-            ],
-            [
-                'question' => 'Untuk perairan laut dalam di atas 60–100 meter, teknologi turbin angin lepas pantai (*Offshore Wind*) bertumpu pada struktur pondasi bertipe:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pondasi terapung (*Floating Substructures*) seperti spar-buoy, semi-submersible, atau Tension Leg Platform (TLP) dengan sistem tambat jangkar dasar laut', true],
-                    ['Tiang pancang beton monopause permanen yang ditancapkan sedalam 500 meter', false],
-                    ['Pondasi batu kali konvensional seperti pembangunan dermaga beton pelabuhan', false],
-                    ['Tumpukan karung pasir laut yang ditumpuk di dasar samudra', false],
-                ],
-            ],
-            [
-                'question' => 'Pembangkit Listrik Tenaga Pasang Surut (*Tidal Energy*) tipe Tidal Stream berbeda dengan tipe Tidal Barrage dalam hal:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tidal Stream memanfaatkan kecepatan aliran air laut di selat sempit tanpa perlu membangun bendungan waduk masif yang mengubah dinamika estuari pesisir', true],
-                    ['Tidal Stream memerlukan bendungan bendungan raksasa yang menutup teluk secara permanen', false],
-                    ['Tidal Stream hanya bekerja saat terjadi badai topan tropis di laut lepas', false],
-                    ['Tidal Barrage tidak menggunakan turbin generator dalam konversi energinya', false],
-                ],
-            ],
-            [
-                'question' => 'Pemanfaatan listrik bersih dari energi laut untuk memproduksi *Green Hydrogen* (Hidrogen Hijau) dilakukan melalui proses:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Elektrolisis air laut yang telah didesalinasi untuk memisahkan molekul hidrogen dan oksigen tanpa menghasilkan emisi gas rumah kaca', true],
-                    ['Pembakaran minyak bumi mentah di dalam ruang hampa udara kapal tanker', false],
-                    ['Pencampuran gas elpiji dengan air laut bersalinitas tinggi di tangki penyimpanan', false],
-                    ['Penyulingan batubara muda di bawah tekanan air laut dalam', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam arsitektur *Smart Microgrid* pulau-pulau kecil terpencil (3T), peran Battery Energy Storage System (BESS) sangat vital untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menstabilkan fluktuasi pasokan daya (*grid stability*), menyimpan surplus energi laut/surya, dan menjamin ketersediaan listrik 24 jam tanpa ketergantungan PLTD solar', true],
-                    ['Menggantikan seluruh trafo distribusi jaringan listrik desa', false],
-                    ['Menaikkan voltase tegangan listrik rumah tangga hingga 10.000 Volt', false],
-                    ['Menghilangkan kebutuhan kabel tiang listrik di permukiman warga', false],
-                ],
-            ],
-            [
-                'question' => 'Kajian Analisis Mengenai Dampak Lingkungan (AMDAL) pada proyek instalasi turbin arus laut bawah air wajib memitigasi risiko ekologis utama berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Dampak kebisingan bawah air (*underwater acoustic noise*) terhadap navigasi mamalia laut (lumba-lumba/paus) serta risiko benturan biota dengan sudu-sudu turbin yang berputar lambat', true],
-                    ['Risiko berkurangnya kadar garam air laut secara drastis hingga menjadi tawar', false],
-                    ['Ancaman kenaikan temperatur air laut global sebesar 10 derajat Celcius', false],
-                    ['Risiko punahnya plankton akibat tersedot oleh kabel listrik tembaga', false],
-                ],
-            ],
-            [
-                'question' => 'Parameter ekonomi utama untuk menilai daya saing biaya pembangkitan listrik proyek energi terbarukan laut sepanjang siklus hidup asetnya adalah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Levelized Cost of Electricity (LCOE) yang memperhitungkan total biaya Capex investasi, Opex pemeliharaan laut, dan total produksi listrik selama masa konsesi', true],
-                    ['Tarif pajak penghasilan tahunan pengembang listrik swasta', false],
-                    ['Harga jual besi tua bekas rangka turbin di pasar loak', false],
-                    ['Biaya sewa kamar hotel bagi teknisi selama peresmian proyek', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBlueFoodQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Istilah *Blue Foods* (Pangan Biru) merujuk pada keunggulan komparatif bahan pangan hewani dan nabati yang dipanen dari lingkungan perairan karena:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Mengandung spektrum mikronutrien esensial padat (Omega-3 DHA/EPA, vitamin B12, vitamin A, zat besi, zinc) dengan intensitas emisi karbon dan jejak air daratan yang jauh lebih rendah daripada protein ternak darat', true],
-                    ['Diberi zat pewarna kimia sintetis biru cerah agar menarik perhatian anak-anak', false],
-                    ['Hanya berasal dari makanan kalengan impor yang diawetkan dengan natrium benzoat', false],
-                    ['Merupakan makanan beku cepat saji impor yang dimasak menggunakan oven microwave', false],
-                ],
-            ],
-            [
-                'question' => 'Mikroalga *Spirulina* (*Arthrospira platensis*) diposisikan sebagai superfood maritim unggulan dalam penanganan stunting anak di desa pesisir karena:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Memiliki densitas protein sangat tinggi (60–70% berat kering), asam amino esensial lengkap, zat besi bioavailable, dan antioksidan fikosianin', true],
-                    ['Mengandung kadar lemak trans tinggi yang setara dengan mentega industri', false],
-                    ['Dapat menggantikan fungsi garam dapur murni secara langsung dalam masakan', false],
-                    ['Hanya dapat tumbuh pada air limbah pabrik industri tekstil', false],
-                ],
-            ],
-            [
-                'question' => 'Budidaya makroalga rumput laut (*Eucheuma cottonii* dan *Gracilaria*) menyumbang ketahanan pangan dan gizi melalui produk pangan bernilai tambah berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Sumber serat pangan larut (*dietary fiber*), hidrokoloid agar-agar dan karaginan sebagai penstabil makanan alami, serta fortifikan mineral iodium alami', true],
-                    ['Bahan bakar bensin beroktan tinggi pengganti minyak bumi', false],
-                    ['Pengawet kimia berbahaya pengganti boraks dan formalin', false],
-                    ['Bahan baku plastik sintetis beracun yang tidak dapat terurai', false],
-                ],
-            ],
-            [
-                'question' => 'Pemanfaatan Air Laut Dalam (*Deep Sea Water* / DSW) pada industri pangan laut fungsional memiliki keunggulan mutu alami karena:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Berasal dari kedalaman >200–500 meter yang sangat steril bebas patogen permukaan, kaya garam mineral esensial (magnesium, kalsium, kalium), dan bersuhu dingin konstan', true],
-                    ['Mengandung minyak bumi mentah yang siap diekstraksi menjadi minyak goreng', false],
-                    ['Memiliki tingkat keasaman pekat yang mampu melarutkan tulang ikan seketika', false],
-                    ['Bebas sama sekali dari kandungan garam sehingga terasa manis seperti air tebu', false],
-                ],
-            ],
-            [
-                'question' => 'Penerapan teknologi *Solar-Powered Slurry Ice Machine* di sentra pendaratan ikan pulau kecil bertujuan mengatasi masalah struktural berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Tingginya *post-harvest fish loss* (kerusakan mutu ikan hasil tangkapan) akibat ketiadaan pabrik es konvensional dan mahalnya pasokan BBM solar di pulau terluar', true],
-                    ['Kelebihan pasokan ikan segar di pasar lokal yang menyebabkan harga melambung tinggi', false],
-                    ['Kurangnya garam dapur untuk membuat ikan asin kering tradisional', false],
-                    ['Tuntutan konsumen perkotaan yang hanya menyukai ikan asin berformalin', false],
-                ],
-            ],
-            [
-                'question' => 'Sistem Ketertelusuran Pangan Laut (*Seafood Traceability*) berbasis kode QR dan blockchain pada produk perikanan memberikan nilai tambah ekonomi berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Jaminan transparansi legalitas tangkapan (bebas IUU Fishing), keaslian spesies, asal perairan WPPNRI, dan riwayat suhu rantai dingin bagi konsumen dan pasar ekspor premium', true],
-                    ['Kenaikan biaya bea masuk impor di negara tujuan perdagangan', false],
-                    ['Kewajiban nelayan membayar komisi harian kepada perantara calo tengkulak', false],
-                    ['Penghapusan kewajiban pemeriksaan karantina ikan di pelabuhan muat', false],
-                ],
-            ],
-            [
-                'question' => 'Budidaya kerang-kerangan (Bivalve Aquaculture seperti tiram dan kerang hijau) dikenal sebagai *Extractive Aquaculture* ramah lingkungan karena:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Bersifat filter feeder yang menyaring plankton dan partikel organik dari kolom air tanpa membutuhkan pakan buatan pelet komersial serta membantu menjernihkan perairan', true],
-                    ['Membutuhkan antibiotik kimia dosis tinggi yang dicampur ke dalam air tambak', false],
-                    ['Membabat habis vegetasi hutan bakau untuk dijadikan kolam beton tertutup', false],
-                    ['Menghasilkan limbah lumpur beracun yang mengendap di dasar laut lepas', false],
-                ],
-            ],
-            [
-                'question' => 'Pemanfaatan hasil samping pengolahan ikan (tulang, kulit, kepala, jeroan) menjadi Hidrolisat Protein Ikan (HPI) berperan strategis dalam:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pencegahan *food waste* dengan mengubah limbah biomassa menjadi konsentrat asam amino peptida bernilai gizi tinggi untuk fortifikasi makanan balita dan lansia', true],
-                    ['Pembuatan pakan ternak murah berbau busuk tanpa proses biokimia terstandar', false],
-                    ['Pembuangan limbah organik cair langsung ke perairan pantai wisata', false],
-                    ['Penggantian seluruh asupan protein hewani dengan zat kimia sintetis', false],
-                ],
-            ],
-            [
-                'question' => 'Penerapan standar sistem Hazard Analysis Critical Control Point (HACCP) pada pengolahan produk perikanan tangkap dan budidaya difokuskan pada:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pencegahan dan pengendalian bahaya biologi (bakteri Salmonella/Vibrio), bahaya kimia (histamin, merkuri, antibiotik), dan bahaya fisik di setiap tahapan kritis pengolahan', true],
-                    ['Penetapan harga jual eceran tertinggi produk olahan ikan di pasar swalayan', false],
-                    ['Pewajiban penggunaan kemasan plastik sekali pakai tanpa daur ulang', false],
-                    ['Pembatasan jumlah karyawan wanita pada lini produksi pabrik pengolahan', false],
-                ],
-            ],
-            [
-                'question' => 'Strategi kedaulatan pangan berbasis Blue Foods di wilayah pesisir kepulauan Indonesia diarahkan untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Diversifikasi konsumsi pangan lokal berbasis protein laut guna mengurangi ketergantungan pada komoditas pangan impor dan daging ternak daratan', true],
-                    ['Melarang masyarakat pesisir mengonsumsi ikan segar hasil tangkapannya sendiri', false],
-                    ['Mengekspor seluruh komoditas hasil laut mentah tanpa hilirisasi di dalam negeri', false],
-                    ['Mengganti pola makan tradisional masyarakat pesisir dengan makanan cepat saji instan', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getBluePortQuestions(): array
-    {
-        return [
-            [
-                'question' => 'Konsep *Green Port* (Pelabuhan Hijau) dan standar sertifikasi internasional pelabuhan ramah lingkungan menekankan pada:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pengelolaan operasional pelabuhan yang menyeimbangkan efisiensi logistik perdagangan maritim dengan dekarbonisasi emisi, pencegahan polusi laut, dan konservasi biodiversitas pesisir', true],
-                    ['Pengecatan seluruh dinding dermaga pelabuhan dengan warna cat hijau daun', false],
-                    ['Penutupan akses kapal kargo internasional agar perairan pelabuhan tetap tenang', false],
-                    ['Pembebasan bea labuh tambat bagi kapal-kapal yang menggunakan bahan bakar minyak kotor', false],
-                ],
-            ],
-            [
-                'question' => 'Fasilitas *Onshore Power Supply* (OPS) atau *Cold Ironing* di dermaga pelabuhan memberikan dampak dekarbonisasi signifikan dengan cara:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menyediakan sambungan listrik dari darat (*shore-to-ship power*) sehingga kapal dapat mematikan mesin bantu diesel saat bersandar untuk bongkar muat', true],
-                    ['Menyemprotkan air es dingin ke lambung kapal agar muatan tidak kepanasan', false],
-                    ['Mengharuskan kapal mematikan lampu navigasi saat berlabuh di malam hari', false],
-                    ['Memasang panel surya mini di atas tali tambat kapal di bibir dermaga', false],
-                ],
-            ],
-            [
-                'question' => 'Regulasi IMO MARPOL Annex VI membatasi kadar sulfur pada bahan bakar minyak kapal secara global (*IMO 2020 Sulphur Cap*) maksimal sebesar:',
-                'weight'   => 10,
-                'options'  => [
-                    ['0,50% m/m (mass by mass) di luar area kontrol emisi (ECA) untuk memangkas polusi partikulat SOx di kawasan perairan dan pelabuhan padat penduduk', true],
-                    ['5,00% m/m tanpa batasan jenis bahan bakar minyak yang digunakan', false],
-                    ['15,0% m/m untuk kapal penangkap ikan tradisional skala kecil', false],
-                    ['50,0% m/m khusus bagi kapal kargo pengangkut batubara curah', false],
-                ],
-            ],
-            [
-                'question' => 'Kewajiban penyediaan *Port Reception Facilities* (PRF) yang memadai di pelabuhan sesuai Konvensi MARPOL Annex V bertujuan untuk:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Menampung dan mengolah limbah sampah padat, sampah plastik, sisa muatan, dan limbah minyak kapal agar tidak dibuang secara ilegal ke laut lepas', true],
-                    ['Tempat penampungan hewan peliharaan penumpang kapal pesiar selama bersandar', false],
-                    ['Pusat perbelanjaan bebas bea (duty-free shopping mall) bagi awak kapal kargo', false],
-                    ['Tempat pembuangan langsung limbah industri pelabuhan ke dalam terumbu karang terdekat', false],
-                ],
-            ],
-            [
-                'question' => 'Konvensi Pengelolaan Air Balas Kapal (*Ballast Water Management Convention* / BWM 2004) diwajibkan bagi pelabuhan internasional guna mencegah:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Invasi spesies laut asing berbahaya dan patogen berbahaya (*invasive aquatic species*) yang terbawa dalam tangki balas kapal dari wilayah biogeografi lain', true],
-                    ['Pencurian air tawar pelabuhan oleh awak kapal kargo niaga', false],
-                    ['Kelebihan muatan peti kemas yang melebihi batas sarat air kapal (*draft limit*)', false],
-                    ['Kerusakan cat anti-fouling pada lambung kapal saat berlayar di laut dangkal', false],
-                ],
-            ],
-            [
-                'question' => 'Transisi menuju pelabuhan rendah emisi mendorong penyediaan infrastruktur pengisian bahan bakar kapal rendah/nol karbon (*Alternative Marine Bunkering*) seperti:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Fasilitas bunkering LNG (Liquefied Natural Gas), Biofuel terverifikasi, Metanol hijau, dan Amonia hijau untuk kapal pelayaran masa depan', true],
-                    ['Pengisian minyak tanah mentah bersubsidi untuk seluruh kapal kargo asing', false],
-                    ['Penyediaan tangki batubara serbuk di setiap sudut dermaga curah', false],
-                    ['Penggunaan oli pelumas bekas motor darat sebagai bahan bakar mesin induk kapal', false],
-                ],
-            ],
-            [
-                'question' => 'Sistem *Smart Port System* terintegrasi (seperti Port Community System / Inaportnet dan *Just-In-Time Arrival*) berkontribusi pada efisiensi hijau melalui:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pengurangan waktu tunggu kapal berlabuh (*waiting time* & *turnaround time*) sehingga kapal dapat mengatur kecepatan pelayaran (*slow steaming*) dan menghemat konsumsi BBM', true],
-                    ['Penghapusan seluruh pemeriksaan bea cukai dan karantina satwa liar laut', false],
-                    ['Pewajiban seluruh transaksi logistik menggunakan uang tunai fisik koin perak', false],
-                    ['Pemberian izin berlayar bagi kapal yang tidak laik laut tanpa inspeksi fisik', false],
-                ],
-            ],
-            [
-                'question' => 'Pengerukan alur pelayaran pelabuhan berkelanjutan (*Green Capital & Maintenance Dredging*) wajib menerapkan mitigasi lingkungan berupa:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Pemantauan sebaran sedimentasi lumpur (*turbidity plume*), penggunaan *silt curtain*, dan pemanfaatan kembali material kerukan yang tidak tercemar untuk restorasi pesisir (*beneficial use*)', true],
-                    ['Pembuangan seluruh material lumpur kerukan di atas kawasan terumbu karang hidup', false],
-                    ['Pengerukan alur menggunakan bahan peledak dinamit bawah air berdaya ledak tinggi', false],
-                    ['Penghentian seluruh kegiatan patroli pengawasan pencemaran laut oleh syahbandar', false],
-                ],
-            ],
-            [
-                'question' => 'Elektrifikasi peralatan penanganan peti kemas di terminal pelabuhan, seperti konversi dari diesel RTG menjadi Electric Rubber Tyred Gantry (e-RTG), menghasilkan manfaat:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Penurunan konsumsi bahan bakar solar hingga 60–80%, pengurangan kebisingan operasional di area terminal, dan eliminasi emisi gas buang lokal', true],
-                    ['Peningkatan getaran dermaga yang mempercepat keretakan beton pelabuhan', false],
-                    ['Kewajiban operator crane untuk bekerja tanpa menggunakan alat pelindung diri', false],
-                    ['Penurunan kecepatan bongkar muat peti kemas per jam hingga separuhnya', false],
-                ],
-            ],
-            [
-                'question' => 'Dalam menghadapi ancaman kenaikan muka air laut (*Sea Level Rise*) dan gelombang pasang ekstrem, pelabuhan modern menerapkan pendekatan ketahanan iklim berbasis:',
-                'weight'   => 10,
-                'options'  => [
-                    ['Kombinasi infrastruktur teknik keras (*hard engineering*) yang adaptif dengan restorasi ekosistem alami (*Nature-based Solutions* seperti sabuk hijau mangrove peredam ombak)', true],
-                    ['Pembiaran air laut menenggelamkan fasilitas dermaga tanpa rencana perbaikan', false],
-                    ['Pemindahan lokasi pelabuhan laut utama ke kawasan pegunungan tinggi di pedalaman', false],
-                    ['Penimbunan seluruh perairan teluk pelabuhan dengan sampah plastik padat', false],
-                ],
-            ],
-        ];
-    }
-
-    private function getDefaultSpecQuestions(string $track): array
-    {
-        return [
-            [
-                'question' => "Prinsip utama yang membedakan pendekatan {$track} dalam Blue Economy dari pendekatan eksploitatif konvensional adalah?",
-                'weight'   => 10,
-                'options'  => [
-                    ['Integrasi keberlanjutan ekologis dengan pembangunan ekonomi maritim yang inklusif, adil, dan berbasis daya dukung lingkungan', true],
-                    ['Fokus pada profit finansial jangka pendek tanpa mempertimbangkan kelestarian habitat', false],
-                    ['Eksploitasi sumber daya secara intensif sebelum regulasi pemerintah diberlakukan', false],
-                    ['Sentralisasi seluruh kegiatan usaha di tangan korporasi konglomerasi besar', false],
-                ],
-            ],
-            [
-                'question' => "Dalam konteks {$track}, pilar utama yang wajib dijaga untuk menjamin keberlanjutan jangka panjang adalah:",
-                'weight'   => 10,
-                'options'  => [
-                    ['Daya dukung lingkungan (carrying capacity) dan keterlibatan aktif masyarakat pesisir lokal', true],
-                    ['Pengurangan alokasi anggaran pemeliharaan habitat maritim dan konservasi perairan', false],
-                    ['Penggunaan alat-alat kerja yang tidak ramah lingkungan untuk menekan biaya produksi', false],
-                    ['Penghapusan seluruh mekanisme transparansi dan audit kepatuhan lingkungan hidup', false],
-                ],
-            ],
-            [
-                'question' => "Target PBB yang menjadi landasan paling fundamental dalam implementasi proyek {$track} adalah:",
-                'weight'   => 10,
-                'options'  => [
-                    ['SDG 14: Life Below Water & SDG 13: Climate Action', true],
-                    ['SDG 7: Affordable and Clean Energy saja tanpa keterkaitan dengan laut', false],
-                    ['SDG 1: No Poverty tanpa memperhatikan aspek keberlanjutan sumber daya alam', false],
-                    ['SDG 9: Industry and Infrastructure berbasis ekstraksi bahan bakar fosil', false],
-                ],
-            ],
-            [
-                'question' => "Langkah strategis pertama dalam menyusun roadmap implementasi {$track} berkelanjutan di Indonesia adalah:",
-                'weight'   => 10,
-                'options'  => [
-                    ['Penilaian baseline sains ekologis, pemetaan pemangku kepentingan (*stakeholders*), dan mitigasi risiko lingkungan', true],
-                    ['Langsung meluncurkan proyek komersial skala besar tanpa kajian ilmiah awal', false],
-                    ['Menyerahkan seluruh aset pengelolaan kepada entitas asing tanpa alih teknologi', false],
-                    ['Menunggu ketersediaan dana hibah luar negeri tanpa inisiatif aksi mandiri', false],
-                ],
-            ],
-            [
-                'question' => "Indikator keberhasilan utama dari proyek {$track} dalam kerangka ekonomi sirkular adalah:",
-                'weight'   => 10,
-                'options'  => [
-                    ['Terciptanya nilai tambah ekonomi baru yang berkeadilan seraya meminimalkan limbah dan memulihkan kesehatan ekosistem laut', true],
-                    ['Volume limbah industri yang dibuang langsung ke laut dalam jumlah maksimal', false],
-                    ['Tingginya ketergantungan nelayan pada pinjaman rentenir informal', false],
-                    ['Penurunan keanekaragaman hayati spesies laut di sekitar area proyek', false],
-                ],
-            ],
-            [
-                'question' => "Prinsip kehati-hatian (*Precautionary Approach*) dalam operasional {$track} menegaskan bahwa:",
-                'weight'   => 10,
-                'options'  => [
-                    ['Ketiadaan kepastian ilmiah tidak boleh menjadi alasan menunda upaya pencegahan kerusakan lingkungan laut', true],
-                    ['Semua proyek boleh mengabaikan AMDAL selama menguntungkan pemilik modal', false],
-                    ['Pencegahan kerusakan lingkungan hanya dilakukan jika ada sanksi denda hukum', false],
-                    ['Riset ilmiah kelautan tidak diperlukan dalam pengambilan keputusan usaha', false],
-                ],
-            ],
-            [
-                'question' => "Model pendanaan berkelanjutan yang paling adaptif untuk mendukung ekspansi {$track} di pulau kecil adalah:",
-                'weight'   => 10,
-                'options'  => [
-                    ['*Blended Finance* yang memadukan dana katalitik filantropi dengan investasi komersial bertanggung jawab', true],
-                    ['Pinjaman rentenir berbunga harian tinggi tanpa pengawasan perbankan', false],
-                    ['Ketergantungan 100% pada utang komersial jangka pendek berisiko tinggi', false],
-                    ['Penjualan obligasi tanpa kejelasan alokasi peruntukan proyek hijau (*blue-washing*)', false],
-                ],
-            ],
-            [
-                'question' => "Integrasi kearifan lokal masyarakat hukum adat pesisir dalam {$track} berfungsi untuk:",
-                'weight'   => 10,
-                'options'  => [
-                    ['Memperkuat legitimasi sosial, memperkaya strategi konservasi berbasis bukti lokal, dan mencegah konflik tenurial', true],
-                    ['Menghilangkan hak-hak adat masyarakat pesisir atas ruang laut mereka', false],
-                    ['Menggantikan seluruh kaidah hukum positif negara dengan aturan informal', false],
-                    ['Memperlambat laju pembangunan ekonomi daerah pesisir secara permanen', false],
-                ],
-            ],
-            [
-                'question' => "Penerapan sistem ketertelusuran (*traceability*) digital pada rantai pasok {$track} bertujuan untuk:",
-                'weight'   => 10,
-                'options'  => [
-                    ['Menjamin legalitas bahan baku, memenuhi kepatuhan standar pasar ekspor, dan meningkatkan kepercayaan konsumen', true],
-                    ['Menyembunyikan informasi asal-usul produk dari pengawasan otoritas karantina', false],
-                    ['Menaikkan tarif bea masuk kepabeanan secara sepihak', false],
-                    ['Menghambat perdagangan antarpulau bagi nelayan tradisional', false],
-                ],
-            ],
-            [
-                'question' => "Pilar *Governance* (Tata Kelola) dalam implementasi {$track} menuntut adanya:",
-                'weight'   => 10,
-                'options'  => [
-                    ['Transparansi proses pengambilan keputusan, akuntabilitas audit berkala, dan partisipasi bermakna seluruh pemangku kepentingan', true],
-                    ['Sentralisasi kekuasaan mutlak tanpa mekanisme pengawasan independen', false],
-                    ['Kerahasiaan seluruh data dampak lingkungan hidup dari pantauan publik', false],
-                    ['Penghapusan kewajiban pelaporan berkala kepada dinas kelautan dan perikanan', false],
-                ],
-            ],
-        ];
-    }
-
-    // ───────────────────────────────────────────────────────────────────────────
-    //  NASKAH SOAL ESAY STUDI KASUS & CRITICAL THINKING 10 SPESIALISASI
+    //  STUDI KASUS ESSAY UNTUK 10 SPESIALISASI
     // ───────────────────────────────────────────────────────────────────────────
 
     private function getTrackSpecificEssayPrompt(string $track): string
@@ -2106,46 +654,5 @@ Susun analisis komprehensif (minimal 500 kata) yang menjawab:
 2. **Rancangan Solusi Berbasis Blue Economy**: Usulkan strategi intervensi terukur berbasis teknologi dan inovasi sirkular.
 3. **Analisis Dampak & Kelayakan**: Uraikan estimasi dampak positif terhadap pencapaian target SDG 14 dan keberlanjutan mata pencaharian komunitas pesisir.",
         };
-    }
-
-    private function getTrackSpecificCriticalThinkingPrompt(string $track): string
-    {
-        return "### Ujian Analisis Kritis: Telaah Kebijakan, Tantangan Struktural, dan Arah Masa Depan {$track}
-
-*Catatan: Modul ini diperuntukkan bagi peserta spesialisasi {$track} yang TIDAK mengikuti kegiatan Field Study.*
-
-#### Latar Belakang Telaah Kritis
-Implementasi inisiatif {$track} di negara berkembang seperti Indonesia sering kali menghadapi benturan antara target pertumbuhan ekonomi jangka pendek, keterbatasan kapasitas fiskal daerah, dan komitmen konservasi jangka panjang.
-
-#### Tugas Peserta:
-Tuliskan telaah kritis mendalam (minimal 500 kata) yang menguraikan:
-1. **Evaluasi Kritis Kebijakan Terkini**: Tinjau secara objektif efektivitas regulasi pemerintah Indonesia yang ada saat ini terkait sektor {$track}. Di mana letak kesenjangan (*regulatory gaps*) antara kebijakan di atas kertas dengan implementasi penegakan hukum di lapangan?
-2. **Dilema Sosial-Ekonomi & Keadilan Distribusi**: Siapakah pihak yang paling diuntungkan dan pihak yang paling rentan dirugikan oleh proyek-proyek skala besar di bidang {$track}? Bagaimana memastikan agar masyarakat nelayan dan kelompok rentan di pesisir tidak terpinggirkan (*just transition*)?
-3. **Rekomendasi Berbasis Bukti (*Evidence-Based Recommendations*)**: Rancang 3 rekomendasi kebijakan strategis yang aplikatif bagi pengambil kebijakan nasional untuk mempercepat transformasi {$track} menuju ekonomi laut yang tangguh, berdaulat, dan berkeadilan iklim.";
-    }
-
-    // ───────────────────────────────────────────────────────────────────────────
-    //  HELPER INSERTION
-    // ───────────────────────────────────────────────────────────────────────────
-
-    private function insertQuestionsAndOptions(CourseContent $quiz, array $questions): void
-    {
-        foreach ($questions as $qIndex => $qData) {
-            $question = QuizQuestion::create([
-                'content_id'    => $quiz->id,
-                'question_text' => $qData['question'],
-                'weight_score'  => (int) ($qData['weight'] ?? 10),
-                'order_index'   => $qIndex + 1,
-            ]);
-
-            foreach ($qData['options'] as $oIndex => $opt) {
-                QuizOption::create([
-                    'question_id' => $question->id,
-                    'option_text' => $opt[0],
-                    'is_correct'  => (bool) $opt[1],
-                    'order_index' => $oIndex + 1,
-                ]);
-            }
-        }
     }
 }
