@@ -36,6 +36,7 @@ interface CourseData { id: number; title: string; slug: string }
 interface EnrollInfo { id: number; status: string; enrollment_type: string; attended_field_trip: boolean }
 interface PageData { enrollment: EnrollInfo; course: CourseData; sections: Section[] }
 interface Submission {
+  id?: number;
   content_id: number;
   score: number | null;
   correct_count?: number | null;
@@ -215,10 +216,27 @@ export default function StudentCoursePage() {
                 next.set(contentId, sub);
                 return next;
               });
+              // For quiz and assignments, advance automatically
+              if (!['pdf_module', 'video_embed'].includes(activeContent.content_type)) {
+                const allContents = data.sections.flatMap(s => s.contents);
+                const idx = allContents.findIndex(c => c.id === contentId);
+                if (idx >= 0 && idx < allContents.length - 1) {
+                  setTimeout(() => setActive(allContents[idx + 1]), 800);
+                }
+              }
+            }}
+            onUnmarkDone={(contentId) => {
+              setSubmissions(prev => {
+                const next = new Map(prev);
+                next.delete(contentId);
+                return next;
+              });
+            }}
+            onNextContent={() => {
               const allContents = data.sections.flatMap(s => s.contents);
-              const idx = allContents.findIndex(c => c.id === contentId);
+              const idx = allContents.findIndex(c => c.id === activeContent.id);
               if (idx >= 0 && idx < allContents.length - 1) {
-                setTimeout(() => setActive(allContents[idx + 1]), 800);
+                setActive(allContents[idx + 1]);
               }
             }}
             onEnrollmentUpdate={(updatedEnroll) => {
@@ -237,12 +255,23 @@ export default function StudentCoursePage() {
 }
 
 // ─── Content Viewer ───────────────────────────────────────────────────────────
-function ContentViewer({ content, enrollment, enrollmentId, submission, onSubmitDone, onEnrollmentUpdate }: {
+function ContentViewer({
+  content,
+  enrollment,
+  enrollmentId,
+  submission,
+  onSubmitDone,
+  onUnmarkDone,
+  onNextContent,
+  onEnrollmentUpdate,
+}: {
   content: Content;
   enrollment: EnrollInfo;
   enrollmentId: number;
   submission: Submission | null;
   onSubmitDone: (contentId: number, sub: Submission) => void;
+  onUnmarkDone: (contentId: number) => void;
+  onNextContent: () => void;
   onEnrollmentUpdate: (e: EnrollInfo) => void;
 }) {
   const type = content.content_type;
@@ -277,11 +306,11 @@ function ContentViewer({ content, enrollment, enrollmentId, submission, onSubmit
         </div>
       )}
 
-      {/* Graded Banner */}
-      {!isLocked && submission?.score !== null && submission?.score !== undefined && (
+      {/* Graded Banner - exclude reading & video modules which have their own completion cards */}
+      {!isLocked && !['pdf_module', 'video_embed'].includes(type) && submission?.score !== null && submission?.score !== undefined && (
         <GradedBanner submission={submission} content={content} />
       )}
-      {!isLocked && submission && submission.score === null && submission.status === 'submitted' && (
+      {!isLocked && !['pdf_module', 'video_embed'].includes(type) && submission && submission.score === null && submission.status === 'submitted' && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-center gap-3">
           <div className="text-2xl">⏳</div>
           <div>
@@ -294,8 +323,26 @@ function ContentViewer({ content, enrollment, enrollmentId, submission, onSubmit
       {/* Content by type */}
       {!isLocked && (
         <>
-          {type === 'pdf_module'        && <PDFModule content={content} />}
-          {type === 'video_embed'       && <VideoEmbed content={content} />}
+          {type === 'pdf_module'        && (
+            <PDFModule
+              content={content}
+              enrollmentId={enrollmentId}
+              submission={submission}
+              onDone={sub => onSubmitDone(content.id, sub)}
+              onUnmark={() => onUnmarkDone(content.id)}
+              onNext={onNextContent}
+            />
+          )}
+          {type === 'video_embed'       && (
+            <VideoEmbed
+              content={content}
+              enrollmentId={enrollmentId}
+              submission={submission}
+              onDone={sub => onSubmitDone(content.id, sub)}
+              onUnmark={() => onUnmarkDone(content.id)}
+              onNext={onNextContent}
+            />
+          )}
           {type === 'mcq_quiz'          && (
             <MCQQuiz content={content} enrollmentId={enrollmentId}
               submission={submission}
@@ -369,13 +416,78 @@ function GradedBanner({ submission, content }: { submission: Submission; content
 }
 
 // ─── 1. PDF Module ────────────────────────────────────────────────────────────
-function PDFModule({ content }: { content: Content }) {
+function PDFModule({
+  content,
+  enrollmentId,
+  submission,
+  onDone,
+  onUnmark,
+  onNext,
+}: {
+  content: Content;
+  enrollmentId: number;
+  submission: Submission | null;
+  onDone: (sub: Submission) => void;
+  onUnmark: () => void;
+  onNext?: () => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmed, setConfirmed]   = useState(true);
+
+  const isCompleted = submission?.score !== null && submission?.score !== undefined;
+
   const pdfUrl = content.file_path
     ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}/storage/${content.file_path}`
     : null;
 
+  const handleMarkDone = async () => {
+    setSubmitting(true);
+    try {
+      const res = await api.post('/submissions', {
+        enrollment_id: enrollmentId,
+        content_id: content.id,
+        essay_text: 'completed_reading',
+      });
+      const sub = res.data.data;
+      const newSub: Submission = {
+        id: sub.id,
+        content_id: content.id,
+        score: sub.score ?? 100,
+        assessor_feedback: null,
+        graded_at: sub.graded_at ?? new Date().toISOString(),
+        status: 'graded',
+      };
+      onDone(newSub);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Gagal menandai modul selesai.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUnmark = async () => {
+    if (!submission?.id) {
+      onUnmark();
+      return;
+    }
+    if (!confirm('Apakah kamu ingin membatalkan tanda selesai untuk modul ini? Bar progres belajar akan diperbarui kembali.')) {
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.delete(`/submissions/${submission.id}`);
+      onUnmark();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Gagal membatalkan tanda selesai.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {/* Instructions */}
       {content.instruction_text && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
@@ -383,6 +495,7 @@ function PDFModule({ content }: { content: Content }) {
         </div>
       )}
 
+      {/* PDF Document Reader */}
       {pdfUrl ? (
         <div className="flex flex-col gap-3">
           <AestheticPdfReader
@@ -402,20 +515,201 @@ function PDFModule({ content }: { content: Content }) {
           </div>
         </div>
       )}
+
+      {/* ─── Self-Assessment / Completion Widget ───────────────────────────── */}
+      {isCompleted ? (
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-3xl p-6 sm:p-7 shadow-sm transition-all animate-fadeup">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/25 flex-shrink-0">
+                ✓
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full">
+                    Selesai Dipelajari
+                  </span>
+                  <span className="text-xs text-emerald-700 font-semibold">
+                    • 100% Progres Tersimpan
+                  </span>
+                </div>
+                <h4 className="font-extrabold text-navy-dark text-lg mt-1.5">
+                  Kamu sudah menuntaskan modul bacaan ini!
+                </h4>
+                <p className="text-slate-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                  Modul ini telah tercatat dalam progress bar kursus kamu. Kamu dapat membaca ulang materi ini kapan saja atau lanjut ke materi/ujian berikutnya.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 md:self-center flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleUnmark}
+                disabled={submitting}
+                className="text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-rose-300 bg-white hover:bg-rose-50 transition-all flex items-center gap-1.5 shadow-sm"
+                title="Batalkan jika ingin mereset status bacaan"
+              >
+                {submitting ? <span className="animate-spin text-xs">⏳</span> : <span>↩</span>}
+                <span>Batal Tandai</span>
+              </button>
+
+              {onNext && (
+                <button
+                  type="button"
+                  onClick={onNext}
+                  className="btn btn-primary text-xs sm:text-sm px-5 py-2.5 shadow-md shadow-navy/20 flex items-center gap-2"
+                >
+                  <span>Lanjut ke Modul Berikutnya</span>
+                  <span>→</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white border-2 border-slate-200 hover:border-navy/30 rounded-3xl p-6 sm:p-7 shadow-sm transition-all">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-navy/10 text-navy flex items-center justify-center text-2xl flex-shrink-0">
+                🎯
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-navy bg-navy/10 px-3 py-0.5 rounded-full">
+                    Self-Assessment / Evaluasi Mandiri
+                  </span>
+                </div>
+                <h4 className="font-extrabold text-navy-dark text-lg mt-1.5">
+                  Sudah selesai membaca & memahami modul ini?
+                </h4>
+                <p className="text-slate-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                  Tandai bahwa kamu telah menelaah seluruh isi modul materi di atas agar indikator dan bar progress belajar kamu terisi.
+                </p>
+
+                <label className="flex items-center gap-2.5 mt-3.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-navy focus:ring-navy cursor-pointer"
+                  />
+                  <span className="text-xs text-slate-700 font-medium group-hover:text-navy transition-colors select-none">
+                    Saya menyatakan telah membaca modul materi ini dengan seksama dan siap lanjut.
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 w-full md:w-auto flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleMarkDone}
+                disabled={submitting || !confirmed}
+                className={`w-full md:w-auto px-6 py-3.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md transition-all ${
+                  confirmed && !submitting
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    <span>Menyimpan Progres...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✅</span>
+                    <span>Tandai Selesai Membaca Modul</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── 2. Video Embed ───────────────────────────────────────────────────────────
-function VideoEmbed({ content }: { content: Content }) {
+function VideoEmbed({
+  content,
+  enrollmentId,
+  submission,
+  onDone,
+  onUnmark,
+  onNext,
+}: {
+  content: Content;
+  enrollmentId: number;
+  submission: Submission | null;
+  onDone: (sub: Submission) => void;
+  onUnmark: () => void;
+  onNext?: () => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmed, setConfirmed]   = useState(true);
+
+  const isCompleted = submission?.score !== null && submission?.score !== undefined;
+
   const getEmbedUrl = (url: string) => {
     const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&modestbranding=1`;
     return url;
   };
 
+  const handleMarkDone = async () => {
+    setSubmitting(true);
+    try {
+      const res = await api.post('/submissions', {
+        enrollment_id: enrollmentId,
+        content_id: content.id,
+        essay_text: 'completed_video',
+      });
+      const sub = res.data.data;
+      const newSub: Submission = {
+        id: sub.id,
+        content_id: content.id,
+        score: sub.score ?? 100,
+        assessor_feedback: null,
+        graded_at: sub.graded_at ?? new Date().toISOString(),
+        status: 'graded',
+      };
+      onDone(newSub);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Gagal menandai video selesai.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUnmark = async () => {
+    if (!submission?.id) {
+      onUnmark();
+      return;
+    }
+    if (!confirm('Apakah kamu ingin membatalkan tanda selesai untuk video ini? Bar progres belajar akan diperbarui kembali.')) {
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.delete(`/submissions/${submission.id}`);
+      onUnmark();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Gagal membatalkan tanda selesai.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {content.instruction_text && (
         <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5">
           <p className="text-sm text-purple-800 leading-relaxed">{content.instruction_text}</p>
@@ -434,6 +728,121 @@ function VideoEmbed({ content }: { content: Content }) {
           </div>
         )}
       </div>
+
+      {/* Completion widget */}
+      {isCompleted ? (
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-3xl p-6 sm:p-7 shadow-sm transition-all animate-fadeup">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/25 flex-shrink-0">
+                ✓
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full">
+                    Selesai Ditonton
+                  </span>
+                  <span className="text-xs text-emerald-700 font-semibold">
+                    • 100% Progres Tersimpan
+                  </span>
+                </div>
+                <h4 className="font-extrabold text-navy-dark text-lg mt-1.5">
+                  Kamu sudah menuntaskan materi video ini!
+                </h4>
+                <p className="text-slate-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                  Video materi ini telah tercatat dalam progress bar kursus kamu.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 md:self-center flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleUnmark}
+                disabled={submitting}
+                className="text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-rose-300 bg-white hover:bg-rose-50 transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                {submitting ? <span className="animate-spin text-xs">⏳</span> : <span>↩</span>}
+                <span>Batal Tandai</span>
+              </button>
+
+              {onNext && (
+                <button
+                  type="button"
+                  onClick={onNext}
+                  className="btn btn-primary text-xs sm:text-sm px-5 py-2.5 shadow-md shadow-navy/20 flex items-center gap-2"
+                >
+                  <span>Lanjut ke Modul Berikutnya</span>
+                  <span>→</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white border-2 border-slate-200 hover:border-navy/30 rounded-3xl p-6 sm:p-7 shadow-sm transition-all">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl flex-shrink-0">
+                🎬
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-purple-700 bg-purple-100 px-3 py-0.5 rounded-full">
+                    Self-Assessment / Evaluasi Mandiri
+                  </span>
+                </div>
+                <h4 className="font-extrabold text-navy-dark text-lg mt-1.5">
+                  Sudah selesai menyimak video materi ini?
+                </h4>
+                <p className="text-slate-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                  Tandai bahwa kamu telah menonton materi video di atas agar indikator dan bar progress belajar kamu terisi.
+                </p>
+
+                <label className="flex items-center gap-2.5 mt-3.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-navy focus:ring-navy cursor-pointer"
+                  />
+                  <span className="text-xs text-slate-700 font-medium group-hover:text-navy transition-colors select-none">
+                    Saya menyatakan telah menonton video materi ini dan memahami isinya.
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 w-full md:w-auto flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleMarkDone}
+                disabled={submitting || !confirmed}
+                className={`w-full md:w-auto px-6 py-3.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md transition-all ${
+                  confirmed && !submitting
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    <span>Menyimpan Progres...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✅</span>
+                    <span>Tandai Selesai Menonton Video</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

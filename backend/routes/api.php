@@ -55,10 +55,11 @@ Route::prefix('v1')->group(function () {
         // Student: Konfirmasi kehadiran Field Study
         Route::patch('enrollments/{id}/confirm-field-study', [EnrollmentController::class, 'studentConfirmFieldStudy']);
 
-        // Submission (Kuis, Esai, Video)
+        // Submission (Kuis, Esai, Video, Self-Assessment Modul)
         Route::post('submissions',          [SubmissionController::class, 'store']);
         Route::get('submissions/my',        [SubmissionController::class, 'mySubmissions']); // Submission milik sendiri
         Route::get('submissions/{id}',      [SubmissionController::class, 'show']);
+        Route::delete('submissions/{id}',   [SubmissionController::class, 'destroy']);
 
         // Sertifikat Peserta
         Route::get('certificates',          [CertificateController::class, 'index']);
