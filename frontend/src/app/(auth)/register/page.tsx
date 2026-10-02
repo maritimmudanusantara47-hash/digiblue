@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { AuthResponse } from '@/types';
+import LineIcon from '@/components/LineIcon';
 
 const COUNTRIES = [
   { code: 'ID', name: 'Indonesia', flag: '🇮🇩' },
@@ -50,12 +51,12 @@ const COUNTRIES = [
 ];
 
 const registerSchema = z.object({
-  name:             z.string().min(3, 'Nama minimal 3 karakter'),
-  email:            z.string().email('Format email tidak valid'),
-  password:         z.string().min(8, 'Password minimal 8 karakter'),
+  name: z.string().min(3, 'Nama minimal 3 karakter'),
+  email: z.string().email('Format email tidak valid'),
+  password: z.string().min(8, 'Password minimal 8 karakter'),
   password_confirmation: z.string(),
-  phone_number:     z.string().optional(),
-  country:          z.string().min(2, 'Pilih Negara / Country asal'),
+  phone_number: z.string().optional(),
+  country: z.string().min(2, 'Pilih Negara / Country asal'),
 }).refine(d => d.password === d.password_confirmation, {
   message: 'Konfirmasi password tidak cocok',
   path: ['password_confirmation'],
@@ -64,7 +65,7 @@ const registerSchema = z.object({
 type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const router  = useRouter();
+  const router = useRouter();
   const setAuth = useAuthStore(s => s.setAuth);
   const [serverError, setServerError] = useState('');
 
@@ -90,7 +91,10 @@ export default function RegisterPage() {
 
   return (
     <div className="animate-fadeup">
-      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Buat Akun Baru 🚀</h1>
+      <h1 className="text-2xl font-extrabold text-navy-dark mb-1 flex items-center gap-2">
+        Buat Akun Baru
+        <LineIcon name="rocket-5" className="text-2xl text-gold" />
+      </h1>
       <p className="text-slate-500 text-sm mb-8">Daftar untuk memulai perjalanan Blue Economy-mu</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
 import api from '@/lib/api';
+import LineIcon from '@/components/LineIcon';
 
 interface Submission {
   id: number;
@@ -17,14 +17,15 @@ interface Submission {
 }
 
 const TYPE_BADGE: Record<string, string> = {
-  essay_task:      'bg-blue-100 text-blue-700 border-blue-300',
+  essay_task: 'bg-blue-100 text-blue-700 border-blue-300',
   oral_video_task: 'bg-purple-100 text-purple-700 border-purple-300',
-  mcq_quiz:        'bg-slate-100 text-slate-600 border-slate-300',
+  mcq_quiz: 'bg-slate-100 text-slate-600 border-slate-300',
 };
-const TYPE_LABEL: Record<string, string> = {
-  essay_task:      '📝 Esai',
-  oral_video_task: '🎥 Video Oral',
-  mcq_quiz:        '📋 MCQ',
+
+const TYPE_LABEL: Record<string, { label: string; icon: string }> = {
+  essay_task: { label: 'Esai', icon: 'pencil-1' },
+  oral_video_task: { label: 'Video Oral', icon: 'camera-movie-1' },
+  mcq_quiz: { label: 'MCQ', icon: 'check-square-2' },
 };
 
 export default function AssessorSubmissionsPage() {
@@ -101,7 +102,11 @@ export default function AssessorSubmissionsPage() {
             onClick={() => { setStatus(s); setPage(1); }}
             className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'}`}
           >
-            {s === 'pending' ? '⏳ Belum Dinilai' : s === 'graded' ? '✅ Sudah Dinilai' : 'Semua'}
+            {s === 'pending'
+              ? <><LineIcon name="hourglass" className="text-xs" /> Belum Dinilai</>
+              : s === 'graded'
+                ? <><LineIcon name="check-circle-1" className="text-xs" /> Sudah Dinilai</>
+                : 'Semua'}
           </button>
         ))}
         <span className="ml-auto text-slate-400 text-sm">{total} tugas</span>
@@ -127,8 +132,8 @@ export default function AssessorSubmissionsPage() {
                   <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-5 w-5 text-navy" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
                       Memuat data...
                     </div>
@@ -137,7 +142,9 @@ export default function AssessorSubmissionsPage() {
               ) : submissions.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
-                    {statusFilter === 'pending' ? '🎉 Semua tugas sudah dinilai!' : 'Tidak ada data.'}
+                    {statusFilter === 'pending'
+                      ? <span className="inline-flex items-center gap-2"><LineIcon name="trophy-1" className="text-base text-emerald-400" /> Semua tugas sudah dinilai!</span>
+                      : 'Tidak ada data.'}
                   </td>
                 </tr>
               ) : submissions.map(sub => (
@@ -150,8 +157,11 @@ export default function AssessorSubmissionsPage() {
                     <p className="font-medium text-sm text-navy-dark truncate">{sub.content?.title}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${TYPE_BADGE[sub.content?.content_type] ?? 'bg-slate-100 border-slate-200 text-slate-500'}`}>
-                      {TYPE_LABEL[sub.content?.content_type] ?? sub.content?.content_type}
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border ${TYPE_BADGE[sub.content?.content_type] ?? 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                      {TYPE_LABEL[sub.content?.content_type]?.icon && (
+                        <LineIcon name={TYPE_LABEL[sub.content?.content_type].icon} className="text-xs" />
+                      )}
+                      {TYPE_LABEL[sub.content?.content_type]?.label ?? sub.content?.content_type}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -170,9 +180,11 @@ export default function AssessorSubmissionsPage() {
                         setScore(sub.score !== null ? String(sub.score) : '');
                         setFeedback(sub.assessor_feedback ?? '');
                       }}
-                      className="btn btn-sm btn-secondary text-xs"
+                      className="btn btn-sm btn-secondary text-xs inline-flex items-center gap-1.5"
                     >
-                      {sub.score !== null ? '✏️ Edit Nilai' : '📝 Beri Nilai'}
+                      {sub.score !== null
+                        ? <><LineIcon name="pencil-1" className="text-xs" /> Edit Nilai</>
+                        : <><LineIcon name="pencil-1" className="text-xs" /> Beri Nilai</>}
                     </button>
                   </td>
                 </tr>
@@ -180,11 +192,30 @@ export default function AssessorSubmissionsPage() {
             </tbody>
           </table>
         </div>
+
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40">← Sebelumnya</button>
-            <span className="text-sm text-slate-500">Halaman {page} dari {totalPages}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya →</button>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="btn btn-secondary btn-sm disabled:opacity-40 inline-flex items-center gap-1.5"
+            >
+              <LineIcon name="arrow-left" className="text-sm" />
+              Sebelumnya
+            </button>
+
+            <span className="text-sm text-slate-500">
+              Halaman {page} dari {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="btn btn-secondary btn-sm disabled:opacity-40 inline-flex items-center gap-1.5"
+            >
+              Berikutnya
+              <LineIcon name="arrow-right" className="text-sm" />
+            </button>
           </div>
         )}
       </div>
@@ -208,12 +239,19 @@ export default function AssessorSubmissionsPage() {
                   </div>
                 </div>
               )}
+
               {grading.video_url && (
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-slate-500 mb-2">VIDEO ORAL:</p>
-                  <a href={grading.video_url} target="_blank" rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline">
-                    🎥 Buka Video →
+                  <a
+                    href={grading.video_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline"
+                  >
+                    <LineIcon name="camera-movie-1" className="text-base" />
+                    Buka Video
+                    <LineIcon name="arrow-right" className="text-sm" />
                   </a>
                 </div>
               )}
@@ -235,8 +273,11 @@ export default function AssessorSubmissionsPage() {
                     placeholder="Masukkan nilai..."
                   />
                 </div>
+
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Feedback <span className="text-slate-400 font-normal">(opsional)</span></label>
+                  <label className="form-label">
+                    Feedback <span className="text-slate-400 font-normal">(opsional)</span>
+                  </label>
                   <textarea
                     id="grade-feedback"
                     rows={4}
@@ -246,11 +287,23 @@ export default function AssessorSubmissionsPage() {
                     placeholder="Tulis masukan untuk peserta..."
                   />
                 </div>
+
                 <div className="flex gap-3 pt-2">
-                  <button type="submit" disabled={saving} className="btn btn-primary flex-1">
-                    {saving ? 'Menyimpan...' : '✅ Simpan Nilai'}
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="btn btn-primary flex-1 inline-flex items-center justify-center gap-2"
+                  >
+                    {saving
+                      ? 'Menyimpan...'
+                      : <><LineIcon name="check-circle-1" className="text-sm" /> Simpan Nilai</>}
                   </button>
-                  <button type="button" onClick={() => setGrading(null)} className="btn btn-secondary">
+
+                  <button
+                    type="button"
+                    onClick={() => setGrading(null)}
+                    className="btn btn-secondary"
+                  >
                     Batal
                   </button>
                 </div>

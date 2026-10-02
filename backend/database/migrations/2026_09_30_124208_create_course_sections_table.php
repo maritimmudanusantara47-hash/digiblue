@@ -25,6 +25,7 @@ return new class extends Migration {
                 'essay_task',       // Tugas Esai (manual graded)
                 'oral_video_task',  // Video Oral Exam (manual graded)
                 'critical_thinking',// Modul Critical Thinking khusus Foundation
+                'field_study',      // Training Course (Field Study)
             ]);
             $table->string('title');
             $table->string('file_path')->nullable();        // Untuk pdf_module

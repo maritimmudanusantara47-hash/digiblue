@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
+import LineIcon from '@/components/LineIcon';
 
 const adminNav = [
-  { href: '/admin/dashboard',    label: 'Dashboard',         icon: '📊' },
-  { href: '/admin/users',        label: 'Pengguna',          icon: '👥' },
-  { href: '/admin/courses',      label: 'Manajemen Kursus',  icon: '📚' },
-  { href: '/admin/enrollments',  label: 'Enrollment',        icon: '📋' },
-  { href: '/admin/scholarship',  label: 'Kurasi Beasiswa',   icon: '🎓' },
-  { href: '/admin/certificates', label: 'Sertifikat',        icon: '🏅' },
+  { href: '/admin/dashboard',    label: 'Dashboard',         icon: 'dashboard-square-1' },
+  { href: '/admin/users',        label: 'Pengguna',          icon: 'user-multiple-4' },
+  { href: '/admin/courses',      label: 'Manajemen Kursus',  icon: 'book-1' },
+  { href: '/admin/enrollments',  label: 'Enrollment',        icon: 'clipboard' },
+  { href: '/admin/scholarship',  label: 'Kurasi Beasiswa',   icon: 'graduation-cap-1' },
+  { href: '/admin/certificates', label: 'Sertifikat',        icon: 'certificate-badge-1' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -57,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {adminNav.map(item => (
             <Link key={item.href} href={item.href}
               className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}>
-              <span>{item.icon}</span>
+              <LineIcon name={item.icon} className="text-base flex-shrink-0" />
               <span>{item.label}</span>
             </Link>
           ))}
@@ -66,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="px-3 pb-6 flex-shrink-0 mt-auto">
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
-            <span>🚪</span><span>Keluar</span>
+            <LineIcon name="exit" className="text-base flex-shrink-0" /><span>Keluar</span>
           </button>
         </div>
       </aside>

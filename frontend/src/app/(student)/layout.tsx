@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
+import LineIcon from '@/components/LineIcon';
 
 const navItems = [
-  { href: '/student/dashboard',   label: 'Dashboard',      icon: '🏠' },
-  { href: '/student/catalog',     label: 'Katalog Kursus', icon: '📚' },
-  { href: '/student/scholarship', label: 'Beasiswa',       icon: '🎓' },
-  { href: '/student/certificates',label: 'Sertifikat Saya',icon: '🏅' },
+  { href: '/student/dashboard',   label: 'Dashboard',      icon: 'dashboard-square-1' },
+  { href: '/student/catalog',     label: 'Katalog Kursus', icon: 'book-1' },
+  { href: '/student/scholarship', label: 'Beasiswa',       icon: 'graduation-cap-1' },
+  { href: '/student/certificates',label: 'Sertifikat Saya',icon: 'certificate-badge-1' },
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
@@ -57,7 +58,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               href={item.href}
               className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}
             >
-              <span>{item.icon}</span>
+              <LineIcon name={item.icon} className="text-base flex-shrink-0" />
               <span>{item.label}</span>
             </Link>
           ))}
@@ -67,7 +68,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <div className="px-3 pb-6 flex-shrink-0 mt-auto">
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
-            <span>🚪</span><span>Keluar</span>
+            <LineIcon name="exit" className="text-base flex-shrink-0" /><span>Keluar</span>
           </button>
         </div>
       </aside>

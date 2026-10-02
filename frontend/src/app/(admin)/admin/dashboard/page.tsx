@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import LineIcon from '@/components/LineIcon';
 
 interface DashStats {
   total_users: number;
@@ -40,18 +41,18 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { label: 'Total Pengguna',      value: stats?.total_users,               icon: '👥', href: '/admin/users',        color: 'from-navy to-navy-light' },
-    { label: 'Enrollment Aktif',    value: stats?.active_enrollments,        icon: '📖', href: '/admin/enrollments',  color: 'from-emerald-600 to-emerald-400' },
-    { label: 'Beasiswa Menunggu',   value: stats?.pending_scholarships,      icon: '⏳', href: '/admin/scholarship',  color: 'from-amber-500 to-amber-400' },
-    { label: 'Sertifikat Terbit',   value: stats?.certificates_issued,       icon: '🏅', href: '/admin/certificates', color: 'from-gold-dark to-gold' },
-    { label: 'Sinkronisasi Gagal',  value: stats?.certificates_pending_sync, icon: '⚠️', href: '/admin/certificates', color: 'from-red-600 to-red-400' },
+    { label: 'Total Pengguna',      value: stats?.total_users,               icon: 'user-multiple-4', href: '/admin/users',        color: 'from-navy to-navy-light' },
+    { label: 'Enrollment Aktif',    value: stats?.active_enrollments,        icon: 'book-1',          href: '/admin/enrollments',  color: 'from-emerald-600 to-emerald-400' },
+    { label: 'Beasiswa Menunggu',   value: stats?.pending_scholarships,      icon: 'hourglass',       href: '/admin/scholarship',  color: 'from-amber-500 to-amber-400' },
+    { label: 'Sertifikat Terbit',   value: stats?.certificates_issued,       icon: 'certificate-badge-1', href: '/admin/certificates', color: 'from-gold-dark to-gold' },
+    { label: 'Sinkronisasi Gagal',  value: stats?.certificates_pending_sync, icon: 'xmark-circle',    href: '/admin/certificates', color: 'from-red-600 to-red-400' },
   ];
 
   const quickActions = [
-    { label: 'Kurasi Beasiswa Baru',       href: '/admin/scholarship',  icon: '🎓', desc: 'Tinjau pengajuan beasiswa peserta' },
-    { label: 'Terbitkan Sertifikat',       href: '/admin/certificates', icon: '🏅', desc: 'Approve kelulusan & cetak sertifikat' },
-    { label: 'Re-Sync ke The Blue Economist', href: '/admin/certificates', icon: '🔄', desc: 'Sinkronisasi ulang data yang gagal' },
-    { label: 'Export Database Sertifikat', href: '/admin/certificates', icon: '📊', desc: 'Download rekap .xlsx format lama' },
+    { label: 'Kurasi Beasiswa Baru',       href: '/admin/scholarship',  icon: 'graduation-cap-1', desc: 'Tinjau pengajuan beasiswa peserta' },
+    { label: 'Terbitkan Sertifikat',       href: '/admin/certificates', icon: 'certificate-badge-1', desc: 'Approve kelulusan & cetak sertifikat' },
+    { label: 'Re-Sync ke The Blue Economist', href: '/admin/certificates', icon: 'refresh-circle-1-clockwise', desc: 'Sinkronisasi ulang data yang gagal' },
+    { label: 'Export Database Sertifikat', href: '/admin/certificates', icon: 'bar-chart-4', desc: 'Download rekap .xlsx format lama' },
   ];
 
   return (
@@ -67,7 +68,7 @@ export default function AdminDashboard() {
           <Link key={s.label} href={s.href}
             className={`rounded-2xl p-5 bg-gradient-to-br ${s.color} text-white shadow-md
                         hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer`}>
-            <div className="text-2xl mb-3">{s.icon}</div>
+            <LineIcon name={s.icon} className="text-2xl mb-3 text-white/80" />
             <div className="text-3xl font-extrabold">
               {loading ? '—' : (s.value ?? 0)}
             </div>
@@ -84,7 +85,7 @@ export default function AdminDashboard() {
             <Link key={action.label} href={action.href}
               className="flex flex-col gap-2 p-4 rounded-xl border border-slate-200
                          hover:border-navy/30 hover:shadow-md transition-all duration-200 group">
-              <span className="text-2xl">{action.icon}</span>
+              <LineIcon name={action.icon} className="text-2xl text-navy/60 group-hover:text-navy transition-colors" />
               <p className="font-semibold text-sm text-navy-dark group-hover:text-navy transition-colors">
                 {action.label}
               </p>
