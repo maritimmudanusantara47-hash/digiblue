@@ -2,8 +2,19 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import MarkdownViewer from '@/components/MarkdownViewer';
+
+const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader'), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-3xl border border-slate-800 bg-slate-950 p-12 flex flex-col items-center justify-center gap-3 text-sky-400">
+      <div className="w-10 h-10 border-4 border-sky-400/20 border-t-sky-400 rounded-full animate-spin" />
+      <p className="text-xs font-semibold">Menyiapkan Reader Dokumen Digital...</p>
+    </div>
+  ),
+});
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface QuizOption   { id: number; option_text: string; is_correct: boolean }
@@ -47,9 +58,11 @@ export default function AdminCourseContentPage() {
   // Content being managed
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
 
-  // PDF Upload
+  // PDF Upload & Preview
   const [uploadFile, setUploadFile]   = useState<File | null>(null);
   const [uploading, setUploading]     = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl]     = useState<string | null>(null);
+  const [previewPdfTitle, setPreviewPdfTitle] = useState('');
 
   // Edit instruction text
   const [editInstruction, setEditInstruction] = useState('');
@@ -257,10 +270,21 @@ export default function AdminCourseContentPage() {
                       {selectedContent.file_path && (
                         <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-blue-200">
                           <span>✅</span>
-                          <div className="flex-1 text-xs text-slate-600 truncate">File: {selectedContent.file_path}</div>
-                          <a href={`${process.env.NEXT_PUBLIC_API_URL}/storage/${selectedContent.file_path}`}
-                            target="_blank" rel="noreferrer"
-                            className="text-xs text-navy font-medium hover:underline">Buka →</a>
+                          <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
+                                .replace(/\/api\/v1\/?$/, '')
+                                .replace(/\/api\/?$/, '');
+                              const rawUrl = `${backendBase}/storage/${selectedContent.file_path}`;
+                              setPreviewPdfUrl(rawUrl);
+                              setPreviewPdfTitle(selectedContent.title);
+                            }}
+                            className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
+                          >
+                            👁️ Pratinjau di Reader
+                          </button>
                         </div>
                       )}
                       <div className="flex items-center gap-3">
@@ -363,6 +387,34 @@ export default function AdminCourseContentPage() {
           )}
         </div>
       </div>
+
+      {/* ─── PDF Preview Modal ────────────────────────────────────────── */}
+      {previewPdfUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadein">
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-xl">📘</span>
+                <span className="font-bold text-sm truncate">Pratinjau Reader Admin — {previewPdfTitle}</span>
+              </div>
+              <button
+                onClick={() => setPreviewPdfUrl(null)}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold"
+              >
+                ✕ Tutup
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden p-2">
+              <AestheticPdfReader
+                url={previewPdfUrl}
+                title={previewPdfTitle}
+                allowDownload={true}
+                height="100%"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
