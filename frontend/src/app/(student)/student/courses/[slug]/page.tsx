@@ -135,7 +135,7 @@ export default function StudentCoursePage() {
   return (
     <div className="animate-fadeup flex gap-0 min-h-[80vh]">
       {/* ── Sidebar ────────────────────────────────────────────────────────── */}
-      <aside className="w-72 flex-shrink-0 border-r border-slate-200 bg-slate-50 rounded-l-2xl overflow-y-auto max-h-[calc(100vh-120px)] sticky top-0">
+      <aside className="w-72 flex-shrink-0 self-start border-r border-slate-200 bg-slate-50 rounded-l-2xl overflow-y-auto max-h-[calc(100vh-48px)] sticky top-6">
         {/* Course Info */}
         <div className="p-5 border-b border-slate-200">
           <h2 className="font-extrabold text-navy-dark text-sm leading-snug line-clamp-2">{data.course.title}</h2>
