@@ -27,7 +27,7 @@ export default function AdminCertificatesPage() {
   const [enrollments, setEnrollments]     = useState<EnrollmentOption[]>([]);
   const [issueForm, setIssueForm]         = useState({
     enrollment_id: '',
-    grade: 'Distinction',
+    grade: 'Standard',
     date_of_issue: new Date().toISOString().slice(0, 10),
     place_of_issue: 'Jakarta, Indonesia',
     serial_number: '',
@@ -77,7 +77,7 @@ export default function AdminCertificatesPage() {
     setIssueError('');
     setIssueForm({
       enrollment_id: '',
-      grade: 'Distinction',
+      grade: 'Standard',
       date_of_issue: new Date().toISOString().slice(0, 10),
       place_of_issue: 'Jakarta, Indonesia',
       serial_number: '',
@@ -434,12 +434,9 @@ export default function AdminCertificatesPage() {
                     onChange={e => setIssueForm(f => ({ ...f, grade: e.target.value }))}
                     className="form-input text-sm"
                   >
-                    <option value="Distinction">Distinction (Istimewa)</option>
-                    <option value="Merit">Merit (Sangat Baik)</option>
-                    <option value="Pass">Pass (Lulus)</option>
-                    <option value="Honors">Honors</option>
-                    <option value="A">Grade A</option>
-                    <option value="B">Grade B</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Good">Good</option>
+                    <option value="Excellent">Excellent</option>
                   </select>
                 </div>
 
@@ -543,13 +540,16 @@ export default function AdminCertificatesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
                   <label className="form-label text-xs font-bold text-navy-dark">Grade</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={editForm.grade}
                     onChange={e => setEditForm(f => ({ ...f, grade: e.target.value }))}
                     className="form-input text-sm"
-                  />
+                  >
+                    <option value="Standard">Standard</option>
+                    <option value="Good">Good</option>
+                    <option value="Excellent">Excellent</option>
+                  </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="form-label text-xs font-bold text-navy-dark">Tanggal Terbit</label>

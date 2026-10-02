@@ -40,7 +40,7 @@ class AdminCertificateController extends Controller
     {
         $validated = $request->validate([
             'enrollment_id' => 'required|exists:enrollments,id',
-            'grade'         => 'required|string|max:50',
+            'grade'         => 'required|string|in:Standard,Good,Excellent',
             'date_of_issue' => 'required|date',
             'place_of_issue'=> 'required|string|max:100',
             'serial_number' => 'nullable|string|unique:certificates,serial_number', // Admin override
@@ -104,7 +104,7 @@ class AdminCertificateController extends Controller
         $validated = $request->validate([
             'serial_number'  => "nullable|string|unique:certificates,serial_number,{$id}",
             'serial_url_key' => "nullable|string|unique:certificates,serial_url_key,{$id}",
-            'grade'          => 'nullable|string|max:50',
+            'grade'          => 'sometimes|string|in:Standard,Good,Excellent',
             'date_of_issue'  => 'nullable|date',
             'place_of_issue' => 'nullable|string|max:100',
         ]);
