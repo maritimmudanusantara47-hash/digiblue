@@ -2,8 +2,19 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import MarkdownViewer from '@/components/MarkdownViewer';
+
+const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader'), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-3xl border border-slate-800 bg-slate-950 p-12 flex flex-col items-center justify-center gap-3 text-sky-400">
+      <div className="w-10 h-10 border-4 border-sky-400/20 border-t-sky-400 rounded-full animate-spin" />
+      <p className="text-xs font-semibold">Menyiapkan Reader Dokumen Digital...</p>
+    </div>
+  ),
+});
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface QuizOption  { id: number; option_text: string }
@@ -374,14 +385,13 @@ function PDFModule({ content }: { content: Content }) {
 
       {pdfUrl ? (
         <div className="flex flex-col gap-3">
-          {/* Inline PDF Viewer */}
-          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm" style={{ height: '70vh' }}>
-            <iframe src={`${pdfUrl}#toolbar=1&navpanes=1`} className="w-full h-full" title={content.title} />
-          </div>
-          <a href={pdfUrl} target="_blank" rel="noreferrer"
-            className="btn btn-primary self-start">
-            📂 Unduh / Buka PDF di Tab Baru
-          </a>
+          <AestheticPdfReader
+            url={pdfUrl}
+            title={content.title}
+            allowDownload={false}
+            watermarkText="DigiBlueCamp Digital Learning • Hak Cipta Dilindungi"
+            height="78vh"
+          />
         </div>
       ) : (
         <div className="card flex flex-col items-center gap-4 py-16 text-center">
@@ -711,21 +721,16 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
         </div>
       )}
 
-      {/* Soal PDF from Admin if available */}
+      {/* Soal & Template PDF from Admin if available (Bahan Belajar: Bisa Dibaca & Diunduh) */}
       {soalPdfUrl && (
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="font-bold text-navy-dark text-sm flex items-center gap-2">
-              <span>📄</span> Lembar Soal Dokumen PDF
-            </p>
-            <a href={soalPdfUrl} target="_blank" rel="noreferrer"
-              className="btn btn-secondary btn-sm text-xs">
-              📂 Unduh Soal (PDF)
-            </a>
-          </div>
-          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-inner" style={{ height: '45vh' }}>
-            <iframe src={`${soalPdfUrl}#toolbar=1`} className="w-full h-full" title="Soal PDF" />
-          </div>
+        <div className="flex flex-col gap-3">
+          <AestheticPdfReader
+            url={soalPdfUrl}
+            title={`Bahan Belajar & Template Soal: ${content.title}`}
+            allowDownload={true}
+            downloadFilename={`template-${content.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
+            height="58vh"
+          />
         </div>
       )}
 
