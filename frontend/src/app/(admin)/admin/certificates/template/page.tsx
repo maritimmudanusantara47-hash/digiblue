@@ -119,8 +119,8 @@ function IconAward({ className }: { className?: string }) {
 /* ─── Types ──────────────────────────────────────────────────────── */
 interface FieldConfig {
   top: number;
-  right?: number | null;
-  left?: number | null;
+  right?: number;
+  left?: number;
   width?: number;
   height?: number;
   font_size?: number;
@@ -747,7 +747,7 @@ export default function CertificateTemplateAdminPage() {
                 </div>
 
                 {/* Left Offset (if applicable) */}
-                {selectedField.left !== undefined && (
+                {typeof selectedField.left === 'number' && (
                   <div>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-slate-400">Posisi Horizontal (Left)</span>
@@ -758,8 +758,27 @@ export default function CertificateTemplateAdminPage() {
                       min="10"
                       max="250"
                       step="0.5"
-                      value={selectedField.left}
+                      value={selectedField.left ?? 0}
                       onChange={e => updateField(selectedKey, 'left', parseFloat(e.target.value))}
+                      className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                    />
+                  </div>
+                )}
+
+                {/* Right Offset (if applicable, e.g. serial_no) */}
+                {typeof selectedField.right === 'number' && (
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-400">Posisi Horizontal (Right)</span>
+                      <span className="font-mono text-blue-400">{selectedField.right} mm</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="100"
+                      step="0.5"
+                      value={selectedField.right ?? 0}
+                      onChange={e => updateField(selectedKey, 'right', parseFloat(e.target.value))}
                       className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
                     />
                   </div>
