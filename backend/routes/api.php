@@ -79,6 +79,19 @@ Route::prefix('v1')->group(function () {
         // ─── Admin Only Routes ────────────────────────────────────────────────
         Route::middleware('role:admin')->prefix('admin')->group(function () {
 
+            // Dashboard Metrics
+            Route::get('dashboard-stats', function () {
+                return response()->json([
+                    'data' => [
+                        'total_users'               => \App\Models\User::count(),
+                        'active_enrollments'        => \App\Models\Enrollment::where('status', 'active')->count(),
+                        'pending_scholarships'      => \App\Models\ScholarshipApplication::where('decision_status', 'pending')->count(),
+                        'certificates_issued'       => \App\Models\Certificate::count(),
+                        'certificates_pending_sync' => \App\Models\Certificate::where('sync_status', 'failed')->count(),
+                    ]
+                ]);
+            });
+
             // User Management
             Route::get('users',         [AdminUserController::class, 'index']);
             Route::get('users/{id}',    [AdminUserController::class, 'show']);
