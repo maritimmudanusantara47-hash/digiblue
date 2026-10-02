@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\ScholarshipApplication;
 use App\Models\ScholarshipAppeal;
+use App\Models\Course;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -20,6 +21,22 @@ class ScholarshipController extends Controller
             'motivation_letter'  => 'required|string|min:100',
             'document'           => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // maks 5MB
         ]);
+
+        $targetCourse = Course::with('certificationLevel')->findOrFail($validated['course_id']);
+
+        if ($targetCourse->certificationLevel?->code === 'SPEC') {
+            $existingSpec = Enrollment::where('user_id', $request->user()->id)
+                ->whereHas('course.certificationLevel', fn($q) => $q->where('code', 'SPEC'))
+                ->whereIn('status', ['pending_review', 'payment_pending', 'active', 'completed'])
+                ->with('course')
+                ->first();
+
+            if ($existingSpec && $existingSpec->course_id !== $targetCourse->id) {
+                return response()->json([
+                    'message' => "Kamu sudah terdaftar pada spesialisasi {$existingSpec->course->title}. Setiap peserta hanya diperbolehkan memilih 1 bidang spesialisasi.",
+                ], 422);
+            }
+        }
 
         // Buat atau ambil enrollment yang sudah ada
         $enrollment = Enrollment::firstOrCreate(

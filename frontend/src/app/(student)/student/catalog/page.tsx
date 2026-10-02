@@ -175,6 +175,11 @@ export default function StudentCatalogPage() {
   const countFnd         = courses.filter(c => c.certification_level?.code === 'FND').length;
   const countSpec        = courses.filter(c => c.certification_level?.code === 'SPEC').length;
 
+  const hasSpecEnrollment = Array.from(enrollmentMap.values()).some(e => 
+    ['pending_review', 'payment_pending', 'active', 'completed'].includes(e.status) &&
+    courses.find(c => c.id === e.course_id)?.certification_level?.code === 'SPEC'
+  );
+
   return (
     <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
       <div className="mb-8">
@@ -268,15 +273,24 @@ export default function StudentCatalogPage() {
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">Specialization Level</span>
                   <span className="text-slate-400 text-sm">{activeTab === 'SPEC' ? `${tabFiltered.length} track tersedia` : `${countSpec} track tersedia`}</span>
                 </div>
+                <div className="mb-5 bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-lg flex gap-3 items-start">
+                  <span>ℹ️</span>
+                  <p><em>Aturan Program: Peserta hanya dapat memilih 1 bidang spesialisasi. Sekali kamu mendaftar, pilihan spesialisasi lain akan dikunci secara permanen.</em></p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {specialization.map(course => (
-                    <CourseCard key={course.id} course={course}
-                      enrollment={enrollmentMap.get(course.id) ?? null}
-                      isEnrolling={enrolling === course.id}
-                      isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
-                      onEnroll={handleEnroll}
-                      onPay={handlePay} />
-                  ))}
+                  {specialization.map(course => {
+                    const hasThisEnrollment = enrollmentMap.has(course.id) && ['pending_review', 'payment_pending', 'active', 'completed'].includes(enrollmentMap.get(course.id)!.status);
+                    const isLocked = hasSpecEnrollment && !hasThisEnrollment;
+                    return (
+                      <CourseCard key={course.id} course={course}
+                        enrollment={enrollmentMap.get(course.id) ?? null}
+                        isEnrolling={enrolling === course.id}
+                        isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
+                        isLocked={isLocked}
+                        onEnroll={handleEnroll}
+                        onPay={handlePay} />
+                    );
+                  })}
                 </div>
               </section>
             )}
@@ -340,11 +354,12 @@ export default function StudentCatalogPage() {
   );
 }
 
-function CourseCard({ course, enrollment, isEnrolling, isPaying, onEnroll, onPay }: {
+function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnroll, onPay }: {
   course: Course;
   enrollment: EnrollmentInfo | null;
   isEnrolling: boolean;
   isPaying: boolean;
+  isLocked?: boolean;
   onEnroll: (id: number, slug: string) => void;
   onPay: (enrollmentId: number) => void;
 }) {
@@ -352,8 +367,8 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, onEnroll, onPay
   const style = LEVEL_STYLE[level] ?? LEVEL_STYLE['SPEC'];
 
   return (
-    <div className="card hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 flex flex-col gap-4">
-      <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card}`} />
+    <div className={`card transition-all duration-200 flex flex-col gap-4 ${isLocked ? 'opacity-70 border-slate-300' : 'hover:shadow-lg hover:-translate-y-0.5'}`}>
+      <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card} ${isLocked ? 'grayscale opacity-50' : ''}`} />
 
       <div className="flex items-start justify-between gap-2 pt-1">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.badge}`}>
@@ -372,7 +387,11 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, onEnroll, onPay
       </div>
 
       {/* CTA Button */}
-      {!enrollment ? (
+      {isLocked ? (
+        <button disabled className="btn w-full text-sm font-semibold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed">
+          🔒 Terkunci (Maks. 1 Spesialisasi)
+        </button>
+      ) : !enrollment ? (
         // Belum daftar → tombol Daftar
         <button id={`enroll-${course.id}`}
           onClick={() => onEnroll(course.id, course.slug)}
