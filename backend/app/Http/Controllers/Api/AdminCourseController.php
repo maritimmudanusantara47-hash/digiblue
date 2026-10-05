@@ -180,6 +180,21 @@ class AdminCourseController extends Controller
         ]);
     }
 
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp,svg|max:10240', // max 10MB
+        ]);
+
+        $path = $request->file('image')->store('course-images', 'public');
+
+        return response()->json([
+            'message'   => 'Gambar berhasil diupload.',
+            'file_path' => $path,
+            'url'       => url("storage/{$path}"),
+        ]);
+    }
+
     public function updateContent(Request $request, int $id): JsonResponse
     {
         $content = CourseContent::findOrFail($id);

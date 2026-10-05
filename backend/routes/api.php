@@ -111,6 +111,7 @@ Route::prefix('v1')->group(function () {
             // Course Management (CRUD Dinamis)
             Route::apiResource('courses',  AdminCourseController::class);
             Route::post('contents/{id}/upload',           [AdminCourseController::class, 'uploadFile']);     // Upload PDF modul
+            Route::post('contents/upload-image',          [AdminCourseController::class, 'uploadImage']);    // Upload Gambar Materi (Lokal)
             Route::post('sections/{sectionId}/contents',  [AdminCourseController::class, 'storeContent']);   // Tambah konten ke seksi
             Route::patch('contents/{id}',                 [AdminCourseController::class, 'updateContent']);  // Edit konten
             Route::delete('contents/{id}',                [AdminCourseController::class, 'destroyContent']); // Hapus konten
