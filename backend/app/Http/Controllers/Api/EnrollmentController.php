@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
-use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,22 +28,7 @@ class EnrollmentController extends Controller
             'course_id' => 'required|exists:courses,id',
         ]);
 
-        $user         = $request->user();
-        $targetCourse = Course::with('certificationLevel')->findOrFail($validated['course_id']);
-
-        // ── Jika course adalah SPEC: wajib sudah completed Foundation ──────────
-        if ($targetCourse->certificationLevel?->code === 'SPEC') {
-            $foundationCompleted = Enrollment::where('user_id', $user->id)
-                ->whereHas('course.certificationLevel', fn($q) => $q->where('code', 'FND'))
-                ->where('status', 'completed')
-                ->exists();
-
-            if (! $foundationCompleted) {
-                return response()->json([
-                    'message' => 'Kamu harus menyelesaikan kursus Foundation terlebih dahulu (progress 100%) sebelum dapat mendaftar ke kursus Specialization.',
-                ], 422);
-            }
-        }
+        $user = $request->user();
 
         // ── Cegah duplikasi enrollment ─────────────────────────────────────────
         if (Enrollment::where('user_id', $user->id)
