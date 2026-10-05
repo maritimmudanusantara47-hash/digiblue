@@ -176,9 +176,10 @@ export default function StudentCatalogPage() {
   const national       = paginatedCourses.filter(c => c.certification_level?.code === 'NAT');
   const singleMod      = paginatedCourses.filter(c => c.certification_level?.code === 'SGL');
 
-  const hasSpecEnrollment = Array.from(enrollmentMap.values()).some(e =>
-    ['pending_review', 'payment_pending', 'active', 'completed'].includes(e.status) &&
-    courses.find(c => c.id === e.course_id)?.certification_level?.code === 'SPEC'
+  // Cek apakah student sudah menyelesaikan Foundation 100%
+  const foundationCompleted = Array.from(enrollmentMap.values()).some(e =>
+    e.status === 'completed' &&
+    courses.find(c => c.id === e.course_id)?.certification_level?.code === 'FND'
   );
 
   return (
@@ -277,25 +278,22 @@ export default function StudentCatalogPage() {
                   </span>
                   <span className="text-slate-400 text-sm">{countIntCert - courses.filter(c => c.certification_level?.code === 'FND').length} track tersedia</span>
                 </div>
-                <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-lg flex gap-3 items-start">
-                  <span>ℹ️</span>
-                  <p><em>Aturan Program: Peserta hanya dapat memilih 1 bidang spesialisasi. Sekali kamu mendaftar, pilihan spesialisasi lain akan dikunci secara permanen.</em></p>
-                </div>
+                {!foundationCompleted && (
+                  <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm p-4 rounded-lg flex gap-3 items-start">
+                    <span>⚠️</span>
+                    <p><em>Kamu bisa mendaftar dan membayar kursus Specialization kapan saja, namun kursus baru bisa diakses setelah kamu menyelesaikan kursus Foundation 100%.</em></p>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {specialization.map(course => {
-                    const hasThisEnrollment = enrollmentMap.has(course.id) &&
-                      ['pending_review', 'payment_pending', 'active', 'completed'].includes(enrollmentMap.get(course.id)!.status);
-                    const isLocked = hasSpecEnrollment && !hasThisEnrollment;
-                    return (
-                      <CourseCard key={course.id} course={course}
-                        enrollment={enrollmentMap.get(course.id) ?? null}
-                        isEnrolling={enrolling === course.id}
-                        isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
-                        isLocked={isLocked}
-                        onEnroll={handleEnroll}
-                        onPay={handlePay} />
-                    );
-                  })}
+                  {specialization.map(course => (
+                    <CourseCard key={course.id} course={course}
+                      enrollment={enrollmentMap.get(course.id) ?? null}
+                      isEnrolling={enrolling === course.id}
+                      isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
+                      foundationCompleted={foundationCompleted}
+                      onEnroll={handleEnroll}
+                      onPay={handlePay} />
+                  ))}
                 </div>
               </section>
             )}
@@ -402,21 +400,25 @@ export default function StudentCatalogPage() {
   );
 }
 
-function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnroll, onPay }: {
+function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompleted, onEnroll, onPay }: {
   course: Course;
   enrollment: EnrollmentInfo | null;
   isEnrolling: boolean;
   isPaying: boolean;
-  isLocked?: boolean;
+  foundationCompleted?: boolean; // hanya relevan untuk SPEC course
   onEnroll: (id: number, slug: string) => void;
   onPay: (enrollmentId: number) => void;
 }) {
-  const code  = course.certification_level?.code ?? 'SPEC';
-  const style = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
+  const code    = course.certification_level?.code ?? 'SPEC';
+  const style   = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
+  const isSpec  = code === 'SPEC';
+
+  // Apakah akses kursus ini diblokir karena Foundation belum selesai?
+  const accessBlocked = isSpec && enrollment?.status === 'active' && foundationCompleted === false;
 
   return (
-    <div className={`card transition-all duration-200 flex flex-col gap-4 ${isLocked ? 'opacity-70 border-slate-300' : 'hover:shadow-lg hover:-translate-y-0.5'}`}>
-      <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card} ${isLocked ? 'grayscale opacity-50' : ''}`} />
+    <div className="card transition-all duration-200 flex flex-col gap-4 hover:shadow-lg hover:-translate-y-0.5">
+      <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card}`} />
 
       <div className="flex items-start justify-between gap-2 pt-1">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.badge}`}>
@@ -435,11 +437,8 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
       </div>
 
       {/* CTA Button */}
-      {isLocked ? (
-        <button disabled className="btn w-full text-sm font-semibold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed">
-          <Icon name="locked-1" size={16} className="mr-1.5" />Terkunci (Maks. 1 Spesialisasi)
-        </button>
-      ) : !enrollment ? (
+      {!enrollment ? (
+        // Belum daftar sama sekali → Daftar Sekarang
         <button id={`enroll-${course.id}`}
           onClick={() => onEnroll(course.id, course.slug)}
           disabled={isEnrolling}
@@ -455,6 +454,7 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
           ) : <><Icon name="rocket-5" size={16} className="mr-1.5" />Daftar Sekarang</>}
         </button>
       ) : enrollment.status === 'payment_pending' ? (
+        // Menunggu pembayaran → Bayar Sekarang
         <button
           id={`pay-${course.id}`}
           onClick={() => onPay(enrollment.id)}
@@ -474,12 +474,19 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
           )}
         </button>
       ) : enrollment.status === 'completed' ? (
+        // Selesai → Kursus Selesai
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center bg-emerald-600 hover:bg-emerald-700 text-white">
           <Icon name="check-circle" size={16} className="mr-1.5" />Kursus Selesai
         </Link>
+      ) : enrollment.status === 'active' && accessBlocked ? (
+        // Sudah bayar SPEC tapi Foundation belum 100% → akses dikunci sementara
+        <button disabled className="btn w-full text-sm font-semibold text-center bg-amber-50 text-amber-700 border border-amber-300 cursor-not-allowed">
+          <Icon name="locked-1" size={16} className="mr-1.5" />Selesaikan Foundation Dulu
+        </button>
       ) : enrollment.status === 'active' ? (
+        // Aktif & bisa akses → Lanjut Belajar
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center btn-primary">
@@ -497,3 +504,4 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
     </div>
   );
 }
+

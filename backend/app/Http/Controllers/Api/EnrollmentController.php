@@ -29,29 +29,31 @@ class EnrollmentController extends Controller
             'course_id' => 'required|exists:courses,id',
         ]);
 
+        $user         = $request->user();
         $targetCourse = Course::with('certificationLevel')->findOrFail($validated['course_id']);
 
+        // ── Jika course adalah SPEC: wajib sudah completed Foundation ──────────
         if ($targetCourse->certificationLevel?->code === 'SPEC') {
-            $existingSpec = Enrollment::where('user_id', $request->user()->id)
-                ->whereHas('course.certificationLevel', fn($q) => $q->where('code', 'SPEC'))
-                ->whereIn('status', ['pending_review', 'payment_pending', 'active', 'completed'])
-                ->with('course')
-                ->first();
+            $foundationCompleted = Enrollment::where('user_id', $user->id)
+                ->whereHas('course.certificationLevel', fn($q) => $q->where('code', 'FND'))
+                ->where('status', 'completed')
+                ->exists();
 
-            if ($existingSpec && $existingSpec->course_id !== $targetCourse->id) {
+            if (! $foundationCompleted) {
                 return response()->json([
-                    'message' => "Kamu sudah terdaftar pada spesialisasi {$existingSpec->course->title}. Setiap peserta hanya diperbolehkan memilih 1 bidang spesialisasi.",
+                    'message' => 'Kamu harus menyelesaikan kursus Foundation terlebih dahulu (progress 100%) sebelum dapat mendaftar ke kursus Specialization.',
                 ], 422);
             }
         }
 
-        if (Enrollment::where('user_id', $request->user()->id)
+        // ── Cegah duplikasi enrollment ─────────────────────────────────────────
+        if (Enrollment::where('user_id', $user->id)
             ->where('course_id', $validated['course_id'])->exists()) {
             return response()->json(['message' => 'Kamu sudah terdaftar di kursus ini.'], 409);
         }
 
         $enrollment = Enrollment::create([
-            'user_id'         => $request->user()->id,
+            'user_id'         => $user->id,
             'course_id'       => $validated['course_id'],
             'enrollment_type' => 'self_paid',
             'status'          => 'payment_pending',
