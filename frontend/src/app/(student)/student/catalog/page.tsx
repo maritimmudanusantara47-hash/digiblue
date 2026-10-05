@@ -9,14 +9,25 @@ import type { Course } from '@/types';
 interface EnrollmentInfo {
   id: number;
   course_id: number;
-  status: string; // 'payment_pending' | 'pending_review' | 'active' | 'completed' | 'rejected'
+  status: string;
   enrollment_type: string | null;
 }
 
 const LEVEL_STYLE: Record<string, { badge: string; card: string }> = {
-  FND:  { badge: 'badge-gold', card: 'from-amber-500 to-yellow-600' },
-  SPEC: { badge: 'badge-navy', card: 'from-navy to-navy-light' },
+  FND:  { badge: 'bg-emerald-100 text-emerald-700 border border-emerald-300', card: 'from-emerald-500 to-emerald-600' },
+  SPEC: { badge: 'bg-navy/10 text-navy border border-navy/30',                card: 'from-navy to-navy-light' },
+  NAT:  { badge: 'bg-amber-100 text-amber-800 border border-amber-300',       card: 'from-amber-500 to-amber-600' },
+  SGL:  { badge: 'bg-purple-100 text-purple-800 border border-purple-300',    card: 'from-purple-500 to-purple-700' },
 };
+
+type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
+
+const TABS: { id: TabCategory; label: string; icon: string }[] = [
+  { id: 'ALL',      label: 'Semua Kursus',                        icon: 'star-fat' },
+  { id: 'INT_CERT', label: 'International Certification Training', icon: 'graduation-cap-1' },
+  { id: 'NAT',      label: 'National Training Course',             icon: 'flag-1' },
+  { id: 'SGL',      label: 'Single Modul Course',                  icon: 'book-1' },
+];
 
 export default function StudentCatalogPage() {
   const [courses, setCourses]           = useState<Course[]>([]);
@@ -25,6 +36,9 @@ export default function StudentCatalogPage() {
   const [enrolling, setEnrolling]       = useState<number | null>(null);
   const [paying, setPaying]             = useState<number | null>(null);
   const [search, setSearch]             = useState('');
+  const [activeTab, setActiveTab]       = useState<TabCategory>('ALL');
+  const [currentPage, setCurrentPage]   = useState(1);
+  const perPage                         = 9;
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -50,16 +64,13 @@ export default function StudentCatalogPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
+  // ── Payment ─────────────────────────────────────────────────────────────────
   const handlePay = async (enrollmentId: number) => {
     setPaying(enrollmentId);
     try {
-      const res = await api.post('/payments/create-snap-token', {
-        enrollment_id: enrollmentId,
-      });
+      const res = await api.post('/payments/create-snap-token', { enrollment_id: enrollmentId });
 
       if (res.data.data?.is_paid) {
         alert('Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
@@ -67,7 +78,7 @@ export default function StudentCatalogPage() {
         return;
       }
 
-      const snapToken = res.data.data?.snap_token;
+      const snapToken  = res.data.data?.snap_token;
       const redirectUrl = res.data.data?.redirect_url;
 
       if (typeof window !== 'undefined' && window.snap && snapToken) {
@@ -81,19 +92,12 @@ export default function StudentCatalogPage() {
             alert('Menunggu pembayaran selesai. Silakan selesaikan instruksi pembayaran.');
             loadData();
           },
-          onError: () => {
-            alert('Pembayaran gagal atau dibatalkan.');
-          },
+          onError: () => alert('Pembayaran gagal atau dibatalkan.'),
           onClose: async () => {
-            // Sinkronkan status saat pop-up ditutup (jika user membayar lewat tab/simulator lain)
             try {
               const v = await api.post('/payments/verify-status', { enrollment_id: enrollmentId });
-              if (v.data?.data?.is_active) {
-                alert('Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.');
-              }
-            } catch {
-              // ignore
-            }
+              if (v.data?.data?.is_active) alert('Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.');
+            } catch { /* ignore */ }
             loadData();
           },
         });
@@ -110,6 +114,7 @@ export default function StudentCatalogPage() {
     }
   };
 
+  // ── Enroll ──────────────────────────────────────────────────────────────────
   const handleEnroll = async (courseId: number, courseSlug: string) => {
     setEnrolling(courseId);
     try {
@@ -121,13 +126,10 @@ export default function StudentCatalogPage() {
         return next;
       });
 
-      // Jika langsung aktif
       if (newEnroll.status === 'active') {
         window.location.href = `/student/courses/${courseSlug}`;
         return;
       }
-
-      // Jika butuh pembayaran mandiri (payment_pending), langsung picu Snap!
       if (newEnroll.status === 'payment_pending' && newEnroll.id) {
         await handlePay(newEnroll.id);
       }
@@ -139,20 +141,9 @@ export default function StudentCatalogPage() {
     }
   };
 
-  type TabCategory = 'ALL' | 'FND' | 'SPEC';
-  const [activeTab, setActiveTab]       = useState<TabCategory>('ALL');
-  const [currentPage, setCurrentPage]   = useState(1);
-  const perPage                         = 6;
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    setCurrentPage(1);
-  };
-
-  const handleTabChange = (tab: TabCategory) => {
-    setActiveTab(tab);
-    setCurrentPage(1);
-  };
+  // ── Filter & Group ──────────────────────────────────────────────────────────
+  const handleSearchChange = (val: string) => { setSearch(val); setCurrentPage(1); };
+  const handleTabChange = (tab: TabCategory) => { setActiveTab(tab); setCurrentPage(1); };
 
   const searchFiltered = courses.filter(c =>
     c.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -160,23 +151,32 @@ export default function StudentCatalogPage() {
   );
 
   const tabFiltered = searchFiltered.filter(c => {
-    if (activeTab === 'FND') return c.certification_level?.code === 'FND';
-    if (activeTab === 'SPEC') return c.certification_level?.code === 'SPEC';
+    const code = c.certification_level?.code;
+    if (activeTab === 'INT_CERT') return code === 'FND' || code === 'SPEC';
+    if (activeTab === 'NAT') return code === 'NAT';
+    if (activeTab === 'SGL') return code === 'SGL';
     return true;
   });
+
+  const countAll     = courses.length;
+  const countIntCert = courses.filter(c => ['FND', 'SPEC'].includes(c.certification_level?.code ?? '')).length;
+  const countNat     = courses.filter(c => c.certification_level?.code === 'NAT').length;
+  const countSgl     = courses.filter(c => c.certification_level?.code === 'SGL').length;
+
+  const countMap: Record<TabCategory, number> = {
+    ALL: countAll, INT_CERT: countIntCert, NAT: countNat, SGL: countSgl,
+  };
 
   const totalPages       = Math.max(1, Math.ceil(tabFiltered.length / perPage));
   const startIndex       = (currentPage - 1) * perPage;
   const paginatedCourses = tabFiltered.slice(startIndex, startIndex + perPage);
 
-  const foundation       = paginatedCourses.filter(c => c.certification_level?.code === 'FND');
-  const specialization   = paginatedCourses.filter(c => c.certification_level?.code === 'SPEC');
+  const foundation     = paginatedCourses.filter(c => c.certification_level?.code === 'FND');
+  const specialization = paginatedCourses.filter(c => c.certification_level?.code === 'SPEC');
+  const national       = paginatedCourses.filter(c => c.certification_level?.code === 'NAT');
+  const singleMod      = paginatedCourses.filter(c => c.certification_level?.code === 'SGL');
 
-  const countAll         = courses.length;
-  const countFnd         = courses.filter(c => c.certification_level?.code === 'FND').length;
-  const countSpec        = courses.filter(c => c.certification_level?.code === 'SPEC').length;
-
-  const hasSpecEnrollment = Array.from(enrollmentMap.values()).some(e => 
+  const hasSpecEnrollment = Array.from(enrollmentMap.values()).some(e =>
     ['pending_review', 'payment_pending', 'active', 'completed'].includes(e.status) &&
     courses.find(c => c.id === e.course_id)?.certification_level?.code === 'SPEC'
   );
@@ -185,7 +185,7 @@ export default function StudentCatalogPage() {
     <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold text-navy-dark">Katalog Kursus</h1>
-        <p className="text-slate-500 text-sm mt-1">Pilih program sertifikasi Blue Economy yang ingin kamu ikuti</p>
+        <p className="text-slate-500 text-sm mt-1">Pilih program pelatihan yang ingin kamu ikuti</p>
       </div>
 
       {/* Search */}
@@ -204,11 +204,7 @@ export default function StudentCatalogPage() {
 
       {/* Category Filter Tabs */}
       <div className="flex flex-wrap items-center gap-3 mb-8">
-        {[
-          { id: 'ALL' as const, label: 'Semua', count: countAll, icon: 'star-fat' },
-          { id: 'FND' as const, label: 'Foundation Level', count: countFnd, icon: 'graduation-cap-1' },
-          { id: 'SPEC' as const, label: 'Spesialisasi Track', count: countSpec, icon: 'rocket-5' },
-        ].map(tab => {
+        {TABS.map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -226,7 +222,7 @@ export default function StudentCatalogPage() {
               <span className={`px-2 py-0.5 rounded-full text-xs font-bold transition-colors ${
                 isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
               }`}>
-                {tab.count}
+                {countMap[tab.id]}
               </span>
             </button>
           );
@@ -247,14 +243,18 @@ export default function StudentCatalogPage() {
       ) : (
         <div className="flex-1 flex flex-col justify-between gap-10">
           <div className="flex flex-col gap-10">
-            {/* Foundation Section */}
+
+            {/* International Certification — Foundation */}
             {foundation.length > 0 && (
               <section>
                 <div className="flex items-center gap-3 mb-5">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-gold/10 text-gold-dark border-gold/30">Foundation Level</span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    <Icon name="graduation-cap-1" size={13} />
+                    International Certification — Foundation
+                  </span>
                   <span className="text-slate-400 text-sm">Wajib diikuti sebelum peminatan</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                   {foundation.map(course => (
                     <CourseCard key={course.id} course={course}
                       enrollment={enrollmentMap.get(course.id) ?? null}
@@ -267,20 +267,24 @@ export default function StudentCatalogPage() {
               </section>
             )}
 
-            {/* Specialization Section */}
+            {/* International Certification — Specialization */}
             {specialization.length > 0 && (
               <section>
                 <div className="flex items-center gap-3 mb-5">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">Specialization Level</span>
-                  <span className="text-slate-400 text-sm">{activeTab === 'SPEC' ? `${tabFiltered.length} track tersedia` : `${countSpec} track tersedia`}</span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">
+                    <Icon name="rocket-5" size={13} />
+                    International Certification — Specialization
+                  </span>
+                  <span className="text-slate-400 text-sm">{countIntCert - courses.filter(c => c.certification_level?.code === 'FND').length} track tersedia</span>
                 </div>
-                <div className="mb-5 bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-lg flex gap-3 items-start">
+                <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-lg flex gap-3 items-start">
                   <span>ℹ️</span>
                   <p><em>Aturan Program: Peserta hanya dapat memilih 1 bidang spesialisasi. Sekali kamu mendaftar, pilihan spesialisasi lain akan dikunci secara permanen.</em></p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                   {specialization.map(course => {
-                    const hasThisEnrollment = enrollmentMap.has(course.id) && ['pending_review', 'payment_pending', 'active', 'completed'].includes(enrollmentMap.get(course.id)!.status);
+                    const hasThisEnrollment = enrollmentMap.has(course.id) &&
+                      ['pending_review', 'payment_pending', 'active', 'completed'].includes(enrollmentMap.get(course.id)!.status);
                     const isLocked = hasSpecEnrollment && !hasThisEnrollment;
                     return (
                       <CourseCard key={course.id} course={course}
@@ -296,6 +300,52 @@ export default function StudentCatalogPage() {
               </section>
             )}
 
+            {/* National Training Course */}
+            {national.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-amber-50 text-amber-800 border-amber-200">
+                    <Icon name="flag-1" size={13} />
+                    National Training Course
+                  </span>
+                  <span className="text-slate-400 text-sm">{countNat} kursus tersedia</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {national.map(course => (
+                    <CourseCard key={course.id} course={course}
+                      enrollment={enrollmentMap.get(course.id) ?? null}
+                      isEnrolling={enrolling === course.id}
+                      isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
+                      onEnroll={handleEnroll}
+                      onPay={handlePay} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Single Modul Course */}
+            {singleMod.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-purple-50 text-purple-800 border-purple-200">
+                    <Icon name="book-1" size={13} />
+                    Single Modul Course
+                  </span>
+                  <span className="text-slate-400 text-sm">{countSgl} modul tersedia</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {singleMod.map(course => (
+                    <CourseCard key={course.id} course={course}
+                      enrollment={enrollmentMap.get(course.id) ?? null}
+                      isEnrolling={enrolling === course.id}
+                      isPaying={paying === (enrollmentMap.get(course.id)?.id ?? 0)}
+                      onEnroll={handleEnroll}
+                      onPay={handlePay} />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {tabFiltered.length === 0 && (
               <div className="card py-16 text-center text-slate-400">
                 <div className="text-4xl mb-4"><Icon name="search-1" size={36} /></div>
@@ -305,13 +355,12 @@ export default function StudentCatalogPage() {
             )}
           </div>
 
-          {/* Catalog Pagination Controls */}
+          {/* Pagination */}
           {tabFiltered.length > perPage && (
             <div className="card mt-auto sticky bottom-0 sm:bottom-4 z-20 shadow-lg shadow-navy/5 backdrop-blur-md bg-white/95 border border-slate-200/90 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl">
               <span className="text-sm text-slate-500">
                 Menampilkan <strong className="text-navy-dark font-bold">{startIndex + 1}</strong> – <strong className="text-navy-dark font-bold">{Math.min(startIndex + perPage, tabFiltered.length)}</strong> dari <strong className="text-navy-dark font-bold">{tabFiltered.length}</strong> kursus
               </span>
-
               <div className="flex items-center gap-1.5">
                 <button
                   id="btn-catalog-prev"
@@ -321,7 +370,6 @@ export default function StudentCatalogPage() {
                 >
                   <Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya
                 </button>
-
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                     <button
@@ -337,7 +385,6 @@ export default function StudentCatalogPage() {
                     </button>
                   ))}
                 </div>
-
                 <button
                   id="btn-catalog-next"
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -364,16 +411,16 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
   onEnroll: (id: number, slug: string) => void;
   onPay: (enrollmentId: number) => void;
 }) {
-  const level = course.certification_level?.code ?? 'SPEC';
-  const style = LEVEL_STYLE[level] ?? LEVEL_STYLE['SPEC'];
+  const code  = course.certification_level?.code ?? 'SPEC';
+  const style = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
 
   return (
     <div className={`card transition-all duration-200 flex flex-col gap-4 ${isLocked ? 'opacity-70 border-slate-300' : 'hover:shadow-lg hover:-translate-y-0.5'}`}>
       <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card} ${isLocked ? 'grayscale opacity-50' : ''}`} />
 
       <div className="flex items-start justify-between gap-2 pt-1">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.badge}`}>
-          {course.certification_level?.name ?? level}
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.badge}`}>
+          {course.certification_level?.name ?? code}
         </span>
         <span className="text-sm font-bold text-navy-dark">
           {course.price === 0 ? 'Gratis' : `Rp${Number(course.price).toLocaleString('id-ID')}`}
@@ -393,7 +440,6 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
           <Icon name="locked-1" size={16} className="mr-1.5" />Terkunci (Maks. 1 Spesialisasi)
         </button>
       ) : !enrollment ? (
-        // Belum daftar → tombol Daftar
         <button id={`enroll-${course.id}`}
           onClick={() => onEnroll(course.id, course.slug)}
           disabled={isEnrolling}
@@ -409,7 +455,6 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
           ) : <><Icon name="rocket-5" size={16} className="mr-1.5" />Daftar Sekarang</>}
         </button>
       ) : enrollment.status === 'payment_pending' ? (
-        // Menunggu Pembayaran → Tombol Bayar Sekarang (Pemicu Midtrans Snap)
         <button
           id={`pay-${course.id}`}
           onClick={() => onPay(enrollment.id)}
@@ -429,7 +474,6 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
           )}
         </button>
       ) : enrollment.status === 'active' || enrollment.status === 'completed' ? (
-        // Aktif / Selesai → tombol Lanjut Belajar
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center btn-primary">
