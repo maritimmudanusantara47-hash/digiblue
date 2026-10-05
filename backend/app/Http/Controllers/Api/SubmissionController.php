@@ -33,7 +33,7 @@ class SubmissionController extends Controller
             $query->whereHas('content', fn($c) => $c->where('content_type', $request->content_type));
         }
 
-        $perPage     = min((int) $request->get('per_page', 20), 100);
+        $perPage     = min((int) $request->input('per_page', 20), 100);
         $submissions = $query->paginate($perPage);
 
         return response()->json(['data' => $submissions]);

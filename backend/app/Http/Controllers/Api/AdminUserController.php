@@ -27,7 +27,7 @@ class AdminUserController extends Controller
             $query->whereHas('roles', fn($q) => $q->where('name', $request->role));
         }
 
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->input('per_page', 15), 100);
         $users   = $query->paginate($perPage);
 
         return response()->json(['data' => $users]);

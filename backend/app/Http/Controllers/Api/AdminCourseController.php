@@ -32,7 +32,7 @@ class AdminCourseController extends Controller
         }
 
         $courses = $request->boolean('paginate', false)
-            ? $query->paginate((int) $request->get('per_page', 20))
+            ? $query->paginate((int) $request->input('per_page', 20))
             : $query->get();
 
         return response()->json(['data' => $courses]);

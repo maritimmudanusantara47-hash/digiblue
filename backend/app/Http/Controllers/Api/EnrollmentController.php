@@ -85,7 +85,7 @@ class EnrollmentController extends Controller
             $query->where('course_id', $request->course_id);
         }
 
-        $perPage     = min((int) $request->get('per_page', 20), 100);
+        $perPage     = min((int) $request->input('per_page', 20), 100);
         $enrollments = $query->paginate($perPage);
 
         return response()->json(['data' => $enrollments]);
