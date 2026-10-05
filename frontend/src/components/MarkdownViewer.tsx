@@ -5,10 +5,44 @@ import React from 'react';
 interface Props {
   content: string;
   className?: string;
+  fontSize?: 'normal' | 'large' | 'xlarge';
 }
 
-export default function MarkdownViewer({ content, className = '' }: Props) {
+export default function MarkdownViewer({ content, className = '', fontSize = 'normal' }: Props) {
   if (!content) return null;
+
+  const size = {
+    normal: {
+      h1: 'text-xl font-extrabold text-navy-dark mt-6 mb-3',
+      h2: 'text-lg font-extrabold text-navy-dark mt-6 mb-2',
+      h3: 'text-base font-extrabold text-navy-dark mt-5 mb-2 pb-1 border-b border-slate-100',
+      h4: 'text-sm font-bold text-navy-dark mt-4 mb-1',
+      p: 'text-sm text-slate-700 leading-relaxed my-2',
+      list: 'text-sm text-slate-700 leading-relaxed my-2',
+      quote: 'text-sm text-slate-700 italic my-2.5',
+      code: 'text-xs',
+    },
+    large: {
+      h1: 'text-2xl font-extrabold text-navy-dark mt-7 mb-3',
+      h2: 'text-xl font-extrabold text-navy-dark mt-6 mb-2.5',
+      h3: 'text-lg font-extrabold text-navy-dark mt-5 mb-2.5 pb-1 border-b border-slate-100',
+      h4: 'text-base font-bold text-navy-dark mt-4 mb-1.5',
+      p: 'text-base text-slate-700 leading-relaxed my-2.5',
+      list: 'text-base text-slate-700 leading-relaxed my-2.5',
+      quote: 'text-base text-slate-700 italic my-3',
+      code: 'text-sm',
+    },
+    xlarge: {
+      h1: 'text-3xl font-extrabold text-navy-dark mt-8 mb-4',
+      h2: 'text-2xl font-extrabold text-navy-dark mt-7 mb-3',
+      h3: 'text-xl font-extrabold text-navy-dark mt-6 mb-3 pb-1 border-b border-slate-100',
+      h4: 'text-lg font-bold text-navy-dark mt-5 mb-2',
+      p: 'text-lg text-slate-700 leading-relaxed my-3',
+      list: 'text-lg text-slate-700 leading-relaxed my-3',
+      quote: 'text-lg text-slate-700 italic my-3.5',
+      code: 'text-base',
+    },
+  }[fontSize];
 
   // Simple, safe Markdown parser
   const renderFormattedText = (text: string) => {
@@ -24,7 +58,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
         return <em key={i} className="italic text-slate-700">{part.slice(1, -1)}</em>;
       }
       if (part.startsWith('`') && part.endsWith('`')) {
-        return <code key={i} className="px-1.5 py-0.5 rounded bg-slate-100 text-navy font-mono text-xs">{part.slice(1, -1)}</code>;
+        return <code key={i} className={`px-1.5 py-0.5 rounded bg-slate-100 text-navy font-mono ${size.code}`}>{part.slice(1, -1)}</code>;
       }
       const match = /^\[(.*?)\]\((.*?)\)$/.exec(part);
       if (match) {
@@ -47,13 +81,13 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
     if (listItems.length > 0) {
       if (isNumberedList) {
         elements.push(
-          <ol key={`list-${elements.length}`} className="list-decimal list-outside ml-6 flex flex-col gap-1.5 my-2 text-sm text-slate-700 leading-relaxed">
+          <ol key={`list-${elements.length}`} className={`list-decimal list-outside ml-6 flex flex-col gap-1.5 ${size.list}`}>
             {listItems}
           </ol>
         );
       } else {
         elements.push(
-          <ul key={`list-${elements.length}`} className="list-disc list-outside ml-6 flex flex-col gap-1.5 my-2 text-sm text-slate-700 leading-relaxed">
+          <ul key={`list-${elements.length}`} className={`list-disc list-outside ml-6 flex flex-col gap-1.5 ${size.list}`}>
             {listItems}
           </ul>
         );
@@ -75,7 +109,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
     if (trimmed.startsWith('#### ')) {
       flushList();
       elements.push(
-        <h4 key={index} className="text-sm font-bold text-navy-dark mt-4 mb-1">
+        <h4 key={index} className={size.h4}>
           {renderFormattedText(trimmed.slice(5))}
         </h4>
       );
@@ -84,7 +118,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
     if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(
-        <h3 key={index} className="text-base font-extrabold text-navy-dark mt-5 mb-2 pb-1 border-b border-slate-100">
+        <h3 key={index} className={size.h3}>
           {renderFormattedText(trimmed.slice(4))}
         </h3>
       );
@@ -93,7 +127,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
     if (trimmed.startsWith('## ')) {
       flushList();
       elements.push(
-        <h2 key={index} className="text-lg font-extrabold text-navy-dark mt-6 mb-2">
+        <h2 key={index} className={size.h2}>
           {renderFormattedText(trimmed.slice(3))}
         </h2>
       );
@@ -102,7 +136,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
     if (trimmed.startsWith('# ')) {
       flushList();
       elements.push(
-        <h1 key={index} className="text-xl font-extrabold text-navy-dark mt-6 mb-3">
+        <h1 key={index} className={size.h1}>
           {renderFormattedText(trimmed.slice(2))}
         </h1>
       );
@@ -113,7 +147,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
     if (trimmed.startsWith('> ')) {
       flushList();
       elements.push(
-        <blockquote key={index} className="border-l-4 border-gold bg-amber-50/60 rounded-r-xl px-4 py-2 my-2 text-sm text-slate-700 italic">
+        <blockquote key={index} className={`border-l-4 border-gold bg-amber-50/60 rounded-r-xl px-4 py-2 ${size.quote}`}>
           {renderFormattedText(trimmed.slice(2))}
         </blockquote>
       );
@@ -169,7 +203,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
     // Regular Paragraph
     flushList();
     elements.push(
-      <p key={index} className="text-sm text-slate-700 leading-relaxed my-1.5">
+      <p key={index} className={size.p}>
         {renderFormattedText(trimmed)}
       </p>
     );
@@ -178,7 +212,7 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
   flushList();
 
   return (
-    <div className={`prose-sm max-w-none ${className}`}>
+    <div className={`max-w-none ${className}`}>
       {elements}
     </div>
   );

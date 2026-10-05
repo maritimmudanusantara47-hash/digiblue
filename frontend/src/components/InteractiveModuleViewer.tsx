@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Icon from '@/components/Icon';
 import MarkdownViewer from '@/components/MarkdownViewer';
 
@@ -34,21 +34,25 @@ export default function InteractiveModuleViewer({
       const el = containerRef.current;
       const rect = el.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      
+
       const totalScrollable = rect.height - windowHeight + 100;
       if (totalScrollable <= 0) {
         setScrollProgress(100);
         return;
       }
-      
+
       const currentScroll = -rect.top;
       const progress = Math.min(100, Math.max(0, Math.round((currentScroll / totalScrollable) * 100)));
       setScrollProgress(progress);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, []);
 
   // ─── 2. Reading Time & Statistics ──────────────────────────────────────────
@@ -59,16 +63,19 @@ export default function InteractiveModuleViewer({
     return { wordCount, minutes };
   }, [body]);
 
-  // ─── 3. Font Size & Layout Theme ───────────────────────────────────────────
+  // ─── 3. Font Size Scaling ──────────────────────────────────────────────────
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
 
-  // ─── 4. Text-to-Speech (Audio Narator Interaktif) ───────────────────────────
+  // ─── 4. Text-to-Speech (Audio Narator Interaktif Berantai) ───────────────────
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isPausedAudio, setIsPausedAudio] = useState(false);
-  const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [selectedRate, setSelectedRate] = useState(1.0);
+  const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
+  const [currentSpeakingText, setCurrentSpeakingText] = useState('');
+  const [ttsErrorMessage, setTtsErrorMessage] = useState<string | null>(null);
 
+  // Bersihkan teks dari sintaks Markdown agar narasi audio terdengar alami
   const cleanTextForSpeech = useMemo(() => {
-    // Bersihkan sintaks markdown agar narasi audio terdengar alami
     return body
       .replace(/#+\s+/g, '')
       .replace(/\*\*|\*/g, '')
@@ -80,17 +87,89 @@ export default function InteractiveModuleViewer({
       .trim();
   }, [body]);
 
-  useEffect(() => {
-    return () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+  // Pecah teks menjadi kalimat-kalimat (chunks) untuk menghindari limit 15s di Chromium
+  const speechChunks = useMemo(() => {
+    if (!cleanTextForSpeech) return [];
+    const sentences = cleanTextForSpeech
+      .split(/(?<=[.!?\n])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    return sentences.length > 0 ? sentences : [cleanTextForSpeech];
+  }, [cleanTextForSpeech]);
+
+  const chunkIndexRef = useRef(0);
+  chunkIndexRef.current = currentChunkIndex;
+
+  const rateRef = useRef(selectedRate);
+  rateRef.current = selectedRate;
+
+  const speakChunk = useCallback((index: number) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    const synth = window.speechSynthesis;
+
+    // Selesai membaca semua bagian
+    if (index >= speechChunks.length) {
+      synth.cancel();
+      setIsPlayingAudio(false);
+      setIsPausedAudio(false);
+      setCurrentChunkIndex(0);
+      setCurrentSpeakingText('');
+      return;
+    }
+
+    synth.cancel();
+    // Resume Chromium internal speech queue in case it was paused earlier
+    if (synth.paused) {
+      synth.resume();
+    }
+
+    const textToRead = speechChunks[index];
+    setCurrentChunkIndex(index);
+    setCurrentSpeakingText(textToRead);
+
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    
+    // Pilih suara: utamakan Bahasa Indonesia (id-ID), atau gunakan default jika tidak tersedia
+    const voices = synth.getVoices();
+    const indonesianVoice = voices.find(
+      v => v.lang === 'id-ID' || v.lang.toLowerCase().startsWith('id')
+    );
+    if (indonesianVoice) {
+      utterance.voice = indonesianVoice;
+      utterance.lang = 'id-ID';
+    } else {
+      utterance.lang = 'id-ID';
+    }
+
+    utterance.rate = rateRef.current;
+    utterance.pitch = 1.0;
+
+    utterance.onstart = () => {
+      setIsPlayingAudio(true);
+      setIsPausedAudio(false);
+      setTtsErrorMessage(null);
+    };
+
+    utterance.onend = () => {
+      // Lanjutkan otomatis ke kalimat / paragraf berikutnya
+      speakChunk(index + 1);
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error !== 'canceled' && e.error !== 'interrupted') {
+        console.warn('SpeechSynthesis error:', e);
+        setTtsErrorMessage(`Narasi audio terganggu: ${e.error}`);
+        setIsPlayingAudio(false);
+        setIsPausedAudio(false);
       }
     };
-  }, [contentId]);
+
+    synth.speak(utterance);
+  }, [speechChunks]);
 
   const toggleSpeech = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      alert('Browser Anda belum mendukung fitur Web Speech API (Text-to-Speech).');
+      alert('Browser Anda belum mendukung Web Speech API (Text-to-Speech).');
       return;
     }
 
@@ -107,29 +186,9 @@ export default function InteractiveModuleViewer({
       return;
     }
 
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(cleanTextForSpeech);
-    utterance.lang = 'id-ID';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    utterance.onstart = () => {
-      setIsPlayingAudio(true);
-      setIsPausedAudio(false);
-    };
-
-    utterance.onend = () => {
-      setIsPlayingAudio(false);
-      setIsPausedAudio(false);
-    };
-
-    utterance.onerror = () => {
-      setIsPlayingAudio(false);
-      setIsPausedAudio(false);
-    };
-
-    speechUtteranceRef.current = utterance;
-    synth.speak(utterance);
+    setIsPlayingAudio(true);
+    setIsPausedAudio(false);
+    speakChunk(currentChunkIndex < speechChunks.length ? currentChunkIndex : 0);
   };
 
   const stopSpeech = () => {
@@ -138,7 +197,18 @@ export default function InteractiveModuleViewer({
     }
     setIsPlayingAudio(false);
     setIsPausedAudio(false);
+    setCurrentChunkIndex(0);
+    setCurrentSpeakingText('');
   };
+
+  // Bersihkan audio saat berpindah konten / unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [contentId]);
 
   // ─── 5. Catatan Pribadi Siswa & Highlight (Local Storage) ──────────────────
   const storageKey = `digiblue_module_notes_${contentId}`;
@@ -162,7 +232,7 @@ export default function InteractiveModuleViewer({
     try {
       localStorage.setItem(storageKey, JSON.stringify(updated));
     } catch {
-      // ignore localstorage quota error
+      // ignore storage error
     }
   };
 
@@ -172,7 +242,12 @@ export default function InteractiveModuleViewer({
       id: Date.now().toString(),
       text: newNoteInput.trim(),
       selectedText: selectedQuote || undefined,
-      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }),
+      timestamp: new Date().toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        day: 'numeric',
+        month: 'short',
+      }),
     };
     saveNotes([newNote, ...notes]);
     setNewNoteInput('');
@@ -194,9 +269,9 @@ export default function InteractiveModuleViewer({
   };
 
   return (
-    <div ref={containerRef} className="relative flex flex-col gap-5">
-      {/* ─── Sticky Reading Progress Bar (Top Indicator) ───────────────────── */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-2.5 px-4 shadow-sm flex items-center justify-between gap-4">
+    <div ref={containerRef} className="relative flex flex-col gap-4">
+      {/* ─── Sticky Reading Progress Bar (Top Bar) ─────────────────────────── */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-2.5 px-4 shadow-sm flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-navy/10 text-navy flex items-center justify-center flex-shrink-0">
             <Icon name="book-1" size={16} />
@@ -211,20 +286,24 @@ export default function InteractiveModuleViewer({
           </div>
         </div>
 
-        {/* Action Controls: Audio Narrator, Notes, Font Size */}
+        {/* Action Controls: Audio Narrator, Catatan Drawer, Font Size */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Audio Narrator */}
+          {/* Audio Narrator Button */}
           <button
             type="button"
             onClick={toggleSpeech}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
               isPlayingAudio
-                ? 'bg-amber-100 text-amber-800 border border-amber-300 shadow-sm animate-pulse'
+                ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-sm'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
-            title="Dengarkan Narasi Audio (Text-to-Speech)"
+            title="Dengarkan Narasi Suara (Text-to-Speech)"
           >
-            <Icon name={isPlayingAudio && !isPausedAudio ? 'pause' : 'volume-high'} size={14} />
+            <Icon
+              name={isPlayingAudio && !isPausedAudio ? 'pause' : 'volume-high'}
+              size={14}
+              className={isPlayingAudio && !isPausedAudio ? 'animate-bounce text-amber-700' : ''}
+            />
             <span className="hidden sm:inline">
               {isPlayingAudio ? (isPausedAudio ? 'Lanjut Narasi' : 'Jeda Narasi') : 'Dengarkan Audio'}
             </span>
@@ -235,22 +314,22 @@ export default function InteractiveModuleViewer({
               type="button"
               onClick={stopSpeech}
               className="p-1.5 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 text-xs transition-colors"
-              title="Hentikan Audio"
+              title="Hentikan Audio Narasi"
             >
               <Icon name="xmark" size={14} />
             </button>
           )}
 
-          {/* Notes Toggle */}
+          {/* Notes Drawer Toggle Button */}
           <button
             type="button"
             onClick={() => setShowNotesDrawer(!showNotesDrawer)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              showNotesDrawer || notes.length > 0
-                ? 'bg-navy text-white shadow-sm'
+              showNotesDrawer
+                ? 'bg-navy text-white shadow-sm ring-2 ring-navy/20'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
             }`}
-            title="Catatan Pribadi & Highlight"
+            title="Buka Panel Catatan Pribadi & Kutipan"
           >
             <Icon name="pencil-1" size={14} />
             <span className="hidden sm:inline">Catatan</span>
@@ -261,29 +340,35 @@ export default function InteractiveModuleViewer({
             )}
           </button>
 
-          {/* Font Size Toggle */}
+          {/* Font Size Toggle Buttons */}
           <div className="flex items-center bg-slate-100 p-0.5 rounded-xl text-[11px] font-bold text-slate-600">
             <button
               type="button"
               onClick={() => setFontSize('normal')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'normal' ? 'bg-white text-navy shadow-sm' : 'hover:text-navy'}`}
-              title="Ukuran teks normal"
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                fontSize === 'normal' ? 'bg-navy text-white shadow-sm' : 'hover:text-navy text-slate-600'
+              }`}
+              title="Ukuran teks normal (14px)"
             >
               A
             </button>
             <button
               type="button"
               onClick={() => setFontSize('large')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'large' ? 'bg-white text-navy shadow-sm' : 'hover:text-navy'}`}
-              title="Ukuran teks besar"
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                fontSize === 'large' ? 'bg-navy text-white shadow-sm' : 'hover:text-navy text-slate-600'
+              }`}
+              title="Ukuran teks besar (16px)"
             >
               A+
             </button>
             <button
               type="button"
               onClick={() => setFontSize('xlarge')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'xlarge' ? 'bg-white text-navy shadow-sm' : 'hover:text-navy'}`}
-              title="Ukuran teks ekstra besar"
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                fontSize === 'xlarge' ? 'bg-navy text-white shadow-sm' : 'hover:text-navy text-slate-600'
+              }`}
+              title="Ukuran teks ekstra besar (18px)"
             >
               A++
             </button>
@@ -296,6 +381,81 @@ export default function InteractiveModuleViewer({
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
+
+      {/* ─── Active Floating Audio Player Bar (Muncul saat Narasi Berjalan) ─── */}
+      {isPlayingAudio && (
+        <div className="bg-navy-dark text-white rounded-2xl p-3.5 px-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl border border-navy-light/40 animate-fadein">
+          <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+            <div className="w-9 h-9 rounded-full bg-gold/20 text-gold flex items-center justify-center flex-shrink-0 animate-pulse">
+              <Icon name={isPausedAudio ? 'pause' : 'volume-high'} size={18} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-extrabold text-gold uppercase tracking-wider">
+                  {isPausedAudio ? 'Audio Dijeda' : 'Narator Suara Aktif'}
+                </span>
+                <span className="text-[10px] text-slate-300 bg-white/10 px-2 py-0.5 rounded-full">
+                  Bagian {currentChunkIndex + 1} dari {speechChunks.length}
+                </span>
+              </div>
+              <p className="text-xs text-slate-200 truncate mt-1 italic font-serif">
+                &ldquo;{currentSpeakingText}&rdquo;
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+            {/* Speed Selector */}
+            <div className="flex items-center bg-white/10 rounded-lg p-0.5 text-[11px] font-bold">
+              {[0.8, 1.0, 1.25].map(rate => (
+                <button
+                  key={rate}
+                  type="button"
+                  onClick={() => {
+                    setSelectedRate(rate);
+                    speakChunk(currentChunkIndex);
+                  }}
+                  className={`px-2 py-0.5 rounded transition-all ${
+                    selectedRate === rate ? 'bg-gold text-navy-dark shadow-sm' : 'text-slate-300 hover:text-white'
+                  }`}
+                  title={`Kecepatan narasi ${rate}x`}
+                >
+                  {rate}x
+                </button>
+              ))}
+            </div>
+
+            {/* Play/Pause */}
+            <button
+              type="button"
+              onClick={toggleSpeech}
+              className="px-3 py-1 rounded-lg text-xs font-semibold bg-white/15 hover:bg-white/25 text-white flex items-center gap-1.5 transition-colors"
+            >
+              <Icon name={isPausedAudio ? 'play' : 'pause'} size={13} />
+              <span>{isPausedAudio ? 'Lanjutkan' : 'Jeda'}</span>
+            </button>
+
+            {/* Stop */}
+            <button
+              type="button"
+              onClick={stopSpeech}
+              className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors"
+              title="Hentikan Narasi Audio"
+            >
+              <Icon name="xmark" size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {ttsErrorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-2 rounded-xl flex items-center justify-between">
+          <span>{ttsErrorMessage}</span>
+          <button type="button" onClick={() => setTtsErrorMessage(null)} className="text-red-500 hover:underline">
+            Tutup
+          </button>
+        </div>
+      )}
 
       {/* ─── Main Article Card ──────────────────────────────────────────────── */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeup">
@@ -328,12 +488,7 @@ export default function InteractiveModuleViewer({
         </div>
 
         {/* Reading Article Body */}
-        <div
-          onMouseUp={handleTextSelection}
-          className={`p-6 sm:p-10 text-slate-800 transition-all ${
-            fontSize === 'large' ? 'text-base' : fontSize === 'xlarge' ? 'text-lg' : 'text-sm'
-          }`}
-        >
+        <div onMouseUp={handleTextSelection} className="p-6 sm:p-10 text-slate-800 transition-all">
           <div className="bg-sky-50/60 border border-sky-100 rounded-2xl p-4 px-5 mb-8 flex items-center gap-3 text-xs text-sky-900">
             <Icon name="bulb-2" size={18} className="text-gold flex-shrink-0" />
             <span>
@@ -341,8 +496,8 @@ export default function InteractiveModuleViewer({
             </span>
           </div>
 
-          <article className="prose max-w-none leading-relaxed">
-            <MarkdownViewer content={body} />
+          <article className="max-w-none leading-relaxed">
+            <MarkdownViewer content={body} fontSize={fontSize} />
           </article>
         </div>
 
@@ -366,96 +521,145 @@ export default function InteractiveModuleViewer({
         )}
       </div>
 
-      {/* ─── Notes Drawer / Panel (Siswa Notes & Highlights) ────────────────── */}
+      {/* ─── Slide-Over Side Drawer for Notes (Catatan Pribadi Siswa) ───────── */}
       {showNotesDrawer && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xl animate-fadeup flex flex-col gap-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gold/20 text-gold-dark flex items-center justify-center">
-                <Icon name="pencil-1" size={15} />
-              </div>
-              <h4 className="font-extrabold text-navy-dark text-sm">Catatan & Kutipan Materi Kamu</h4>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowNotesDrawer(false)}
-              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <Icon name="xmark" size={16} />
-            </button>
-          </div>
+        <div className="fixed inset-0 z-50 overflow-hidden animate-fadein">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-navy-dark/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowNotesDrawer(false)}
+          />
 
-          {/* Input New Note */}
-          <div className="flex flex-col gap-2.5">
-            {selectedQuote && (
-              <div className="bg-amber-50/80 border-l-4 border-gold p-3 rounded-r-xl text-xs text-slate-700 flex items-start justify-between gap-2">
-                <div>
-                  <p className="font-bold text-navy-dark text-[11px] mb-0.5 uppercase tracking-wide">Kutipan yang disorot:</p>
-                  <p className="italic">&ldquo;{selectedQuote}&rdquo;</p>
+          {/* Slide-over panel */}
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+              {/* Header */}
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gold/20 text-gold-dark flex items-center justify-center font-bold">
+                    <Icon name="pencil-1" size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-navy-dark text-sm">Catatan & Kutipan Modul</h4>
+                    <p className="text-[11px] text-slate-400">Tersimpan otomatis di browser kamu</p>
+                  </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedQuote('')}
-                  className="text-slate-400 hover:text-red-500 p-1"
-                  title="Batalkan kutipan"
+                  onClick={() => setShowNotesDrawer(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Tutup Catatan"
                 >
-                  <Icon name="xmark" size={12} />
+                  <Icon name="xmark" size={18} />
                 </button>
               </div>
-            )}
 
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newNoteInput}
-                onChange={e => setNewNoteInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddNote()}
-                placeholder={selectedQuote ? 'Tulis komentar/ulasan untuk kutipan ini...' : 'Ketik ringkasan atau catatan poin penting...'}
-                className="form-input text-xs py-2.5"
-              />
-              <button
-                type="button"
-                onClick={handleAddNote}
-                disabled={!newNoteInput.trim() && !selectedQuote}
-                className="btn btn-primary btn-sm text-xs px-4"
-              >
-                <Icon name="plus" size={14} className="mr-1" />
-                Simpan
-              </button>
-            </div>
-          </div>
+              {/* Drawer Content */}
+              <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-4">
+                {/* Input New Note */}
+                <div className="flex flex-col gap-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                  <p className="text-xs font-bold text-navy-dark">Tambah Catatan Baru</p>
 
-          {/* List of Notes */}
-          {notes.length > 0 ? (
-            <div className="flex flex-col gap-2.5 max-h-60 overflow-y-auto pr-1">
-              {notes.map(note => (
-                <div key={note.id} className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex flex-col gap-1.5 text-xs">
-                  {note.selectedText && (
-                    <blockquote className="border-l-2 border-gold pl-2.5 text-slate-600 italic my-0.5">
-                      &ldquo;{note.selectedText}&rdquo;
-                    </blockquote>
+                  {selectedQuote && (
+                    <div className="bg-amber-50/90 border-l-4 border-gold p-3 rounded-r-xl text-xs text-slate-700 flex items-start justify-between gap-2 shadow-sm">
+                      <div>
+                        <p className="font-bold text-navy-dark text-[10px] mb-0.5 uppercase tracking-wide">
+                          Kutipan yang disorot:
+                        </p>
+                        <p className="italic font-serif leading-relaxed">&ldquo;{selectedQuote}&rdquo;</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuote('')}
+                        className="text-slate-400 hover:text-red-500 p-1 flex-shrink-0"
+                        title="Hapus seleksi kutipan"
+                      >
+                        <Icon name="xmark" size={12} />
+                      </button>
+                    </div>
                   )}
-                  {note.text && (
-                    <p className="font-medium text-navy-dark">{note.text}</p>
-                  )}
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1 pt-1 border-t border-slate-200/50">
-                    <span>{note.timestamp}</span>
+
+                  <textarea
+                    rows={3}
+                    value={newNoteInput}
+                    onChange={e => setNewNoteInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        handleAddNote();
+                      }
+                    }}
+                    placeholder={
+                      selectedQuote
+                        ? 'Tulis komentar atau poin penting dari kutipan di atas...'
+                        : 'Ketik ringkasan pemahaman, pertanyaan, atau catatan penting...'
+                    }
+                    className="form-input text-xs resize-none"
+                  />
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400">Tekan Ctrl+Enter atau tombol Simpan</span>
                     <button
                       type="button"
-                      onClick={() => handleDeleteNote(note.id)}
-                      className="text-red-500 hover:underline"
+                      onClick={handleAddNote}
+                      disabled={!newNoteInput.trim() && !selectedQuote}
+                      className="btn btn-primary btn-sm text-xs px-4"
                     >
-                      Hapus
+                      <Icon name="plus" size={14} className="mr-1" />
+                      Simpan Catatan
                     </button>
                   </div>
                 </div>
-              ))}
+
+                {/* List of Notes */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
+                    <span>Daftar Catatan ({notes.length})</span>
+                  </div>
+
+                  {notes.length > 0 ? (
+                    <div className="flex flex-col gap-2.5">
+                      {notes.map(note => (
+                        <div
+                          key={note.id}
+                          className="bg-white border border-slate-200/90 hover:border-navy/30 rounded-2xl p-4 flex flex-col gap-2 text-xs shadow-sm transition-colors"
+                        >
+                          {note.selectedText && (
+                            <blockquote className="border-l-2 border-gold pl-3 text-slate-600 italic bg-amber-50/40 p-1.5 rounded-r-lg">
+                              &ldquo;{note.selectedText}&rdquo;
+                            </blockquote>
+                          )}
+                          {note.text && (
+                            <p className="font-medium text-navy-dark leading-relaxed whitespace-pre-wrap">
+                              {note.text}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-100">
+                            <span>{note.timestamp}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteNote(note.id)}
+                              className="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1"
+                            >
+                              <Icon name="xmark" size={12} />
+                              Hapus
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 px-4 text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                      <Icon name="pencil-1" size={28} className="mx-auto mb-2 opacity-40" />
+                      <p className="text-xs font-semibold">Belum ada catatan.</p>
+                      <p className="text-[11px] mt-1">
+                        Sorot kalimat di artikel modul atau ketik catatan di atas untuk menyimpan referensi belajar.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          ) : (
-            <p className="text-xs text-slate-400 italic text-center py-4">
-              Belum ada catatan pribadi. Anda dapat menyorot teks pada modul atau mengetik langsung di atas.
-            </p>
-          )}
+          </div>
         </div>
       )}
     </div>
