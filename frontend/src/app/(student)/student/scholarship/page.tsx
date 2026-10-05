@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import type { ScholarshipApplication, Enrollment } from '@/types';
@@ -90,11 +91,11 @@ export default function StudentScholarshipPage() {
   };
 
   const STATUS_INFO: Record<string, { label: string; color: string; icon: string; desc: string }> = {
-    pending:            { label: 'Menunggu Kurasi',  color: 'text-amber-600  bg-amber-50  border-amber-200',  icon: '⏳', desc: 'Pengajuan beasiswamu sedang ditinjau oleh tim admin.' },
-    approved_fully:     { label: 'Fully Funded ✓',  color: 'text-emerald-600 bg-emerald-50 border-emerald-200', icon: '🎉', desc: 'Selamat! Seluruh biaya kursus ditanggung program.' },
-    approved_partial_a: { label: 'Partial A ✓',     color: 'text-navy bg-navy/5 border-navy/20',              icon: '✅', desc: 'Kamu mendapat bantuan Rp1.000.000. Sisa biaya dapat dinegosiasikan.' },
-    approved_partial_b: { label: 'Partial B ✓',     color: 'text-gold-dark bg-gold/10 border-gold/30',        icon: '✅', desc: 'Kamu mendapat bantuan Rp1.500.000. Sisa biaya dapat dinegosiasikan.' },
-    rejected:           { label: 'Tidak Lolos',      color: 'text-red-600   bg-red-50   border-red-200',       icon: '❌', desc: 'Pengajuan beasiswamu tidak lolos seleksi.' },
+    pending:            { label: 'Menunggu Kurasi',  color: 'text-amber-600  bg-amber-50  border-amber-200',  icon: 'hourglass', desc: 'Pengajuan beasiswamu sedang ditinjau oleh tim admin.' },
+    approved_fully:     { label: 'Fully Funded',  color: 'text-emerald-600 bg-emerald-50 border-emerald-200', icon: 'party-spray', desc: 'Selamat! Seluruh biaya kursus ditanggung program.' },
+    approved_partial_a: { label: 'Partial A',     color: 'text-navy bg-navy/5 border-navy/20',              icon: 'check-circle-1', desc: 'Kamu mendapat bantuan Rp1.000.000. Sisa biaya dapat dinegosiasikan.' },
+    approved_partial_b: { label: 'Partial B',     color: 'text-gold-dark bg-gold/10 border-gold/30',        icon: 'check-circle-1', desc: 'Kamu mendapat bantuan Rp1.500.000. Sisa biaya dapat dinegosiasikan.' },
+    rejected:           { label: 'Tidak Lolos',      color: 'text-red-600   bg-red-50   border-red-200',       icon: 'xmark-circle', desc: 'Pengajuan beasiswamu tidak lolos seleksi.' },
   };
 
   return (
@@ -117,7 +118,7 @@ export default function StudentScholarshipPage() {
         <div className="max-w-xl">
           <div className="card mb-6 bg-blue-50 border-blue-200">
             <p className="text-sm text-blue-700">
-              📋 <strong>Cara Kerja Beasiswa:</strong> Ajukan surat motivasi dan dokumen pendukung. Admin akan memutuskan: Fully Funded, Partial A (Rp1jt), Partial B (Rp1.5jt), atau tidak lolos.
+              <Icon name="clipboard" size={16} className="mr-1.5" /><strong>Cara Kerja Beasiswa:</strong> Ajukan surat motivasi dan dokumen pendukung. Admin akan memutuskan: Fully Funded, Partial A (Rp1jt), Partial B (Rp1.5jt), atau tidak lolos.
             </p>
           </div>
 
@@ -179,7 +180,7 @@ export default function StudentScholarshipPage() {
                   </svg>
                   Mengajukan...
                 </span>
-              ) : '🎓 Ajukan Beasiswa'}
+              ) : <><Icon name="graduation-cap-1" size={16} className="mr-1.5" />Ajukan Beasiswa</>}
             </button>
           </form>
         </div>
@@ -191,7 +192,7 @@ export default function StudentScholarshipPage() {
             return (
               <div className={`card border mb-6 ${info.color}`}>
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-3xl">{info.icon}</span>
+                  <Icon name={info.icon} size={30} />
                   <div>
                     <p className="font-extrabold text-lg">{info.label}</p>
                     <p className="text-sm opacity-80">{info.desc}</p>
@@ -239,7 +240,7 @@ export default function StudentScholarshipPage() {
                   onClick={() => setShowAppeal(true)}
                   className="btn btn-secondary"
                 >
-                  📝 Ajukan Negosiasi
+                  <Icon name="pen-to-square" size={16} className="mr-1.5" />Ajukan Negosiasi
                 </button>
               ) : (
                 <form onSubmit={handleAppeal} className="flex flex-col gap-4">

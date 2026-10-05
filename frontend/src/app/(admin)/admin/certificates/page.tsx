@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -209,10 +210,10 @@ export default function AdminCertificatesPage() {
     }
   };
 
-  const syncBadge: Record<string, { label: string; cls: string }> = {
-    synced:  { label: '✅ Synced',  cls: 'bg-emerald-50 text-emerald-700 border-emerald-300' },
-    failed:  { label: '❌ Failed',  cls: 'bg-rose-50 text-rose-700 border-rose-300' },
-    pending: { label: '⏳ Pending', cls: 'bg-amber-50 text-amber-700 border-amber-300' },
+  const syncBadge: Record<string, { label: React.ReactNode; cls: string }> = {
+    synced:  { label: <><Icon name="check-circle-1" size={16} className="mr-1.5" />Synced</>,  cls: 'bg-emerald-50 text-emerald-700 border-emerald-300' },
+    failed:  { label: <><Icon name="xmark-circle" size={16} className="mr-1.5" />Failed</>,  cls: 'bg-rose-50 text-rose-700 border-rose-300' },
+    pending: { label: <><Icon name="hourglass" size={16} className="mr-1.5" />Pending</>, cls: 'bg-amber-50 text-amber-700 border-amber-300' },
   };
 
   return (
@@ -228,26 +229,26 @@ export default function AdminCertificatesPage() {
             href="/admin/certificates/template"
             className="btn btn-secondary btn-sm flex items-center gap-1.5"
           >
-            🎨 Design Template
+            <Icon name="colour-palette-3" size={16} className="mr-1.5" />Design Template
           </Link>
           <button
             onClick={handleOpenIssue}
             className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
           >
-            <span>🎓</span> Terbitkan Sertifikat
+            <span><Icon name="graduation-cap-1" size={18} /></span> Terbitkan Sertifikat
           </button>
           <button
             onClick={handleResyncAll}
             className="btn btn-secondary btn-sm"
           >
-            🔄 Re-Sync Gagal
+            <Icon name="refresh-circle-1-clockwise" size={16} className="mr-1.5" />Re-Sync Gagal
           </button>
           <button
             onClick={handleExport}
             disabled={exporting}
             className="btn btn-gold btn-sm"
           >
-            {exporting ? 'Mengekspor...' : '📊 Export Excel'}
+            {exporting ? 'Mengekspor...' : <><Icon name="dashboard-square-1" size={16} className="mr-1.5" />Export Excel</>}
           </button>
         </div>
       </div>
@@ -255,7 +256,7 @@ export default function AdminCertificatesPage() {
       {/* Search */}
       <div className="card mb-6">
         <div className="relative">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"><Icon name="search-1" size={18} /></span>
           <input
             type="text"
             placeholder="Cari berdasarkan nomor seri, nama peserta, atau email..."
@@ -297,7 +298,7 @@ export default function AdminCertificatesPage() {
               ) : certs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-slate-400">
-                    <div className="text-4xl mb-2">🏅</div>
+                    <div className="text-4xl mb-2"><Icon name="certificate-badge-1" size={36} /></div>
                     <p>Belum ada sertifikat yang diterbitkan.</p>
                   </td>
                 </tr>
@@ -345,7 +346,7 @@ export default function AdminCertificatesPage() {
                           className="btn btn-secondary btn-sm text-xs px-2.5 py-1"
                           title="Unduh PDF"
                         >
-                          {downloading === cert.id ? '⏳' : '📥 PDF'}
+                          {downloading === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="download-1" size={16} className="mr-1.5" />PDF</>}
                         </button>
 
                         {/* Edit Override */}
@@ -353,8 +354,7 @@ export default function AdminCertificatesPage() {
                           onClick={() => handleOpenEdit(cert)}
                           className="btn btn-secondary btn-sm text-xs px-2 py-1"
                           title="Edit Nomor Seri / Data"
-                        >
-                          ✏️
+                        ><Icon name="pencil-1" size={16} />
                         </button>
 
                         {/* Verify Link */}
@@ -365,7 +365,7 @@ export default function AdminCertificatesPage() {
                           className="btn btn-secondary btn-sm text-xs px-2.5 py-1 text-slate-600"
                           title="Halaman Verifikasi Publik"
                         >
-                          🔍 Cek
+                          <Icon name="search-1" size={16} className="mr-1.5" />Cek
                         </a>
 
                         {/* Sync TBE */}
@@ -395,7 +395,7 @@ export default function AdminCertificatesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-fadeup overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h2 className="text-lg font-extrabold text-navy-dark">🎓 Terbitkan Sertifikat Baru</h2>
+                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="graduation-cap-1" size={16} className="mr-1.5" />Terbitkan Sertifikat Baru</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Sertifikat akan terdaftar di database dan digenerate nomor serinya</p>
               </div>
               <button
@@ -409,7 +409,7 @@ export default function AdminCertificatesPage() {
             <form onSubmit={handleIssueSubmit} className="p-6 flex flex-col gap-4">
               {issueError && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-start gap-2">
-                  <span>⚠️</span>
+                  <span><Icon name="info" size={18} /></span>
                   <span>{issueError}</span>
                 </div>
               )}
@@ -505,7 +505,7 @@ export default function AdminCertificatesPage() {
                   disabled={issuing}
                   className="btn btn-primary btn-sm flex items-center gap-1.5"
                 >
-                  {issuing ? 'Menerbitkan...' : '🎓 Terbitkan Sekarang'}
+                  {issuing ? 'Menerbitkan...' : <><Icon name="graduation-cap-1" size={16} className="mr-1.5" />Terbitkan Sekarang</>}
                 </button>
               </div>
             </form>
@@ -519,7 +519,7 @@ export default function AdminCertificatesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fadeup overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h2 className="text-lg font-extrabold text-navy-dark">✏️ Sunting Sertifikat</h2>
+                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />Sunting Sertifikat</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Penerima: {editingCert.user?.name}</p>
               </div>
               <button
@@ -533,7 +533,7 @@ export default function AdminCertificatesPage() {
             <form onSubmit={handleEditSubmit} className="p-6 flex flex-col gap-4">
               {editError && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-start gap-2">
-                  <span>⚠️</span>
+                  <span><Icon name="info" size={18} /></span>
                   <span>{editError}</span>
                 </div>
               )}

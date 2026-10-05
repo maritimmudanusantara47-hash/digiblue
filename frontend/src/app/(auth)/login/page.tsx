@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="animate-fadeup">
-      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Selamat Datang Kembali 👋</h1>
+      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Selamat Datang Kembali</h1>
       <p className="text-slate-500 text-sm mb-8">Masuk ke akun DigiBlueCamp kamu</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">

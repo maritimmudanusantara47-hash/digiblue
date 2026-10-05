@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -21,10 +22,10 @@ const TYPE_BADGE: Record<string, string> = {
   oral_video_task: 'bg-purple-100 text-purple-700 border-purple-300',
   mcq_quiz:        'bg-slate-100 text-slate-600 border-slate-300',
 };
-const TYPE_LABEL: Record<string, string> = {
-  essay_task:      '📝 Esai',
-  oral_video_task: '🎥 Video Oral',
-  mcq_quiz:        '📋 MCQ',
+const TYPE_LABEL: Record<string, React.ReactNode> = {
+  essay_task: <><Icon name="pen-to-square" size={16} className="mr-1.5" />Esai</>,
+  oral_video_task: <><Icon name="camera-movie-1" size={16} className="mr-1.5" />Video Oral</>,
+  mcq_quiz: <><Icon name="clipboard" size={16} className="mr-1.5" />MCQ</>,
 };
 
 export default function AssessorSubmissionsPage() {
@@ -101,7 +102,7 @@ export default function AssessorSubmissionsPage() {
             onClick={() => { setStatus(s); setPage(1); }}
             className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'}`}
           >
-            {s === 'pending' ? '⏳ Belum Dinilai' : s === 'graded' ? '✅ Sudah Dinilai' : 'Semua'}
+            {s === 'pending' ? <><Icon name="hourglass" size={16} className="mr-1.5" />Belum Dinilai</> : s === 'graded' ? <><Icon name="check-circle-1" size={16} className="mr-1.5" />Sudah Dinilai</> : 'Semua'}
           </button>
         ))}
         <span className="ml-auto text-slate-400 text-sm">{total} tugas</span>
@@ -137,7 +138,7 @@ export default function AssessorSubmissionsPage() {
               ) : submissions.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
-                    {statusFilter === 'pending' ? '🎉 Semua tugas sudah dinilai!' : 'Tidak ada data.'}
+                    {statusFilter === 'pending' ? <><Icon name="party-spray" size={16} className="mr-1.5" />Semua tugas sudah dinilai!</> : 'Tidak ada data.'}
                   </td>
                 </tr>
               ) : submissions.map(sub => (
@@ -172,7 +173,7 @@ export default function AssessorSubmissionsPage() {
                       }}
                       className="btn btn-sm btn-secondary text-xs"
                     >
-                      {sub.score !== null ? '✏️ Edit Nilai' : '📝 Beri Nilai'}
+                      {sub.score !== null ? <><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Nilai</> : <><Icon name="pen-to-square" size={16} className="mr-1.5" />Beri Nilai</>}
                     </button>
                   </td>
                 </tr>
@@ -182,9 +183,9 @@ export default function AssessorSubmissionsPage() {
         </div>
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40">← Sebelumnya</button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40"><Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya</button>
             <span className="text-sm text-slate-500">Halaman {page} dari {totalPages}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya →</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya <Icon name="arrow-right" size={14} className="ml-1.5" /></button>
           </div>
         )}
       </div>
@@ -213,7 +214,7 @@ export default function AssessorSubmissionsPage() {
                   <p className="text-xs font-semibold text-slate-500 mb-2">VIDEO ORAL:</p>
                   <a href={grading.video_url} target="_blank" rel="noreferrer"
                     className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline">
-                    🎥 Buka Video →
+                    <Icon name="camera-movie-1" size={16} className="mr-1.5" />Buka Video <Icon name="arrow-right" size={14} className="ml-1.5" />
                   </a>
                 </div>
               )}
@@ -248,7 +249,7 @@ export default function AssessorSubmissionsPage() {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button type="submit" disabled={saving} className="btn btn-primary flex-1">
-                    {saving ? 'Menyimpan...' : '✅ Simpan Nilai'}
+                    {saving ? 'Menyimpan...' : <><Icon name="check-circle-1" size={16} className="mr-1.5" />Simpan Nilai</>}
                   </button>
                   <button type="button" onClick={() => setGrading(null)} className="btn btn-secondary">
                     Batal

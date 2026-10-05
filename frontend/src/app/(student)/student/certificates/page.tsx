@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import type { Certificate } from '@/types';
@@ -65,7 +66,7 @@ export default function StudentCertificatesPage() {
         </div>
       ) : certs.length === 0 ? (
         <div className="card py-20 text-center">
-          <div className="text-6xl mb-4">🏅</div>
+          <div className="text-6xl mb-4"><Icon name="certificate-badge-1" size={18} /></div>
           <h2 className="font-bold text-navy-dark text-lg">Belum Ada Sertifikat</h2>
           <p className="text-slate-400 text-sm mt-2 max-w-sm mx-auto">
             Selesaikan semua modul dan tugas di kursus yang kamu ikuti, lalu admin akan menerbitkan sertifikatmu.
@@ -89,20 +90,20 @@ export default function StudentCertificatesPage() {
                       {cert.enrollment?.course?.title ?? 'DigiBlueCamp Program'}
                     </h3>
                   </div>
-                  <div className="text-4xl ml-3">🏅</div>
+                  <div className="text-4xl ml-3"><Icon name="certificate-badge-1" size={36} /></div>
                 </div>
 
                 <div className="mt-4 flex flex-col gap-1">
                   <div className="flex items-center gap-2 text-white/70 text-xs">
-                    <span>📋</span>
+                    <span><Icon name="clipboard" size={18} /></span>
                     <span className="font-mono">{cert.serial_number}</span>
                   </div>
                   <div className="flex items-center gap-2 text-white/70 text-xs">
-                    <span>⭐</span>
+                    <span><Icon name="star-fat" size={18} /></span>
                     <span>Grade: <strong className="text-gold">{cert.grade}</strong></span>
                   </div>
                   <div className="flex items-center gap-2 text-white/70 text-xs">
-                    <span>📅</span>
+                    <span><Icon name="calendar-days" size={18} /></span>
                     <span>
                       {new Date(cert.date_of_issue).toLocaleDateString('id-ID', {
                         day: 'numeric', month: 'long', year: 'numeric'
@@ -128,14 +129,14 @@ export default function StudentCertificatesPage() {
                       </svg>
                       Mengunduh...
                     </span>
-                  ) : '⬇ Download PDF'}
+                  ) : <><Icon name="download-1" size={16} className="mr-1.5" />Download PDF</>}
                 </button>
                 <button
                   id={`verify-cert-${cert.id}`}
                   onClick={() => handleVerify(cert)}
                   className="btn btn-secondary text-sm px-4"
                 >
-                  🔗 Verifikasi
+                  <Icon name="link-2-angular-right" size={16} className="mr-1.5" />Verifikasi
                 </button>
               </div>
 

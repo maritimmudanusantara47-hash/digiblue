@@ -1,3 +1,4 @@
+import Icon from '@/components/Icon';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -34,7 +35,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ serialK
           {result?.valid ? (
             <>
               <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">✅</span>
+                <span className="text-3xl"><Icon name="check-circle-1" size={30} /></span>
               </div>
               <h1 className="text-xl font-extrabold text-navy-dark mb-1">Sertifikat Valid</h1>
               <p className="text-sm text-slate-500 mb-6">{result.message}</p>
@@ -64,7 +65,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ serialK
           ) : (
             <>
               <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">❌</span>
+                <span className="text-3xl"><Icon name="xmark-circle" size={30} /></span>
               </div>
               <h1 className="text-xl font-extrabold text-navy-dark mb-2">Sertifikat Tidak Valid</h1>
               <p className="text-sm text-slate-500">{result?.message}</p>

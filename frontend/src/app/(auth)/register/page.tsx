@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -90,7 +91,7 @@ export default function RegisterPage() {
 
   return (
     <div className="animate-fadeup">
-      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Buat Akun Baru 🚀</h1>
+      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Buat Akun Baru</h1>
       <p className="text-slate-500 text-sm mb-8">Daftar untuk memulai perjalanan Blue Economy-mu</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">

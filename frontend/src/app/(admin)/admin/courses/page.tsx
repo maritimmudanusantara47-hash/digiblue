@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
@@ -236,7 +237,7 @@ export default function AdminCoursesPage() {
       {/* Toolbar */}
       <div className="card mb-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div className="relative flex-1 max-w-sm">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><Icon name="search-1" size={14} /></span>
           <input
             id="course-search"
             type="text"
@@ -270,7 +271,7 @@ export default function AdminCoursesPage() {
         </div>
       ) : courses.length === 0 ? (
         <div className="flex-1 card py-16 text-center">
-          <div className="text-5xl mb-4">📚</div>
+          <div className="text-5xl mb-4"><Icon name="books-2" size={48} /></div>
           <p className="font-semibold text-navy-dark">Tidak ada kursus ditemukan</p>
           <p className="text-slate-400 text-sm mt-1">Coba ubah filter atau tambah kursus baru</p>
           <button onClick={openCreate} className="btn btn-primary btn-sm mt-5 inline-flex">
@@ -339,7 +340,7 @@ export default function AdminCoursesPage() {
                   disabled={currentPage <= 1 || loading}
                   className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  ← Sebelumnya
+                  <Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya
                 </button>
 
                 <div className="flex items-center gap-1">
@@ -369,7 +370,7 @@ export default function AdminCoursesPage() {
                   disabled={currentPage >= lastPage || loading}
                   className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  Selanjutnya →
+                  Selanjutnya <Icon name="arrow-right" size={14} className="ml-1.5" />
                 </button>
               </div>
             </div>
@@ -383,7 +384,7 @@ export default function AdminCoursesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
               <h2 className="text-lg font-extrabold text-navy-dark">
-                {modal === 'create' ? '+ Tambah Kursus Baru' : '✏️ Edit Kursus'}
+                {modal === 'create' ? '+ Tambah Kursus Baru' : <><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Kursus</>}
               </h2>
               <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
@@ -489,7 +490,7 @@ export default function AdminCoursesPage() {
                       </svg>
                       Menyimpan...
                     </span>
-                  ) : modal === 'create' ? '✅ Simpan Kursus' : '✅ Update Kursus'}
+                  ) : modal === 'create' ? <><Icon name="check-circle-1" size={16} className="mr-1.5" />Simpan Kursus</> : <><Icon name="check-circle-1" size={16} className="mr-1.5" />Update Kursus</>}
                 </button>
                 <button type="button" onClick={() => setModal(null)} className="btn btn-secondary">
                   Batal
@@ -505,7 +506,7 @@ export default function AdminCoursesPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup p-6">
             <div className="text-center mb-6">
-              <div className="text-5xl mb-3">⚠️</div>
+              <div className="text-5xl mb-3"><Icon name="info" size={48} /></div>
               <h2 className="text-lg font-extrabold text-navy-dark">Hapus Kursus?</h2>
               <p className="text-slate-500 text-sm mt-2">
                 Kursus <strong>&ldquo;{deleteTarget.title}&rdquo;</strong> dengan{' '}
@@ -513,7 +514,7 @@ export default function AdminCoursesPage() {
               </p>
               {(deleteTarget.enrollments_count ?? 0) > 0 && (
                 <p className="text-red-500 text-xs mt-2 font-semibold">
-                  ⚠️ Kursus ini masih memiliki peserta aktif!
+                  <Icon name="info" size={16} className="mr-1.5" />Kursus ini masih memiliki peserta aktif!
                 </p>
               )}
             </div>
@@ -524,7 +525,7 @@ export default function AdminCoursesPage() {
                 disabled={deleting}
                 className="btn flex-1 bg-red-500 text-white hover:bg-red-600"
               >
-                {deleting ? 'Menghapus...' : '🗑 Hapus'}
+                {deleting ? 'Menghapus...' : <><Icon name="trash-3" size={16} className="mr-1.5" />Hapus</>}
               </button>
               <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary flex-1">
                 Batal
@@ -594,8 +595,8 @@ function CourseCard({
 
       {/* Meta */}
       <div className="flex items-center justify-between text-xs text-slate-400 border-t border-slate-100 pt-3">
-        <span>👥 {course.enrollments_count ?? 0} peserta</span>
-        <span>💰 {course.price > 0 ? `Rp${Number(course.price).toLocaleString('id-ID')}` : 'Gratis'}</span>
+        <span><Icon name="user-multiple-4" size={16} className="mr-1.5" />{course.enrollments_count ?? 0} peserta</span>
+        <span><Icon name="dollar-circle" size={16} className="mr-1.5" />{course.price > 0 ? `Rp${Number(course.price).toLocaleString('id-ID')}` : 'Gratis'}</span>
         <span>#{course.order_index}</span>
       </div>
 
@@ -606,21 +607,19 @@ function CourseCard({
           onClick={() => router.push(`/admin/courses/${course.id}/content`)}
           className="btn btn-sm text-xs bg-navy/10 text-navy border border-navy/20 hover:bg-navy hover:text-white transition-colors flex-1"
         >
-          📚 Kelola Konten
+          <Icon name="books-2" size={16} className="mr-1.5" />Kelola Konten
         </button>
         <button
           id={`edit-course-${course.id}`}
           onClick={() => onEdit(course)}
           className="btn btn-secondary btn-sm text-xs"
-        >
-          ✏️
+        ><Icon name="pencil-1" size={16} />
         </button>
         <button
           id={`delete-course-${course.id}`}
           onClick={() => onDelete(course)}
           className="btn btn-sm text-xs bg-red-50 text-red-500 border border-red-200 hover:bg-red-500 hover:text-white transition-colors"
-        >
-          🗑
+        ><Icon name="trash-3" size={16} />
         </button>
       </div>
     </div>

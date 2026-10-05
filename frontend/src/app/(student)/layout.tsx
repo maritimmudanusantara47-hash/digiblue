@@ -1,15 +1,16 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 
 const navItems = [
-  { href: '/student/dashboard',   label: 'Dashboard',      icon: '🏠' },
-  { href: '/student/catalog',     label: 'Katalog Kursus', icon: '📚' },
-  { href: '/student/scholarship', label: 'Beasiswa',       icon: '🎓' },
-  { href: '/student/certificates',label: 'Sertifikat Saya',icon: '🏅' },
+  { href: '/student/dashboard',   label: 'Dashboard',      icon: 'home-2' },
+  { href: '/student/catalog',     label: 'Katalog Kursus', icon: 'books-2' },
+  { href: '/student/scholarship', label: 'Beasiswa',       icon: 'graduation-cap-1' },
+  { href: '/student/certificates',label: 'Sertifikat Saya',icon: 'certificate-badge-1' },
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
@@ -57,7 +58,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               href={item.href}
               className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}
             >
-              <span>{item.icon}</span>
+              <Icon name={item.icon} size={18} />
               <span>{item.label}</span>
             </Link>
           ))}
@@ -67,7 +68,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <div className="px-3 pb-6 flex-shrink-0 mt-auto">
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
-            <span>🚪</span><span>Keluar</span>
+            <span><Icon name="exit" size={18} /></span><span>Keluar</span>
           </button>
         </div>
       </aside>

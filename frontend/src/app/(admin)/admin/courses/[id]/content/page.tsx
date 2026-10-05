@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -37,13 +38,13 @@ interface CourseDetail {
 }
 
 const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
-  pdf_module:       { icon: '📄', label: 'Learning Module',              color: 'blue' },
-  video_embed:      { icon: '🎬', label: 'Video Lecture',                color: 'purple' },
-  mcq_quiz:         { icon: '📝', label: 'Multiple-Choice Examination',  color: 'amber' },
-  essay_task:       { icon: '✍️', label: 'Case-Study Essay Submission',  color: 'teal' },
-  oral_video_task:  { icon: '🎥', label: 'Oral Video Exam',              color: 'rose' },
-  critical_thinking:{ icon: '💡', label: 'Critical Thinking Exam',       color: 'indigo' },
-  field_study:      { icon: '🌊', label: 'Training Course (Field Study)', color: 'emerald' },
+  pdf_module:       { icon: 'file-multiple', label: 'Learning Module',              color: 'blue' },
+  video_embed:      { icon: 'camera-movie-1', label: 'Video Lecture',                color: 'purple' },
+  mcq_quiz:         { icon: 'pen-to-square', label: 'Multiple-Choice Examination',  color: 'amber' },
+  essay_task:       { icon: 'pencil-1', label: 'Case-Study Essay Submission',  color: 'teal' },
+  oral_video_task:  { icon: 'camera-movie-1', label: 'Oral Video Exam',              color: 'rose' },
+  critical_thinking:{ icon: 'bulb-2', label: 'Critical Thinking Exam',       color: 'indigo' },
+  field_study:      { icon: 'water-drop-1', label: 'Training Course (Field Study)', color: 'emerald' },
 };
 
 export default function AdminCourseContentPage() {
@@ -126,7 +127,7 @@ export default function AdminCourseContentPage() {
       await api.post(`/admin/contents/${selectedContent.id}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert('✅ PDF berhasil diupload!');
+      alert('PDF berhasil diupload!');
       setUploadFile(null);
       fetchCourse();
     } catch (err: unknown) {
@@ -145,7 +146,7 @@ export default function AdminCourseContentPage() {
         instruction_text: editInstruction || null,
         embed_url: editEmbedUrl || null,
       });
-      alert('✅ Konten berhasil disimpan!');
+      alert('Konten berhasil disimpan!');
       fetchCourse();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -173,7 +174,7 @@ export default function AdminCourseContentPage() {
       <div className="mb-6">
         <button onClick={() => router.push('/admin/courses')}
           className="text-sm text-slate-500 hover:text-navy flex items-center gap-1 mb-3">
-          ← Kembali ke Daftar Kursus
+          <Icon name="arrow-left" size={16} className="mr-1.5" />Kembali ke Daftar Kursus
         </button>
         <h1 className="text-2xl font-extrabold text-navy-dark">{course.title}</h1>
         <p className="text-slate-500 text-sm mt-1">Kelola konten & soal ujian kursus ini</p>
@@ -193,19 +194,19 @@ export default function AdminCourseContentPage() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{section.title}</p>
                   </div>
                   {section.contents.map(content => {
-                    const meta = TYPE_META[content.content_type] ?? { icon: '📌', label: content.content_type };
+                    const meta = TYPE_META[content.content_type] ?? { icon: 'flag-1', label: content.content_type };
                     const isSelected = selectedContent?.id === content.id;
                     return (
                       <button key={content.id}
                         onClick={() => selectContent(content)}
                         className={`w-full text-left px-4 py-3 flex items-center gap-3 text-sm border-b border-slate-100 transition-colors
                           ${isSelected ? 'bg-navy text-white' : 'hover:bg-slate-50 text-navy-dark'}`}>
-                        <span>{meta.icon}</span>
+                        <Icon name={meta.icon} size={16} />
                         <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold' : ''}`}>
                           {content.title}
                         </span>
                         {(content.content_type === 'pdf_module' || content.content_type === 'essay_task' || content.content_type === 'critical_thinking') && content.file_path && (
-                          <span className="text-xs opacity-70">✅</span>
+                          <span className="text-xs opacity-70"><Icon name="check-circle-1" size={12} /></span>
                         )}
                       </button>
                     );
@@ -220,7 +221,7 @@ export default function AdminCourseContentPage() {
         <div className="flex-1 min-w-0">
           {!selectedContent ? (
             <div className="card text-center py-20 text-slate-400">
-              <div className="text-5xl mb-3">👈</div>
+              <div className="text-5xl mb-3"><Icon name="arrow-left" size={48} /></div>
               <p>Pilih konten dari daftar di sebelah kiri</p>
             </div>
           ) : (
@@ -230,7 +231,7 @@ export default function AdminCourseContentPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                      {TYPE_META[selectedContent.content_type]?.icon} {TYPE_META[selectedContent.content_type]?.label ?? selectedContent.content_type}
+                      <Icon name={TYPE_META[selectedContent.content_type]?.icon ?? "flag-1"} size={16} className="mr-1.5" />{TYPE_META[selectedContent.content_type]?.label ?? selectedContent.content_type}
                     </span>
                     <h2 className="text-lg font-extrabold text-navy-dark mt-2">{selectedContent.title}</h2>
                   </div>
@@ -238,13 +239,13 @@ export default function AdminCourseContentPage() {
                     {selectedContent.content_type !== 'mcq_quiz' && (
                       <button onClick={() => setActiveTab('content')}
                         className={`btn btn-sm ${activeTab === 'content' ? 'btn-primary' : 'btn-secondary'}`}>
-                        ✏️ Edit Konten
+                        <Icon name="pencil-1" size={16} className="mr-1.5" />Edit Konten
                       </button>
                     )}
                     {selectedContent.content_type === 'mcq_quiz' && (
                       <button onClick={() => setActiveTab('quiz')}
                         className={`btn btn-sm ${activeTab === 'quiz' ? 'btn-primary' : 'btn-secondary'}`}>
-                        📝 Kelola Soal
+                        <Icon name="pen-to-square" size={16} className="mr-1.5" />Kelola Soal
                       </button>
                     )}
                   </div>
@@ -254,7 +255,7 @@ export default function AdminCourseContentPage() {
               {/* Content Tab */}
               {activeTab === 'content' && (
                 <div className="card flex flex-col gap-5">
-                  <h3 className="font-bold text-navy-dark">✏️ Edit Konten</h3>
+                  <h3 className="font-bold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Konten</h3>
 
                   {/* PDF Upload (for pdf_module and essay_task and critical_thinking) */}
                   {(selectedContent.content_type === 'pdf_module' ||
@@ -262,14 +263,14 @@ export default function AdminCourseContentPage() {
                     selectedContent.content_type === 'critical_thinking') && (
                     <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex flex-col gap-4">
                       <p className="font-semibold text-blue-800 text-sm">
-                        📄 {selectedContent.content_type === 'pdf_module' ? 'Upload File Modul PDF' : 'Upload File Soal (PDF)'}
+                        <Icon name="file-multiple" size={16} className="mr-1.5" />{selectedContent.content_type === 'pdf_module' ? 'Upload File Modul PDF' : 'Upload File Soal (PDF)'}
                       </p>
                       {selectedContent.content_type !== 'pdf_module' && (
                         <p className="text-xs text-blue-600">File ini akan ditampilkan kepada user sebagai soal/materi studi kasus yang harus dikerjakan.</p>
                       )}
                       {selectedContent.file_path && (
                         <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-blue-200">
-                          <span>✅</span>
+                          <span><Icon name="check-circle-1" size={18} /></span>
                           <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
                           <button
                             type="button"
@@ -283,7 +284,7 @@ export default function AdminCourseContentPage() {
                             }}
                             className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
                           >
-                            👁️ Pratinjau di Reader
+                            <Icon name="eye" size={16} className="mr-1.5" />Pratinjau di Reader
                           </button>
                         </div>
                       )}
@@ -294,7 +295,7 @@ export default function AdminCourseContentPage() {
                         <button onClick={handleUploadPDF}
                           disabled={!uploadFile || uploading}
                           className="btn btn-primary btn-sm">
-                          {uploading ? 'Uploading...' : '⬆️ Upload PDF'}
+                          {uploading ? 'Uploading...' : <><Icon name="upload-1" size={16} className="mr-1.5" />Upload PDF</>}
                         </button>
                       </div>
                       {uploadFile && (
@@ -306,7 +307,7 @@ export default function AdminCourseContentPage() {
                   {/* Field Study: admin note */}
                   {selectedContent.content_type === 'field_study' && (
                     <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-                      <p className="font-semibold text-emerald-800 text-sm mb-2">🌊 Training Course (Field Study)</p>
+                      <p className="font-semibold text-emerald-800 text-sm mb-2"><Icon name="water-drop-1" size={16} className="mr-1.5" />Training Course (Field Study)</p>
                       <p className="text-xs text-emerald-700 leading-relaxed">
                         Konten ini akan menampilkan formulir konfirmasi kepada user: apakah mereka mengikuti Field Study atau tidak.
                         Jika ya, modul Critical Thinking akan terkunci otomatis.
@@ -318,7 +319,7 @@ export default function AdminCourseContentPage() {
                   {/* Video URL (for video_embed) */}
                   {selectedContent.content_type === 'video_embed' && (
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-navy-dark">🎬 URL Video (YouTube / Drive)</label>
+                      <label className="text-sm font-bold text-navy-dark"><Icon name="camera-movie-1" size={16} className="mr-1.5" />URL Video (YouTube / Drive)</label>
                       <input type="url" value={editEmbedUrl} onChange={e => setEditEmbedUrl(e.target.value)}
                         placeholder="https://www.youtube.com/watch?v=..."
                         className="form-input" />
@@ -330,7 +331,7 @@ export default function AdminCourseContentPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="text-sm font-bold text-navy-dark">
-                          📋 {selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking'
+                          <Icon name="clipboard" size={16} className="mr-1.5" />{selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking'
                             ? 'Naskah Soal & Panduan Esai (Mendukung Format Markdown)'
                             : 'Teks Instruksi / Petunjuk'}
                         </label>
@@ -339,11 +340,11 @@ export default function AdminCourseContentPage() {
                       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
                         <button type="button" onClick={() => setInstructionTab('editor')}
                           className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${instructionTab === 'editor' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'}`}>
-                          ✏️ Editor Markdown
+                          <Icon name="pencil-1" size={16} className="mr-1.5" />Editor Markdown
                         </button>
                         <button type="button" onClick={() => setInstructionTab('preview')}
                           className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${instructionTab === 'preview' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'}`}>
-                          👁️ Preview Tampilan
+                          <Icon name="eye" size={16} className="mr-1.5" />Preview Tampilan
                         </button>
                       </div>
                     </div>
@@ -365,7 +366,7 @@ export default function AdminCourseContentPage() {
 
                   <button onClick={handleSaveContent} disabled={savingContent}
                     className="btn btn-primary self-start">
-                    {savingContent ? 'Menyimpan...' : '💾 Simpan Perubahan'}
+                    {savingContent ? 'Menyimpan...' : <><Icon name="floppy-disk-1" size={16} className="mr-1.5" />Simpan Perubahan</>}
                   </button>
                 </div>
               )}
@@ -394,14 +395,14 @@ export default function AdminCourseContentPage() {
           <div className="bg-slate-950 border border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xl">📘</span>
+                <span className="text-xl"><Icon name="book-1" size={20} /></span>
                 <span className="font-bold text-sm truncate">Pratinjau Reader Admin — {previewPdfTitle}</span>
               </div>
               <button
                 onClick={() => setPreviewPdfUrl(null)}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold"
               >
-                ✕ Tutup
+                <Icon name="xmark" size={16} className="mr-1.5" />Tutup
               </button>
             </div>
             <div className="flex-1 overflow-hidden p-2">
@@ -442,23 +443,23 @@ function QuizManager({
       <div className="card">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h3 className="font-bold text-navy-dark text-lg">📝 Manajemen Soal MCQ</h3>
+            <h3 className="font-bold text-navy-dark text-lg"><Icon name="pen-to-square" size={16} className="mr-1.5" />Manajemen Soal MCQ</h3>
             <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
               <span>{questions.length} butir soal terdaftar</span>
               <span>•</span>
               <span className={`font-bold px-2 py-0.5 rounded-full ${totalWeight === 100 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                Total Bobot: {totalWeight}/100 poin {totalWeight === 100 ? '✅' : '⚠️'}
+                Total Bobot: {totalWeight}/100 poin {totalWeight === 100 ? <Icon name="check-circle-1" size={16} /> : <Icon name="info" size={16} />}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button type="button" onClick={() => setShowImport(true)}
               className="btn btn-secondary btn-sm flex items-center gap-1.5 flex-1 sm:flex-none justify-center">
-              <span>📥</span> Import Soal (PDF / Teks)
+              <span><Icon name="download-1" size={18} /></span> Import Soal (PDF / Teks)
             </button>
             <button type="button" onClick={() => { setShowAdd(true); setEditingQ(null); }}
               className="btn btn-primary btn-sm flex items-center gap-1.5 flex-1 sm:flex-none justify-center">
-              <span>➕</span> Tambah Soal
+              <span><Icon name="plus" size={18} /></span> Tambah Soal
             </button>
           </div>
         </div>
@@ -491,7 +492,7 @@ function QuizManager({
         <div className="card text-center py-10 text-slate-400">Memuat soal...</div>
       ) : questions.length === 0 ? (
         <div className="card text-center py-16 text-slate-400">
-          <div className="text-5xl mb-3">📭</div>
+          <div className="text-5xl mb-3"><Icon name="envelope-1" size={48} /></div>
           <p>Belum ada soal. Klik &quot;+ Tambah Soal&quot; untuk mulai.</p>
         </div>
       ) : (
@@ -538,7 +539,7 @@ function QuestionCard({ question, index, onEdit, onDelete }: {
           <p className="text-xs text-slate-400 mt-0.5">Bobot: {question.weight_score} poin</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={onEdit} className="btn btn-sm btn-secondary">✏️ Edit</button>
+          <button onClick={onEdit} className="btn btn-sm btn-secondary"><Icon name="pencil-1" size={16} className="mr-1.5" />Edit</button>
           <button onClick={onDelete} className="btn btn-sm text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded-xl px-3 py-1.5">🗑️</button>
         </div>
       </div>
@@ -547,7 +548,7 @@ function QuestionCard({ question, index, onEdit, onDelete }: {
           <div key={opt.id}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm border
               ${opt.is_correct ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
-            {opt.is_correct ? '✅' : '⭕'} {opt.option_text}
+            {opt.is_correct ? <Icon name="check-circle-1" size={16} /> : <Icon name="minus-circle" size={16} />} {opt.option_text}
           </div>
         ))}
       </div>
@@ -633,7 +634,7 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
 
   return (
     <form onSubmit={handleSave} className="card border-2 border-navy/20 flex flex-col gap-5">
-      <h3 className="font-bold text-navy-dark">{question ? '✏️ Edit Soal' : '➕ Tambah Soal Baru'}</h3>
+      <h3 className="font-bold text-navy-dark">{question ? <><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Soal</> : <><Icon name="plus" size={16} className="mr-1.5" />Tambah Soal Baru</>}</h3>
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-xl">{error}</div>}
 
@@ -684,7 +685,7 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
       {/* Actions */}
       <div className="flex gap-3">
         <button type="submit" disabled={saving} className="btn btn-primary">
-          {saving ? 'Menyimpan...' : question ? '💾 Simpan Perubahan' : '➕ Tambah Soal'}
+          {saving ? 'Menyimpan...' : question ? <><Icon name="floppy-disk-1" size={16} className="mr-1.5" />Simpan Perubahan</> : <><Icon name="plus" size={16} className="mr-1.5" />Tambah Soal</>}
         </button>
         <button type="button" onClick={onCancel} className="btn btn-secondary">
           Batal
@@ -733,7 +734,7 @@ function ImportQuestionsModal({
       const res = await api.post(`/admin/contents/${contentId}/questions/import`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert(`✅ ${res.data.message ?? 'Soal berhasil diimpor!'}`);
+      alert(`${res.data.message ?? 'Soal berhasil diimpor!'}`);
       onSuccess();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -749,12 +750,11 @@ function ImportQuestionsModal({
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div>
             <h3 className="text-xl font-extrabold text-navy-dark flex items-center gap-2">
-              <span>📥</span> Import Bank Soal MCQ
+              <span><Icon name="download-1" size={18} /></span> Import Bank Soal MCQ
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">Unggah berkas soal (PDF, TXT, JSON) atau tempel naskah soal.</p>
           </div>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold">
-            ✕
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold"><Icon name="xmark" size={16} />
           </button>
         </div>
 
@@ -768,7 +768,7 @@ function ImportQuestionsModal({
           {/* Format Guide */}
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 leading-relaxed">
             <p className="font-bold flex items-center gap-1.5 mb-1.5 text-blue-800">
-              💡 Format Naskah Soal yang Didukung:
+              <Icon name="bulb-2" size={16} className="mr-1.5" />Format Naskah Soal yang Didukung:
             </p>
             <pre className="bg-white/80 p-2.5 rounded-xl font-mono text-[11px] text-slate-700 overflow-x-auto whitespace-pre">
 {`1. Apa peran utama ekosistem padang lamun dalam mitigasi iklim?
@@ -786,7 +786,7 @@ Kunci: B`}
           {/* Opsi 1: Upload File */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-navy-dark">
-              📄 Opsi 1: Upload File Soal (PDF / TXT / JSON)
+              <Icon name="file-multiple" size={16} className="mr-1.5" />Opsi 1: Upload File Soal (PDF / TXT / JSON)
             </label>
             <input
               type="file"
@@ -796,7 +796,7 @@ Kunci: B`}
             />
             {file && (
               <p className="text-[11px] text-emerald-600 font-medium">
-                ✅ Berkas dipilih: {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                <Icon name="check-circle-1" size={16} className="mr-1.5" />Berkas dipilih: {file.name} ({(file.size / 1024).toFixed(1)} KB)
               </p>
             )}
           </div>
@@ -810,7 +810,7 @@ Kunci: B`}
           {/* Opsi 2: Paste Raw Text */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-navy-dark">
-              ✍️ Opsi 2: Tempel Naskah Soal Langsung
+              <Icon name="pencil-1" size={16} className="mr-1.5" />Opsi 2: Tempel Naskah Soal Langsung
             </label>
             <textarea
               rows={8}

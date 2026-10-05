@@ -1,13 +1,14 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 
 const assessorNav = [
-  { href: '/assessor/dashboard',   label: 'Dashboard',        icon: '📊' },
-  { href: '/assessor/submissions', label: 'Penilaian Tugas',  icon: '📝' },
+  { href: '/assessor/dashboard',   label: 'Dashboard',        icon: 'dashboard-square-1' },
+  { href: '/assessor/submissions', label: 'Penilaian Tugas',  icon: 'pen-to-square' },
 ];
 
 export default function AssessorLayout({ children }: { children: React.ReactNode }) {
@@ -55,7 +56,7 @@ export default function AssessorLayout({ children }: { children: React.ReactNode
           {assessorNav.map(item => (
             <Link key={item.href} href={item.href}
               className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}>
-              <span>{item.icon}</span>
+              <Icon name={item.icon} size={18} />
               <span>{item.label}</span>
             </Link>
           ))}
@@ -64,7 +65,7 @@ export default function AssessorLayout({ children }: { children: React.ReactNode
         <div className="px-3 pb-6 flex-shrink-0 mt-auto">
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
-            <span>🚪</span><span>Keluar</span>
+            <span><Icon name="exit" size={18} /></span><span>Keluar</span>
           </button>
         </div>
       </aside>
