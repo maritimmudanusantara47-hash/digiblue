@@ -473,7 +473,13 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
             <><Icon name="credit-card-multiple" size={16} className="mr-1.5" />Bayar Sekarang</>
           )}
         </button>
-      ) : enrollment.status === 'active' || enrollment.status === 'completed' ? (
+      ) : enrollment.status === 'completed' ? (
+        <Link href={`/student/courses/${course.slug}`}
+          id={`learn-${course.id}`}
+          className="btn w-full text-sm font-semibold text-center bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Icon name="check-circle" size={16} className="mr-1.5" />Kursus Selesai
+        </Link>
+      ) : enrollment.status === 'active' ? (
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center btn-primary">
