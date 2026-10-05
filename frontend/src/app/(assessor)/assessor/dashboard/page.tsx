@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -41,10 +42,10 @@ export default function AssessorDashboard() {
     .finally(() => setLoading(false));
   }, []);
 
-  const TYPE_LABEL: Record<string, string> = {
-    essay_task:      '📝 Esai',
-    oral_video_task: '🎥 Video Oral',
-    mcq_quiz:        '📋 Pilihan Ganda',
+  const TYPE_LABEL: Record<string, React.ReactNode> = {
+    essay_task: <><Icon name="pen-to-square" size={16} className="mr-1.5" />Esai</>,
+    oral_video_task: <><Icon name="camera-movie-1" size={16} className="mr-1.5" />Video Oral</>,
+    mcq_quiz: <><Icon name="clipboard" size={16} className="mr-1.5" />Pilihan Ganda</>,
   };
 
   return (
@@ -57,12 +58,12 @@ export default function AssessorDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
         <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-500 to-amber-400 text-white shadow-md">
-          <div className="text-3xl mb-2">⏳</div>
+          <div className="text-3xl mb-2"><Icon name="hourglass" size={30} /></div>
           <div className="text-4xl font-extrabold">{loading ? '—' : data?.pending_count ?? 0}</div>
           <div className="text-white/70 text-sm mt-1">Tugas Menunggu Penilaian</div>
         </div>
         <div className="rounded-2xl p-6 bg-gradient-to-br from-emerald-600 to-emerald-400 text-white shadow-md">
-          <div className="text-3xl mb-2">✅</div>
+          <div className="text-3xl mb-2"><Icon name="check-circle-1" size={30} /></div>
           <div className="text-4xl font-extrabold">{loading ? '—' : data?.graded_count ?? 0}</div>
           <div className="text-white/70 text-sm mt-1">Tugas Sudah Dinilai</div>
         </div>
@@ -73,7 +74,7 @@ export default function AssessorDashboard() {
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-navy-dark">Tugas Terbaru Belum Dinilai</h2>
           <Link href="/assessor/submissions" className="btn btn-secondary btn-sm">
-            Lihat Semua →
+            Lihat Semua <Icon name="arrow-right" size={14} className="ml-1.5" />
           </Link>
         </div>
 
@@ -83,7 +84,7 @@ export default function AssessorDashboard() {
           </div>
         ) : !data?.recent?.length ? (
           <div className="text-center py-10 text-slate-400">
-            <div className="text-4xl mb-3">🎉</div>
+            <div className="text-4xl mb-3"><Icon name="party-spray" size={36} /></div>
             <p>Semua tugas sudah dinilai!</p>
           </div>
         ) : (
@@ -103,7 +104,7 @@ export default function AssessorDashboard() {
                   <span className="text-xs text-slate-400">
                     {new Date(sub.created_at).toLocaleDateString('id-ID')}
                   </span>
-                  <span className="text-navy text-sm">→</span>
+                  <span className="text-navy text-sm"><Icon name="arrow-right" size={14} /></span>
                 </div>
               </Link>
             ))}

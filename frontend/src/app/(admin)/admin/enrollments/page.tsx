@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -197,7 +198,7 @@ export default function AdminEnrollmentsPage() {
         <div className="flex gap-3 flex-wrap">
           {/* Search */}
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><Icon name="search-1" size={14} /></span>
             <input
               id="enrollment-search"
               type="text"
@@ -253,7 +254,7 @@ export default function AdminEnrollmentsPage() {
               ) : enrollments.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                    <div className="text-4xl mb-3">📋</div>
+                    <div className="text-4xl mb-3"><Icon name="clipboard" size={36} /></div>
                     <p>Tidak ada enrollment ditemukan.</p>
                   </td>
                 </tr>
@@ -289,7 +290,7 @@ export default function AdminEnrollmentsPage() {
                           : 'bg-slate-100 text-slate-400 border-slate-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
                       }`}
                     >
-                      {togglingId === en.id ? '...' : en.attended_field_trip ? '✓ Hadir' : '— Belum'}
+                      {togglingId === en.id ? '...' : en.attended_field_trip ? <><Icon name="check" size={16} className="mr-1.5" />Hadir</> : '— Belum'}
                     </button>
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-400">
@@ -302,23 +303,20 @@ export default function AdminEnrollmentsPage() {
                         onClick={() => openStatusChange(en)}
                         className="btn btn-sm btn-secondary text-xs px-2.5"
                         title="Ubah Status"
-                      >
-                        ✏️
+                      ><Icon name="pencil-1" size={16} />
                       </button>
                       <Link
                         href="/admin/certificates"
                         className="btn btn-sm btn-secondary text-xs px-2.5 flex items-center justify-center"
                         title="Kelola / Terbitkan Sertifikat"
-                      >
-                        🎓
+                      ><Icon name="graduation-cap-1" size={16} />
                       </Link>
                       <button
                         id={`del-btn-${en.id}`}
                         onClick={() => setDeleteTarget(en)}
                         className="btn btn-sm text-xs px-2.5 bg-red-50 text-red-500 border border-red-200 hover:bg-red-500 hover:text-white"
                         title="Hapus"
-                      >
-                        🗑
+                      ><Icon name="trash-3" size={16} />
                       </button>
                     </div>
                   </td>
@@ -332,10 +330,10 @@ export default function AdminEnrollmentsPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-              className="btn btn-secondary btn-sm disabled:opacity-40">← Sebelumnya</button>
+              className="btn btn-secondary btn-sm disabled:opacity-40"><Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya</button>
             <span className="text-sm text-slate-500">Halaman {page} dari {totalPages}</span>
             <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya →</button>
+              className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya <Icon name="arrow-right" size={14} className="ml-1.5" /></button>
           </div>
         )}
       </div>
@@ -390,7 +388,7 @@ export default function AdminEnrollmentsPage() {
               )}
               <div className="flex gap-3 pt-1">
                 <button type="submit" disabled={adding} id="save-enroll-btn" className="btn btn-primary flex-1">
-                  {adding ? 'Menyimpan...' : '✅ Simpan Enrollment'}
+                  {adding ? 'Menyimpan...' : <><Icon name="check-circle-1" size={16} className="mr-1.5" />Simpan Enrollment</>}
                 </button>
                 <button type="button" onClick={() => setShowAdd(false)} className="btn btn-secondary">Batal</button>
               </div>
@@ -426,7 +424,7 @@ export default function AdminEnrollmentsPage() {
               </div>
               <div className="flex gap-3">
                 <button id="save-status-btn" onClick={handleStatusUpdate} disabled={updatingStatus} className="btn btn-primary flex-1">
-                  {updatingStatus ? 'Menyimpan...' : '✅ Update Status'}
+                  {updatingStatus ? 'Menyimpan...' : <><Icon name="check-circle-1" size={16} className="mr-1.5" />Update Status</>}
                 </button>
                 <button onClick={() => setStatusTarget(null)} className="btn btn-secondary">Batal</button>
               </div>
@@ -440,7 +438,7 @@ export default function AdminEnrollmentsPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup p-6">
             <div className="text-center mb-6">
-              <div className="text-5xl mb-3">⚠️</div>
+              <div className="text-5xl mb-3"><Icon name="info" size={48} /></div>
               <h2 className="text-lg font-extrabold text-navy-dark">Hapus Enrollment?</h2>
               <p className="text-slate-500 text-sm mt-2">
                 Enrollment <strong>{deleteTarget.user?.name}</strong> di kursus{' '}
@@ -450,7 +448,7 @@ export default function AdminEnrollmentsPage() {
             <div className="flex gap-3">
               <button id="confirm-delete-enroll" onClick={handleDelete} disabled={deleting}
                 className="btn flex-1 bg-red-500 text-white hover:bg-red-600">
-                {deleting ? 'Menghapus...' : '🗑 Hapus'}
+                {deleting ? 'Menghapus...' : <><Icon name="trash-3" size={16} className="mr-1.5" />Hapus</>}
               </button>
               <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary flex-1">Batal</button>
             </div>

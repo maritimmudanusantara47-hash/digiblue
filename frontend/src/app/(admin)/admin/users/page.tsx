@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 
@@ -61,7 +62,7 @@ export default function AdminUsersPage() {
       <div className="card mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex gap-3 flex-wrap">
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><Icon name="search-1" size={14} /></span>
             <input
               id="user-search"
               type="text"
@@ -141,8 +142,8 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3">
                       {u.email_verified_at
-                        ? <span className="text-emerald-600 text-xs font-semibold">✓ Terverifikasi</span>
-                        : <span className="text-amber-500 text-xs font-semibold">⏳ Belum</span>}
+                        ? <span className="text-emerald-600 text-xs font-semibold"><Icon name="check" size={16} className="mr-1.5" />Terverifikasi</span>
+                        : <span className="text-amber-500 text-xs font-semibold"><Icon name="hourglass" size={16} className="mr-1.5" />Belum</span>}
                     </td>
                     <td className="px-4 py-3 text-slate-400 text-xs">
                       {new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -155,9 +156,9 @@ export default function AdminUsersPage() {
         </div>
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40">← Sebelumnya</button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40"><Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya</button>
             <span className="text-sm text-slate-500">Halaman {page} dari {totalPages}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya →</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya <Icon name="arrow-right" size={14} className="ml-1.5" /></button>
           </div>
         )}
       </div>

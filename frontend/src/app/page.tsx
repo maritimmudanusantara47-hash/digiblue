@@ -1,3 +1,4 @@
+import Icon from '@/components/Icon';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -8,10 +9,10 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   const features = [
-    { icon: '🌊', title: 'Kurikulum Resmi',       desc: 'Materi dirancang bersama The Blue Economist International Association' },
-    { icon: '🏅', title: 'Sertifikat Terverifikasi', desc: 'QR Code mengarah langsung ke database internasional theblueeconomist.org' },
-    { icon: '📱', title: 'Belajar Kapan Saja',     desc: 'Akses materi PDF, video, dan kuis kapanpun dari perangkat apapun' },
-    { icon: '🎓', title: 'Program Beasiswa',       desc: 'Tersedia beasiswa Fully Funded dan Partial untuk peserta terpilih' },
+    { icon: 'water-drop-1', title: 'Kurikulum Resmi',       desc: 'Materi dirancang bersama The Blue Economist International Association' },
+    { icon: 'certificate-badge-1', title: 'Sertifikat Terverifikasi', desc: 'QR Code mengarah langsung ke database internasional theblueeconomist.org' },
+    { icon: 'laptop-phone', title: 'Belajar Kapan Saja',     desc: 'Akses materi PDF, video, dan kuis kapanpun dari perangkat apapun' },
+    { icon: 'graduation-cap-1', title: 'Program Beasiswa',       desc: 'Tersedia beasiswa Fully Funded dan Partial untuk peserta terpilih' },
   ];
 
   const programs = [
@@ -84,7 +85,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map(f => (
             <div key={f.title} className="card text-center hover:-translate-y-1 transition-all duration-200">
-              <div className="text-4xl mb-4">{f.icon}</div>
+              <div className="mb-4 text-navy"><Icon name={f.icon} size={40} /></div>
               <h3 className="text-base font-bold text-navy-dark mb-2">{f.title}</h3>
               <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
             </div>
@@ -107,7 +108,7 @@ export default function LandingPage() {
                 <h3 className="text-lg font-bold text-navy-dark mb-2 group-hover:text-navy transition-colors">{p.name}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{p.desc}</p>
                 <Link href="/register" className="btn btn-primary btn-sm mt-4 inline-flex">
-                  Daftar Program →
+                  Daftar Program <Icon name="arrow-right" size={14} className="ml-1.5" />
                 </Link>
               </div>
             ))}

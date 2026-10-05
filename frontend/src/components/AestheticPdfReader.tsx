@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 export interface AestheticPdfReaderProps {
@@ -407,7 +408,7 @@ export default function AestheticPdfReader({
             title={viewMode === 'single' ? 'Ubah ke Mode Scroll Berkelanjutan' : 'Ubah ke Mode Per Halaman'}
             className="p-2 rounded-xl bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700/50 transition text-xs font-semibold flex items-center gap-1"
           >
-            {viewMode === 'single' ? '📄 Per Halaman' : '📜 Scroll Kontinu'}
+            {viewMode === 'single' ? <><Icon name="file-multiple" size={16} className="mr-1.5" />Per Halaman</> : <><Icon name="scroll-down-2" size={16} className="mr-1.5" />Scroll Kontinu</>}
           </button>
 
           {/* Rotate Clockwise */}
@@ -427,7 +428,7 @@ export default function AestheticPdfReader({
             title="Ganti Mode Warna Latar Pembaca"
             className="p-2 rounded-xl bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700/50 transition text-xs"
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            <Icon name={theme === 'dark' ? 'sun-1' : 'moon-half-right-5'} size={18} />
           </button>
 
           {/* Fullscreen Toggle */}
@@ -465,7 +466,7 @@ export default function AestheticPdfReader({
       {/* ─── Protection Alert Toast ─────────────────────────────────────── */}
       {showProtectionNotice && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 animate-fadeup bg-rose-600/95 text-white px-5 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-2.5 text-xs font-semibold border border-rose-400/40">
-          <span className="text-base">🛡️</span>
+          <span className="text-base"><Icon name="shield-2-check" size={16} /></span>
           <span>Dokumen dilindungi. Pengunduhan & pencetakan dinonaktifkan untuk materi ini.</span>
         </div>
       )}
@@ -480,7 +481,7 @@ export default function AestheticPdfReader({
           <div className="flex flex-col items-center gap-4 text-center my-16">
             <div className="relative w-14 h-14">
               <div className="w-14 h-14 rounded-full border-4 border-sky-400/20 border-t-sky-500 animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center text-lg">🌊</div>
+              <div className="absolute inset-0 flex items-center justify-center text-lg"><Icon name="water-drop-1" size={18} /></div>
             </div>
             <div>
               <p className="font-bold text-sm text-sky-400">Menyiapkan Reader Digital DigiBlue...</p>
@@ -492,7 +493,7 @@ export default function AestheticPdfReader({
         {/* Error State */}
         {error && !loading && (
           <div className="max-w-md p-6 rounded-2xl bg-rose-950/50 border border-rose-800 text-center my-12">
-            <div className="text-4xl mb-3">⚠️</div>
+            <div className="text-4xl mb-3"><Icon name="info" size={36} /></div>
             <h5 className="font-bold text-rose-300 text-sm mb-1">Gagal Membuka Dokumen</h5>
             <p className="text-xs text-rose-200 leading-relaxed mb-4">{error}</p>
             <button

@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -50,13 +51,13 @@ interface Submission {
 }
 
 const CONTENT_META: Record<string, { icon: string; label: string; color: string; badge: string }> = {
-  pdf_module:       { icon: '📄', label: 'Learning Module',            color: 'blue',   badge: 'bg-blue-100 text-blue-700' },
-  video_embed:      { icon: '🎬', label: 'Video Lecture',              color: 'purple', badge: 'bg-purple-100 text-purple-700' },
-  mcq_quiz:         { icon: '📝', label: 'Multiple-Choice Examination', color: 'amber',  badge: 'bg-amber-100 text-amber-700' },
-  essay_task:       { icon: '✍️', label: 'Case-Study Essay Submission', color: 'teal',   badge: 'bg-teal-100 text-teal-700' },
-  oral_video_task:  { icon: '🎥', label: 'Oral Video Exam',            color: 'rose',   badge: 'bg-rose-100 text-rose-700' },
-  critical_thinking:{ icon: '💡', label: 'Critical Thinking Exam',     color: 'indigo', badge: 'bg-indigo-100 text-indigo-700' },
-  field_study:      { icon: '🌊', label: 'Training Course (Field Study)', color: 'emerald', badge: 'bg-emerald-100 text-emerald-700' },
+  pdf_module:       { icon: 'file-multiple', label: 'Learning Module',            color: 'blue',   badge: 'bg-blue-100 text-blue-700' },
+  video_embed:      { icon: 'camera-movie-1', label: 'Video Lecture',              color: 'purple', badge: 'bg-purple-100 text-purple-700' },
+  mcq_quiz:         { icon: 'pen-to-square', label: 'Multiple-Choice Examination', color: 'amber',  badge: 'bg-amber-100 text-amber-700' },
+  essay_task:       { icon: 'pencil-1', label: 'Case-Study Essay Submission', color: 'teal',   badge: 'bg-teal-100 text-teal-700' },
+  oral_video_task:  { icon: 'camera-movie-1', label: 'Oral Video Exam',            color: 'rose',   badge: 'bg-rose-100 text-rose-700' },
+  critical_thinking:{ icon: 'bulb-2', label: 'Critical Thinking Exam',     color: 'indigo', badge: 'bg-indigo-100 text-indigo-700' },
+  field_study:      { icon: 'water-drop-1', label: 'Training Course (Field Study)', color: 'emerald', badge: 'bg-emerald-100 text-emerald-700' },
 };
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
@@ -131,10 +132,10 @@ export default function StudentCoursePage() {
 
   if (error) return (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
-      <div className="text-6xl">🔒</div>
+      <div className="text-6xl"><Icon name="locked-1" size={18} /></div>
       <h2 className="text-lg font-bold text-navy-dark">{error}</h2>
       <button onClick={() => router.push('/student/catalog')} className="btn btn-secondary">
-        ← Kembali ke Katalog
+        <Icon name="arrow-left" size={16} className="mr-1.5" />Kembali ke Katalog
       </button>
     </div>
   );
@@ -186,13 +187,13 @@ export default function StudentCoursePage() {
                     onClick={() => setActive(content)}
                     className={`w-full text-left px-4 py-3 flex items-start gap-3 text-sm border-b border-slate-100 transition-all
                       ${isSelected ? 'bg-navy text-white' : isLocked ? 'opacity-50 cursor-default hover:bg-slate-50' : 'hover:bg-slate-50 text-navy-dark'}`}>
-                    <span className="flex-shrink-0 mt-0.5">{isLocked ? '🔒' : meta.icon}</span>
+                    <span className="flex-shrink-0 mt-0.5"><Icon name={isLocked ? "locked-1" : meta.icon} size={18} /></span>
                     <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold text-white' : 'text-navy-dark'}`}>
                       {content.title}
                       {isLocked && <span className="block text-[10px] text-slate-400 mt-0.5">Kamu mengikuti Field Study</span>}
                     </span>
                     <span className="flex-shrink-0 mt-0.5">
-                      {isDone ? '✅' : isPending ? '⏳' : ''}
+                      {isDone ? <Icon name="check-circle-1" size={16} /> : isPending ? <Icon name="hourglass" size={16} /> : null}
                     </span>
                   </button>
                 );
@@ -245,7 +246,7 @@ export default function StudentCoursePage() {
           />
         ) : (
           <div className="text-center py-24 text-slate-400">
-            <div className="text-6xl mb-4">👈</div>
+            <div className="text-6xl mb-4"><Icon name="arrow-left" size={18} /></div>
             <p className="font-medium">Pilih materi dari daftar di sebelah kiri</p>
           </div>
         )}
@@ -285,7 +286,7 @@ function ContentViewer({
       {/* Header */}
       <div>
         <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${meta.badge}`}>
-          {isLocked ? '🔒' : meta.icon} {isLocked ? 'Terkunci' : meta.label}
+          <Icon name={isLocked ? "locked-1" : meta.icon} size={16} className="mr-1.5" /> {isLocked ? 'Terkunci' : meta.label}
         </span>
         <h1 className="text-2xl font-extrabold text-navy-dark mt-3 leading-snug">{content.title}</h1>
       </div>
@@ -293,7 +294,7 @@ function ContentViewer({
       {/* Locked State for Critical Thinking */}
       {isLocked && (
         <div className="bg-slate-100 border-2 border-slate-300 rounded-2xl p-10 text-center flex flex-col items-center gap-4">
-          <div className="text-7xl">🔒</div>
+          <div className="text-7xl"><Icon name="locked-1" size={18} /></div>
           <div>
             <h3 className="text-xl font-extrabold text-slate-600">Modul Terkunci</h3>
             <p className="text-slate-500 text-sm mt-2 max-w-md">
@@ -301,7 +302,7 @@ function ContentViewer({
             </p>
           </div>
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3 text-emerald-700 text-sm font-medium flex items-center gap-2">
-            ✅ Status Field Study kamu sudah terkonfirmasi oleh admin
+            <Icon name="check-circle-1" size={16} className="mr-1.5" />Status Field Study kamu sudah terkonfirmasi oleh admin
           </div>
         </div>
       )}
@@ -312,7 +313,7 @@ function ContentViewer({
       )}
       {!isLocked && !['pdf_module', 'video_embed'].includes(type) && submission && submission.score === null && submission.status === 'submitted' && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-center gap-3">
-          <div className="text-2xl">⏳</div>
+          <div className="text-2xl"><Icon name="hourglass" size={24} /></div>
           <div>
             <p className="font-bold text-amber-700">Menunggu Penilaian</p>
             <p className="text-sm text-amber-600 mt-0.5">Jawaban sudah dikumpulkan. Assessor akan segera memberikan nilai.</p>
@@ -389,7 +390,7 @@ function GradedBanner({ submission, content }: { submission: Submission; content
   return (
     <div className={`rounded-2xl border px-5 py-4 ${passed ? 'bg-emerald-50 border-emerald-200' : 'bg-orange-50 border-orange-200'}`}>
       <div className="flex items-start gap-4">
-        <div className="text-3xl">{passed ? '🎉' : '📚'}</div>
+        <div className="text-3xl"><Icon name={passed ? "party-spray" : "books-2"} size={30} /></div>
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
             <p className={`font-bold ${passed ? 'text-emerald-700' : 'text-orange-700'}`}>
@@ -407,7 +408,7 @@ function GradedBanner({ submission, content }: { submission: Submission; content
             <p className="text-xs mt-1.5 text-slate-500">{submission.correct_count} dari {submission.total_questions || content.quiz_questions?.length || 30} soal benar</p>
           )}
           {submission.assessor_feedback && (
-            <p className="text-sm mt-2 text-slate-600 italic">💬 &ldquo;{submission.assessor_feedback}&rdquo;</p>
+            <p className="text-sm mt-2 text-slate-600 italic"><Icon name="comment-1" size={16} className="mr-1.5" />&ldquo;{submission.assessor_feedback}&rdquo;</p>
           )}
         </div>
       </div>
@@ -508,7 +509,7 @@ function PDFModule({
         </div>
       ) : (
         <div className="card flex flex-col items-center gap-4 py-16 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center text-4xl">📄</div>
+          <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center text-4xl"><Icon name="file-multiple" size={36} /></div>
           <div>
             <p className="font-bold text-navy-dark text-lg">{content.title}</p>
             <p className="text-slate-400 text-sm mt-1">File PDF belum diupload oleh admin.</p>
@@ -522,7 +523,7 @@ function PDFModule({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/25 flex-shrink-0">
-                ✓
+                <Icon name="check" size={16} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -550,7 +551,7 @@ function PDFModule({
                 className="text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-rose-300 bg-white hover:bg-rose-50 transition-all flex items-center gap-1.5 shadow-sm"
                 title="Batalkan jika ingin mereset status bacaan"
               >
-                {submitting ? <span className="animate-spin text-xs">⏳</span> : <span>↩</span>}
+                {submitting ? <span className="animate-spin text-xs"><Icon name="hourglass" size={12} /></span> : <Icon name="arrow-right" size={14} />}
                 <span>Batal Tandai</span>
               </button>
 
@@ -561,7 +562,7 @@ function PDFModule({
                   className="btn btn-primary text-xs sm:text-sm px-5 py-2.5 shadow-md shadow-navy/20 flex items-center gap-2"
                 >
                   <span>Lanjut ke Modul Berikutnya</span>
-                  <span>→</span>
+                  <span><Icon name="arrow-right" size={18} /></span>
                 </button>
               )}
             </div>
@@ -572,7 +573,7 @@ function PDFModule({
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-navy/10 text-navy flex items-center justify-center text-2xl flex-shrink-0">
-                🎯
+                <Icon name="target-user" size={16} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -622,7 +623,7 @@ function PDFModule({
                   </>
                 ) : (
                   <>
-                    <span>✅</span>
+                    <span><Icon name="check-circle-1" size={18} /></span>
                     <span>Tandai Selesai Membaca Modul</span>
                   </>
                 )}
@@ -723,7 +724,7 @@ function VideoEmbed({
           </div>
         ) : (
           <div className="py-20 text-center text-slate-400">
-            <div className="text-5xl mb-3">🎬</div>
+            <div className="text-5xl mb-3"><Icon name="camera-movie-1" size={48} /></div>
             <p>Link video belum tersedia.</p>
           </div>
         )}
@@ -735,7 +736,7 @@ function VideoEmbed({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-md shadow-emerald-500/25 flex-shrink-0">
-                ✓
+                <Icon name="check" size={16} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -762,7 +763,7 @@ function VideoEmbed({
                 disabled={submitting}
                 className="text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-rose-300 bg-white hover:bg-rose-50 transition-all flex items-center gap-1.5 shadow-sm"
               >
-                {submitting ? <span className="animate-spin text-xs">⏳</span> : <span>↩</span>}
+                {submitting ? <span className="animate-spin text-xs"><Icon name="hourglass" size={12} /></span> : <Icon name="arrow-right" size={14} />}
                 <span>Batal Tandai</span>
               </button>
 
@@ -773,7 +774,7 @@ function VideoEmbed({
                   className="btn btn-primary text-xs sm:text-sm px-5 py-2.5 shadow-md shadow-navy/20 flex items-center gap-2"
                 >
                   <span>Lanjut ke Modul Berikutnya</span>
-                  <span>→</span>
+                  <span><Icon name="arrow-right" size={18} /></span>
                 </button>
               )}
             </div>
@@ -784,7 +785,7 @@ function VideoEmbed({
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl flex-shrink-0">
-                🎬
+                <Icon name="camera-movie-1" size={16} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -834,7 +835,7 @@ function VideoEmbed({
                   </>
                 ) : (
                   <>
-                    <span>✅</span>
+                    <span><Icon name="check-circle-1" size={18} /></span>
                     <span>Tandai Selesai Menonton Video</span>
                   </>
                 )}
@@ -866,7 +867,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
   if (alreadyPassed && !result) {
     return (
       <div className="card text-center py-14 flex flex-col items-center gap-3">
-        <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-4xl">✅</div>
+        <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-4xl"><Icon name="check-circle-1" size={36} /></div>
         <h3 className="font-extrabold text-navy-dark text-xl">Kamu Sudah Lulus!</h3>
         <p className="text-slate-500 text-sm">
           Nilai: <strong>{submission!.score}</strong> • {submission!.correct_count}/{submission!.total_questions || questions.length || 30} benar
@@ -879,7 +880,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
     const passed = result.score >= 70;
     return (
       <div className={`rounded-2xl border-2 p-8 text-center flex flex-col items-center gap-4 ${passed ? 'bg-emerald-50 border-emerald-300' : 'bg-orange-50 border-orange-300'}`}>
-        <div className="text-6xl">{passed ? '🎉' : '📚'}</div>
+        <div className="text-6xl"><Icon name={passed ? "party-spray" : "books-2"} size={60} /></div>
         <div>
           <p className="text-4xl font-extrabold text-navy-dark">{result.score}</p>
           <p className="text-slate-500 text-sm mt-1">dari 100 • {result.correct} dari {result.total} soal benar</p>
@@ -890,7 +891,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
             <div className="flex flex-col items-center gap-3">
               <p className="text-orange-700 font-semibold">Belum lulus. Pelajari ulang materi dan coba lagi.</p>
               <button onClick={() => { setResult(null); setAnswers({}); }} className="btn btn-secondary">
-                🔄 Coba Lagi
+                <Icon name="refresh-circle-1-clockwise" size={16} className="mr-1.5" />Coba Lagi
               </button>
             </div>
           )
@@ -955,7 +956,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
             <p className="text-sm text-orange-600 mt-0.5">Kamu bisa mengulang kuis ini untuk meningkatkan nilai.</p>
           </div>
           <button onClick={() => setShowRetry(true)} className="btn btn-secondary text-sm">
-            🔄 Coba Lagi
+            <Icon name="refresh-circle-1-clockwise" size={16} className="mr-1.5" />Coba Lagi
           </button>
         </div>
       )}
@@ -965,7 +966,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
           {/* Progress Bar */}
           <div className="bg-white border border-slate-200 rounded-2xl px-5 py-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-navy-dark">📝 {questions.length} Soal Pilihan Ganda</span>
+              <span className="text-sm font-semibold text-navy-dark"><Icon name="pen-to-square" size={16} className="mr-1.5" />{questions.length} Soal Pilihan Ganda</span>
               <span className="text-sm text-slate-500">{answeredCount}/{questions.length} dijawab</span>
             </div>
             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -1011,7 +1012,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
             className="btn btn-primary btn-lg w-full">
             {submitting
               ? <><svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Mengumpulkan...</>
-              : '📤 Kumpulkan Jawaban'}
+              : <><Icon name="upload-1" size={16} className="mr-1.5" />Kumpulkan Jawaban</>}
           </button>
         </>
       )}
@@ -1047,7 +1048,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       <div className="flex flex-col gap-4">
         <div className={`${bgClass} border rounded-2xl p-6`}>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xl">✅</span>
+            <span className="text-xl"><Icon name="check-circle-1" size={20} /></span>
             <p className={`font-extrabold ${textClass} text-base`}>Tugas Studi Kasus Sudah Dikumpulkan</p>
           </div>
           {submission.essay_text && (
@@ -1063,13 +1064,13 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
               <p className={`text-xs ${isCriticalThinking ? 'text-indigo-600' : 'text-teal-600'} font-semibold mb-1`}>Berkas dokumen terlampir:</p>
               <a href={submission.file_share_url} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 text-sm text-navy font-semibold hover:border-navy transition-all">
-                📎 Buka Berkas Tugas →
+                <Icon name="paperclip-1" size={16} className="mr-1.5" />Buka Berkas Tugas <Icon name="arrow-right" size={14} className="ml-1.5" />
               </a>
             </div>
           )}
           {submission.score === null && (
             <p className={`text-sm ${isCriticalThinking ? 'text-indigo-700' : 'text-teal-700'} mt-4 flex items-center gap-2 font-medium bg-white/70 p-3 rounded-xl border border-slate-100`}>
-              <span className="animate-pulse">⏳</span> Menunggu proses penilaian & feedback dari Tim Asesor DigiBlueCamp...
+              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span> Menunggu proses penilaian & feedback dari Tim Asesor DigiBlueCamp...
             </p>
           )}
         </div>
@@ -1121,7 +1122,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       {content.instruction_text && (
         <div className={`${bgClass} border rounded-3xl p-6 sm:p-8 shadow-sm`}>
           <div className="flex items-center gap-2.5 mb-4 pb-2 border-b border-navy/10">
-            <span className="text-2xl">{isCriticalThinking ? '💡' : '📋'}</span>
+            <Icon name={isCriticalThinking ? "bulb-2" : "clipboard"} size={24} />
             <h3 className={`text-lg font-extrabold ${textClass}`}>
               Naskah Soal & Panduan Studi Kasus
             </h3>
@@ -1146,7 +1147,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       {/* Form Pengumpulan Jawaban */}
       <div className="card flex flex-col gap-5 border border-slate-200 shadow-sm">
         <div>
-          <h4 className="font-bold text-navy-dark text-base">📤 Formulir Pengumpulan Jawaban</h4>
+          <h4 className="font-bold text-navy-dark text-base"><Icon name="upload-1" size={16} className="mr-1.5" />Formulir Pengumpulan Jawaban</h4>
           <p className="text-xs text-slate-500 mt-0.5">
             Anda dapat mengunggah berkas dokumen (PDF/DOCX), melampirkan tautan drive, dan/atau menulis esai langsung.
           </p>
@@ -1155,7 +1156,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
         {/* Opsi 1: Upload File Langsung */}
         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col gap-2">
           <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-            <span>📄</span> Opsi 1: Upload Berkas Jawaban (PDF / DOCX)
+            <span><Icon name="file-multiple" size={18} /></span> Opsi 1: Upload Berkas Jawaban (PDF / DOCX)
           </label>
           <input
             type="file"
@@ -1165,7 +1166,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
           />
           {selectedFile && (
             <p className="text-xs text-emerald-600 font-semibold">
-              ✅ Berkas dipilih: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+              <Icon name="check-circle-1" size={16} className="mr-1.5" />Berkas dipilih: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
             </p>
           )}
         </div>
@@ -1173,7 +1174,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
         {/* Opsi 2: Link File Share */}
         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col gap-2">
           <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-            <span>📎</span> Opsi 2: Tautan Berkas Cloud (Google Drive / OneDrive)
+            <span><Icon name="paperclip-1" size={18} /></span> Opsi 2: Tautan Berkas Cloud (Google Drive / OneDrive)
           </label>
           <input
             type="url"
@@ -1191,7 +1192,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-              <span>✍️</span> Opsi 3: Ketik Jawaban Esai Langsung (Mendukung Format Teks / Markdown)
+              <span><Icon name="pencil-1" size={18} /></span> Opsi 3: Ketik Jawaban Esai Langsung (Mendukung Format Teks / Markdown)
             </label>
             <div className="flex gap-2 text-[11px] text-slate-400 font-mono">
               <span>{essay.length} karakter</span>
@@ -1218,7 +1219,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
               Mengunggah & Mengumpulkan Jawaban...
             </>
           ) : (
-            '📤 Kumpulkan Jawaban Studi Kasus'
+            <><Icon name="upload-1" size={16} className="mr-1.5" />Kumpulkan Jawaban Studi Kasus</>
           )}
         </button>
       </div>
@@ -1284,13 +1285,13 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
           </div>
         )}
         <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-8 text-center flex flex-col items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-5xl">🌊</div>
+          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-5xl"><Icon name="water-drop-1" size={48} /></div>
           <div>
             <h3 className="text-xl font-extrabold text-emerald-700">Kehadiran Terkonfirmasi!</h3>
             <p className="text-emerald-600 text-sm mt-1">Kehadiran Field Study kamu sudah dikonfirmasi oleh admin.</p>
           </div>
           <div className="bg-emerald-100 rounded-xl px-5 py-3 text-emerald-700 text-sm">
-            ✅ Modul <strong>Case-Study Essay Examination — Critical Thinking</strong> telah terkunci secara otomatis
+            <Icon name="check-circle-1" size={16} className="mr-1.5" />Modul <strong>Case-Study Essay Examination — Critical Thinking</strong> telah terkunci secara otomatis
           </div>
         </div>
       </div>
@@ -1308,7 +1309,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
           </div>
         )}
         <div className={`rounded-2xl border-2 p-6 flex flex-col items-center gap-4 text-center ${attending ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
-          <div className="text-5xl">{attending ? '🙋' : '📝'}</div>
+          <div className="text-5xl"><Icon name={attending ? "hand-stop" : "pen-to-square"} size={48} /></div>
           <div>
             <h3 className={`text-lg font-extrabold ${attending ? 'text-emerald-700' : 'text-slate-600'}`}>
               {attending ? 'Kamu memilih: Mengikuti Field Study' : 'Kamu memilih: Tidak Mengikuti Field Study'}
@@ -1321,7 +1322,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
           </div>
           {attending && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-amber-700 text-sm flex items-center gap-2">
-              <span className="animate-pulse">⏳</span> Admin akan memverifikasi kehadiran kamu
+              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span> Admin akan memverifikasi kehadiran kamu
             </div>
           )}
         </div>
@@ -1342,7 +1343,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
       {/* Confirmation Card */}
       <div className="card flex flex-col gap-6">
         <div className="text-center">
-          <div className="text-5xl mb-3">🌊</div>
+          <div className="text-5xl mb-3"><Icon name="water-drop-1" size={48} /></div>
           <h3 className="text-xl font-extrabold text-navy-dark">Apakah kamu mengikuti Field Study?</h3>
           <p className="text-slate-500 text-sm mt-2">
             Konfirmasi kehadiranmu. Pilihanmu akan menentukan modul apa yang perlu dikerjakan selanjutnya.
@@ -1357,7 +1358,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             disabled={saving}
             className="group flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center">
             <div className="w-14 h-14 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center text-3xl transition-colors">
-              🙋
+              <Icon name="hand-stop" size={16} />
             </div>
             <div>
               <p className="font-bold text-emerald-700">Ya, Saya Mengikuti</p>
@@ -1372,7 +1373,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             disabled={saving}
             className="group flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all text-center">
             <div className="w-14 h-14 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center text-3xl transition-colors">
-              📝
+              <Icon name="pen-to-square" size={16} />
             </div>
             <div>
               <p className="font-bold text-slate-700">Tidak, Saya Tidak Ikut</p>
@@ -1392,7 +1393,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
         )}
 
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700 leading-relaxed">
-          <p className="font-semibold mb-1">⚠️ Perhatian:</p>
+          <p className="font-semibold mb-1"><Icon name="info" size={16} className="mr-1.5" />Perhatian:</p>
           <p>Pilihanmu dapat berubah jika admin mengkonfirmasi kehadiran secara langsung. Hubungi panitia jika ada perubahan status.</p>
         </div>
       </div>
@@ -1416,18 +1417,18 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
     return (
       <div className="flex flex-col gap-4">
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5">
-          <p className="font-bold text-rose-700 mb-2">🎥 Video Sudah Dikumpulkan</p>
+          <p className="font-bold text-rose-700 mb-2"><Icon name="camera-movie-1" size={16} className="mr-1.5" />Video Sudah Dikumpulkan</p>
           {submission.video_url && (
             <div className="mt-2">
               <a href={submission.video_url} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-navy font-medium hover:underline bg-white rounded-xl px-4 py-2 border border-rose-200">
-                ▶️ Tonton Video Submission →
+                ▶️ Tonton Video Submission <Icon name="arrow-right" size={14} className="ml-1.5" />
               </a>
             </div>
           )}
           {submission.score === null && (
             <p className="text-sm text-rose-600 mt-3 flex items-center gap-2">
-              <span className="animate-pulse">⏳</span> Menunggu penilaian assessor...
+              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span> Menunggu penilaian assessor...
             </p>
           )}
         </div>
@@ -1467,26 +1468,26 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {content.instruction_text && (
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5">
-          <p className="text-sm font-semibold text-rose-700 mb-2">🎬 Petunjuk Oral Video Exam</p>
+          <p className="text-sm font-semibold text-rose-700 mb-2"><Icon name="camera-movie-1" size={16} className="mr-1.5" />Petunjuk Oral Video Exam</p>
           <p className="text-sm text-rose-800 leading-relaxed whitespace-pre-line">{content.instruction_text}</p>
         </div>
       )}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-navy-dark">🔗 Link Video <span className="text-rose-500">*</span></label>
+        <label className="text-sm font-bold text-navy-dark"><Icon name="link-2-angular-right" size={16} className="mr-1.5" />Link Video <span className="text-rose-500">*</span></label>
         <input type="url" required value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
           placeholder="https://youtu.be/... atau https://drive.google.com/..."
           className="form-input" />
       </div>
       <div className="flex flex-col gap-2">
         <label className="text-sm font-bold text-navy-dark">
-          📝 Catatan untuk Assessor <span className="text-slate-400 font-normal">(opsional)</span>
+          <Icon name="pen-to-square" size={16} className="mr-1.5" />Catatan untuk Assessor <span className="text-slate-400 font-normal">(opsional)</span>
         </label>
         <textarea rows={4} value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="Tambahkan catatan tambahan untuk assessor..."
           className="form-input resize-none" />
       </div>
       <button type="submit" disabled={submitting} className="btn btn-primary btn-lg">
-        {submitting ? 'Mengumpulkan...' : '🎬 Submit Video Oral Exam'}
+        {submitting ? 'Mengumpulkan...' : <><Icon name="camera-movie-1" size={16} className="mr-1.5" />Submit Video Oral Exam</>}
       </button>
     </form>
   );

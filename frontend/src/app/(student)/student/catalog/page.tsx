@@ -1,5 +1,6 @@
 'use client';
 
+import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -61,7 +62,7 @@ export default function StudentCatalogPage() {
       });
 
       if (res.data.data?.is_paid) {
-        alert('🎉 Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
+        alert('Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
         await loadData();
         return;
       }
@@ -73,22 +74,22 @@ export default function StudentCatalogPage() {
         window.snap.pay(snapToken, {
           onSuccess: async () => {
             await api.post('/payments/verify-status', { enrollment_id: enrollmentId }).catch(() => {});
-            alert('🎉 Pembayaran berhasil! Kursus kamu sudah aktif.');
+            alert('Pembayaran berhasil! Kursus kamu sudah aktif.');
             loadData();
           },
           onPending: () => {
-            alert('⏳ Menunggu pembayaran selesai. Silakan selesaikan instruksi pembayaran.');
+            alert('Menunggu pembayaran selesai. Silakan selesaikan instruksi pembayaran.');
             loadData();
           },
           onError: () => {
-            alert('❌ Pembayaran gagal atau dibatalkan.');
+            alert('Pembayaran gagal atau dibatalkan.');
           },
           onClose: async () => {
             // Sinkronkan status saat pop-up ditutup (jika user membayar lewat tab/simulator lain)
             try {
               const v = await api.post('/payments/verify-status', { enrollment_id: enrollmentId });
               if (v.data?.data?.is_active) {
-                alert('🎉 Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.');
+                alert('Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.');
               }
             } catch {
               // ignore
@@ -190,7 +191,7 @@ export default function StudentCatalogPage() {
       {/* Search */}
       <div className="card mb-6">
         <div className="relative">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"><Icon name="search-1" size={18} /></span>
           <input
             type="text"
             placeholder="Cari kursus atau bidang peminatan..."
@@ -204,9 +205,9 @@ export default function StudentCatalogPage() {
       {/* Category Filter Tabs */}
       <div className="flex flex-wrap items-center gap-3 mb-8">
         {[
-          { id: 'ALL' as const, label: 'Semua', count: countAll, icon: '🌟' },
-          { id: 'FND' as const, label: 'Foundation Level', count: countFnd, icon: '🎓' },
-          { id: 'SPEC' as const, label: 'Spesialisasi Track', count: countSpec, icon: '🚀' },
+          { id: 'ALL' as const, label: 'Semua', count: countAll, icon: 'star-fat' },
+          { id: 'FND' as const, label: 'Foundation Level', count: countFnd, icon: 'graduation-cap-1' },
+          { id: 'SPEC' as const, label: 'Spesialisasi Track', count: countSpec, icon: 'rocket-5' },
         ].map(tab => {
           const isActive = activeTab === tab.id;
           return (
@@ -220,7 +221,7 @@ export default function StudentCatalogPage() {
                   : 'bg-white text-slate-600 hover:text-navy hover:bg-slate-100 border border-slate-200 shadow-sm'
               }`}
             >
-              <span>{tab.icon}</span>
+              <Icon name={tab.icon} size={16} />
               <span>{tab.label}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-bold transition-colors ${
                 isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
@@ -297,7 +298,7 @@ export default function StudentCatalogPage() {
 
             {tabFiltered.length === 0 && (
               <div className="card py-16 text-center text-slate-400">
-                <div className="text-4xl mb-4">🔎</div>
+                <div className="text-4xl mb-4"><Icon name="search-1" size={36} /></div>
                 <p className="font-medium text-navy-dark">Kursus tidak ditemukan</p>
                 <p className="text-xs text-slate-400 mt-1">Coba kata kunci lain atau pilih tab kategori yang berbeda</p>
               </div>
@@ -318,7 +319,7 @@ export default function StudentCatalogPage() {
                   disabled={currentPage <= 1}
                   className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  ← Sebelumnya
+                  <Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya
                 </button>
 
                 <div className="flex items-center gap-1">
@@ -343,7 +344,7 @@ export default function StudentCatalogPage() {
                   disabled={currentPage >= totalPages}
                   className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  Selanjutnya →
+                  Selanjutnya <Icon name="arrow-right" size={14} className="ml-1.5" />
                 </button>
               </div>
             </div>
@@ -389,7 +390,7 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
       {/* CTA Button */}
       {isLocked ? (
         <button disabled className="btn w-full text-sm font-semibold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed">
-          🔒 Terkunci (Maks. 1 Spesialisasi)
+          <Icon name="locked-1" size={16} className="mr-1.5" />Terkunci (Maks. 1 Spesialisasi)
         </button>
       ) : !enrollment ? (
         // Belum daftar → tombol Daftar
@@ -405,7 +406,7 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
               </svg>
               Mendaftar...
             </span>
-          ) : '🚀 Daftar Sekarang'}
+          ) : <><Icon name="rocket-5" size={16} className="mr-1.5" />Daftar Sekarang</>}
         </button>
       ) : enrollment.status === 'payment_pending' ? (
         // Menunggu Pembayaran → Tombol Bayar Sekarang (Pemicu Midtrans Snap)
@@ -424,7 +425,7 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
               Menghubungkan Midtrans...
             </span>
           ) : (
-            '💳 Bayar Sekarang'
+            <><Icon name="credit-card-multiple" size={16} className="mr-1.5" />Bayar Sekarang</>
           )}
         </button>
       ) : enrollment.status === 'active' || enrollment.status === 'completed' ? (
@@ -432,15 +433,15 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, isLocked, onEnr
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center btn-primary">
-          📖 Lanjut Belajar →
+          <Icon name="book-1" size={16} className="mr-1.5" />Lanjut Belajar <Icon name="arrow-right" size={14} className="ml-1.5" />
         </Link>
       ) : enrollment.status === 'pending_review' ? (
         <div className="btn w-full text-sm font-semibold text-center bg-amber-50 text-amber-700 border border-amber-200 cursor-default">
-          ⏳ Menunggu Kurasi Admin
+          <Icon name="hourglass" size={16} className="mr-1.5" />Menunggu Kurasi Admin
         </div>
       ) : (
         <div className="btn w-full text-sm font-semibold text-center bg-red-50 text-red-600 border border-red-200 cursor-default">
-          ❌ Pendaftaran Ditolak
+          <Icon name="xmark-circle" size={16} className="mr-1.5" />Pendaftaran Ditolak
         </div>
       )}
     </div>
