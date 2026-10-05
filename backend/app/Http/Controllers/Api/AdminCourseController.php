@@ -152,6 +152,7 @@ class AdminCourseController extends Controller
             'title'            => 'required|string|max:255',
             'embed_url'        => 'nullable|url',
             'instruction_text' => 'nullable|string',
+            'content_body'     => 'nullable|string',
             'max_score'        => 'nullable|integer|min:0',
             'is_prerequisite'  => 'nullable|boolean',
             'order_index'      => 'nullable|integer',
@@ -179,6 +180,21 @@ class AdminCourseController extends Controller
         ]);
     }
 
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp,svg|max:10240', // max 10MB
+        ]);
+
+        $path = $request->file('image')->store('course-images', 'public');
+
+        return response()->json([
+            'message'   => 'Gambar berhasil diupload.',
+            'file_path' => $path,
+            'url'       => url("storage/{$path}"),
+        ]);
+    }
+
     public function updateContent(Request $request, int $id): JsonResponse
     {
         $content = CourseContent::findOrFail($id);
@@ -187,6 +203,7 @@ class AdminCourseController extends Controller
             'title'            => 'sometimes|string|max:255',
             'embed_url'        => 'nullable|url',
             'instruction_text' => 'nullable|string',
+            'content_body'     => 'nullable|string',
             'max_score'        => 'nullable|integer|min:0',
             'is_prerequisite'  => 'nullable|boolean',
             'order_index'      => 'nullable|integer',
