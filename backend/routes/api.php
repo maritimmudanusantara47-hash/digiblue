@@ -28,6 +28,9 @@ Route::prefix('v1')->group(function () {
     // Public: Katalog & Verifikasi Sertifikat
     Route::get('courses',              [CourseController::class, 'index']);
     Route::get('courses/{slug}',       [CourseController::class, 'show']);
+    Route::get('certification-levels', function () {
+        return response()->json(['data' => \App\Models\CertificationLevel::where('is_active', true)->orderBy('order_index')->get()]);
+    });
     Route::get('verify/{serialUrlKey}',[CertificateController::class, 'verify']); // Halaman verifikasi publik QR Code
     Route::post('payments/notification',[PaymentController::class, 'handleNotification']); // Webhook Midtrans
 

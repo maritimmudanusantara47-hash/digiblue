@@ -24,7 +24,11 @@ class AdminCourseController extends Controller
             $query->where('title', 'like', '%'.$request->search.'%');
         }
         if ($request->filled('level')) {
-            $query->whereHas('certificationLevel', fn($q) => $q->where('code', $request->level));
+            $levels = explode(',', $request->level);
+            if (in_array('INT_CERT', $levels)) {
+                $levels = array_unique(array_merge($levels, ['FND', 'SPEC', 'INT_CERT']));
+            }
+            $query->whereHas('certificationLevel', fn($q) => $q->whereIn('code', $levels));
         }
 
         $courses = $request->boolean('paginate', false)

@@ -33,5 +33,29 @@ class CertificationLevelSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        $national = CertificationLevel::firstOrCreate(
+            ['code' => 'NAT'],
+            [
+                'name' => 'National Training Course',
+                'description' => 'Program pelatihan tingkat nasional.',
+                'is_field_trip_required' => false,
+                'is_critical_thinking_required' => false,
+                'order_index' => 3,
+                'is_active' => true,
+            ]
+        );
+
+        $singleModule = CertificationLevel::firstOrCreate(
+            ['code' => 'SGL'],
+            [
+                'name' => 'Single Module Course',
+                'description' => 'Kursus modul tunggal tematik.',
+                'is_field_trip_required' => false,
+                'is_critical_thinking_required' => false,
+                'order_index' => 4,
+                'is_active' => true,
+            ]
+        );
     }
 }

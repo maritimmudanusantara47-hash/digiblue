@@ -22,6 +22,8 @@ interface Course {
 const LEVEL_STYLE: Record<string, string> = {
   FND:  'bg-emerald-100 text-emerald-700 border-emerald-300',
   SPEC: 'bg-navy/10 text-navy border-navy/30',
+  NAT:  'bg-amber-100 text-amber-800 border-amber-300',
+  SGL:  'bg-purple-100 text-purple-800 border-purple-300',
 };
 
 type ModalMode = 'create' | 'edit' | null;
@@ -124,12 +126,8 @@ export default function AdminCoursesPage() {
 
   useEffect(() => {
     // Fetch certification levels for dropdown
-    api.get('/courses').then(res => {
-      // Extract unique levels from public courses list
-      const all: Course[] = res.data.data ?? [];
-      const seen = new Map<number, CertLevel>();
-      all.forEach(c => { if (c.certification_level) seen.set(c.certification_level.id, c.certification_level); });
-      setLevels(Array.from(seen.values()));
+    api.get('/certification-levels').then(res => {
+      setLevels(res.data.data ?? []);
     }).catch(() => setLevels([]));
   }, []);
 
@@ -215,9 +213,19 @@ export default function AdminCoursesPage() {
     }
   };
 
-  // ── Slices per level for current page ─────────────────────────────────────
-  const foundation     = courses.filter(c => c.certification_level?.code === 'FND');
-  const specialization = courses.filter(c => c.certification_level?.code === 'SPEC');
+  // ── Slices per group for current page ─────────────────────────────────────
+  const isInternational = (c: Course) => ['FND', 'SPEC', 'INT_CERT'].includes(c.certification_level?.code || '');
+  const isNational = (c: Course) => ['NAT', 'NAT_TRN'].includes(c.certification_level?.code || '');
+  const isSingleModule = (c: Course) => ['SGL', 'MOD', 'SINGLE'].includes(c.certification_level?.code || '');
+
+  const intCourses = courses.filter(isInternational);
+  const foundationCourses = intCourses.filter(c => c.certification_level?.code === 'FND');
+  const specializationCourses = intCourses.filter(c => c.certification_level?.code === 'SPEC');
+  const otherIntCourses = intCourses.filter(c => !['FND', 'SPEC'].includes(c.certification_level?.code || ''));
+
+  const nationalCourses = courses.filter(isNational);
+  const singleModuleCourses = courses.filter(isSingleModule);
+  const uncategorizedCourses = courses.filter(c => !isInternational(c) && !isNational(c) && !isSingleModule(c));
 
   return (
     <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
@@ -226,7 +234,7 @@ export default function AdminCoursesPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-navy-dark">Manajemen Kursus</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Kelola kurikulum Foundation & Specialization — {total} kursus terdaftar
+            Kelola kurikulum International, National, dan Single Module — {total} kursus terdaftar
           </p>
         </div>
         <button id="btn-create-course" onClick={openCreate} className="btn btn-primary whitespace-nowrap">
@@ -235,29 +243,85 @@ export default function AdminCoursesPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="card mb-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="relative flex-1 max-w-sm">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><Icon name="search-1" size={14} /></span>
-          <input
-            id="course-search"
-            type="text"
-            placeholder="Cari nama kursus..."
-            value={search}
-            onChange={e => handleSearchChange(e.target.value)}
-            className="form-input pl-9 py-2 text-sm w-full"
-          />
-        </div>
-        <div className="flex gap-2">
-          {(['', 'FND', 'SPEC'] as const).map(lvl => (
+      <div className="card mb-6 flex flex-col gap-4">
+        <div className="flex flex-col xl:flex-row gap-3 items-stretch xl:items-center justify-between">
+          <div className="relative flex-1 max-w-sm">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><Icon name="search-1" size={14} /></span>
+            <input
+              id="course-search"
+              type="text"
+              placeholder="Cari nama kursus..."
+              value={search}
+              onChange={e => handleSearchChange(e.target.value)}
+              className="form-input pl-9 py-2 text-sm w-full"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              key={lvl || 'all'}
-              onClick={() => handleFilterChange(lvl)}
-              className={`btn btn-sm ${filterLevel === lvl ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => handleFilterChange('')}
+              className={`btn btn-sm ${filterLevel === '' ? 'btn-primary' : 'btn-secondary'}`}
             >
-              {lvl === '' ? 'Semua' : lvl === 'FND' ? 'Foundation' : 'Specialization'}
+              Semua
             </button>
-          ))}
+
+            <button
+              onClick={() => handleFilterChange(['INT_CERT', 'FND', 'SPEC'].includes(filterLevel) ? '' : 'INT_CERT')}
+              className={`btn btn-sm ${
+                ['INT_CERT', 'FND', 'SPEC'].includes(filterLevel) ? 'btn-primary' : 'btn-secondary'
+              }`}
+            >
+              International Certification Training Course
+            </button>
+
+            <button
+              onClick={() => handleFilterChange(filterLevel === 'NAT' ? '' : 'NAT')}
+              className={`btn btn-sm ${filterLevel === 'NAT' ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              National Training Course
+            </button>
+
+            <button
+              onClick={() => handleFilterChange(filterLevel === 'SGL' ? '' : 'SGL')}
+              className={`btn btn-sm ${filterLevel === 'SGL' ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              Single Modul Course
+            </button>
+          </div>
         </div>
+
+        {/* Sub-filter untuk International Certification Track (Foundation & Specialization) */}
+        {['INT_CERT', 'FND', 'SPEC'].includes(filterLevel) && (
+          <div className="flex items-center gap-2 pt-3 border-t border-slate-100 animate-fadeup flex-wrap">
+            <span className="text-xs font-semibold text-slate-500">Track International:</span>
+            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+              <button
+                onClick={() => handleFilterChange('INT_CERT')}
+                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                  filterLevel === 'INT_CERT' ? 'bg-white shadow text-navy font-bold' : 'text-slate-600 hover:text-navy'
+                }`}
+              >
+                Semua Track
+              </button>
+              <button
+                onClick={() => handleFilterChange('FND')}
+                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                  filterLevel === 'FND' ? 'bg-white shadow text-emerald-700 font-bold' : 'text-slate-600 hover:text-navy'
+                }`}
+              >
+                Foundation
+              </button>
+              <button
+                onClick={() => handleFilterChange('SPEC')}
+                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                  filterLevel === 'SPEC' ? 'bg-white shadow text-navy font-bold' : 'text-slate-600 hover:text-navy'
+                }`}
+              >
+                Specialization
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -281,32 +345,101 @@ export default function AdminCoursesPage() {
       ) : (
         <div className="flex-1 flex flex-col justify-between">
           <div className="space-y-8">
-            {/* Foundation */}
-            {foundation.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-emerald-100 text-emerald-700 border-emerald-300">
-                    Foundation Level
-                  </span>
-                  <span className="text-slate-400 text-sm">{foundation.length} program</span>
+            {/* 1. International Certification Training Course */}
+            {intCourses.length > 0 && (
+              <section className="bg-slate-50/70 p-5 sm:p-6 rounded-2xl border border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-extrabold border bg-navy text-white border-navy shadow-sm">
+                      International Certification Training Course
+                    </span>
+                    <span className="text-slate-400 text-sm font-medium">{intCourses.length} kursus</span>
+                  </div>
+                  <span className="text-xs text-slate-400">Foundation Level & Specialization Track</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {foundation.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+
+                <div className="space-y-6">
+                  {/* Foundation */}
+                  {foundationCourses.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border bg-emerald-100 text-emerald-800 border-emerald-300">
+                          Foundation Level
+                        </span>
+                        <span className="text-slate-400 text-xs">{foundationCourses.length} program</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        {foundationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Specialization */}
+                  {specializationCourses.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">
+                          Specialization Level
+                        </span>
+                        <span className="text-slate-400 text-xs">{specializationCourses.length} track</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        {specializationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Other International */}
+                  {otherIntCourses.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                      {otherIntCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                    </div>
+                  )}
                 </div>
               </section>
             )}
 
-            {/* Specialization */}
-            {specialization.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">
-                    Specialization Level
+            {/* 2. National Training Course */}
+            {nationalCourses.length > 0 && (
+              <section className="bg-slate-50/70 p-5 sm:p-6 rounded-2xl border border-slate-200">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+                  <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-extrabold border bg-amber-600 text-white border-amber-600 shadow-sm">
+                    National Training Course
                   </span>
-                  <span className="text-slate-400 text-sm">{specialization.length} track</span>
+                  <span className="text-slate-400 text-sm font-medium">{nationalCourses.length} kursus</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {specialization.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                  {nationalCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                </div>
+              </section>
+            )}
+
+            {/* 3. Single Modul Course */}
+            {singleModuleCourses.length > 0 && (
+              <section className="bg-slate-50/70 p-5 sm:p-6 rounded-2xl border border-slate-200">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+                  <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-extrabold border bg-purple-600 text-white border-purple-600 shadow-sm">
+                    Single Modul Course
+                  </span>
+                  <span className="text-slate-400 text-sm font-medium">{singleModuleCourses.length} kursus</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {singleModuleCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                </div>
+              </section>
+            )}
+
+            {/* Uncategorized fallback */}
+            {uncategorizedCourses.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-slate-200 text-slate-700">
+                    Kursus Lainnya
+                  </span>
+                  <span className="text-slate-400 text-sm">{uncategorizedCourses.length} kursus</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {uncategorizedCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
                 </div>
               </section>
             )}
