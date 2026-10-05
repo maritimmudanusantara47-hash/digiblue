@@ -52,11 +52,12 @@ export default function AdminCoursesPage() {
   const [to, setTo]                   = useState(0);
 
   // Modal
-  const [modal, setModal]           = useState<ModalMode>(null);
-  const [editTarget, setEditTarget] = useState<Course | null>(null);
-  const [form, setForm]             = useState({ ...emptyForm });
-  const [saving, setSaving]         = useState(false);
-  const [formError, setFormError]   = useState('');
+  const [modal, setModal]                       = useState<ModalMode>(null);
+  const [editTarget, setEditTarget]             = useState<Course | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [form, setForm]                         = useState({ ...emptyForm });
+  const [saving, setSaving]                     = useState(false);
+  const [formError, setFormError]               = useState('');
 
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState<Course | null>(null);
@@ -135,12 +136,23 @@ export default function AdminCoursesPage() {
   const openCreate = () => {
     setEditTarget(null);
     setForm({ ...emptyForm });
+    setSelectedCategory('');
     setFormError('');
     setModal('create');
   };
 
   const openEdit = (course: Course) => {
     setEditTarget(course);
+    const code = course.certification_level?.code ?? '';
+    let category = '';
+    if (['FND', 'SPEC', 'INT_CERT'].includes(code)) {
+      category = 'INTERNATIONAL';
+    } else if (['NAT', 'NAT_TRN'].includes(code)) {
+      category = 'NATIONAL';
+    } else if (['SGL', 'MOD', 'SINGLE'].includes(code)) {
+      category = 'SINGLE_MODULE';
+    }
+    setSelectedCategory(category);
     setForm({
       title:                  course.title,
       description:            course.description ?? '',
@@ -153,10 +165,37 @@ export default function AdminCoursesPage() {
     setModal('edit');
   };
 
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    if (cat === 'INTERNATIONAL') {
+      setForm(f => ({ ...f, certification_level_id: '' }));
+    } else if (cat === 'NATIONAL') {
+      const nat = levels.find(l => ['NAT', 'NAT_TRN'].includes(l.code));
+      setForm(f => ({ ...f, certification_level_id: nat ? String(nat.id) : '' }));
+    } else if (cat === 'SINGLE_MODULE') {
+      const sgl = levels.find(l => ['SGL', 'MOD', 'SINGLE'].includes(l.code));
+      setForm(f => ({ ...f, certification_level_id: sgl ? String(sgl.id) : '' }));
+    } else {
+      setForm(f => ({ ...f, certification_level_id: '' }));
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.certification_level_id) {
-      setFormError('Nama kursus dan level wajib diisi.');
+    if (!form.title.trim()) {
+      setFormError('Nama kursus wajib diisi.');
+      return;
+    }
+    if (!selectedCategory) {
+      setFormError('Silakan pilih Kategori Kursus terlebih dahulu.');
+      return;
+    }
+    if (!form.certification_level_id) {
+      setFormError(
+        selectedCategory === 'INTERNATIONAL'
+          ? 'Pilih salah satu tipe sertifikasi: Foundation atau Specialization.'
+          : 'Level kursus belum tersedia di sistem.'
+      );
       return;
     }
     setSaving(true);
@@ -523,21 +562,93 @@ export default function AdminCoursesPage() {
             </div>
 
             <form onSubmit={handleSave} className="px-6 py-5 flex flex-col gap-4">
-              {/* Level */}
+              {/* Kategori Kursus */}
               <div className="flex flex-col gap-1.5">
-                <label className="form-label">Level Sertifikasi <span className="text-red-500">*</span></label>
+                <label className="form-label">Kategori Kursus <span className="text-red-500">*</span></label>
                 <select
                   required
-                  value={form.certification_level_id}
-                  onChange={e => setForm(f => ({ ...f, certification_level_id: e.target.value }))}
+                  value={selectedCategory}
+                  onChange={e => handleCategoryChange(e.target.value)}
                   className="form-input"
                 >
-                  <option value="">-- Pilih Level --</option>
-                  {levels.map(l => (
-                    <option key={l.id} value={l.id}>{l.name} ({l.code})</option>
-                  ))}
+                  <option value="">-- Pilih Kategori Kursus --</option>
+                  <option value="INTERNATIONAL">International Certification Training Course</option>
+                  <option value="NATIONAL">National Training Course</option>
+                  <option value="SINGLE_MODULE">Single Modul Course</option>
                 </select>
               </div>
+
+              {/* Pilihan Khusus jika Kategori International dipilih */}
+              {selectedCategory === 'INTERNATIONAL' && (
+                <div className="flex flex-col gap-2 p-3.5 bg-slate-50 border border-slate-200 rounded-xl animate-fadeup">
+                  <div className="flex items-center justify-between">
+                    <label className="form-label text-xs font-bold text-navy-dark">
+                      Pilihan Track International <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[11px] text-slate-400">Pilih salah satu</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Option Foundation */}
+                    {(() => {
+                      const fnd = levels.find(l => l.code === 'FND');
+                      const isSelected = form.certification_level_id === String(fnd?.id);
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => fnd && setForm(f => ({ ...f, certification_level_id: String(fnd.id) }))}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-400/20 text-emerald-900 shadow-sm'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-extrabold text-sm">Foundation</span>
+                            <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                              isSelected ? 'border-emerald-600 bg-emerald-600' : 'border-slate-300'
+                            }`}>
+                              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-tight">Program sertifikasi dasar CBEc</p>
+                        </button>
+                      );
+                    })()}
+
+                    {/* Option Specialization */}
+                    {(() => {
+                      const spec = levels.find(l => l.code === 'SPEC');
+                      const isSelected = form.certification_level_id === String(spec?.id);
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => spec && setForm(f => ({ ...f, certification_level_id: String(spec.id) }))}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-sky-50 border-sky-500 ring-2 ring-sky-400/20 text-sky-900 shadow-sm'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-extrabold text-sm">Specialization</span>
+                            <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                              isSelected ? 'border-sky-600 bg-sky-600' : 'border-slate-300'
+                            }`}>
+                              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-tight">Jalur peminatan mendalam (10 Track)</p>
+                        </button>
+                      );
+                    })()}
+                  </div>
+                  {!form.certification_level_id && (
+                    <span className="text-[11px] text-amber-600 font-medium">
+                      * Silakan klik salah satu: Foundation atau Specialization.
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Title */}
               <div className="flex flex-col gap-1.5">
