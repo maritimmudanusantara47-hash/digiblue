@@ -12,8 +12,10 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
 
   // Simple, safe Markdown parser
   const renderFormattedText = (text: string) => {
+    // Process markdown link [text](url)
+    const linkRegex = /\[(.*?)\]\((.*?)\)/g;
     // Process bold, italic, code
-    const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+    const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\))/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={i} className="font-bold text-navy-dark">{part.slice(2, -2)}</strong>;
@@ -23,6 +25,14 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
       }
       if (part.startsWith('`') && part.endsWith('`')) {
         return <code key={i} className="px-1.5 py-0.5 rounded bg-slate-100 text-navy font-mono text-xs">{part.slice(1, -1)}</code>;
+      }
+      const match = /^\[(.*?)\]\((.*?)\)$/.exec(part);
+      if (match) {
+        return (
+          <a key={i} href={match[2]} target="_blank" rel="noopener noreferrer" className="text-navy hover:text-navy-light underline font-medium">
+            {match[1]}
+          </a>
+        );
       }
       return part;
     });
@@ -106,6 +116,27 @@ export default function MarkdownViewer({ content, className = '' }: Props) {
         <blockquote key={index} className="border-l-4 border-gold bg-amber-50/60 rounded-r-xl px-4 py-2 my-2 text-sm text-slate-700 italic">
           {renderFormattedText(trimmed.slice(2))}
         </blockquote>
+      );
+      return;
+    }
+
+    // Horizontal Rule
+    if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+      flushList();
+      elements.push(<hr key={index} className="my-6 border-slate-200" />);
+      return;
+    }
+
+    // Image ![alt](url)
+    const imgMatch = /^!\[(.*?)\]\((.*?)\)$/.exec(trimmed);
+    if (imgMatch) {
+      flushList();
+      elements.push(
+        <figure key={index} className="my-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imgMatch[2]} alt={imgMatch[1]} className="rounded-xl border border-slate-200 max-w-full h-auto shadow-sm" />
+          {imgMatch[1] && <figcaption className="text-xs text-slate-400 text-center mt-1.5">{imgMatch[1]}</figcaption>}
+        </figure>
       );
       return;
     }

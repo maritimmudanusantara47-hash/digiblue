@@ -15,6 +15,7 @@ class CourseContent extends Model
         'file_path',
         'embed_url',
         'instruction_text',
+        'content_body',
         'max_score',
         'is_prerequisite',
         'order_index',

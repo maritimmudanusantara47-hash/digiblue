@@ -27,6 +27,7 @@ interface Content {
   file_path: string | null;
   embed_url: string | null;
   instruction_text: string | null;
+  content_body?: string | null;
   max_score: number;
   order_index: number;
   quiz_questions?: QuizQuestion[];
@@ -67,6 +68,8 @@ export default function AdminCourseContentPage() {
 
   // Edit instruction text
   const [editInstruction, setEditInstruction] = useState('');
+  const [editContentBody, setEditContentBody] = useState('');
+  const [bodyTab, setBodyTab] = useState<'editor' | 'preview'>('editor');
   const [editEmbedUrl, setEditEmbedUrl]       = useState('');
   const [instructionTab, setInstructionTab]   = useState<'editor' | 'preview'>('editor');
   const [savingContent, setSavingContent]     = useState(false);
@@ -106,6 +109,7 @@ export default function AdminCourseContentPage() {
   const selectContent = (content: Content) => {
     setSelectedContent(content);
     setEditInstruction(content.instruction_text ?? '');
+    setEditContentBody(content.content_body ?? '');
     setEditEmbedUrl(content.embed_url ?? '');
     setUploadFile(null);
     setShowAddQ(false);
@@ -144,6 +148,7 @@ export default function AdminCourseContentPage() {
     try {
       await api.patch(`/admin/contents/${selectedContent.id}`, {
         instruction_text: editInstruction || null,
+        content_body: editContentBody || null,
         embed_url: editEmbedUrl || null,
       });
       alert('Konten berhasil disimpan!');
@@ -205,8 +210,8 @@ export default function AdminCourseContentPage() {
                         <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold' : ''}`}>
                           {content.title}
                         </span>
-                        {(content.content_type === 'pdf_module' || content.content_type === 'essay_task' || content.content_type === 'critical_thinking') && content.file_path && (
-                          <span className="text-xs opacity-70"><Icon name="check-circle-1" size={12} /></span>
+                        {(content.content_body || content.file_path) && (
+                          <span className="text-xs opacity-70" title="Materi sudah terisi"><Icon name="check-circle-1" size={12} /></span>
                         )}
                       </button>
                     );
@@ -257,51 +262,232 @@ export default function AdminCourseContentPage() {
                 <div className="card flex flex-col gap-5">
                   <h3 className="font-bold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Konten</h3>
 
-                  {/* PDF Upload (for pdf_module and essay_task and critical_thinking) */}
-                  {(selectedContent.content_type === 'pdf_module' ||
-                    selectedContent.content_type === 'essay_task' ||
-                    selectedContent.content_type === 'critical_thinking') && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex flex-col gap-4">
-                      <p className="font-semibold text-blue-800 text-sm">
-                        <Icon name="file-multiple" size={16} className="mr-1.5" />{selectedContent.content_type === 'pdf_module' ? 'Upload File Modul PDF' : 'Upload File Soal (PDF)'}
-                      </p>
-                      {selectedContent.content_type !== 'pdf_module' && (
-                        <p className="text-xs text-blue-600">File ini akan ditampilkan kepada user sebagai soal/materi studi kasus yang harus dikerjakan.</p>
-                      )}
-                      {selectedContent.file_path && (
-                        <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-blue-200">
-                          <span><Icon name="check-circle-1" size={18} /></span>
-                          <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
+                  {/* Web-based Course Learning Material Editor (Materi Website Interaktif) */}
+                  {selectedContent.content_type === 'pdf_module' && (
+                    <div className="bg-slate-50/80 border border-slate-200 rounded-3xl p-6 flex flex-col gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-lg bg-navy text-white flex items-center justify-center text-xs">
+                              <Icon name="book-1" size={16} />
+                            </span>
+                            <h4 className="font-extrabold text-navy-dark text-base">
+                              Materi Kursus Langsung di Website (Online Learning)
+                            </h4>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Tulis materi pembelajaran di sini seperti kursus online modern. Peserta dapat langsung membaca artikel dan modul interaktif tanpa perlu download file PDF.
+                          </p>
+                        </div>
+                        <div className="flex gap-1 bg-white p-1 rounded-xl border border-slate-200 self-start sm:self-auto shadow-sm">
                           <button
                             type="button"
-                            onClick={() => {
-                              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
-                                .replace(/\/api\/v1\/?$/, '')
-                                .replace(/\/api\/?$/, '');
-                              const rawUrl = `${backendBase}/storage/${selectedContent.file_path}`;
-                              setPreviewPdfUrl(rawUrl);
-                              setPreviewPdfTitle(selectedContent.title);
-                            }}
-                            className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
+                            onClick={() => setBodyTab('editor')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${bodyTab === 'editor' ? 'bg-navy text-white shadow-sm' : 'text-slate-500 hover:text-navy'}`}
                           >
-                            <Icon name="eye" size={16} className="mr-1.5" />Pratinjau di Reader
+                            <Icon name="pencil-1" size={14} />
+                            Editor Teks
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBodyTab('preview')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${bodyTab === 'preview' ? 'bg-navy text-white shadow-sm' : 'text-slate-500 hover:text-navy'}`}
+                          >
+                            <Icon name="eye" size={14} />
+                            Pratinjau Website
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick Markdown Formatting Helper Toolbar */}
+                      {bodyTab === 'editor' && (
+                        <div className="flex flex-wrap items-center gap-1.5 bg-white p-2 rounded-xl border border-slate-200 text-xs">
+                          <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase">Format:</span>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n# Judul Bab\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold"
+                            title="Heading 1"
+                          >
+                            H1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n## Sub Judul\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold"
+                            title="Heading 2"
+                          >
+                            H2
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n### Bagian Materi\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold"
+                            title="Heading 3"
+                          >
+                            H3
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '**teks tebal**')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-bold"
+                            title="Bold"
+                          >
+                            B
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '*teks miring*')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 italic"
+                            title="Italic"
+                          >
+                            I
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n- Poin materi 1\n- Poin materi 2\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700"
+                            title="Bullet List"
+                          >
+                            • List
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n1. Langkah pertama\n2. Langkah kedua\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700"
+                            title="Numbered List"
+                          >
+                            1. Angka
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n> Kutipan penting / Catatan khusus\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700"
+                            title="Quote Box"
+                          >
+                            &ldquo; Quote
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n---\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700"
+                            title="Garis Pemisah"
+                          >
+                            — Garis
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '[Teks Link](https://example.com)')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 underline"
+                            title="Link Tautan"
+                          >
+                            Link
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditContentBody(prev => prev + '\n![Deskripsi Gambar](https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800)\n')}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700"
+                            title="Sisipkan Gambar"
+                          >
+                            Gambar
                           </button>
                         </div>
                       )}
-                      <div className="flex items-center gap-3">
-                        <input type="file" accept=".pdf"
-                          onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
-                          className="text-sm text-slate-600 flex-1" />
-                        <button onClick={handleUploadPDF}
-                          disabled={!uploadFile || uploading}
-                          className="btn btn-primary btn-sm">
-                          {uploading ? 'Uploading...' : <><Icon name="upload-1" size={16} className="mr-1.5" />Upload PDF</>}
-                        </button>
-                      </div>
-                      {uploadFile && (
-                        <p className="text-xs text-slate-500">File dipilih: {uploadFile.name} ({(uploadFile.size/1024/1024).toFixed(2)} MB)</p>
+
+                      {bodyTab === 'editor' ? (
+                        <div className="flex flex-col gap-2">
+                          <textarea
+                            rows={16}
+                            value={editContentBody}
+                            onChange={e => setEditContentBody(e.target.value)}
+                            placeholder="Tuliskan materi pembelajaran lengkap di sini... (Mendukung format teks kaya Markdown: judul bab, paragraf penjelasan, gambar ilustrasi, daftar materi, dan catatan penting)"
+                            className="form-input font-mono text-xs leading-relaxed resize-y bg-white border-slate-200 p-4"
+                          />
+                          <p className="text-[11px] text-slate-400">
+                            Tips: Gunakan tombol preview di kanan atas untuk melihat pratinjau tampilan yang akan dilihat oleh siswa di halaman belajar.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 min-h-[300px] max-h-[600px] overflow-y-auto shadow-inner">
+                          {editContentBody ? (
+                            <article className="prose max-w-none">
+                              <MarkdownViewer content={editContentBody} />
+                            </article>
+                          ) : (
+                            <div className="text-center py-16 text-slate-400">
+                              <Icon name="book-1" size={32} className="mx-auto mb-2 opacity-40" />
+                              <p className="text-sm font-semibold">Belum ada materi online yang ditulis.</p>
+                              <p className="text-xs mt-1">Pilih tab &lsquo;Editor Teks&rsquo; untuk mulai mengetik materi modul.</p>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
+                  )}
+
+                  {/* PDF Upload (Opsional / Dokumen Pelengkap atau untuk Tugas Esai) */}
+                  {(selectedContent.content_type === 'pdf_module' ||
+                    selectedContent.content_type === 'essay_task' ||
+                    selectedContent.content_type === 'critical_thinking') && (
+                    <details className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm group" open={!selectedContent.content_body && !!selectedContent.file_path}>
+                      <summary className="font-semibold text-slate-700 cursor-pointer flex items-center justify-between list-none">
+                        <span className="flex items-center gap-2">
+                          <Icon name="file-multiple" size={16} className="text-navy" />
+                          <span>
+                            {selectedContent.content_type === 'pdf_module'
+                              ? 'Lampiran File PDF (Opsional / Dokumen Tambahan)'
+                              : 'Upload File Soal Studi Kasus (PDF)'}
+                          </span>
+                          {selectedContent.file_path && (
+                            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                              Ada Berkas PDF
+                            </span>
+                          )}
+                        </span>
+                        <Icon name="chevron-down" size={14} className="text-slate-400 transition-transform group-open:rotate-180" />
+                      </summary>
+
+                      <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-slate-200/60">
+                        {selectedContent.content_type === 'pdf_module' && (
+                          <p className="text-xs text-slate-500">
+                            Jika Anda ingin melampirkan berkas PDF sebagai buku pedoman / slide presentasi tambahan yang dapat dilihat di reader.
+                          </p>
+                        )}
+                        {selectedContent.file_path && (
+                          <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-200">
+                            <span><Icon name="check-circle-1" size={18} className="text-emerald-500" /></span>
+                            <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
+                                  .replace(/\/api\/v1\/?$/, '')
+                                  .replace(/\/api\/?$/, '');
+                                const rawUrl = `${backendBase}/storage/${selectedContent.file_path}`;
+                                setPreviewPdfUrl(rawUrl);
+                                setPreviewPdfTitle(selectedContent.title);
+                              }}
+                              className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
+                            >
+                              <Icon name="eye" size={16} className="mr-1.5" />Pratinjau di Reader
+                            </button>
+                          </div>
+                        )}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                          <input type="file" accept=".pdf"
+                            onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
+                            className="text-sm text-slate-600 flex-1" />
+                          <button onClick={handleUploadPDF}
+                            disabled={!uploadFile || uploading}
+                            className="btn btn-primary btn-sm">
+                            {uploading ? 'Uploading...' : <><Icon name="upload-1" size={16} className="mr-1.5" />Upload PDF</>}
+                          </button>
+                        </div>
+                        {uploadFile && (
+                          <p className="text-xs text-slate-500">File dipilih: {uploadFile.name} ({(uploadFile.size/1024/1024).toFixed(2)} MB)</p>
+                        )}
+                      </div>
+                    </details>
                   )}
 
                   {/* Field Study: admin note */}

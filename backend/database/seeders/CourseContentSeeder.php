@@ -63,7 +63,49 @@ class CourseContentSeeder extends Seeder
             'content_type' => 'pdf_module',
             'title' => 'Foundation Learning Modules — Blue Economy Core',
             'file_path' => $savedPdfPath,
-            'instruction_text' => "Unduh dan pelajari modul pembelajaran Foundation Level berikut sebelum mengerjakan ujian.\n\nModul ini mencakup:\n• Konsep dasar Blue Economy & Ekonomi Kelautan berkelanjutan\n• Ekosistem pesisir utama (mangrove, padang lamun, terumbu karang) dan nilai valuasinya\n• Target SDG 14 (Life Below Water) dan integrasi ke dalam kebijakan nasional\n• Kerangka hukum UNCLOS 1982, batas maritim, dan tata kelola perikanan WPPNRI\n• Pencegahan pencemaran laut, mikroplastik, serta instrumen Keuangan Biru Indonesia\n\nBaca dengan seksama, catat poin-poin penting, dan siapkan dirimu untuk ujian.",
+            'instruction_text' => "Pelajari seluruh modul pembelajaran komprehensif di bawah ini. Anda dapat membaca materi secara interaktif langsung pada platform ini sebelum melanjutkan ke sesi ujian.",
+            'content_body' => "## Modul 1: Pengantar dan Konsep Fundamental Blue Economy
+
+Ekonomi Biru (*Blue Economy*) adalah pemanfaatan sumber daya laut secara berkelanjutan untuk pertumbuhan ekonomi, peningkatan mata pencaharian, dan lapangan kerja, sekaligus menjaga kesehatan ekosistem laut. Berbeda dengan model ekonomi konvensional (*brown/business-as-usual economy*), Ekonomi Biru mengintegrasikan kelestarian lingkungan dengan produktivitas ekonomi pesisir dan kelautan.
+
+### Prinsip Utama Ekonomi Biru:
+- **Keberlanjutan Ekologis**: Tidak mengeksploitasi sumber daya melebihi kapasitas regenerasi alam.
+- **Keadilan Sosial & Inklusivitas**: Menempatkan nelayan tradisional dan komunitas pesisir sebagai aktor utama.
+- **Efisiensi Sumber Daya & Zero Waste**: Menerapkan prinsip ekonomi sirkular pada pengolahan produk hasil laut.
+- **Ketahanan Iklim**: Mengoptimalkan peran ekosistem laut sebagai penyerap karbon alami (*Blue Carbon*).
+
+---
+
+## Modul 2: Ekosistem Pesisir & Valuasi Ekonomi (Blue Carbon)
+
+Indonesia merupakan rumah bagi 20% hutan mangrove dunia dan padang lamun terluas di kawasan Indo-Pasifik. Ekosistem ini memiliki kemampuan menyerap karbon hingga **4–10 kali lipat** lebih efektif per hektar dibandingkan hutan terestrial tropis.
+
+### Tiga Ekosistem Penyangga Pesisir:
+1. **Hutan Mangrove**: Penahan abrasi alami, tempat pemijahan ikan (*nursery ground*), dan penyimpan cadangan karbon tanah (*soil carbon*).
+2. **Padang Lamun (*Seagrass*)**: Menstabilkan sedimen dasar laut, menyaring air, dan habitat dugong serta penyu.
+3. **Terumbu Karang**: Benteng pemecah ombak dari badai serta episentrum keanekaragaman hayati laut (*Coral Triangle*).
+
+> **Penting untuk Dipahami**: Valuasi Ekonomi Total (*Total Economic Value - TEV*) dari ekosistem pesisir mencakup *Direct Use Value* (perikanan, ekowisata), *Indirect Use Value* (perlindungan pantai, serapan karbon), serta *Option & Existence Value*.
+
+---
+
+## Modul 3: Target SDG 14 & Tata Kelola Maritim (UNCLOS 1982)
+
+Implementasi Ekonomi Biru di Indonesia berakar kuat pada **Tujuan Pembangunan Berkelanjutan (SDG 14: Life Below Water)** dan instrumen hukum internasional **UNCLOS 1982**.
+
+- **SDG 14.1**: Mencegah dan secara signifikan mengurangi pencemaran laut, terutama dari sampah plastik daratan.
+- **SDG 14.4 & 14.6**: Menghentikan penangkapan ikan berlebih (*overfishing*), praktik *Illegal, Unreported, and Unregulated (IUU) Fishing*, serta menghapus subsidi penangkapan yang merusak.
+- **Zonasi WPPNRI**: Pengelolaan Wilayah Pengelolaan Perikanan Negara Republik Indonesia yang terbagi menjadi 11 zona perikanan tangkap berbasis sains (*Maximum Sustainable Yield*).
+
+---
+
+## Modul 4: Inovasi Pembiayaan Biru (*Blue Finance*)
+
+Transisi menuju ekonomi kelautan yang berkelanjutan membutuhkan mobilisasi permodalan yang masif. Indonesia telah memelopori penerbitan instrumen keuangan inovatif:
+
+- **Sovereign Blue Bond**: Surat utang negara berstandar internasional yang dialokasikan khusus untuk proyek konservasi laut dan sanitasi pesisir.
+- **Blended Finance**: Penggabungan dana filantropi, hibah donor, dan investasi komersial untuk menekan risiko investasi proyek laut pemula.
+- **Pasar Karbon Biru (*Carbon Offset*)**: Skema sertifikasi karbon berbasis mangrove dan lamun yang dapat diperdagangkan di bursa karbon resmi.",
             'max_score' => 0,
             'is_prerequisite' => true,
             'order_index' => 1,
