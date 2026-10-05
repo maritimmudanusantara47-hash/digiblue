@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 };
 
 const stats = [
-  { num: '2.000+', label: 'peserta terlatih', sub: 'di 30+ negara' },
-  { num: '11', label: 'program sertifikasi', sub: 'Foundation & Specialization' },
+  { num: '3.000+', label: 'peserta terlatih', sub: 'di 30+ negara' },
+  { num: '12', label: 'program sertifikasi', sub: 'Foundation & Specialization' },
   { num: '100%', label: 'sertifikat terverifikasi', sub: 'QR code & ID unik' },
 ];
 
@@ -19,7 +19,7 @@ const certPoints = [
   { icon: 'file-multiple', title: 'PDF instan', desc: 'Terbit otomatis setelah lulus. Unduh, cetak, atau bagikan.' },
   { icon: 'shield-2-check', title: 'Dapat diverifikasi pemberi kerja', desc: 'ID unik & QR code bisa dicek online dalam hitungan detik.' },
   { icon: 'linkedin', title: 'Siap untuk CV & LinkedIn', desc: 'Tunjukkan keahlian Blue Economy-mu di tempat rekruter mencari.' },
-  { icon: 'layers-1', title: 'Bertingkat', desc: 'Mulai dari Foundation, lanjut ke 10 jalur Specialization.' },
+  { icon: 'layers-1', title: 'Bertingkat', desc: 'Mulai dari Foundation, lanjut ke 11 jalur Specialization.' },
 ];
 
 const included = [
@@ -64,10 +64,8 @@ export default function LandingPage() {
             <span className="font-extrabold text-navy-dark text-lg tracking-tight">DigiBlueCamp</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-navy-dark" aria-label="Navigasi utama">
+            <a href="/" className="hover:text-navy-light">Home</a>
             <a href="#kursus" className="hover:text-navy-light">Kursus</a>
-            <a href="#sertifikat" className="hover:text-navy-light">Sertifikat</a>
-            <a href="#harga" className="hover:text-navy-light">Yang Kamu Dapat</a>
-            <a href="#faq" className="hover:text-navy-light">FAQ</a>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/login" className="hidden sm:inline text-sm font-semibold text-navy-dark hover:text-navy-light">Masuk</Link>
@@ -148,9 +146,9 @@ export default function LandingPage() {
           <div className="container py-8 flex flex-col md:flex-row items-center gap-6 md:gap-12">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 shrink-0">Didukung oleh</p>
             <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-navy font-bold opacity-80">
-              <span className="flex items-center gap-2"><Icon name="globe-1" size={20} /> The Blue Economist Int&apos;l Association</span>
+              <span className="flex items-center gap-2"><Icon name="globe-1" size={20} /> The Blue Economist International Association</span>
               <span className="flex items-center gap-2"><Icon name="flag-1" size={20} /> SDG 14 — Life Below Water</span>
-              <span className="flex items-center gap-2"><Icon name="anchor" size={20} /> Maritim Mudanusantara</span>
+              <span className="flex items-center gap-2"><Icon name="anchor" size={20} /> Maritim Muda Nusantara</span>
             </div>
           </div>
         </section>
@@ -288,9 +286,8 @@ export default function LandingPage() {
           <div>
             <h3 className="text-white font-bold mb-3 text-sm">Platform</h3>
             <ul className="flex flex-col gap-2">
+              <li><a href="/" className="hover:text-white">Home</a></li>
               <li><a href="#kursus" className="hover:text-white">Kursus</a></li>
-              <li><a href="#sertifikat" className="hover:text-white">Sertifikat</a></li>
-              <li><a href="#harga" className="hover:text-white">Yang Kamu Dapat</a></li>
             </ul>
           </div>
           <div>
@@ -298,7 +295,6 @@ export default function LandingPage() {
             <ul className="flex flex-col gap-2">
               <li><Link href="/login" className="hover:text-white">Masuk</Link></li>
               <li><Link href="/register" className="hover:text-white">Daftar</Link></li>
-              <li><a href="#faq" className="hover:text-white">Bantuan</a></li>
             </ul>
           </div>
         </div>
