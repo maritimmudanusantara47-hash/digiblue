@@ -50,7 +50,7 @@
   /* Buttons */
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold
-           cursor-pointer border-none transition-all duration-200 whitespace-nowrap select-none;
+           cursor-pointer transition-all duration-200 whitespace-nowrap select-none;
   }
   .btn-primary {
     background: linear-gradient(135deg, #1E3A5F 0%, #2A5298 100%);
@@ -160,6 +160,15 @@
 
 /* ─── Custom Utilities ─────────────────────────────────────────────────────── */
 @layer utilities {
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 1024px) {
+    .container { padding-inline: 2rem; }
+  }
   .text-navy      { color: #1E3A5F; }
   .text-navy-dark { color: #0F1E33; }
   .text-gold      { color: #F4A820; }
