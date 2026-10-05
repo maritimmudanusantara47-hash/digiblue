@@ -116,6 +116,7 @@ export interface CourseContent {
   file_path: string | null;
   embed_url: string | null;
   instruction_text: string | null;
+  content_body?: string | null;
   max_score: number;
   is_prerequisite: boolean;
   order_index: number;

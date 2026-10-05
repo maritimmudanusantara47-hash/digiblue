@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import MarkdownViewer from '@/components/MarkdownViewer';
+import InteractiveModuleViewer from '@/components/InteractiveModuleViewer';
 
 const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader'), {
   ssr: false,
@@ -27,6 +28,7 @@ interface Content {
   file_path: string | null;
   embed_url: string | null;
   instruction_text: string | null;
+  content_body?: string | null;
   max_score: number;
   is_prerequisite: boolean;
   order_index: number;
@@ -496,8 +498,16 @@ function PDFModule({
         </div>
       )}
 
-      {/* PDF Document Reader */}
-      {pdfUrl ? (
+      {/* Online Course Learning Material (Materi Interaktif & Kreatif di Website) */}
+      {content.content_body ? (
+        <InteractiveModuleViewer
+          contentId={content.id}
+          title={content.title}
+          body={content.content_body}
+          pdfUrl={pdfUrl}
+        />
+      ) : pdfUrl ? (
+        /* PDF Document Reader (Fallback jika materi lama masih PDF) */
         <div className="flex flex-col gap-3">
           <AestheticPdfReader
             url={pdfUrl}
@@ -512,7 +522,7 @@ function PDFModule({
           <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center text-4xl"><Icon name="file-multiple" size={36} /></div>
           <div>
             <p className="font-bold text-navy-dark text-lg">{content.title}</p>
-            <p className="text-slate-400 text-sm mt-1">File PDF belum diupload oleh admin.</p>
+            <p className="text-slate-400 text-sm mt-1">Materi pembelajaran sedang disiapkan oleh instruktur/admin.</p>
           </div>
         </div>
       )}
