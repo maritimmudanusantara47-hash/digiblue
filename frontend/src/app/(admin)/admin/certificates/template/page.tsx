@@ -133,16 +133,16 @@ export default function CertificateTemplateAdminPage() {
   const sel = layout[selectedKey];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden select-none">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 px-5 py-3 flex items-center justify-between gap-4">
+      <header className="flex-shrink-0 z-30 bg-slate-900 border-b border-slate-800 px-5 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link href="/admin/certificates" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">
-            <Ico.Back /> Kembali
+            <Ico.Back /> Keluar ke Admin
           </Link>
           <div>
-            <h1 className="text-sm font-bold text-white leading-tight">Template Sertifikat</h1>
+            <h1 className="text-sm font-bold text-white leading-tight">Template Sertifikat Designer</h1>
             <p className="text-[11px] text-slate-500">A4 Landscape · 297 × 210 mm</p>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function CertificateTemplateAdminPage() {
       </header>
 
       {/* ── Body ── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 min-h-0 flex overflow-hidden">
 
         {/* Canvas */}
         <main className="flex-1 overflow-auto p-6 flex flex-col items-center gap-3 bg-[#0a0a0f]">
@@ -258,7 +258,7 @@ export default function CertificateTemplateAdminPage() {
         </main>
 
         {/* Sidebar */}
-        <aside className="w-80 bg-slate-900 border-l border-slate-800 flex flex-col overflow-hidden">
+        <aside className="w-80 flex-shrink-0 bg-slate-900 border-l border-slate-800 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto divide-y divide-slate-800">
 
             {/* Section: Field Selector */}

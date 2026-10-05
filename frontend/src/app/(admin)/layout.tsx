@@ -26,6 +26,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.replace('/login');
   };
 
+  // Full-page standalone editor (misal: template designer sertifikat)
+  if (pathname.startsWith('/admin/certificates/template')) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <aside className="sidebar">
