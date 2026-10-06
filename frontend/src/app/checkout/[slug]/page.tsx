@@ -220,7 +220,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
           <Icon name="search-1" size={40} className="mx-auto mb-4 text-slate-300" />
           <h2 className="text-xl font-bold text-navy-dark">Kursus Tidak Ditemukan</h2>
           <p className="text-slate-500 text-sm mt-1 mb-6">Program kursus yang kamu pilih tidak tersedia.</p>
-          <Link href="/#kursus" className="btn btn-primary">Kembali ke Beranda</Link>
+          <Link href="/courses" className="btn btn-primary">Kembali ke Katalog Kursus</Link>
         </div>
         <PublicFooter />
       </div>
@@ -265,7 +265,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
         <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-6">
           <Link href="/" className="hover:text-navy transition-colors">Home</Link>
           <span>/</span>
-          <Link href="/#kursus" className="hover:text-navy transition-colors">Kursus Unggulan</Link>
+          <Link href="/courses" className="hover:text-navy transition-colors">Katalog Kursus</Link>
           <span>/</span>
           <span className="text-navy-dark font-bold">Checkout Pembayaran</span>
         </nav>
@@ -403,10 +403,10 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
               </button>
 
               <Link
-                href="/#kursus"
+                href="/courses"
                 className="btn btn-secondary btn-sm text-xs text-center hover:bg-slate-100 py-2"
               >
-                ← Batalkan & Kembali ke Beranda
+                ← Batalkan & Kembali ke Katalog Kursus
               </Link>
             </div>
           </div>

@@ -93,9 +93,9 @@ export default function CourseSyllabusDetailPage() {
         </div>
         <h2 className="text-xl font-bold text-navy-dark mb-2">Kursus Tidak Ditemukan</h2>
         <p className="text-slate-500 text-sm mb-6">{error ?? 'Materi kursus tidak dapat dimuat.'}</p>
-        <Link href="/#kursus" className="btn btn-primary inline-flex items-center gap-2">
+        <Link href="/courses" className="btn btn-primary inline-flex items-center gap-2">
           <Icon name="arrow-left" size={16} />
-          <span>Kembali ke Beranda Kursus</span>
+          <span>Kembali ke Katalog Kursus</span>
         </Link>
       </div>
     );
@@ -123,8 +123,8 @@ export default function CourseSyllabusDetailPage() {
           <span>Beranda</span>
         </Link>
         <span>/</span>
-        <Link href="/#kursus" className="hover:text-navy transition-colors">
-          Kursus Unggulan
+        <Link href="/courses" className="hover:text-navy transition-colors">
+          Katalog Kursus
         </Link>
         <span>/</span>
         <span className="text-navy-dark truncate max-w-xs">{course.title}</span>

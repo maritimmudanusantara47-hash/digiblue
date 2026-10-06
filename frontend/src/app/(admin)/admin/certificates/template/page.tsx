@@ -377,7 +377,7 @@ export default function CertificateTemplateAdminPage() {
                     { label: 'Grade', key: 'grade', full: false },
                     { label: 'Tanggal', key: 'date', full: false },
                     { label: 'Tempat', key: 'place', full: false },
-                  ].reduce<JSX.Element[]>((acc, field, idx, arr) => {
+                  ].reduce<React.ReactElement[]>((acc, field, idx, arr) => {
                     if (!field.full && idx > 0 && !arr[idx - 1].full) {
                       // Group pairs in a grid
                       return acc;

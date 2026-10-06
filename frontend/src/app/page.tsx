@@ -1,7 +1,6 @@
 import Icon from '@/components/Icon';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import LandingCourseTabs from '@/components/landing/LandingCourseTabs';
 
 export const metadata: Metadata = {
   title: 'DigiBlueCamp — Kursus & Sertifikasi Blue Economy Online',
@@ -64,8 +63,8 @@ export default function LandingPage() {
             <span className="font-extrabold text-navy-dark text-lg tracking-tight">DigiBlueCamp</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-navy-dark" aria-label="Navigasi utama">
-            <a href="/" className="hover:text-navy-light">Home</a>
-            <a href="#kursus" className="hover:text-navy-light">Kursus</a>
+            <Link href="/" className="hover:text-navy-light">Home</Link>
+            <Link href="/courses" className="hover:text-navy-light">Kursus</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/login" className="hidden sm:inline text-sm font-semibold text-navy-dark hover:text-navy-light">Masuk</Link>
@@ -92,7 +91,10 @@ export default function LandingPage() {
                 Kursus online Blue Economy dari pemula hingga spesialis. Selesaikan program dan dapatkan sertifikat yang bisa diverifikasi pemberi kerja secara online.
               </p>
               <div className="flex flex-wrap gap-3 mb-8">
-                <a href="#kursus" className="btn btn-primary btn-lg">Pilih Kursus</a>
+                <Link href="/courses" className="btn btn-primary btn-lg flex items-center gap-2 shadow-lg shadow-navy/20">
+                  <span>Pilih Kursus</span>
+                  <Icon name="arrow-right" size={16} />
+                </Link>
                 <a href="#harga" className="btn btn-lg border-2 border-slate-200 text-navy-dark hover:bg-slate-50">Apa yang Kamu Dapat</a>
               </div>
               <ul className="flex flex-col gap-2 text-sm text-slate-600">
@@ -153,17 +155,122 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Courses */}
-        <section id="kursus" className="container py-20 scroll-mt-24">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-3xl font-extrabold text-navy-dark mb-3">Pilih program dan mulai hari ini.</h2>
-            <p className="text-slate-500">Setiap program memiliki modul, ujian, dan sertifikat yang dapat diverifikasi.</p>
+        {/* Program Tracks Overview (Mapped to Admin Course Catalog) */}
+        <section className="container py-20">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-bold tracking-wider uppercase text-navy bg-navy/5 px-3 py-1 rounded-full">
+              Jalur Pembelajaran
+            </span>
+            <h2 className="text-3xl font-extrabold text-navy-dark mt-3 mb-3">Pilihan Program Sesuai Kebutuhan Karier</h2>
+            <p className="text-slate-500 text-sm sm:text-base">
+              Setiap program terintegrasi dengan modul silabus komprehensif, evaluasi terstandarisasi, dan sertifikat yang dapat diverifikasi global.
+            </p>
           </div>
-          <LandingCourseTabs />
-          <p className="text-center text-sm text-slate-500 mt-10">
-            Selesaikan Foundation untuk membuka jalur Specialization.{' '}
-            <Link href="/register" className="font-bold text-navy hover:underline">Lihat semua program</Link>
-          </p>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Track 1: International Certification */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-navy/10 text-navy flex items-center justify-center mb-6">
+                  <Icon name="graduation-cap-1" size={24} />
+                </div>
+                <span className="inline-block text-[11px] font-bold text-navy bg-navy/10 px-2.5 py-0.5 rounded-full mb-3">
+                  INTERNATIONAL TRACK
+                </span>
+                <h3 className="text-xl font-bold text-navy-dark mb-3">International Certification</h3>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6">
+                  Meliputi <strong>Foundation Level (CBEc)</strong> dan <strong>10 Jalur Specialization</strong> (Blue Carbon, Finance, Energy, Circular Economy, dsb.) bersama The Blue Economist International Association.
+                </p>
+                <ul className="space-y-2.5 text-xs text-slate-600 mb-6">
+                  <li className="flex items-center gap-2">
+                    <Icon name="check-circle-1" size={14} className="text-emerald-500 shrink-0" />
+                    <span>Ujian sertifikasi online & studi kasus</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Icon name="check-circle-1" size={14} className="text-emerald-500 shrink-0" />
+                    <span>Terbit sertifikat internasional theblueeconomist.org</span>
+                  </li>
+                </ul>
+              </div>
+              <Link href="/courses" className="btn btn-secondary w-full text-xs font-bold justify-center">
+                Lihat Kursus Internasional →
+              </Link>
+            </div>
+
+            {/* Track 2: National Training Course */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
+                  <Icon name="flag-1" size={24} />
+                </div>
+                <span className="inline-block text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full mb-3">
+                  NATIONAL TRACK
+                </span>
+                <h3 className="text-xl font-bold text-navy-dark mb-3">National Training Course</h3>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6">
+                  Pelatihan berstandar nasional bersama Maritim Muda Nusantara yang memadukan teori industri maritim, studi kasus regulasi, dan implementasi lapangan.
+                </p>
+                <ul className="space-y-2.5 text-xs text-slate-600 mb-6">
+                  <li className="flex items-center gap-2">
+                    <Icon name="check-circle-1" size={14} className="text-emerald-500 shrink-0" />
+                    <span>Kurikulum nasional maritim Indonesia</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Icon name="check-circle-1" size={14} className="text-emerald-500 shrink-0" />
+                    <span>Sertifikat kelulusan pelatihan resmi</span>
+                  </li>
+                </ul>
+              </div>
+              <Link href="/courses" className="btn btn-secondary w-full text-xs font-bold justify-center">
+                Lihat National Training →
+              </Link>
+            </div>
+
+            {/* Track 3: Single Modul Course */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-6">
+                  <Icon name="book-1" size={24} />
+                </div>
+                <span className="inline-block text-[11px] font-bold text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-full mb-3">
+                  MODULAR TRACK
+                </span>
+                <h3 className="text-xl font-bold text-navy-dark mb-3">Single Modul Course</h3>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6">
+                  Modul mandiri tematik yang fokus pada topik spesifik. Ideal untuk memperdalam kompetensi teknis tanpa perlu mengambil program sertifikasi penuh sekaligus.
+                </p>
+                <ul className="space-y-2.5 text-xs text-slate-600 mb-6">
+                  <li className="flex items-center gap-2">
+                    <Icon name="check-circle-1" size={14} className="text-emerald-500 shrink-0" />
+                    <span>Fleksibel, belajar mandiri kapan saja</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Icon name="check-circle-1" size={14} className="text-emerald-500 shrink-0" />
+                    <span>Materi padat & aplikatif per topik</span>
+                  </li>
+                </ul>
+              </div>
+              <Link href="/courses" className="btn btn-secondary w-full text-xs font-bold justify-center">
+                Lihat Single Modul →
+              </Link>
+            </div>
+          </div>
+
+          {/* CTA to Full Catalog */}
+          <div className="mt-14 text-center bg-gradient-to-r from-sky-50 via-slate-50 to-amber-50/40 rounded-3xl p-8 border border-slate-200/80">
+            <h4 className="text-lg font-bold text-navy-dark mb-2">Ingin melihat daftar lengkap silabus dan harga?</h4>
+            <p className="text-slate-500 text-xs sm:text-sm mb-6 max-w-xl mx-auto">
+              Semua kursus aktif dan silabus yang dikelola secara live dapat Anda cari dan filter di halaman Katalog Kursus.
+            </p>
+            <Link
+              href="/courses"
+              className="btn btn-primary btn-lg inline-flex items-center gap-2 shadow-lg shadow-navy/20"
+            >
+              <Icon name="books-2" size={18} />
+              <span>Buka Katalog Lengkap Kursus</span>
+              <Icon name="arrow-right" size={16} />
+            </Link>
+          </div>
         </section>
 
         {/* Why */}
@@ -174,7 +281,7 @@ export default function LandingPage() {
               <p className="text-white/70 mb-8">
                 Laut adalah sumber pertumbuhan ekonomi berkelanjutan. Kami mengajarkan keahlian yang dibutuhkan industri maritim, kebijakan, dan keuangan biru — langsung ke intinya.
               </p>
-              <a href="#kursus" className="btn btn-gold btn-lg">Temukan Kursusmu</a>
+              <Link href="/courses" className="btn btn-gold btn-lg">Temukan Kursusmu</Link>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[
@@ -286,8 +393,8 @@ export default function LandingPage() {
           <div>
             <h3 className="text-white font-bold mb-3 text-sm">Platform</h3>
             <ul className="flex flex-col gap-2">
-              <li><a href="/" className="hover:text-white">Home</a></li>
-              <li><a href="#kursus" className="hover:text-white">Kursus</a></li>
+              <li><Link href="/" className="hover:text-white">Home</Link></li>
+              <li><Link href="/courses" className="hover:text-white">Kursus</Link></li>
             </ul>
           </div>
           <div>
