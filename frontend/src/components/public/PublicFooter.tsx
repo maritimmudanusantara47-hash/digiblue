@@ -1,53 +1,381 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import Icon from '@/components/Icon';
 
 export default function PublicFooter() {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      setSubscribed(true);
+      setEmail('');
+    }
+  };
+
   return (
-    <footer className="bg-navy-dark text-white/60 text-sm mt-auto">
-      <div className="container py-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        <div className="lg:col-span-2">
-          <div className="flex items-center gap-2.5 mb-3">
-            <span className="w-9 h-9 rounded-xl bg-gold flex items-center justify-center text-navy-dark font-extrabold">D</span>
-            <span className="font-extrabold text-white text-lg font-heading">DigiBlue</span>
+    <footer className="relative bg-white text-slate-600 overflow-hidden border-t border-slate-200/70 mt-auto">
+      {/* Bathymetric Oceanic Wave Accent & Glowing Mesh */}
+      <div className="absolute inset-0 pointer-events-none -z-0 overflow-hidden">
+        {/* Soft bioluminescent cyan glow */}
+        <div
+          className="absolute -top-24 right-1/4 w-[600px] h-[350px] rounded-full opacity-40"
+          style={{
+            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, rgba(2, 132, 199, 0.15) 50%, transparent 70%)',
+            filter: 'blur(70px)',
+          }}
+        />
+        {/* Deep navy-sky ambient light */}
+        <div
+          className="absolute -bottom-16 left-1/3 w-[500px] h-[300px] rounded-full opacity-35"
+          style={{
+            background: 'radial-gradient(circle, rgba(14, 165, 233, 0.3) 0%, rgba(30, 58, 95, 0.15) 60%, transparent 80%)',
+            filter: 'blur(80px)',
+          }}
+        />
+        {/* Subtle decorative bathymetric contour lines (Maritime signature) */}
+        <svg
+          className="absolute right-0 bottom-0 w-full h-64 opacity-[0.035] text-navy-dark"
+          viewBox="0 0 1200 300"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M0 240 C 300 280, 600 180, 900 220 C 1050 240, 1150 200, 1200 210" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M0 200 C 250 250, 550 140, 850 190 C 1020 220, 1120 170, 1200 180" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M0 160 C 200 210, 500 100, 800 150 C 980 180, 1100 130, 1200 150" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M0 120 C 150 170, 450 60, 750 110 C 940 140, 1070 90, 1200 120" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      </div>
+
+      {/* Top Pre-Footer Banner: Wawasan Maritim & Beasiswa Newsletter */}
+      <div className="relative z-10 border-b border-slate-100 bg-gradient-to-r from-sky-50/70 via-white to-slate-50/70 py-10">
+        <div className="container">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 bg-white/90 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-sky-100/80 shadow-xs">
+            <div className="max-w-xl text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100/70 text-sky-800 text-xs font-semibold mb-2.5">
+                <Icon name="water-drop-1" size={13} className="text-sky-600" />
+                <span>Maritime Intelligence & Scholarship Alert</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight font-heading">
+                Siap Melangkah di Industri Ekonomi Biru?
+              </h3>
+              <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                Dapatkan rilis modul baru, agenda riset lapangan, dan pembukaan beasiswa langsung di inbox kamu.
+              </p>
+            </div>
+
+            <div className="w-full lg:w-auto shrink-0">
+              {subscribed ? (
+                <div className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold animate-fadeup">
+                  <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">✓</span>
+                  <span>Terima kasih! Kamu telah terdaftar dalam buletin maritim kami.</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-[420px]">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Masukkan alamat email kamu..."
+                    required
+                    className="flex-1 px-4 py-3 rounded-xl text-sm border border-slate-200 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all shadow-xs"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-navy hover:bg-navy-dark transition-all flex items-center justify-center gap-2 shadow-sm shadow-navy/20 shrink-0 cursor-pointer"
+                  >
+                    <span>Langganan</span>
+                    <Icon name="arrow-right" size={14} />
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
-          <p className="max-w-sm leading-relaxed text-slate-300">
-            Platform kursus dan sertifikasi online Blue Economy bersama The Blue Economist International Association.
-          </p>
-        </div>
-        <div>
-          <h3 className="text-white font-bold mb-3 text-sm font-heading">Platform</h3>
-          <ul className="flex flex-col gap-2">
-            <li>
-              <Link href="/" className="hover:text-white transition-colors">
-                Beranda
-              </Link>
-            </li>
-            <li>
-              <Link href="/courses" className="hover:text-white transition-colors">
-                Kursus
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="text-white font-bold mb-3 text-sm font-heading">Akun</h3>
-          <ul className="flex flex-col gap-2">
-            <li>
-              <Link href="/login" className="hover:text-white transition-colors">
-                Masuk
-              </Link>
-            </li>
-            <li>
-              <Link href="/register" className="hover:text-white transition-colors">
-                Daftar
-              </Link>
-            </li>
-          </ul>
         </div>
       </div>
-      <div className="border-t border-white/10">
-        <div className="container py-5 flex flex-col sm:flex-row justify-between gap-2 text-xs text-white/50">
-          <p>© 2026 DigiBlue x The Blue Economist International Association. All rights reserved.</p>
-          <p>Mendukung SDG 14 — Life Below Water</p>
+
+      {/* Main Footer Grid */}
+      <div className="container relative z-10 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12 pb-12">
+          {/* Column 1: Brand & Credentials (span 4) */}
+          <div className="lg:col-span-4 flex flex-col justify-between">
+            <div>
+              {/* Crest & Identity */}
+              <Link href="/" className="inline-flex items-center gap-3 group mb-4">
+                <div className="w-10 h-10 rounded-xl bg-navy-dark text-white flex items-center justify-center p-2 border border-slate-200 shadow-sm group-hover:scale-105 transition-transform">
+                  <Icon name="certificate-badge-1" size={24} className="text-gold" />
+                </div>
+                <div>
+                  <span className="font-extrabold text-navy-dark text-lg tracking-tight uppercase font-heading block leading-none">
+                    DigiBlue
+                  </span>
+                  <span className="font-semibold text-slate-500 text-[11px] tracking-wider uppercase block mt-1">
+                    Center for Maritime Education
+                  </span>
+                </div>
+              </Link>
+
+              <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                Platform pelatihan dan sertifikasi maritim berstandar internasional bersama <strong>The Blue Economist International Association</strong> & <strong>Maritim Muda Nusantara</strong>.
+              </p>
+
+              {/* SDG 14 & Status Badges */}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+                  SDG 14 Life Below Water
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                  <Icon name="shield-2-check" size={13} className="text-emerald-600" />
+                  Terakreditasi Asesor
+                </span>
+              </div>
+            </div>
+
+            {/* Sekretariat / Office Address */}
+            <div className="pt-2 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+              <p className="font-semibold text-slate-700">Kantor Sekretariat:</p>
+              <p>DigiBlue Space, Gedung Kemaritiman Nusantara</p>
+              <p>Jl. Raya Pasar Minggu No. 17, Jakarta Selatan 12780, Indonesia</p>
+              <p className="text-slate-400 pt-0.5">Koordinat: 6°16&apos;S 106°50&apos;E • Zona Bahari Barat</p>
+            </div>
+          </div>
+
+          {/* Column 2: Program & Sertifikasi (span 3) */}
+          <div className="lg:col-span-3">
+            <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
+              <Icon name="graduation-cap-1" size={16} className="text-sky-600" />
+              <span>Jalur Sertifikasi</span>
+            </h4>
+            <ul className="flex flex-col gap-2.5 text-sm text-slate-600">
+              <li>
+                <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Foundation Level (CBEc)</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Blue Carbon Specialist</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Sustainable Ocean Finance</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/courses?track=NAT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>National Maritime Training</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/courses?track=SGL" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Single Modul Mandiri</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/verify" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5 font-semibold text-sky-700">
+                  <span className="text-xs text-sky-400">›</span>
+                  <span>Cek Validitas Sertifikat (QR)</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Ekosistem & Riset (span 2) */}
+          <div className="lg:col-span-2">
+            <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
+              <Icon name="book-1" size={16} className="text-sky-600" />
+              <span>Ekosistem</span>
+            </h4>
+            <ul className="flex flex-col gap-2.5 text-sm text-slate-600">
+              <li>
+                <Link href="/#harga" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Program Beasiswa</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/#sertifikat" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Standar Kurikulum</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/#faq" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Field Study & Riset</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/#faq" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Pertanyaan Umum (FAQ)</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/#tentang" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
+                  <span className="text-xs text-slate-300">›</span>
+                  <span>Tentang Asosiasi</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Koneksi & Bantuan Konsultasi (span 3) */}
+          <div className="lg:col-span-3">
+            <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
+              <Icon name="headphone" size={16} className="text-sky-600" />
+              <span>Layanan & Hubungi Kami</span>
+            </h4>
+
+            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+              Konsultasi pemilihan kurikulum, sertifikasi institusi, atau bantuan pendaftaran:
+            </p>
+
+            {/* Direct Contact Pills */}
+            <div className="space-y-2 mb-6 text-xs">
+              <a
+                href="mailto:halo@digibluecamp.id"
+                className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200/80 transition-colors"
+              >
+                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-sky-600 shrink-0">@</span>
+                <span className="truncate">halo@digibluecamp.id</span>
+              </a>
+              <a
+                href="https://wa.me/6281210106680"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200/80 transition-colors"
+              >
+                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-emerald-600 shrink-0">💬</span>
+                <span>WhatsApp Hotline (+62 812-1010)</span>
+              </a>
+            </div>
+
+            {/* Social Media Channels with Premium Tooltips */}
+            <div>
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
+                Kanal Resmi Komunitas:
+              </p>
+              <div className="flex items-center gap-2">
+                {/* LinkedIn */}
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn DigiBlue"
+                  className="w-8 h-8 rounded-lg bg-[#0A66C2] flex items-center justify-center text-white shadow-xs hover:scale-110 hover:-translate-y-0.5 transition-all"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+                  </svg>
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram DigiBlue"
+                  className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white shadow-xs hover:scale-110 hover:-translate-y-0.5 transition-all"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                  </svg>
+                </a>
+
+                {/* YouTube */}
+                <a
+                  href="https://youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="YouTube DigiBlue"
+                  className="w-8 h-8 rounded-lg bg-[#FF0000] flex items-center justify-center text-white shadow-xs hover:scale-110 hover:-translate-y-0.5 transition-all"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                  </svg>
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook DigiBlue"
+                  className="w-8 h-8 rounded-lg bg-[#1877F2] flex items-center justify-center text-white shadow-xs hover:scale-110 hover:-translate-y-0.5 transition-all"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                </a>
+
+                {/* X (Twitter) */}
+                <a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="X DigiBlue"
+                  className="w-8 h-8 rounded-lg bg-[#000000] flex items-center justify-center text-white shadow-xs hover:scale-110 hover:-translate-y-0.5 transition-all"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar: Copyright & Legal Compliance */}
+        <div className="border-t border-slate-200/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-left">
+            <span>© 2026 DigiBlueCamp. All rights reserved.</span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span>Didukung oleh The Blue Economist International Association & Maritim Muda Nusantara.</span>
+          </div>
+
+          <div className="flex items-center gap-4 text-slate-600 font-medium">
+            <Link href="/#terms" className="hover:text-navy-dark transition-colors">
+              Syarat Layanan
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link href="/#privacy" className="hover:text-navy-dark transition-colors">
+              Kebijakan Privasi
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link href="/verify" className="hover:text-navy-dark transition-colors">
+              Verifikasi Sertifikat
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Signature Prestige Maritime Watermark (Not a cheap plagiarism, but an original architectural typographic statement) */}
+      <div className="w-full relative flex items-center justify-center overflow-hidden pointer-events-none select-none pt-4 pb-2 -mb-2 bg-gradient-to-t from-sky-50/60 to-transparent">
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] sm:text-xs font-bold tracking-[0.35em] uppercase text-sky-600/40 font-heading mb-1">
+            The Blue Economist
+          </span>
+          <span
+            className="text-[14vw] sm:text-[13vw] font-black tracking-tight leading-none text-sky-900/[0.04] uppercase font-heading select-none"
+            style={{
+              WebkitTextStroke: '1px rgba(2, 132, 199, 0.08)',
+            }}
+          >
+            DIGIBLUE
+          </span>
         </div>
       </div>
     </footer>
