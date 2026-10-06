@@ -116,62 +116,8 @@ export default function CoursesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-700 flex flex-col justify-between">
+    <>
       <div>
-        {/* Top bar */}
-        <div className="bg-navy-dark text-white/80 text-xs">
-          <div className="container flex items-center justify-between h-9">
-            <span className="flex items-center gap-2">
-              <Icon name="shield-2-check" size={14} className="text-gold" />
-              Resmi bersama The Blue Economist International Association
-            </span>
-            <span className="hidden sm:flex items-center gap-4">
-              <Link href="/#sertifikat" className="hover:text-white">Tentang Sertifikat</Link>
-              <Link href="/#faq" className="hover:text-white">Bantuan</Link>
-            </span>
-          </div>
-        </div>
-
-        {/* Header (IBMI Style) */}
-        <header className="sticky top-0 z-50 bg-white border-b border-slate-200/80 shadow-xs">
-          <div className="container flex items-center justify-between h-[76px]">
-            {/* Logo & Institute Brand Title */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-navy-dark text-white flex items-center justify-center p-2 border border-slate-200 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
-                <Icon name="certificate-badge-1" size={24} className="text-gold" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-navy-dark text-sm sm:text-base tracking-tight leading-tight uppercase font-heading">
-                  DigiBlue
-                </span>
-                <span className="font-semibold text-slate-500 text-[11px] tracking-wider uppercase">
-                  Center for Maritime Education
-                </span>
-              </div>
-            </Link>
-
-            {/* Center Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-navy-dark" aria-label="Navigasi utama">
-              <Link href="/" className="text-navy hover:text-sky-600 transition-colors">
-                Beranda
-              </Link>
-              <Link href="/courses" className="hover:text-sky-600 flex items-center gap-1 transition-colors">
-                Kursus
-              </Link>
-            </nav>
-
-            {/* Right Action Buttons: LOGIN / REGISTER + Cart */}
-            <div className="flex items-center gap-2.5">
-              <Link
-                href="/login"
-                className="px-4 sm:px-5 py-2 rounded-xl text-xs font-extrabold tracking-wider uppercase border border-sky-300 bg-sky-50/80 hover:bg-sky-100 text-sky-700 transition-colors shadow-xs"
-              >
-                Login / Register
-              </Link>
-            </div>
-          </div>
-        </header>
-
         {/* Page Hero */}
         <section className="bg-gradient-to-b from-sky-50 via-white to-slate-50 border-b border-slate-200/80 py-12 md:py-16">
           <div className="container">
@@ -379,41 +325,6 @@ export default function CoursesPage() {
           )}
         </main>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-navy-dark text-white/60 text-sm mt-20">
-        <div className="container py-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2.5 mb-3">
-              <span className="w-9 h-9 rounded-xl bg-gold flex items-center justify-center text-navy-dark font-extrabold">D</span>
-              <span className="font-extrabold text-white text-lg">DigiBlue</span>
-            </div>
-            <p className="max-w-sm leading-relaxed">
-              Platform kursus dan sertifikasi online Blue Economy bersama The Blue Economist International Association.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-white font-bold mb-3 text-sm">Platform</h3>
-            <ul className="flex flex-col gap-2">
-              <li><Link href="/" className="hover:text-white">Home</Link></li>
-              <li><Link href="/courses" className="hover:text-white">Kursus</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-white font-bold mb-3 text-sm">Akun</h3>
-            <ul className="flex flex-col gap-2">
-              <li><Link href="/login" className="hover:text-white">Masuk</Link></li>
-              <li><Link href="/register" className="hover:text-white">Daftar</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-white/10">
-          <div className="container py-5 flex flex-col sm:flex-row justify-between gap-2 text-xs">
-            <p>© 2026 DigiBlueCamp x The Blue Economist International Association. All rights reserved.</p>
-            <p>Mendukung SDG 14 — Life Below Water</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }

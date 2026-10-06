@@ -7,8 +7,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import PublicNavbar from '@/components/public/PublicNavbar';
-import PublicFooter from '@/components/public/PublicFooter';
 import type { Course } from '@/types';
 
 const LEVEL_STYLE: Record<string, { badge: string; card: string; tag: string }> = {
@@ -198,31 +196,23 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <PublicNavbar />
-        <div className="container px-4 py-16 max-w-4xl mx-auto flex-1 animate-pulse space-y-6">
-          <div className="h-6 w-48 bg-slate-200 rounded" />
-          <div className="card p-8 space-y-4">
-            <div className="h-8 bg-slate-200 rounded w-1/2" />
-            <div className="h-16 bg-slate-100 rounded" />
-          </div>
+      <div className="container px-4 py-16 max-w-4xl mx-auto flex-1 animate-pulse space-y-6">
+        <div className="h-6 w-48 bg-slate-200 rounded" />
+        <div className="card p-8 space-y-4">
+          <div className="h-8 bg-slate-200 rounded w-1/2" />
+          <div className="h-16 bg-slate-100 rounded" />
         </div>
-        <PublicFooter />
       </div>
     );
   }
 
   if (!course) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <PublicNavbar />
-        <div className="container px-4 py-20 max-w-md mx-auto text-center flex-1">
-          <Icon name="search-1" size={40} className="mx-auto mb-4 text-slate-300" />
-          <h2 className="text-xl font-bold text-navy-dark">Kursus Tidak Ditemukan</h2>
-          <p className="text-slate-500 text-sm mt-1 mb-6">Program kursus yang kamu pilih tidak tersedia.</p>
-          <Link href="/courses" className="btn btn-primary">Kembali ke Katalog Kursus</Link>
-        </div>
-        <PublicFooter />
+      <div className="container px-4 py-20 max-w-md mx-auto text-center flex-1">
+        <Icon name="search-1" size={40} className="mx-auto mb-4 text-slate-300" />
+        <h2 className="text-xl font-bold text-navy-dark">Kursus Tidak Ditemukan</h2>
+        <p className="text-slate-500 text-sm mt-1 mb-6">Program kursus yang kamu pilih tidak tersedia.</p>
+        <Link href="/courses" className="btn btn-primary">Kembali ke Katalog Kursus</Link>
       </div>
     );
   }
@@ -234,7 +224,6 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-700 relative">
-      <PublicNavbar />
 
       {/* Overlay Loading Pop-up Pembayaran */}
       {processing && (
@@ -412,8 +401,6 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
           </div>
         </div>
       </main>
-
-      <PublicFooter />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import PublicLayoutWrapper from '@/components/public/PublicLayoutWrapper';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -37,7 +38,9 @@ export default function RootLayout({
           data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'Mid-client-iJaslbVJufkmXRhn'}
           strategy="afterInteractive"
         />
-        {children}
+        <PublicLayoutWrapper>
+          {children}
+        </PublicLayoutWrapper>
       </body>
     </html>
   );
