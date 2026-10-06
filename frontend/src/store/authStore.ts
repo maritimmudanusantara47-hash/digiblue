@@ -25,7 +25,14 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearAuth: () => {
+        Cookies.remove('auth_token', { path: '/' });
         Cookies.remove('auth_token');
+        if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.removeItem('digibluecamp-auth');
+            sessionStorage.clear();
+          } catch {}
+        }
         set({ user: null, token: null, isAuthenticated: false });
       },
     }),
