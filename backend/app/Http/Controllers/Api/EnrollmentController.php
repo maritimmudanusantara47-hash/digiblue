@@ -14,7 +14,7 @@ class EnrollmentController extends Controller
     /** Student: List semua enrollment milik user sendiri */
     public function index(Request $request): JsonResponse
     {
-        $enrollments = Enrollment::with(['course.certificationLevel', 'scholarshipApplication'])
+        $enrollments = Enrollment::with(['course.certificationLevel'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
@@ -75,7 +75,6 @@ class EnrollmentController extends Controller
             'user',
             'course.certificationLevel',
             'course.sections.contents',
-            'scholarshipApplication.appeals',
             'certificate',
         ])->findOrFail($id);
 
@@ -87,7 +86,7 @@ class EnrollmentController extends Controller
     /** Admin: List semua enrollment dengan filter & pagination */
     public function adminIndex(Request $request): JsonResponse
     {
-        $query = Enrollment::with(['user', 'course.certificationLevel', 'scholarshipApplication'])
+        $query = Enrollment::with(['user', 'course.certificationLevel'])
             ->latest();
 
         if ($request->filled('status')) {
@@ -116,8 +115,8 @@ class EnrollmentController extends Controller
         $validated = $request->validate([
             'user_id'         => 'required|exists:users,id',
             'course_id'       => 'required|exists:courses,id',
-            'enrollment_type' => 'nullable|in:self_paid,scholarship_fully,scholarship_partial_a,scholarship_partial_b',
-            'status'          => 'nullable|in:pending_review,payment_pending,active,completed,rejected',
+            'enrollment_type' => 'nullable|in:self_paid',
+            'status'          => 'nullable|in:payment_pending,active,completed,rejected',
         ]);
 
         if (Enrollment::where('user_id', $validated['user_id'])
@@ -142,8 +141,8 @@ class EnrollmentController extends Controller
     public function updateStatus(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'status'          => 'required|in:pending_review,payment_pending,active,completed,rejected',
-            'enrollment_type' => 'nullable|in:self_paid,scholarship_fully,scholarship_partial_a,scholarship_partial_b',
+            'status'          => 'required|in:payment_pending,active,completed,rejected',
+            'enrollment_type' => 'nullable|in:self_paid',
         ]);
 
         $enrollment = Enrollment::findOrFail($id);

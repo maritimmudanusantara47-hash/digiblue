@@ -21,7 +21,6 @@ const included = [
   'Field Study / Training Course lapangan (Foundation)',
   'Sertifikat PDF dengan ID & QR code yang dapat diverifikasi',
   'Akses di perangkat apa pun, tanpa instal aplikasi',
-  'Peluang beasiswa Fully Funded & Partial',
 ];
 
 const faqs = [
@@ -29,7 +28,6 @@ const faqs = [
   { q: 'Apakah pemberi kerja bisa memverifikasi sertifikat saya?', a: 'Ya. Setiap sertifikat memiliki ID unik dan QR code yang mengarah ke halaman verifikasi resmi, sehingga siapa pun dapat memeriksa keasliannya.' },
   { q: 'Apakah ada syarat pengetahuan awal?', a: 'Tidak. Foundation Level dirancang untuk pemula. Kamu hanya butuh browser dan motivasi untuk belajar.' },
   { q: 'Apa itu Foundation dan Specialization?', a: 'Foundation (CBEc) membahas dasar Blue Economy lengkap dengan ujian dan field study. Specialization adalah 10 jalur peminatan mendalam, seperti Blue Carbon, Blue Finance, dan Blue Energy.' },
-  { q: 'Apakah tersedia beasiswa?', a: 'Tersedia. Ajukan surat motivasi dari dashboard peserta; admin akan memutuskan Fully Funded, Partial, atau tidak lolos.' },
 ];
 
 export default function LandingPage() {
@@ -317,12 +315,12 @@ export default function LandingPage() {
           <div className="container py-20 grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-extrabold text-navy-dark mb-4">Satu program. Semuanya sudah termasuk.</h2>
-              <p className="text-slate-600 mb-6">Tanpa biaya tersembunyi. Ajukan beasiswa dari dashboard dan biaya program bisa ditanggung sebagian atau penuh.</p>
+              <p className="text-slate-600 mb-6">Tanpa biaya tersembunyi. Nikmati akses materi pembelajaran seumur hidup hanya dengan sekali bayar.</p>
               <div className="inline-flex items-center gap-3 bg-white rounded-2xl border border-slate-200 px-5 py-3 shadow-sm">
-                <Icon name="graduation-cap-1" size={26} className="text-navy" />
+                <Icon name="medal-1" size={26} className="text-navy" />
                 <div>
-                  <p className="text-xs text-slate-500">Program Beasiswa</p>
-                  <p className="font-extrabold text-navy-dark">Fully Funded & Partial</p>
+                  <p className="text-xs text-slate-500">Sertifikasi Profesional</p>
+                  <p className="font-extrabold text-navy-dark">Akses Penuh Selamanya</p>
                 </div>
               </div>
             </div>

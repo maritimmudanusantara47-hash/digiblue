@@ -54,10 +54,6 @@ class Enrollment extends Model
         return $this->belongsTo(Course::class);
     }
 
-    public function scholarshipApplication(): HasMany
-    {
-        return $this->hasMany(ScholarshipApplication::class);
-    }
 
     public function submissions(): HasMany
     {

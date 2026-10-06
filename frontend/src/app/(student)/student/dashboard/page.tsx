@@ -11,7 +11,7 @@ import type { Enrollment, Certificate, Course } from '@/types';
 const statusLabel: Record<string, { label: string; class: string }> = {
   active:         { label: 'Aktif',              class: 'badge-success' },
   completed:      { label: 'Selesai',             class: 'badge-navy' },
-  pending_review: { label: 'Menunggu Kurasi',     class: 'badge-warning' },
+
   payment_pending:{ label: 'Menunggu Pembayaran', class: 'badge-gold' },
   rejected:       { label: 'Ditolak',             class: 'badge-danger' },
 };

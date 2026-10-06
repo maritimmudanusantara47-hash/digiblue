@@ -8,7 +8,6 @@ import api from '@/lib/api';
 interface DashStats {
   total_users: number;
   active_enrollments: number;
-  pending_scholarships: number;
   certificates_issued: number;
   certificates_pending_sync: number;
 }
@@ -37,14 +36,12 @@ export default function AdminDashboard() {
         Promise.all([
           api.get('/admin/users?per_page=1'),
           api.get('/admin/enrollments?status=active&per_page=1'),
-          api.get('/admin/scholarships?status=pending&per_page=1'),
           api.get('/admin/certificates?per_page=1'),
           api.get('/admin/certificates?sync_status=failed&per_page=1'),
-        ]).then(([users, enrollments, scholarships, certs, failedSync]) => {
+        ]).then(([users, enrollments, certs, failedSync]) => {
           setStats({
             total_users:               extractTotal(users),
             active_enrollments:        extractTotal(enrollments),
-            pending_scholarships:      extractTotal(scholarships),
             certificates_issued:       extractTotal(certs),
             certificates_pending_sync: extractTotal(failedSync),
           });
@@ -58,13 +55,11 @@ export default function AdminDashboard() {
   const statCards = [
     { label: 'Total Pengguna',      value: stats?.total_users,               icon: 'user-multiple-4', href: '/admin/users',        color: 'from-navy to-navy-light' },
     { label: 'Enrollment Aktif',    value: stats?.active_enrollments,        icon: 'book-1', href: '/admin/enrollments',  color: 'from-emerald-600 to-emerald-400' },
-    { label: 'Beasiswa Menunggu',   value: stats?.pending_scholarships,      icon: 'hourglass', href: '/admin/scholarship',  color: 'from-amber-500 to-amber-400' },
     { label: 'Sertifikat Terbit',   value: stats?.certificates_issued,       icon: 'certificate-badge-1', href: '/admin/certificates', color: 'from-gold-dark to-gold' },
     { label: 'Sinkronisasi Gagal',  value: stats?.certificates_pending_sync, icon: 'info', href: '/admin/certificates', color: 'from-red-600 to-red-400' },
   ];
 
   const quickActions = [
-    { label: 'Kurasi Beasiswa Baru',       href: '/admin/scholarship',  icon: 'graduation-cap-1', desc: 'Tinjau pengajuan beasiswa peserta' },
     { label: 'Terbitkan Sertifikat',       href: '/admin/certificates', icon: 'certificate-badge-1', desc: 'Approve kelulusan & cetak sertifikat' },
     { label: 'Re-Sync ke The Blue Economist', href: '/admin/certificates', icon: 'refresh-circle-1-clockwise', desc: 'Sinkronisasi ulang data yang gagal' },
     { label: 'Export Database Sertifikat', href: '/admin/certificates', icon: 'dashboard-square-1', desc: 'Download rekap .xlsx format lama' },

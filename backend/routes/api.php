@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CourseController;
 use App\Http\Controllers\Api\EnrollmentController;
-use App\Http\Controllers\Api\ScholarshipController;
 use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\SubmissionController;
 use App\Http\Controllers\Api\CertificateController;
@@ -51,9 +50,6 @@ Route::prefix('v1')->group(function () {
         Route::get('enrollments/{id}',      [EnrollmentController::class, 'show']);
         Route::get('enrollments/{id}/contents', [ContentController::class, 'index']);         // Daftar konten kursus
 
-        // Beasiswa
-        Route::post('scholarships/apply',   [ScholarshipController::class, 'apply']);         // Upload berkas & surat motivasi
-        Route::post('scholarships/{id}/appeal', [ScholarshipController::class, 'appeal']);    // Ajukan negosiasi biaya
 
         // Student: Konfirmasi kehadiran Field Study
         Route::patch('enrollments/{id}/confirm-field-study', [EnrollmentController::class, 'studentConfirmFieldStudy']);
@@ -90,7 +86,6 @@ Route::prefix('v1')->group(function () {
                     'data' => [
                         'total_users'               => \App\Models\User::count(),
                         'active_enrollments'        => \App\Models\Enrollment::where('status', 'active')->count(),
-                        'pending_scholarships'      => \App\Models\ScholarshipApplication::where('decision_status', 'pending')->count(),
                         'certificates_issued'       => \App\Models\Certificate::count(),
                         'certificates_pending_sync' => \App\Models\Certificate::where('sync_status', 'failed')->count(),
                     ]
@@ -124,10 +119,6 @@ Route::prefix('v1')->group(function () {
             Route::patch('questions/{id}',                [AdminQuizController::class, 'update']);  // Edit soal
             Route::delete('questions/{id}',               [AdminQuizController::class, 'destroy']); // Hapus soal
 
-            // Scholarship Management
-            Route::get('scholarships',              [ScholarshipController::class, 'adminIndex']);
-            Route::patch('scholarships/{id}/decide',[ScholarshipController::class, 'decide']);    // Fully/Partial A/B/Reject
-            Route::patch('scholarships/{id}/appeal/{appealId}/resolve', [ScholarshipController::class, 'resolveAppeal']); // Setujui negosiasi
 
             // Certificate Management
             Route::get('certificates',                   [AdminCertificateController::class, 'index']);

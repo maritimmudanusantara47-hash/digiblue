@@ -13,7 +13,6 @@ const adminNav = [
   { href: '/admin/users',        label: 'Pengguna',          icon: 'user-multiple-4' },
   { href: '/admin/courses',      label: 'Manajemen Kursus',  icon: 'books-2' },
   { href: '/admin/enrollments',  label: 'Enrollment',        icon: 'clipboard' },
-  { href: '/admin/scholarship',  label: 'Kurasi Beasiswa',   icon: 'graduation-cap-1' },
   { href: '/admin/certificates', label: 'Sertifikat',        icon: 'certificate-badge-1' },
 ];
 

@@ -19,7 +19,7 @@ interface Enrollment {
 }
 
 const STATUS_OPTS = [
-  { value: 'pending_review',  label: 'Menunggu Kurasi',    color: 'bg-amber-100 text-amber-700 border-amber-300' },
+
   { value: 'payment_pending', label: 'Menunggu Pembayaran',color: 'bg-orange-100 text-orange-700 border-orange-300' },
   { value: 'active',          label: 'Aktif',              color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
   { value: 'completed',       label: 'Selesai',            color: 'bg-blue-100 text-blue-700 border-blue-300' },
@@ -28,9 +28,9 @@ const STATUS_OPTS = [
 
 const TYPE_OPTS = [
   { value: 'self_paid',              label: 'Mandiri' },
-  { value: 'scholarship_fully',      label: 'Fully Funded' },
-  { value: 'scholarship_partial_a',  label: 'Partial A' },
-  { value: 'scholarship_partial_b',  label: 'Partial B' },
+
+
+
 ];
 
 const statusStyle = (s: string) =>
