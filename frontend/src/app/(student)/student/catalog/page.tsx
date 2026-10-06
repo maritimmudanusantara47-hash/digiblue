@@ -2,7 +2,7 @@
 
 import Cookies from 'js-cookie';
 import Icon from '@/components/Icon';
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
@@ -25,12 +25,7 @@ const LEVEL_STYLE: Record<string, { badge: string; card: string }> = {
 
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
 
-const TABS: { id: TabCategory; label: string; icon: string }[] = [
-  { id: 'ALL',      label: 'Semua Kursus',                        icon: 'star-fat' },
-  { id: 'INT_CERT', label: 'International Certification Training', icon: 'graduation-cap-1' },
-  { id: 'NAT',      label: 'National Training Course',             icon: 'flag-1' },
-  { id: 'SGL',      label: 'Single Modul Course',                  icon: 'book-1' },
-];
+interface CertLevel { id: number; code: string; name: string; order_index: number }
 
 function StudentCatalogContent() {
   const router = useRouter();
@@ -40,6 +35,7 @@ function StudentCatalogContent() {
   const { isAuthenticated } = useAuthStore();
 
   const [courses, setCourses]           = useState<Course[]>([]);
+  const [certLevels, setCertLevels]     = useState<CertLevel[]>([]);
   const [enrollmentMap, setEnrollment]  = useState<Map<number, EnrollmentInfo>>(new Map());
   const [loading, setLoading]           = useState(true);
   const [enrolling, setEnrolling]       = useState<number | null>(null);
@@ -59,8 +55,10 @@ function StudentCatalogContent() {
     Promise.all([
       api.get('/courses'),
       enrollPromise,
-    ]).then(([courseRes, enrollRes]) => {
+      api.get('/certification-levels'),
+    ]).then(([courseRes, enrollRes, levelRes]) => {
       setCourses(courseRes.data.data ?? []);
+      setCertLevels(levelRes.data.data ?? []);
       const myEnroll: { id: number; status: string; enrollment_type: string | null; course: { id: number } }[] =
         enrollRes?.data?.data ?? [];
       const map = new Map<number, EnrollmentInfo>();
@@ -197,7 +195,7 @@ function StudentCatalogContent() {
     }
   }, [autoEnrollSlug, loading, courses, enrollmentMap, isAuthenticated, handlePay, handleEnroll, router]);
 
-  // ── Filter & Group ──────────────────────────────────────────────────────────
+  // ── Filter & Group ───────────────────────────────────────────────────────────
   const handleSearchChange = (val: string) => { setSearch(val); setCurrentPage(1); };
   const handleTabChange = (tab: TabCategory) => { setActiveTab(tab); setCurrentPage(1); };
 
@@ -237,6 +235,28 @@ function StudentCatalogContent() {
     courses.find(c => c.id === e.course_id)?.certification_level?.code === 'FND'
   );
 
+  // ── Dynamic tab labels from API ──────────────────────────────────────────────
+  const intCertLabel = useMemo(() => {
+    const fnd  = certLevels.find(l => l.code === 'FND');
+    const spec = certLevels.find(l => l.code === 'SPEC');
+    return (fnd && spec) ? 'International Certification Training Course' : fnd?.name ?? spec?.name ?? 'International Certification';
+  }, [certLevels]);
+  const natLabel = useMemo(() => certLevels.find(l => l.code === 'NAT')?.name ?? 'National Training Course', [certLevels]);
+  const sglLabel = useMemo(() => certLevels.find(l => l.code === 'SGL')?.name ?? 'Single Modul Course', [certLevels]);
+  const fndLabel = useMemo(() => certLevels.find(l => l.code === 'FND')?.name ?? 'Foundation Level', [certLevels]);
+  const specLabel = useMemo(() => certLevels.find(l => l.code === 'SPEC')?.name ?? 'Specialization Level', [certLevels]);
+
+  const tabs = useMemo(() => {
+    const list: { id: TabCategory; label: string; icon: string }[] = [
+      { id: 'ALL', label: 'Semua Kursus', icon: 'star-fat' },
+    ];
+    if (countIntCert > 0) list.push({ id: 'INT_CERT', label: intCertLabel, icon: 'graduation-cap-1' });
+    if (countNat > 0)     list.push({ id: 'NAT',      label: natLabel,      icon: 'flag-1' });
+    if (countSgl > 0)     list.push({ id: 'SGL',      label: sglLabel,      icon: 'book-1' });
+    return list;
+  }, [countIntCert, countNat, countSgl, intCertLabel, natLabel, sglLabel]);
+
+
   return (
     <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
       <div className="mb-8">
@@ -258,9 +278,9 @@ function StudentCatalogContent() {
         </div>
       </div>
 
-      {/* Category Filter Tabs */}
+      {/* Category Filter Tabs — dinamis dari API */}
       <div className="flex flex-wrap items-center gap-3 mb-8">
-        {TABS.map(tab => {
+        {tabs.map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -306,7 +326,7 @@ function StudentCatalogContent() {
                 <div className="flex items-center gap-3 mb-5">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-emerald-50 text-emerald-700 border-emerald-200">
                     <Icon name="graduation-cap-1" size={13} />
-                    International Certification — Foundation
+                    {intCertLabel} — {fndLabel}
                   </span>
                   <span className="text-slate-400 text-sm">Wajib diikuti sebelum peminatan</span>
                 </div>
@@ -329,7 +349,7 @@ function StudentCatalogContent() {
                 <div className="flex items-center gap-3 mb-5">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">
                     <Icon name="rocket-5" size={13} />
-                    International Certification — Specialization
+                    {intCertLabel} — {specLabel}
                   </span>
                   <span className="text-slate-400 text-sm">{countIntCert - courses.filter(c => c.certification_level?.code === 'FND').length} track tersedia</span>
                 </div>
@@ -359,7 +379,7 @@ function StudentCatalogContent() {
                 <div className="flex items-center gap-3 mb-5">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-amber-50 text-amber-800 border-amber-200">
                     <Icon name="flag-1" size={13} />
-                    National Training Course
+                    {natLabel}
                   </span>
                   <span className="text-slate-400 text-sm">{countNat} kursus tersedia</span>
                 </div>
@@ -382,7 +402,7 @@ function StudentCatalogContent() {
                 <div className="flex items-center gap-3 mb-5">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-purple-50 text-purple-800 border-purple-200">
                     <Icon name="book-1" size={13} />
-                    Single Modul Course
+                    {sglLabel}
                   </span>
                   <span className="text-slate-400 text-sm">{countSgl} modul tersedia</span>
                 </div>

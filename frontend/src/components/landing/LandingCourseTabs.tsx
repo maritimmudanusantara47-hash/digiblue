@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/Icon';
@@ -10,47 +10,62 @@ import type { Course } from '@/types';
 
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
 
-const TABS: { id: TabCategory; label: string; icon: string }[] = [
-  { id: 'ALL',      label: 'Semua Kursus',                        icon: 'star-fat' },
-  { id: 'INT_CERT', label: 'International Certification',         icon: 'graduation-cap-1' },
-  { id: 'NAT',      label: 'National Training Course',             icon: 'flag-1' },
-  { id: 'SGL',      label: 'Single Modul Course',                  icon: 'book-1' },
-];
+interface CertLevel { id: number; code: string; name: string; order_index: number }
 
-const LEVEL_STYLE: Record<string, { banner: string; badge: string; card: string; tag: string }> = {
-  FND:  { banner: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white', badge: 'bg-amber-100 text-amber-800 border-amber-300', card: 'from-amber-500 to-amber-600', tag: 'FOUNDATION LEVEL' },
-  SPEC: { banner: 'bg-gradient-to-r from-navy to-slate-900 text-white',      badge: 'bg-navy/10 text-navy border-navy/30',            card: 'from-navy to-navy-light', tag: 'SPECIALIZATION LEVEL' },
-  NAT:  { banner: 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', card: 'from-emerald-500 to-emerald-600', tag: 'NATIONAL TRAINING' },
-  SGL:  { banner: 'bg-gradient-to-r from-purple-600 to-indigo-700 text-white',badge: 'bg-purple-100 text-purple-800 border-purple-300', card: 'from-purple-500 to-purple-700', tag: 'SINGLE MODUL' },
+const LEVEL_STYLE: Record<string, { banner: string; badge: string; card: string }> = {
+  FND:  { banner: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white', badge: 'bg-amber-100 text-amber-800 border-amber-300', card: 'from-amber-500 to-amber-600' },
+  SPEC: { banner: 'bg-gradient-to-r from-navy to-slate-900 text-white',      badge: 'bg-navy/10 text-navy border-navy/30',            card: 'from-navy to-navy-light' },
+  NAT:  { banner: 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', card: 'from-emerald-500 to-emerald-600' },
+  SGL:  { banner: 'bg-gradient-to-r from-purple-600 to-indigo-700 text-white',badge: 'bg-purple-100 text-purple-800 border-purple-300', card: 'from-purple-500 to-purple-700' },
 };
 
 export default function LandingCourseTabs() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabCategory>('ALL');
+  const [courses, setCourses]       = useState<Course[]>([]);
+  const [certLevels, setCertLevels] = useState<CertLevel[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [activeTab, setActiveTab]   = useState<TabCategory>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch kursus & certification levels secara paralel
   useEffect(() => {
-    let isMounted = true;
-    api.get('/courses')
-      .then((res) => {
-        if (isMounted) {
-          setCourses(res.data.data ?? []);
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load courses on landing:', err);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
+    let mounted = true;
+    Promise.all([
+      api.get('/courses'),
+      api.get('/certification-levels'),
+    ]).then(([courseRes, levelRes]) => {
+      if (!mounted) return;
+      setCourses(courseRes.data.data ?? []);
+      setCertLevels(levelRes.data.data ?? []);
+    }).catch(console.error)
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
   }, []);
+
+  // Label dinamis berdasarkan nama level di DB
+  const intCertLabel = useMemo(() => {
+    const fnd  = certLevels.find(l => l.code === 'FND');
+    const spec = certLevels.find(l => l.code === 'SPEC');
+    return (fnd && spec) ? 'International Certification Training Course' : fnd?.name ?? spec?.name ?? 'International Certification';
+  }, [certLevels]);
+  const natLabel = useMemo(() => certLevels.find(l => l.code === 'NAT')?.name ?? 'National Training Course', [certLevels]);
+  const sglLabel = useMemo(() => certLevels.find(l => l.code === 'SGL')?.name ?? 'Single Modul Course', [certLevels]);
+
+  // Bangun tabs dinamis — hanya tampilkan tab bila ada kursus
+  const tabs = useMemo(() => {
+    const hasInt = courses.some(c => c.certification_level?.code === 'FND' || c.certification_level?.code === 'SPEC');
+    const hasNat = courses.some(c => c.certification_level?.code === 'NAT');
+    const hasSgl = courses.some(c => c.certification_level?.code === 'SGL');
+    const list: { id: TabCategory; label: string; icon: string }[] = [
+      { id: 'ALL', label: 'Semua Kursus', icon: 'star-fat' },
+    ];
+    if (hasInt) list.push({ id: 'INT_CERT', label: intCertLabel, icon: 'graduation-cap-1' });
+    if (hasNat) list.push({ id: 'NAT', label: natLabel, icon: 'flag-1' });
+    if (hasSgl) list.push({ id: 'SGL', label: sglLabel, icon: 'book-1' });
+    return list;
+  }, [courses, intCertLabel, natLabel, sglLabel]);
+
 
   const filteredCourses = courses.filter((c) => {
     const matchesSearch =
@@ -100,10 +115,10 @@ export default function LandingCourseTabs() {
         )}
       </div>
 
-      {/* Category Tabs */}
+      {/* Category Tabs — dinamis dari API certification-levels */}
       <div className="flex justify-center mb-10 overflow-x-auto pb-2">
         <div className="inline-flex bg-slate-100 p-1.5 rounded-2xl gap-1.5 shadow-xs" role="tablist">
-          {TABS.map((tab) => {
+          {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button

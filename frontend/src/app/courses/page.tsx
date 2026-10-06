@@ -8,49 +8,83 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
 
+// Tab category tetap berbasis kode logis (grouping)
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
 
-const TABS: { id: TabCategory; label: string; icon: string; description: string }[] = [
-  { id: 'ALL',      label: 'Semua Kursus',                 icon: 'star-fat',         description: 'Seluruh kurikulum & program aktif' },
-  { id: 'INT_CERT', label: 'International Certification',  icon: 'graduation-cap-1', description: 'Foundation & 10 Spesialisasi Global' },
-  { id: 'NAT',      label: 'National Training Course',      icon: 'flag-1',           description: 'Pelatihan terstandarisasi nasional' },
-  { id: 'SGL',      label: 'Single Modul Course',           icon: 'book-1',           description: 'Modul tematik fokus & fleksibel' },
-];
+interface CertLevel { id: number; code: string; name: string; order_index: number }
 
-const LEVEL_STYLE: Record<string, { banner: string; badge: string; card: string; tag: string }> = {
-  FND:  { banner: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white', badge: 'bg-amber-100 text-amber-800 border-amber-300', card: 'from-amber-500 to-amber-600', tag: 'FOUNDATION LEVEL' },
-  SPEC: { banner: 'bg-gradient-to-r from-navy to-slate-900 text-white',      badge: 'bg-navy/10 text-navy border-navy/30',            card: 'from-navy to-navy-light', tag: 'SPECIALIZATION LEVEL' },
-  NAT:  { banner: 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', card: 'from-emerald-500 to-emerald-600', tag: 'NATIONAL TRAINING' },
-  SGL:  { banner: 'bg-gradient-to-r from-purple-600 to-indigo-700 text-white',badge: 'bg-purple-100 text-purple-800 border-purple-300', card: 'from-purple-500 to-purple-700', tag: 'SINGLE MODUL' },
+const LEVEL_STYLE: Record<string, { badge: string; card: string }> = {
+  FND:  { badge: 'bg-amber-100 text-amber-800 border-amber-300',    card: 'from-amber-500 to-amber-600' },
+  SPEC: { badge: 'bg-navy/10 text-navy border-navy/30',             card: 'from-navy to-navy-light' },
+  NAT:  { badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', card: 'from-emerald-500 to-emerald-600' },
+  SGL:  { badge: 'bg-purple-100 text-purple-800 border-purple-300', card: 'from-purple-500 to-purple-700' },
+};
+
+// Icon mapping per kode level
+const LEVEL_ICON: Record<string, string> = {
+  FND: 'star-fat', SPEC: 'graduation-cap-1', NAT: 'flag-1', SGL: 'book-1',
 };
 
 export default function CoursesPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabCategory>('ALL');
+
+  const [courses, setCourses]         = useState<Course[]>([]);
+  const [certLevels, setCertLevels]   = useState<CertLevel[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [activeTab, setActiveTab]     = useState<TabCategory>('ALL');
+  const [subTrackCode, setSubTrack]   = useState<string>('ALL'); // 'ALL' | 'FND' | 'SPEC'
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch kursus & certification levels secara paralel
   useEffect(() => {
-    let isMounted = true;
-    api.get('/courses')
-      .then((res) => {
-        if (isMounted) {
-          setCourses(res.data.data ?? []);
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load courses:', err);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
+    let mounted = true;
+    Promise.all([
+      api.get('/courses'),
+      api.get('/certification-levels'),
+    ]).then(([courseRes, levelRes]) => {
+      if (!mounted) return;
+      setCourses(courseRes.data.data ?? []);
+      setCertLevels(levelRes.data.data ?? []);
+    }).catch(console.error)
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
   }, []);
+
+  // Nama tab INT_CERT: diambil dari nama FND level (misal "Foundation Level") lalu disederhanakan
+  // Karena INT_CERT adalah group FND+SPEC, labelnya diambil dari setting admin atau fallback statis
+  const intCertLabel = useMemo(() => {
+    // Cari level dengan code berisi 'INT' atau 'CERT', fallback ke nama FND trimmed
+    // Admin panel menyebutnya "International Certification Training Course" — kita pakai label dari
+    // level FND/SPEC yang ada, dengan prefix group
+    const fnd = certLevels.find(l => l.code === 'FND');
+    const spec = certLevels.find(l => l.code === 'SPEC');
+    if (fnd && spec) return 'International Certification Training Course';
+    return fnd?.name ?? spec?.name ?? 'International Certification';
+  }, [certLevels]);
+
+  const natLabel = useMemo(() => certLevels.find(l => l.code === 'NAT')?.name ?? 'National Training Course', [certLevels]);
+  const sglLabel = useMemo(() => certLevels.find(l => l.code === 'SGL')?.name ?? 'Single Modul Course', [certLevels]);
+
+  // Sub-tracks untuk INT_CERT — diambil dari API (FND & SPEC)
+  const intSubTracks = useMemo(() =>
+    certLevels.filter(l => l.code === 'FND' || l.code === 'SPEC').sort((a, b) => a.order_index - b.order_index),
+  [certLevels]);
+
+  // Tab list dinamis — hanya tampilkan tab yang ada datanya
+  const hasInt = useMemo(() => courses.some(c => c.certification_level?.code === 'FND' || c.certification_level?.code === 'SPEC'), [courses]);
+  const hasNat = useMemo(() => courses.some(c => c.certification_level?.code === 'NAT'), [courses]);
+  const hasSgl = useMemo(() => courses.some(c => c.certification_level?.code === 'SGL'), [courses]);
+
+  const tabs = useMemo(() => {
+    const list: { id: TabCategory; label: string; icon: string }[] = [
+      { id: 'ALL', label: 'Semua Kursus', icon: 'star-fat' },
+    ];
+    if (hasInt) list.push({ id: 'INT_CERT', label: intCertLabel, icon: 'graduation-cap-1' });
+    if (hasNat) list.push({ id: 'NAT', label: natLabel, icon: 'flag-1' });
+    if (hasSgl) list.push({ id: 'SGL', label: sglLabel, icon: 'book-1' });
+    return list;
+  }, [hasInt, hasNat, hasSgl, intCertLabel, natLabel, sglLabel]);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((c) => {
@@ -59,16 +93,18 @@ export default function CoursesPage() {
         !q ||
         c.title.toLowerCase().includes(q) ||
         (c.description && c.description.toLowerCase().includes(q));
-
       if (!matchesSearch) return false;
 
       const code = c.certification_level?.code ?? '';
-      if (activeTab === 'INT_CERT') return code === 'FND' || code === 'SPEC';
+      if (activeTab === 'INT_CERT') {
+        if (subTrackCode !== 'ALL') return code === subTrackCode;
+        return code === 'FND' || code === 'SPEC';
+      }
       if (activeTab === 'NAT') return code === 'NAT';
       if (activeTab === 'SGL') return code === 'SGL';
       return true;
     });
-  }, [courses, searchQuery, activeTab]);
+  }, [courses, searchQuery, activeTab, subTrackCode]);
 
   const handleDaftarClick = (course: Course) => {
     const targetUrl = `/student/dashboard?pay=${course.slug}`;
@@ -169,9 +205,9 @@ export default function CoursesPage() {
         {/* Catalog Main Content */}
         <main className="container py-10">
           {/* Category Tabs */}
-          <div className="flex justify-center mb-10 overflow-x-auto pb-2">
-            <div className="inline-flex bg-white p-1.5 rounded-2xl gap-1.5 shadow-sm border border-slate-200/80" role="tablist">
-              {TABS.map((tab) => {
+          <div className="flex flex-col items-center justify-center mb-10 gap-3">
+            <div className="inline-flex bg-white p-1.5 rounded-2xl gap-1.5 shadow-sm border border-slate-200/80 overflow-x-auto max-w-full" role="tablist">
+              {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button
@@ -179,8 +215,11 @@ export default function CoursesPage() {
                     id={`courses-tab-${tab.id.toLowerCase()}`}
                     role="tab"
                     aria-selected={isActive}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setSubTrack('ALL');
+                    }}
+                    className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
                       isActive
                         ? 'bg-navy text-white shadow-md shadow-navy/20 scale-[1.01]'
                         : 'text-slate-600 hover:text-navy hover:bg-slate-50'
@@ -192,6 +231,34 @@ export default function CoursesPage() {
                 );
               })}
             </div>
+
+            {/* Sub-filter untuk International Certification Track — dinamis dari API */}
+            {activeTab === 'INT_CERT' && intSubTracks.length > 0 && (
+              <div className="flex items-center gap-2 pt-1 animate-fadeup flex-wrap justify-center">
+                <span className="text-xs font-semibold text-slate-500">Track International:</span>
+                <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+                  <button
+                    onClick={() => setSubTrack('ALL')}
+                    className={`px-3 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
+                      subTrackCode === 'ALL' ? 'bg-white shadow-xs text-navy font-bold' : 'text-slate-600 hover:text-navy'
+                    }`}
+                  >
+                    Semua Track
+                  </button>
+                  {intSubTracks.map((lvl) => (
+                    <button
+                      key={lvl.code}
+                      onClick={() => setSubTrack(lvl.code)}
+                      className={`px-3 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
+                        subTrackCode === lvl.code ? 'bg-white shadow-xs text-navy font-bold' : 'text-slate-600 hover:text-navy'
+                      }`}
+                    >
+                      {lvl.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Results count header */}
