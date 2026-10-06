@@ -121,26 +121,16 @@ export default function PublicFooter() {
               <p className="text-slate-600 text-sm leading-relaxed mb-4">
                 Platform pelatihan dan sertifikasi maritim berstandar internasional bersama <strong>The Blue Economist International Association</strong> & <strong>Maritim Muda Nusantara</strong>.
               </p>
-
-              {/* SDG 14 & Status Badges */}
-              <div className="flex flex-wrap items-center gap-2 mb-6">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-xs font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
-                  SDG 14 Life Below Water
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
-                  <Icon name="shield-2-check" size={13} className="text-emerald-600" />
-                  Terakreditasi Asesor
-                </span>
-              </div>
             </div>
 
             {/* Sekretariat / Office Address */}
             <div className="pt-2 border-t border-slate-100 text-xs text-slate-500 space-y-1">
               <p className="font-semibold text-slate-700">Kantor Sekretariat:</p>
-              <p>DigiBlue Space, Gedung Kemaritiman Nusantara</p>
-              <p>Jl. Raya Pasar Minggu No. 17, Jakarta Selatan 12780, Indonesia</p>
-              <p className="text-slate-400 pt-0.5">Koordinat: 6°16&apos;S 106°50&apos;E • Zona Bahari Barat</p>
+              <p>Indonesia Blue Economy Center (IBEC)</p>
+              <p>Campus C, STIE Indonesia Jakarta</p>
+              <p>Jalan Pratekan No. 9A, Rawamangun</p>
+              <p>Jakarta, Indonesia 13220</p>
+              <p className="text-slate-400 pt-0.5">Koordinat: 6°11'47&apos;S 106°52'55&apos;E • Zona DKI Jakarta</p>
             </div>
           </div>
 
@@ -179,12 +169,6 @@ export default function PublicFooter() {
                 <Link href="/courses?track=SGL" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
                   <span>Single Modul Mandiri</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/verify" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5 font-semibold text-sky-700">
-                  <span className="text-xs text-sky-400">›</span>
-                  <span>Cek Validitas Sertifikat (QR)</span>
                 </Link>
               </li>
             </ul>
@@ -257,7 +241,7 @@ export default function PublicFooter() {
                 className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200/80 transition-colors"
               >
                 <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-emerald-600 shrink-0">💬</span>
-                <span>WhatsApp Hotline (+62 812-1010)</span>
+                <span>WhatsApp (+6285710914949)</span>
               </a>
             </div>
 
@@ -269,7 +253,7 @@ export default function PublicFooter() {
               <div className="flex items-center gap-2">
                 {/* LinkedIn */}
                 <a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/company/maritim-muda-nusantara"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn DigiBlue"
@@ -282,7 +266,7 @@ export default function PublicFooter() {
 
                 {/* Instagram */}
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/maritimmuda.id"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram DigiBlue"
@@ -297,7 +281,7 @@ export default function PublicFooter() {
 
                 {/* YouTube */}
                 <a
-                  href="https://youtube.com"
+                  href="https://www.youtube.com/@MaritimMudaNusantara"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube DigiBlue"
@@ -310,7 +294,7 @@ export default function PublicFooter() {
 
                 {/* Facebook */}
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/MaritimMudaID"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook DigiBlue"
@@ -323,7 +307,7 @@ export default function PublicFooter() {
 
                 {/* X (Twitter) */}
                 <a
-                  href="https://twitter.com"
+                  href="https://x.com/maritimmudaid"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="X DigiBlue"
@@ -341,7 +325,7 @@ export default function PublicFooter() {
         {/* Bottom Bar: Copyright & Legal Compliance */}
         <div className="border-t border-slate-200/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-left">
-            <span>© 2026 DigiBlueCamp. All rights reserved.</span>
+            <span>© 2026 DigiBlue. All rights reserved.</span>
             <span className="hidden sm:inline text-slate-300">•</span>
             <span>Didukung oleh The Blue Economist International Association & Maritim Muda Nusantara.</span>
           </div>
@@ -353,10 +337,6 @@ export default function PublicFooter() {
             <span className="text-slate-300">|</span>
             <Link href="/#privacy" className="hover:text-navy-dark transition-colors">
               Kebijakan Privasi
-            </Link>
-            <span className="text-slate-300">|</span>
-            <Link href="/verify" className="hover:text-navy-dark transition-colors">
-              Verifikasi Sertifikat
             </Link>
           </div>
         </div>

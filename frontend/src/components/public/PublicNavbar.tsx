@@ -102,22 +102,30 @@ export default function PublicNavbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl border border-slate-200 text-navy-dark hover:bg-slate-50"
+              className="w-10 h-10 rounded-xl border border-slate-200 text-navy-dark hover:bg-slate-50 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-sky-500"
               aria-label="Toggle menu"
             >
-              <Icon name={mobileMenuOpen ? 'close' : 'menu'} size={20} />
+              {mobileMenuOpen ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-3 animate-fadeup shadow-lg">
+          <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-2 animate-fadeup shadow-lg">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-lg text-sm font-semibold ${
-                isHome ? 'bg-sky-50 text-sky-600' : 'text-slate-700 hover:bg-slate-50'
+              className={`block px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                isHome ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               Beranda
@@ -125,18 +133,32 @@ export default function PublicNavbar() {
             <Link
               href="/courses"
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-lg text-sm font-semibold ${
-                isCourses ? 'bg-sky-50 text-sky-600' : 'text-slate-700 hover:bg-slate-50'
+              className={`block px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                isCourses ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Kursus
+              Katalog Kursus
+            </Link>
+            <Link
+              href="/#sertifikat"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50"
+            >
+              Tentang Sertifikat
+            </Link>
+            <Link
+              href="/#faq"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50"
+            >
+              Bantuan & FAQ
             </Link>
             <div className="pt-2 border-t border-slate-100">
               {isAuthenticated ? (
                 <Link
                   href={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full px-4 py-2.5 rounded-xl text-xs font-bold uppercase bg-navy text-white hover:bg-navy-dark transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 rounded-xl text-xs font-bold uppercase bg-navy text-white hover:bg-navy-dark transition-colors flex items-center justify-center gap-2 shadow-xs"
                 >
                   <Icon name="user-circle" size={15} />
                   <span>Dashboard {user?.name ? `(${user.name.split(' ')[0]})` : ''}</span>
@@ -145,7 +167,7 @@ export default function PublicNavbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full block text-center px-4 py-2.5 rounded-xl text-xs font-bold uppercase border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                  className="w-full block text-center px-4 py-3 rounded-xl text-xs font-bold uppercase border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors shadow-xs"
                 >
                   Login / Register
                 </Link>

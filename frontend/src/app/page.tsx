@@ -51,35 +51,35 @@ export default function LandingPage() {
             style={{ animationDelay: '3.5s' }}
           />
 
-          <div className="container relative z-10 grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          <div className="container relative z-10 grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             {/* Left Column: Headline, Subtitle, CTA, Value Checklist */}
-            <div className="lg:col-span-7 flex flex-col items-start text-left animate-fadeup-smooth">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-400/10 border border-sky-400/20 text-sky-300 text-xs font-semibold mb-5 backdrop-blur-sm">
+            <div className="lg:col-span-6 flex flex-col items-start text-left animate-fadeup-smooth">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 text-sky-300 text-xs font-semibold mb-4 sm:mb-5">
                 <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
                 <span>The Blue Economist International Certification</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-extrabold text-white leading-[1.12] tracking-tight mb-5 font-heading">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] xl:text-[50px] font-extrabold text-white leading-[1.18] sm:leading-[1.14] tracking-tight mb-4 sm:mb-5 font-heading">
                 Kuasai keahlian maritim masa depan.<br />
                 <span className="text-[#38bdf8] drop-shadow-sm">Dalam hitungan jam, bukan tahun.</span>
               </h1>
 
-              <p className="text-sm sm:text-base lg:text-lg text-slate-200/90 max-w-xl leading-relaxed mb-8">
+              <p className="text-sm sm:text-base lg:text-lg text-slate-200/90 max-w-xl leading-relaxed mb-6 sm:mb-8">
                 Kursus online ekonomi biru & maritim intensif 2–3 jam, 100% online, lengkap dengan sertifikat digital resmi yang dapat diverifikasi oleh industri & institusi global.
               </p>
 
-              {/* Action Buttons: Unified Rounded-2xl, Harmonious Spacing & Micro-interactions */}
-              <div className="flex flex-wrap items-center gap-3.5 mb-8">
+              {/* Action Buttons: Unified Rounded-2xl, Fully Responsive Stack/Inline */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3.5 w-full sm:w-auto mb-7 sm:mb-8">
                 <Link
                   href="/courses"
-                  className="px-7 py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-sky-600/30 transition-all inline-flex items-center gap-2.5 group hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full sm:w-auto justify-center px-7 py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm tracking-wide shadow-lg shadow-sky-600/30 transition-all inline-flex items-center gap-2.5 group hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span>Pilih Kursus Kamu</span>
                   <Icon name="arrow-right" size={15} className="transition-transform group-hover:translate-x-1" />
                 </Link>
                 <a
                   href="#harga"
-                  className="px-6 py-3.5 rounded-2xl border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/15 text-white font-semibold text-sm backdrop-blur-sm transition-all inline-flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full sm:w-auto justify-center px-6 py-3.5 rounded-2xl border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/15 text-white font-semibold text-sm backdrop-blur-sm transition-all inline-flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span>Apa yang Kamu Dapat</span>
                 </a>
@@ -98,40 +98,38 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Column: Hero Professionals Photo + Floating Dual-Pill Stat Badge */}
-            <div className="lg:col-span-5 relative flex justify-center lg:justify-end items-end pt-4 lg:pt-0">
-              <div className="relative w-full max-w-md lg:max-w-none rounded-3xl overflow-hidden shadow-2xl border border-white/15 bg-navy-dark/40 group">
+            {/* Right Column: Hero Maritim Muda Photo (Vertically Centered on Y-Axis) + Floating Dual-Pill Stat Badge */}
+            <div className="lg:col-span-6 relative flex flex-col items-center justify-center pt-2 sm:pt-4 lg:pt-0">
+              <div className="relative w-full max-w-md sm:max-w-xl lg:max-w-none lg:w-[114%] xl:w-[120%] lg:-mr-4 xl:-mr-8 group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/images/hero_professionals.jpg"
-                  alt="Peserta & Profesional Maritim DigiBlueCamp"
-                  className="w-full h-auto object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+                  src="/images/hero_maritim_muda_transparent.png"
+                  alt="Pengurus & Pemuda Maritim Muda Nusantara"
+                  className="w-full h-auto object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02] drop-shadow-[0_20px_40px_rgba(2,15,30,0.7)] sm:drop-shadow-[0_25px_50px_rgba(2,15,30,0.75)]"
                 />
-                {/* Soft bottom vignette blend */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#031527] via-transparent to-transparent opacity-50" />
               </div>
 
-              {/* Floating dual-pill badge anchored at the bottom with gentle oceanic float */}
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-2 z-20 bg-white rounded-full p-2.5 px-4 sm:px-5 shadow-2xl border border-slate-100 flex items-center gap-3 sm:gap-5 text-navy-dark animate-float-subtle whitespace-nowrap hover:shadow-sky-500/20 transition-all duration-300">
+              {/* Floating dual-pill badge: Fully responsive on mobile, tablet & desktop */}
+              <div className="mt-3 sm:mt-4 lg:-mt-5 relative z-20 bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-full p-2 sm:p-2.5 px-3 sm:px-5 shadow-2xl border border-slate-100 flex items-center justify-center gap-2 sm:gap-5 text-navy-dark animate-float-subtle max-w-full hover:shadow-sky-500/20 transition-all duration-300">
                 {/* Left pill stat */}
-                <div className="flex items-center gap-2.5 sm:gap-3 pr-3 sm:pr-4 border-r border-slate-200">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0 shadow-xs">
-                    <Icon name="globe" size={17} />
+                <div className="flex items-center gap-2 sm:gap-3 pr-2.5 sm:pr-4 border-r border-slate-200">
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0 shadow-xs">
+                    <Icon name="globe-1" size={16} />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs sm:text-sm font-extrabold text-navy-dark leading-tight">3.000+ peserta</p>
-                    <p className="text-[10px] sm:text-[11px] text-slate-500">di 39 provinsi & global</p>
+                    <p className="text-[11px] sm:text-sm font-extrabold text-navy-dark leading-tight">3.000+ peserta</p>
+                    <p className="text-[9px] sm:text-[11px] text-slate-500">di 39 provinsi & global</p>
                   </div>
                 </div>
 
                 {/* Right pill stat */}
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0 shadow-xs">
-                    <Icon name="thumbs-up" size={17} />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0 shadow-xs">
+                    <Icon name="thumbs-up-3" size={16} />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs sm:text-sm font-extrabold text-navy-dark leading-tight">98% merekomendasikan</p>
-                    <p className="text-[10px] sm:text-[11px] text-slate-500">survei alumni 2026</p>
+                    <p className="text-[11px] sm:text-sm font-extrabold text-navy-dark leading-tight">98% merekomendasikan</p>
+                    <p className="text-[9px] sm:text-[11px] text-slate-500">survei alumni 2026</p>
                   </div>
                 </div>
               </div>
@@ -166,9 +164,6 @@ export default function LandingPage() {
         <section className="container py-20 lg:py-24">
           <ScrollReveal direction="up" distance={20} duration={650}>
             <div className="text-center max-w-2xl mx-auto mb-14">
-              <span className="text-xs font-bold tracking-wider uppercase text-sky-700 bg-sky-50 border border-sky-200 px-3.5 py-1 rounded-full">
-                Jalur Pembelajaran
-              </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-dark mt-3 mb-3 font-heading">
                 Pilihan Program Sesuai Kebutuhan Karier
               </h2>
@@ -318,9 +313,6 @@ export default function LandingPage() {
           <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-center">
             <ScrollReveal direction="left" distance={24} duration={700}>
               <div>
-                <span className="text-xs font-bold tracking-wider uppercase text-sky-400 bg-sky-400/10 border border-sky-400/20 px-3 py-1 rounded-full mb-4 inline-block">
-                  Keunggulan Program
-                </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 font-heading leading-tight">
                   Keahlian yang membuatmu selangkah lebih maju.
                 </h2>
@@ -338,7 +330,7 @@ export default function LandingPage() {
             </ScrollReveal>
 
             {/* Symmetrical 2x2 Metric Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {[
                 ['14', 'SDG 14 jadi dasar kurikulum Foundation'],
                 ['10', 'jalur Specialization mendalam'],
@@ -346,11 +338,11 @@ export default function LandingPage() {
                 ['1', 'database sertifikat internasional'],
               ].map(([n, t], idx) => (
                 <ScrollReveal key={t} delay={idx * 100} distance={20} duration={650} className="h-full">
-                  <div className="h-full min-h-[148px] rounded-2xl bg-white/5 border border-white/10 p-6 flex flex-col justify-between hover:bg-white/10 hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 group">
-                    <div className="text-4xl font-extrabold text-gold mb-3 font-heading group-hover:scale-105 transition-transform origin-left">
+                  <div className="h-full min-h-[140px] sm:min-h-[148px] rounded-2xl bg-white/5 border border-white/10 p-4 sm:p-6 flex flex-col justify-between hover:bg-white/10 hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 group">
+                    <div className="text-3xl sm:text-4xl font-extrabold text-gold mb-2 sm:mb-3 font-heading group-hover:scale-105 transition-transform origin-left">
                       {n}
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-snug min-h-[2.75rem] flex items-start">
+                    <p className="text-xs sm:text-sm text-slate-300 leading-snug min-h-[2.5rem] sm:min-h-[2.75rem] flex items-start">
                       {t}
                     </p>
                   </div>
@@ -365,9 +357,6 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <ScrollReveal direction="left" distance={24} duration={700}>
               <div>
-                <span className="text-xs font-bold tracking-wider uppercase text-sky-700 bg-sky-50 border border-sky-200 px-3 py-1 rounded-full mb-3 inline-block">
-                  Kredensial Resmi
-                </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-dark mb-4 font-heading leading-tight">
                   Sertifikat yang benar-benar bisa kamu pakai.
                 </h2>
@@ -386,7 +375,7 @@ export default function LandingPage() {
               </div>
             </ScrollReveal>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {certPoints.map((p, idx) => (
                 <ScrollReveal key={p.title} delay={idx * 90} distance={18} duration={650} className="h-full">
                   <div className="h-full min-h-[140px] rounded-2xl border border-slate-200 p-5 card-hover-marine bg-white group flex flex-col justify-between">
@@ -405,13 +394,10 @@ export default function LandingPage() {
         </section>
 
         {/* Included / All-Inclusive Section */}
-        <section id="harga" className="bg-sky-50/80 border-y border-sky-100/80 scroll-mt-24 py-20 lg:py-24">
-          <div className="container grid lg:grid-cols-2 gap-12 items-center">
+        <section id="harga" className="bg-sky-50/80 border-y border-sky-100/80 scroll-mt-24 py-16 sm:py-20 lg:py-24">
+          <div className="container grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <ScrollReveal direction="left" distance={24} duration={700}>
               <div>
-                <span className="text-xs font-bold tracking-wider uppercase text-sky-700 bg-white border border-sky-200 px-3 py-1 rounded-full mb-3 inline-block shadow-xs">
-                  Transparan & Terjangkau
-                </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-navy-dark mb-4 font-heading leading-tight">
                   Satu program. Semuanya sudah termasuk.
                 </h2>
@@ -431,7 +417,7 @@ export default function LandingPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={120} distance={24} duration={700}>
-              <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xl shadow-sky-500/5 hover:border-sky-300 transition-all duration-300">
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xl shadow-sky-500/5 hover:border-sky-300 transition-all duration-300">
                 <h3 className="font-bold text-navy-dark mb-5 text-base font-heading flex items-center gap-2">
                   <Icon name="shield-2-check" size={18} className="text-emerald-500" />
                   <span>Yang kamu dapatkan dalam program</span>
@@ -459,7 +445,7 @@ export default function LandingPage() {
         </section>
 
         {/* FAQ Section */}
-        <section id="faq" className="container py-20 lg:py-24 max-w-3xl scroll-mt-24">
+        <section id="faq" className="container py-16 sm:py-20 lg:py-24 max-w-3xl scroll-mt-24">
           <ScrollReveal direction="up" distance={20} duration={650}>
             <div className="text-center mb-10">
               <span className="text-xs font-bold tracking-wider uppercase text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
@@ -474,8 +460,8 @@ export default function LandingPage() {
           <div className="flex flex-col gap-3.5">
             {faqs.map((f, idx) => (
               <ScrollReveal key={f.q} delay={idx * 70} distance={16} duration={600}>
-                <details className="group bg-white border border-slate-200/90 rounded-2xl px-6 py-4.5 open:shadow-md open:border-sky-300/80 transition-all">
-                  <summary className="flex items-center justify-between cursor-pointer font-bold text-navy-dark list-none text-sm sm:text-base font-heading select-none">
+                <details className="group bg-white border border-slate-200/90 rounded-2xl px-5 sm:px-6 py-4 sm:py-4.5 open:shadow-md open:border-sky-300/80 transition-all">
+                  <summary className="flex items-center justify-between cursor-pointer font-bold text-navy-dark list-none text-sm sm:text-base font-heading select-none gap-3">
                     <span>{f.q}</span>
                     <span className="w-7 h-7 rounded-full bg-slate-50 group-open:bg-sky-50 flex items-center justify-center shrink-0 transition-colors">
                       <Icon name="chevron-down" size={15} className="text-slate-400 group-open:text-sky-600 transition-transform duration-300 group-open:rotate-180" />
@@ -491,15 +477,15 @@ export default function LandingPage() {
         </section>
 
         {/* Final CTA Banner */}
-        <section className="container pb-20 lg:pb-24">
+        <section className="container pb-16 sm:pb-20 lg:pb-24">
           <ScrollReveal direction="up" distance={24} duration={700}>
-            <div className="gradient-hero rounded-3xl text-center text-white px-6 py-16 lg:py-20 relative overflow-hidden shadow-2xl">
+            <div className="gradient-hero rounded-3xl text-center text-white px-5 sm:px-8 py-12 sm:py-16 lg:py-20 relative overflow-hidden shadow-2xl">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(244,168,32,0.2)_0%,transparent_70%)] animate-ocean-pulse" />
               <div className="relative z-10 max-w-2xl mx-auto">
-                <span className="inline-block text-xs uppercase tracking-widest font-bold text-gold bg-white/10 px-3 py-1 rounded-full mb-3 backdrop-blur-sm">
+                <span className="inline-block text-xs uppercase tracking-widest font-bold text-gold px-3 py-1 mb-3">
                   Mulai Perjalananmu Hari Ini
                 </span>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 font-heading leading-tight">
+                <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4 font-heading leading-tight">
                   Keahlian barumu hanya beberapa jam lagi.
                 </h2>
                 <p className="text-white/80 text-sm sm:text-base mb-8 max-w-lg mx-auto leading-relaxed">
@@ -507,7 +493,7 @@ export default function LandingPage() {
                 </p>
                 <Link
                   href="/register"
-                  className="px-9 py-4 rounded-2xl bg-gold hover:bg-gold-dark text-navy-dark text-base font-extrabold shadow-xl shadow-gold/30 inline-flex items-center gap-2.5 group hover:scale-105 active:scale-95 transition-all"
+                  className="w-full sm:w-auto px-8 sm:px-9 py-3.5 sm:py-4 rounded-2xl bg-gold hover:bg-gold-dark text-navy-dark text-base font-extrabold shadow-xl shadow-gold/30 inline-flex items-center justify-center gap-2.5 group hover:scale-105 active:scale-95 transition-all"
                 >
                   <span>Daftar Sekarang</span>
                   <Icon name="arrow-right" size={16} className="transition-transform group-hover:translate-x-1" />
