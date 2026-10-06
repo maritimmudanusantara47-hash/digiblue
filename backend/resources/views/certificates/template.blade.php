@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Certificate – {{ $user->name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         @page { margin: 0; size: A4 landscape; }
 
@@ -12,7 +17,7 @@
             height: 210mm;
             position: relative;
             overflow: hidden;
-            font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+            font-family: 'Poppins', 'DejaVu Sans', Arial, Helvetica, sans-serif;
             background: #F8F8F8;
         }
 
@@ -32,7 +37,7 @@
             z-index: 2;
         }
 
-        /* ── Serial Number (Covers template placeholder completely) ── */
+        /* ── Serial Number ── */
         .f-serial {
             position: absolute;
             top: 13.0mm;
@@ -40,8 +45,9 @@
             width: 105mm;
             height: 7.5mm;
             line-height: 7.5mm;
-            background: #F8F8F8;
+            background: transparent;
             font-size: 8.8pt;
+            font-family: 'Poppins', 'DejaVu Sans', sans-serif;
             color: #111827;
             text-align: right;
             z-index: 3;
@@ -58,6 +64,7 @@
             text-align: center;
             font-size: 27pt;
             font-weight: bold;
+            font-family: 'Arial MT Pro', Arial, Helvetica, sans-serif;
             color: #000000;
             letter-spacing: 0.3px;
             z-index: 3;
@@ -74,6 +81,7 @@
             text-align: center;
             font-size: 14.5pt;
             font-weight: bold;
+            font-family: 'Arial MT Pro', Arial, Helvetica, sans-serif;
             color: #173874;
             letter-spacing: 0.1px;
             z-index: 3;
@@ -88,6 +96,7 @@
             text-align: center;
             font-size: 11.5pt;
             font-weight: bold;
+            font-family: 'Poppins', 'DejaVu Sans', sans-serif;
             color: #000000;
             z-index: 3;
         }
@@ -102,6 +111,7 @@
             background: #F8F8F8;
             text-align: center;
             font-size: 8.4pt;
+            font-family: 'Poppins', 'DejaVu Sans', sans-serif;
             line-height: 1.55;
             color: #111827;
             z-index: 3;

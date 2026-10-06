@@ -45,7 +45,9 @@ class CertificateController extends Controller
         $qrImageBase64 = base64_encode($qrSvg);
 
         // Load template background image as base64 for inline embedding in PDF
-        $templatePath = resource_path('images/template_CBEc.png');
+        $templatePath = file_exists(resource_path('images/template_CBEc.png'))
+            ? resource_path('images/template_CBEc.png')
+            : resource_path('images/cbectemplate.jpg');
         $templateBase64 = file_exists($templatePath)
             ? base64_encode(file_get_contents($templatePath))
             : null;

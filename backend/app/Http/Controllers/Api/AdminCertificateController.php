@@ -154,7 +154,9 @@ class AdminCertificateController extends Controller
         $qrSvg = \QrCode::format('svg')->size(140)->generate($verificationUrl);
         $qrImageBase64 = base64_encode($qrSvg);
 
-        $templatePath = resource_path('images/template_CBEc.png');
+        $templatePath = file_exists(resource_path('images/template_CBEc.png'))
+            ? resource_path('images/template_CBEc.png')
+            : resource_path('images/cbectemplate.jpg');
         $templateBase64 = file_exists($templatePath)
             ? base64_encode(file_get_contents($templatePath))
             : null;
@@ -220,16 +222,23 @@ class AdminCertificateController extends Controller
     /** Return template image sebagai base64 untuk frontend designer */
     public function getTemplateImage(): JsonResponse
     {
-        $templatePath = resource_path('images/template_CBEc.png');
+        $templatePath = file_exists(resource_path('images/template_CBEc.png'))
+            ? resource_path('images/template_CBEc.png')
+            : (file_exists(resource_path('images/cbectemplate.jpg'))
+                ? resource_path('images/cbectemplate.jpg')
+                : null);
 
-        if (! file_exists($templatePath)) {
+        if (! $templatePath || ! file_exists($templatePath)) {
             return response()->json(['message' => 'Template image tidak ditemukan.'], 404);
         }
+
+        $extension = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));
+        $mimeType  = ($extension === 'jpg' || $extension === 'jpeg') ? 'image/jpeg' : 'image/png';
 
         return response()->json([
             'data' => [
                 'base64'    => base64_encode(file_get_contents($templatePath)),
-                'mime_type' => 'image/png',
+                'mime_type' => $mimeType,
                 'width_mm'  => 297,
                 'height_mm' => 210,
             ],

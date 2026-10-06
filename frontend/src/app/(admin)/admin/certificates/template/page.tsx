@@ -293,7 +293,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('serial_no'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'serial_no' ? 'ring-2 ring-blue-500 bg-blue-50/70 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 14), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: '#F8F8F8', fontSize: `${(layout.serial_no?.font_size ?? 8.8) * (SCALE / 3.4)}px`, fontFamily: 'Arial, sans-serif', color: '#111827', textAlign: 'right', zIndex: 10 }}
+                style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 14), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: 'transparent', fontSize: `${(layout.serial_no?.font_size ?? 8.8) * (SCALE / 3.4)}px`, fontFamily: "'Poppins', sans-serif", color: '#111827', textAlign: 'right', zIndex: 10 }}
               >
                 Certificate Serial No. {sample.serial}
               </div>
@@ -302,7 +302,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.recipient_name?.top ?? 67), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 27) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: 'Arial, sans-serif', zIndex: 10 }}
+                style={{ top: mmToPx(layout.recipient_name?.top ?? 67), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 27) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
               >
                 {sample.name}
               </div>
@@ -311,7 +311,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: 'Arial, sans-serif', zIndex: 10 }}
+                style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
               >
                 {sample.ribbon}
               </div>
@@ -320,7 +320,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('level_value'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'level_value' ? 'ring-2 ring-blue-500 bg-blue-50/30 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 11.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: 'Arial, sans-serif', zIndex: 10 }}
+                style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 11.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
               >
                 {sample.level}
               </div>
@@ -329,7 +329,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 8.4) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: 'Arial, sans-serif', zIndex: 10 }}
+                style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 8.4) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
               >
                 <div><strong>Grade:</strong> {sample.grade}</div>
                 <div><strong>Date of issue:</strong> {sample.date}</div>
@@ -467,7 +467,15 @@ export default function CertificateTemplateAdminPage() {
               <div className="px-4 py-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-200">{sel.label}</span>
-                  <span className="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded font-mono">mm</span>
+                  <div className="flex items-center gap-1.5">
+                    {['recipient_name', 'ribbon_text'].includes(selectedKey) && (
+                      <span className="text-[10px] text-amber-300 bg-amber-950/60 border border-amber-800/60 px-2 py-0.5 rounded font-medium">Arial MT Pro</span>
+                    )}
+                    {['serial_no', 'level_value', 'meta_block'].includes(selectedKey) && (
+                      <span className="text-[10px] text-sky-300 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded font-medium">Poppins</span>
+                    )}
+                    <span className="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded font-mono">mm</span>
+                  </div>
                 </div>
 
                 {/* Top */}
