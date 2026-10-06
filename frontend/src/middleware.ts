@@ -11,9 +11,7 @@ export function middleware(request: NextRequest) {
     (pathname.startsWith('/student') && !pathname.startsWith('/student/catalog'));
 
   if (isProtectedRoute && !token) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();

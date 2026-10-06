@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ─── Tailwind v4 Custom Theme ─────────────────────────────────────────────── */
+/* ── Tailwind v4 Custom Theme ── */
 @theme {
   /* Brand Colors */
   --color-navy:         #1E3A5F;
@@ -10,9 +10,12 @@
   --color-gold-light:   #FFD166;
   --color-gold-dark:    #C8861A;
 
-  /* Fonts */
-  --font-sans:    'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  /* Fonts: Poppins (Heading & Navigation) & Inter (Body & Screen Reading) */
+  --font-sans:    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Poppins', 'Inter', system-ui, sans-serif;
+  --font-heading: 'Poppins', 'Inter', system-ui, sans-serif;
+  --font-poppins: 'Poppins', system-ui, sans-serif;
+  --font-inter:   'Inter', system-ui, sans-serif;
 
   /* Border Radius */
   --radius-sm:  6px;
@@ -26,11 +29,20 @@
   --shadow-glow:  0 0 40px rgba(244, 168, 32, 0.15);
 }
 
-/* ─── Base Styles ──────────────────────────────────────────────────────────── */
+/* ── Base Styles ── */
 @layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: var(--font-heading);
+    --font-poppins: var(--font-heading);
+    --font-inter: var(--font-sans);
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
+    font-family: var(--font-sans);
   }
 
   body {
@@ -38,13 +50,32 @@
     @apply bg-slate-50 text-slate-800;
   }
 
+  /* 1. Judul (Heading): Poppins */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-heading);
     @apply font-bold leading-tight;
+  }
+
+  /* 2. Navigasi & Menu: Poppins */
+  nav,
+  header nav,
+  .sidebar,
+  .sidebar-nav,
+  .sidebar-link,
+  .nav-link,
+  .nav-item,
+  .navbar,
+  [role="navigation"],
+  [role="menu"],
+  [role="menubar"],
+  [role="menuitem"],
+  [role="tablist"],
+  [role="tab"] {
+    font-family: var(--font-heading);
   }
 }
 
-/* ─── Custom Component Classes ─────────────────────────────────────────────── */
+/* ── Custom Component Classes ── */
 @layer components {
 
   /* Buttons */
@@ -107,11 +138,13 @@
   /* Dashboard Sidebar */
   .sidebar {
     background: linear-gradient(180deg, #0F1E33 0%, #1E3A5F 100%);
+    font-family: var(--font-heading);
     @apply w-64 h-screen sticky top-0 flex flex-col flex-shrink-0 z-30 overflow-hidden;
     height: 100vh;
     align-self: flex-start;
   }
   .sidebar-nav {
+    font-family: var(--font-heading);
     @apply flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
@@ -127,6 +160,7 @@
     border-radius: 4px;
   }
   .sidebar-link {
+    font-family: var(--font-heading);
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
            text-white/65 transition-all duration-200 cursor-pointer;
   }
@@ -141,7 +175,10 @@
     @apply bg-white rounded-2xl p-6 border border-slate-100 shadow-sm
            transition-all duration-200 hover:-translate-y-1 hover:shadow-md;
   }
-  .stat-number { @apply text-3xl font-extrabold text-navy; }
+  .stat-number {
+    font-family: var(--font-heading);
+    @apply text-3xl font-extrabold text-navy;
+  }
   .stat-label  { @apply text-xs text-slate-400 font-medium mt-1; }
 
   /* Table */
@@ -158,7 +195,7 @@
   }
 }
 
-/* ─── Custom Utilities ─────────────────────────────────────────────────────── */
+/* ── Custom Utilities ── */
 @layer utilities {
   .container {
     width: 100%;
@@ -188,9 +225,21 @@
   .gradient-hero {
     background: linear-gradient(135deg, #0F1E33 0%, #1E3A5F 60%, #2A5298 100%);
   }
+
+  /* Typography Utilities */
+  .font-poppins,
+  .font-heading,
+  .font-display {
+    font-family: 'Poppins', var(--font-heading), sans-serif !important;
+  }
+  .font-inter,
+  .font-body,
+  .font-sans {
+    font-family: 'Inter', var(--font-sans), sans-serif !important;
+  }
 }
 
-/* ─── Keyframes ────────────────────────────────────────────────────────────── */
+/* ── Keyframes ── */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }

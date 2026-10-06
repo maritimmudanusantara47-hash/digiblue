@@ -3,6 +3,8 @@
 import Icon from '@/components/Icon';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 
@@ -14,13 +16,30 @@ const assessorNav = [
 export default function AssessorLayout({ children }: { children: React.ReactNode }) {
   const pathname            = usePathname();
   const router              = useRouter();
-  const { user, clearAuth } = useAuthStore();
+  const { user, isAuthenticated, clearAuth } = useAuthStore();
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch {}
     clearAuth();
-    router.replace('/login');
+    window.location.replace('/');
   };
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = Cookies.get('auth_token');
+      const isAssessor = user?.roles?.some(r => r.name === 'assessor' || r.name === 'admin');
+      if (!token && !isAuthenticated) {
+        window.location.replace('/');
+        return;
+      }
+      if (user && !isAssessor) {
+        window.location.replace('/');
+      }
+    };
+    checkAuth();
+    window.addEventListener('pageshow', checkAuth);
+    return () => window.removeEventListener('pageshow', checkAuth);
+  }, [user, isAuthenticated]);
 
   return (
     <div className="flex min-h-screen bg-slate-50">

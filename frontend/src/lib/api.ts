@@ -24,6 +24,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      Cookies.remove('auth_token', { path: '/' });
       Cookies.remove('auth_token');
       if (typeof window !== 'undefined') {
         const path = window.location.pathname;
@@ -36,7 +37,7 @@ api.interceptors.response.use(
           path.startsWith('/register');
 
         if (!isPublicPath) {
-          window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
+          window.location.replace('/');
         }
       }
     }

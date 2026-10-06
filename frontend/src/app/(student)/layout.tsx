@@ -3,6 +3,8 @@
 import Icon from '@/components/Icon';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 
@@ -15,13 +17,26 @@ const navItems = [
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { user, clearAuth } = useAuthStore();
+  const { user, isAuthenticated, clearAuth } = useAuthStore();
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch {}
     clearAuth();
-    router.replace('/login');
+    window.location.replace('/');
   };
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = Cookies.get('auth_token');
+      // Jika route bukan /student/catalog dan tidak ada token/auth, tendang ke landing page
+      if (!token && !isAuthenticated && !pathname.startsWith('/student/catalog')) {
+        window.location.replace('/');
+      }
+    };
+    checkAuth();
+    window.addEventListener('pageshow', checkAuth);
+    return () => window.removeEventListener('pageshow', checkAuth);
+  }, [pathname, isAuthenticated]);
 
   return (
     <div className="flex min-h-screen bg-slate-50">

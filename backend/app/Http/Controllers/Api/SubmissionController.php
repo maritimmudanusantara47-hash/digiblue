@@ -158,7 +158,7 @@ class SubmissionController extends Controller
         $responseData = $submission->toArray();
         if ($content->content_type === 'mcq_quiz') {
             $responseData['correct_count'] = $correctCount;
-            $questions = \App\Models\QuizQuestion::where('content_id', $content->id)->count();
+            $questions = QuizQuestion::where('content_id', $content->id)->count();
             $responseData['total_questions'] = $questions;
         }
 

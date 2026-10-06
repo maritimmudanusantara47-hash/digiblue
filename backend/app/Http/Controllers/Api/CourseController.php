@@ -12,13 +12,28 @@ class CourseController extends Controller
     /** Public: List katalog kursus aktif */
     public function index(Request $request): JsonResponse
     {
-        $courses = Course::with('certificationLevel')
+        $query = Course::with('certificationLevel')
             ->withCount('sections')
             ->where('is_active', true)
-            ->when($request->level, fn($q) => $q->whereHas('certificationLevel',
-                fn($l) => $l->where('code', $request->level)))
-            ->orderBy('order_index')
-            ->get();
+            ->orderBy('order_index');
+
+        if ($request->filled('search')) {
+            $searchTerm = '%' . $request->search . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', $searchTerm)
+                  ->orWhere('description', 'like', $searchTerm);
+            });
+        }
+
+        if ($request->filled('level')) {
+            $levels = explode(',', $request->level);
+            if (in_array('INT_CERT', $levels)) {
+                $levels = array_unique(array_merge($levels, ['FND', 'SPEC', 'INT_CERT']));
+            }
+            $query->whereHas('certificationLevel', fn($q) => $q->whereIn('code', $levels));
+        }
+
+        $courses = $query->get();
 
         return response()->json(['data' => $courses]);
     }

@@ -217,7 +217,7 @@ function StudentDashboardContent() {
             <h2 className="text-lg font-bold text-navy-dark">Kursus Saya</h2>
             <p className="text-xs text-slate-400 mt-0.5">Daftar kursus terdaftar dan status pembelajaran kamu</p>
           </div>
-          <Link href="/#kursus" className="btn btn-outline btn-sm">
+          <Link href="/student/catalog" className="btn btn-outline btn-sm">
             + Tambah Kursus
           </Link>
         </div>
@@ -230,7 +230,7 @@ function StudentDashboardContent() {
           <div className="text-center py-12">
             <div className="text-5xl mb-3"><Icon name="books-2" size={48} /></div>
             <p className="text-slate-500 text-sm">Kamu belum mendaftar kursus apapun.</p>
-            <Link href="/#kursus" className="btn btn-primary btn-sm mt-4 inline-flex">
+            <Link href="/student/catalog" className="btn btn-primary btn-sm mt-4 inline-flex">
               Lihat Katalog Kursus
             </Link>
           </div>
