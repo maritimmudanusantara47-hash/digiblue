@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { AuthResponse } from '@/types';
+import Icon from '@/components/Icon';
 
 const loginSchema = z.object({
   email:    z.string().email('Format email tidak valid'),
@@ -17,9 +18,12 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
-  const router   = useRouter();
-  const setAuth  = useAuthStore(s => s.setAuth);
+function LoginFormContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams?.get('redirect');
+
+  const setAuth = useAuthStore(s => s.setAuth);
   const [serverError, setServerError] = useState('');
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
@@ -33,7 +37,13 @@ export default function LoginPage() {
       const { token, user } = res.data.data;
       setAuth(user, token);
 
-      // Redirect berdasarkan role
+      // Prioritas redirect: jika ada parameter redirect (misal /checkout/slug), utamakan itu!
+      if (redirect && redirect.startsWith('/')) {
+        router.replace(redirect);
+        return;
+      }
+
+      // Redirect default berdasarkan role
       const role = user.roles?.[0]?.name ?? 'student';
       if (role === 'admin')         router.replace('/admin/dashboard');
       else if (role === 'assessor') router.replace('/assessor/dashboard');
@@ -45,10 +55,21 @@ export default function LoginPage() {
     }
   };
 
+  const registerHref = redirect
+    ? `/register?redirect=${encodeURIComponent(redirect)}`
+    : '/register';
+
   return (
     <div className="animate-fadeup">
       <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Selamat Datang Kembali</h1>
-      <p className="text-slate-500 text-sm mb-8">Masuk ke akun DigiBlueCamp kamu</p>
+      <p className="text-slate-500 text-sm mb-6">Masuk ke akun DigiBlueCamp kamu</p>
+
+      {redirect && (
+        <div className="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-4 py-3 rounded-xl mb-6 flex items-center gap-2.5">
+          <Icon name="information" size={16} className="text-sky-600 shrink-0" />
+          <span>Silakan masuk untuk melanjutkan proses pendaftaran ke kursus pilihanmu.</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {/* Email */}
@@ -105,10 +126,18 @@ export default function LoginPage() {
 
       <p className="text-center text-sm text-slate-500 mt-6">
         Belum punya akun?{' '}
-        <Link href="/register" className="font-semibold text-navy hover:text-gold transition-colors">
+        <Link href={registerHref} className="font-semibold text-navy hover:text-gold transition-colors">
           Daftar sekarang
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 text-sm">Memuat formulir masuk...</div>}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

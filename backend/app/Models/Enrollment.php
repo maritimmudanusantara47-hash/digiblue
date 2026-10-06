@@ -6,6 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $course_id
+ * @property string $enrollment_type
+ * @property string $status
+ * @property bool $attended_field_trip
+ * @property float|null $final_payment_amount
+ * @property string|null $payment_token
+ * @property string|null $order_id
+ * @property string|null $payment_status
+ * @property \Illuminate\Support\Carbon|null $paid_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User $user
+ * @property-read \App\Models\Course $course
+ */
 class Enrollment extends Model
 {
     protected $fillable = [

@@ -8,10 +8,11 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute =
     pathname.startsWith('/admin') ||
     pathname.startsWith('/assessor') ||
-    pathname.startsWith('/student');
+    (pathname.startsWith('/student') && !pathname.startsWith('/student/catalog'));
 
   if (isProtectedRoute && !token) {
     const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 

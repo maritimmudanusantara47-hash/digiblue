@@ -1,9 +1,12 @@
 'use client';
 
+import Cookies from 'js-cookie';
 import Icon from '@/components/Icon';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
 
 interface EnrollmentInfo {
@@ -29,7 +32,13 @@ const TABS: { id: TabCategory; label: string; icon: string }[] = [
   { id: 'SGL',      label: 'Single Modul Course',                  icon: 'book-1' },
 ];
 
-export default function StudentCatalogPage() {
+function StudentCatalogContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoEnrollSlug = searchParams?.get('enroll');
+
+  const { isAuthenticated } = useAuthStore();
+
   const [courses, setCourses]           = useState<Course[]>([]);
   const [enrollmentMap, setEnrollment]  = useState<Map<number, EnrollmentInfo>>(new Map());
   const [loading, setLoading]           = useState(true);
@@ -42,13 +51,18 @@ export default function StudentCatalogPage() {
 
   const loadData = useCallback(() => {
     setLoading(true);
+    const token = Cookies.get('auth_token');
+    const enrollPromise = token
+      ? api.get('/enrollments').catch(() => ({ data: { data: [] } }))
+      : Promise.resolve({ data: { data: [] } });
+
     Promise.all([
       api.get('/courses'),
-      api.get('/enrollments'),
+      enrollPromise,
     ]).then(([courseRes, enrollRes]) => {
       setCourses(courseRes.data.data ?? []);
       const myEnroll: { id: number; status: string; enrollment_type: string | null; course: { id: number } }[] =
-        enrollRes.data.data ?? [];
+        enrollRes?.data?.data ?? [];
       const map = new Map<number, EnrollmentInfo>();
       (Array.isArray(myEnroll) ? myEnroll : []).forEach((e) => {
         if (e.course?.id) {
@@ -67,7 +81,7 @@ export default function StudentCatalogPage() {
   useEffect(() => { loadData(); }, [loadData]);
 
   // ── Payment ─────────────────────────────────────────────────────────────────
-  const handlePay = async (enrollmentId: number) => {
+  const handlePay = useCallback(async (enrollmentId: number) => {
     setPaying(enrollmentId);
     try {
       const res = await api.post('/payments/create-snap-token', { enrollment_id: enrollmentId });
@@ -78,44 +92,64 @@ export default function StudentCatalogPage() {
         return;
       }
 
-      const snapToken  = res.data.data?.snap_token;
+      const snapToken   = res.data.data?.snap_token;
       const redirectUrl = res.data.data?.redirect_url;
 
-      if (typeof window !== 'undefined' && window.snap && snapToken) {
-        window.snap.pay(snapToken, {
-          onSuccess: async () => {
-            await api.post('/payments/verify-status', { enrollment_id: enrollmentId }).catch(() => {});
-            alert('Pembayaran berhasil! Kursus kamu sudah aktif.');
-            loadData();
-          },
-          onPending: () => {
-            alert('Menunggu pembayaran selesai. Silakan selesaikan instruksi pembayaran.');
-            loadData();
-          },
-          onError: () => alert('Pembayaran gagal atau dibatalkan.'),
-          onClose: async () => {
-            try {
-              const v = await api.post('/payments/verify-status', { enrollment_id: enrollmentId });
-              if (v.data?.data?.is_active) alert('Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.');
-            } catch { /* ignore */ }
-            loadData();
-          },
-        });
-      } else if (redirectUrl) {
-        window.open(redirectUrl, '_blank');
-      } else {
-        alert('Gagal memuat pop-up pembayaran.');
-      }
+      const triggerSnap = () => {
+        if (typeof window !== 'undefined' && window.snap && snapToken) {
+          window.snap.pay(snapToken, {
+            onSuccess: async () => {
+              await api.post('/payments/verify-status', { enrollment_id: enrollmentId }).catch(() => {});
+              alert('Pembayaran berhasil! Kursus kamu sudah aktif.');
+              loadData();
+            },
+            onPending: () => {
+              alert('Menunggu pembayaran selesai. Silakan selesaikan instruksi pembayaran.');
+              loadData();
+            },
+            onError: () => alert('Pembayaran gagal atau dibatalkan.'),
+            onClose: async () => {
+              try {
+                const v = await api.post('/payments/verify-status', { enrollment_id: enrollmentId });
+                if (v.data?.data?.is_active) alert('Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.');
+              } catch { /* ignore */ }
+              loadData();
+            },
+          });
+        } else if (redirectUrl) {
+          window.open(redirectUrl, '_blank');
+        } else {
+          let attempts = 0;
+          const interval = setInterval(() => {
+            attempts++;
+            if (typeof window !== 'undefined' && window.snap && snapToken) {
+              clearInterval(interval);
+              triggerSnap();
+            } else if (attempts > 12) {
+              clearInterval(interval);
+              alert('Gagal memuat pop-up pembayaran.');
+            }
+          }, 200);
+        }
+      };
+
+      triggerSnap();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       alert(msg ?? 'Gagal memproses pembayaran Midtrans.');
     } finally {
       setPaying(null);
     }
-  };
+  }, [loadData]);
 
   // ── Enroll ──────────────────────────────────────────────────────────────────
-  const handleEnroll = async (courseId: number, courseSlug: string) => {
+  const handleEnroll = useCallback(async (courseId: number, courseSlug: string) => {
+    const token = Cookies.get('auth_token');
+    if (!isAuthenticated && !token) {
+      router.push(`/register?redirect=${encodeURIComponent('/student/dashboard?pay=' + courseSlug)}`);
+      return;
+    }
+
     setEnrolling(courseId);
     try {
       const res = await api.post('/enrollments', { course_id: courseId });
@@ -139,7 +173,29 @@ export default function StudentCatalogPage() {
     } finally {
       setEnrolling(null);
     }
-  };
+  }, [isAuthenticated, router, handlePay]);
+
+  // ── Auto-enroll & Pop-up Pembayaran Otomatis Setelah Login/Registrasi ───────
+  useEffect(() => {
+    if (!autoEnrollSlug || loading || courses.length === 0) return;
+    const token = Cookies.get('auth_token');
+    if (!token && !isAuthenticated) return;
+
+    const target = courses.find(c => c.slug === autoEnrollSlug);
+    if (!target) return;
+
+    // Bersihkan parameter dari URL
+    window.history.replaceState({}, '', '/student/catalog');
+
+    const enrollInfo = enrollmentMap.get(target.id);
+    if (enrollInfo?.status === 'active') {
+      router.push(`/student/courses/${target.slug}`);
+    } else if (enrollInfo?.status === 'payment_pending') {
+      handlePay(enrollInfo.id);
+    } else if (!enrollInfo) {
+      handleEnroll(target.id, target.slug);
+    }
+  }, [autoEnrollSlug, loading, courses, enrollmentMap, isAuthenticated, handlePay, handleEnroll, router]);
 
   // ── Filter & Group ──────────────────────────────────────────────────────────
   const handleSearchChange = (val: string) => { setSearch(val); setCurrentPage(1); };
@@ -176,7 +232,6 @@ export default function StudentCatalogPage() {
   const national       = paginatedCourses.filter(c => c.certification_level?.code === 'NAT');
   const singleMod      = paginatedCourses.filter(c => c.certification_level?.code === 'SGL');
 
-  // Cek apakah student sudah menyelesaikan Foundation 100%
   const foundationCompleted = Array.from(enrollmentMap.values()).some(e =>
     e.status === 'completed' &&
     courses.find(c => c.id === e.course_id)?.certification_level?.code === 'FND'
@@ -400,20 +455,26 @@ export default function StudentCatalogPage() {
   );
 }
 
+export default function StudentCatalogPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400">Memuat katalog...</div>}>
+      <StudentCatalogContent />
+    </Suspense>
+  );
+}
+
 function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompleted, onEnroll, onPay }: {
   course: Course;
   enrollment: EnrollmentInfo | null;
   isEnrolling: boolean;
   isPaying: boolean;
-  foundationCompleted?: boolean; // hanya relevan untuk SPEC course
+  foundationCompleted?: boolean;
   onEnroll: (id: number, slug: string) => void;
   onPay: (enrollmentId: number) => void;
 }) {
   const code    = course.certification_level?.code ?? 'SPEC';
   const style   = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
   const isSpec  = code === 'SPEC';
-
-  // Apakah akses kursus ini diblokir karena Foundation belum selesai?
   const accessBlocked = isSpec && enrollment?.status === 'active' && foundationCompleted === false;
 
   return (
@@ -436,9 +497,18 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompl
         )}
       </div>
 
+
+      {/* Lihat Silabus & Detail */}
+      <Link
+        href={`/student/catalog/${course.slug}`}
+        className="btn btn-secondary btn-sm w-full text-xs font-semibold hover:bg-slate-100 flex items-center justify-center gap-1.5"
+      >
+        <Icon name="book-open" size={14} className="text-navy" />
+        <span>Lihat Silabus & Detail</span>
+      </Link>
+
       {/* CTA Button */}
       {!enrollment ? (
-        // Belum daftar sama sekali → Daftar Sekarang
         <button id={`enroll-${course.id}`}
           onClick={() => onEnroll(course.id, course.slug)}
           disabled={isEnrolling}
@@ -454,7 +524,6 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompl
           ) : <><Icon name="rocket-5" size={16} className="mr-1.5" />Daftar Sekarang</>}
         </button>
       ) : enrollment.status === 'payment_pending' ? (
-        // Menunggu pembayaran → Bayar Sekarang
         <button
           id={`pay-${course.id}`}
           onClick={() => onPay(enrollment.id)}
@@ -474,19 +543,16 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompl
           )}
         </button>
       ) : enrollment.status === 'completed' ? (
-        // Selesai → Kursus Selesai
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center bg-emerald-600 hover:bg-emerald-700 text-white">
           <Icon name="check-circle" size={16} className="mr-1.5" />Kursus Selesai
         </Link>
       ) : enrollment.status === 'active' && accessBlocked ? (
-        // Sudah bayar SPEC tapi Foundation belum 100% → akses dikunci sementara
         <button disabled className="btn w-full text-sm font-semibold text-center bg-amber-50 text-amber-700 border border-amber-300 cursor-not-allowed">
           <Icon name="locked-1" size={16} className="mr-1.5" />Selesaikan Foundation Dulu
         </button>
       ) : enrollment.status === 'active' ? (
-        // Aktif & bisa akses → Lanjut Belajar
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center btn-primary">
@@ -504,4 +570,3 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompl
     </div>
   );
 }
-

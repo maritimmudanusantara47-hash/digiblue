@@ -31,8 +31,12 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Tidak memiliki hak akses ke enrollment ini.'], 403);
         }
 
-        if ($enrollment->status === 'active' || $enrollment->status === 'completed') {
+        if ($enrollment->status === 'completed' || ($enrollment->status === 'active' && $enrollment->paid_at)) {
             return response()->json(['message' => 'Enrollment ini sudah aktif / lunas.'], 409);
+        }
+
+        if ($enrollment->status === 'active' && !$enrollment->paid_at) {
+            $enrollment->update(['status' => 'payment_pending']);
         }
 
         // Cek dulu apakah transaksi sebelumnya di Midtrans sebetulnya sudah lunas
