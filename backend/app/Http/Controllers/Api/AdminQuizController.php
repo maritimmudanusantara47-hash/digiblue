@@ -35,7 +35,7 @@ class AdminQuizController extends Controller
         // Pastikan tepat 1 jawaban benar
         $correctCount = collect($validated['options'])->where('is_correct', true)->count();
         if ($correctCount !== 1) {
-            return response()->json(['message' => 'Harus ada tepat 1 jawaban yang benar.'], 422);
+            return response()->json(['message' => __('api.harus_ada_tepat_1')], 422);
         }
 
         $question = QuizQuestion::create([
@@ -53,7 +53,7 @@ class AdminQuizController extends Controller
         }
 
         return response()->json([
-            'message' => 'Soal berhasil ditambahkan.',
+            'message' => __('api.soal_berhasil_ditambahkan'),
             'data'    => $question->load('options'),
         ], 201);
     }
@@ -81,7 +81,7 @@ class AdminQuizController extends Controller
             // Pastikan tepat 1 jawaban benar
             $correctCount = collect($validated['options'])->where('is_correct', true)->count();
             if ($correctCount !== 1) {
-                return response()->json(['message' => 'Harus ada tepat 1 jawaban yang benar.'], 422);
+                return response()->json(['message' => __('api.harus_ada_tepat_1')], 422);
             }
 
             // Delete semua opsi lama & buat ulang
@@ -96,7 +96,7 @@ class AdminQuizController extends Controller
         }
 
         return response()->json([
-            'message' => 'Soal berhasil diperbarui.',
+            'message' => __('api.soal_berhasil_diperbarui'),
             'data'    => $question->fresh('options'),
         ]);
     }
@@ -108,7 +108,7 @@ class AdminQuizController extends Controller
         $question->options()->delete();
         $question->delete();
 
-        return response()->json(['message' => 'Soal berhasil dihapus.']);
+        return response()->json(['message' => __('api.soal_berhasil_dihapus')]);
     }
 
     /**
@@ -119,7 +119,7 @@ class AdminQuizController extends Controller
         $content = CourseContent::findOrFail($id);
 
         if ($content->content_type !== 'mcq_quiz') {
-            return response()->json(['message' => 'Konten ini bukan tipe MCQ Quiz.'], 422);
+            return response()->json(['message' => __('api.konten_ini_bukan_tipe')], 422);
         }
 
         $rawText = $request->input('raw_text');
@@ -152,7 +152,7 @@ class AdminQuizController extends Controller
 
         if (empty($parsedQuestions)) {
             return response()->json([
-                'message' => 'Tidak ada soal yang berhasil dikenali. Pastikan format teks/PDF memiliki nomor soal (1., 2.), opsi (A, B, C, D), dan kunci jawaban (Kunci: A).',
+                'message' => __('api.tidak_ada_soal_yang'),
             ], 422);
         }
 

@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(HandleCors::class);
 
         // API middleware group (Pure Bearer Token authentication via Sanctum)
+        $middleware->api(prepend: [
+            \App\Http\Middleware\LocalizationMiddleware::class,
+        ]);
 
         // Daftarkan middleware Spatie Permission
         $middleware->alias([

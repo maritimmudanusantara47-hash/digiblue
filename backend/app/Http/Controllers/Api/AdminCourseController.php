@@ -63,7 +63,7 @@ class AdminCourseController extends Controller
         $course = Course::create($validated);
 
         return response()->json([
-            'message' => 'Kursus berhasil dibuat.',
+            'message' => __('api.kursus_berhasil_dibuat'),
             'data'    => $course->load('certificationLevel'),
         ], 201);
     }
@@ -87,7 +87,7 @@ class AdminCourseController extends Controller
         $course->update($validated);
 
         return response()->json([
-            'message' => 'Kursus berhasil diperbarui.',
+            'message' => __('api.kursus_berhasil_diperbarui'),
             'data'    => $course->load('certificationLevel'),
         ]);
     }
@@ -97,7 +97,7 @@ class AdminCourseController extends Controller
         $course = Course::findOrFail($id);
         $course->delete();
 
-        return response()->json(['message' => 'Kursus berhasil dihapus.']);
+        return response()->json(['message' => __('api.kursus_berhasil_dihapus')]);
     }
 
     // ─── Sections ─────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ class AdminCourseController extends Controller
         $section = $course->sections()->create($validated);
 
         return response()->json([
-            'message' => 'Seksi berhasil ditambahkan.',
+            'message' => __('api.seksi_berhasil_ditambahkan'),
             'data'    => $section,
         ], 201);
     }
@@ -130,7 +130,7 @@ class AdminCourseController extends Controller
 
         $section->update($validated);
 
-        return response()->json(['message' => 'Seksi berhasil diperbarui.', 'data' => $section]);
+        return response()->json(['message' => __('api.seksi_berhasil_diperbarui'), 'data' => $section]);
     }
 
     public function destroySection(int $courseId, int $sectionId): JsonResponse
@@ -138,7 +138,7 @@ class AdminCourseController extends Controller
         $section = CourseSection::where('course_id', $courseId)->findOrFail($sectionId);
         $section->delete();
 
-        return response()->json(['message' => 'Seksi berhasil dihapus.']);
+        return response()->json(['message' => __('api.seksi_berhasil_dihapus')]);
     }
 
     // ─── Contents ─────────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ class AdminCourseController extends Controller
 
         $content = $section->contents()->create($validated);
 
-        return response()->json(['message' => 'Konten berhasil ditambahkan.', 'data' => $content], 201);
+        return response()->json(['message' => __('api.konten_berhasil_ditambahkan'), 'data' => $content], 201);
     }
 
     public function uploadFile(Request $request, int $contentId): JsonResponse
@@ -174,7 +174,7 @@ class AdminCourseController extends Controller
         $content->update(['file_path' => $path]);
 
         return response()->json([
-            'message'   => 'File berhasil diupload.',
+            'message' => __('api.file_berhasil_diupload'),
             'file_path' => $path,
             'url'       => url("storage/{$path}"),
         ]);
@@ -211,7 +211,7 @@ class AdminCourseController extends Controller
 
         $content->update($validated);
 
-        return response()->json(['message' => 'Konten berhasil diperbarui.', 'data' => $content->fresh()]);
+        return response()->json(['message' => __('api.konten_berhasil_diperbarui'), 'data' => $content->fresh()]);
     }
 
     public function destroyContent(int $id): JsonResponse
@@ -219,6 +219,6 @@ class AdminCourseController extends Controller
         $content = CourseContent::findOrFail($id);
         $content->delete();
 
-        return response()->json(['message' => 'Konten berhasil dihapus.']);
+        return response()->json(['message' => __('api.konten_berhasil_dihapus')]);
     }
 }

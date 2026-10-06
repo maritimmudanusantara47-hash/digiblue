@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useTranslations } from 'next-intl';
 
 interface SubmissionSummary {
   pending_count: number;
@@ -17,6 +18,7 @@ interface SubmissionSummary {
 }
 
 export default function AssessorDashboard() {
+  const t = useTranslations('AssessorDashboard');
   const [data, setData]       = useState<SubmissionSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,16 +45,16 @@ export default function AssessorDashboard() {
   }, []);
 
   const TYPE_LABEL: Record<string, React.ReactNode> = {
-    essay_task: <><Icon name="pen-to-square" size={16} className="mr-1.5" />Esai</>,
-    oral_video_task: <><Icon name="camera-movie-1" size={16} className="mr-1.5" />Video Oral</>,
-    mcq_quiz: <><Icon name="clipboard" size={16} className="mr-1.5" />Pilihan Ganda</>,
+    essay_task: <><Icon name="pen-to-square" size={16} className="mr-1.5" />{t('lbl_essay')}</>,
+    oral_video_task: <><Icon name="camera-movie-1" size={16} className="mr-1.5" />{t('lbl_video')}</>,
+    mcq_quiz: <><Icon name="clipboard" size={16} className="mr-1.5" />{t('lbl_mcq')}</>,
   };
 
   return (
     <div className="animate-fadeup">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-navy-dark">Assessor Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">Panel penilaian tugas peserta DigiBlueCamp</p>
+        <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Stats */}
@@ -60,21 +62,21 @@ export default function AssessorDashboard() {
         <div className="rounded-2xl p-6 bg-gradient-to-br from-amber-500 to-amber-400 text-white shadow-md">
           <div className="text-3xl mb-2"><Icon name="hourglass" size={30} /></div>
           <div className="text-4xl font-extrabold">{loading ? '—' : data?.pending_count ?? 0}</div>
-          <div className="text-white/70 text-sm mt-1">Tugas Menunggu Penilaian</div>
+          <div className="text-white/70 text-sm mt-1">{t('stat_pending')}</div>
         </div>
         <div className="rounded-2xl p-6 bg-gradient-to-br from-emerald-600 to-emerald-400 text-white shadow-md">
           <div className="text-3xl mb-2"><Icon name="check-circle-1" size={30} /></div>
           <div className="text-4xl font-extrabold">{loading ? '—' : data?.graded_count ?? 0}</div>
-          <div className="text-white/70 text-sm mt-1">Tugas Sudah Dinilai</div>
+          <div className="text-white/70 text-sm mt-1">{t('stat_graded')}</div>
         </div>
       </div>
 
       {/* Recent submissions */}
       <div className="card">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-navy-dark">Tugas Terbaru Belum Dinilai</h2>
+          <h2 className="text-lg font-bold text-navy-dark">{t('title_recent')}</h2>
           <Link href="/assessor/submissions" className="btn btn-secondary btn-sm">
-            Lihat Semua <Icon name="arrow-right" size={14} className="ml-1.5" />
+            {t('btn_view_all')} <Icon name="arrow-right" size={14} className="ml-1.5" />
           </Link>
         </div>
 
@@ -85,7 +87,7 @@ export default function AssessorDashboard() {
         ) : !data?.recent?.length ? (
           <div className="text-center py-10 text-slate-400">
             <div className="text-4xl mb-3"><Icon name="party-spray" size={36} /></div>
-            <p>Semua tugas sudah dinilai!</p>
+            <p>{t('msg_all_graded')}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -94,7 +96,7 @@ export default function AssessorDashboard() {
                 className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-navy/20 hover:shadow-sm transition-all group">
                 <div>
                   <p className="font-semibold text-sm text-navy-dark group-hover:text-navy">
-                    {sub.content?.title ?? 'Tugas'}
+                    {sub.content?.title ?? t('lbl_task')}
                   </p>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {sub.user?.name} • {TYPE_LABEL[sub.content?.content_type] ?? sub.content?.content_type}

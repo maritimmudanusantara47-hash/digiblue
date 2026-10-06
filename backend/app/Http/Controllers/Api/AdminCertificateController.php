@@ -56,7 +56,7 @@ class AdminCertificateController extends Controller
 
         // Cek duplikat
         if ($enrollment->certificate()->exists()) {
-            return response()->json(['message' => 'Sertifikat untuk enrollment ini sudah pernah diterbitkan.'], 409);
+            return response()->json(['message' => __('api.sertifikat_untuk_enrollment_ini')], 409);
         }
 
         // Generate serial number (atau pakai override dari admin)
@@ -90,7 +90,7 @@ class AdminCertificateController extends Controller
         $syncResult = $this->tbeService->syncCertificate($certificate);
 
         return response()->json([
-            'message'     => 'Sertifikat berhasil diterbitkan.' . ($syncResult ? ' Data terkirim ke The Blue Economist.' : ' Gagal sinkronisasi ke TBE, silakan re-sync.'),
+            'message'     => __('api.sertifikat_berhasil_diterbitkan') . ($syncResult ? ' Data terkirim ke The Blue Economist.' : ' Gagal sinkronisasi ke TBE, silakan re-sync.'),
             'data'        => $certificate->load(['user', 'enrollment.course']),
             'sync_status' => $syncResult ? 'synced' : 'failed',
         ], 201);
@@ -111,7 +111,7 @@ class AdminCertificateController extends Controller
 
         $cert->update(array_filter($validated));
 
-        return response()->json(['message' => 'Sertifikat berhasil diperbarui.', 'data' => $cert]);
+        return response()->json(['message' => __('api.sertifikat_berhasil_diperbarui'), 'data' => $cert]);
     }
 
     /** Sinkronisasi satu sertifikat ke The Blue Economist */
@@ -214,7 +214,7 @@ class AdminCertificateController extends Controller
         file_put_contents($layoutPath, json_encode($validated['fields'], JSON_PRETTY_PRINT));
 
         return response()->json([
-            'message' => 'Layout template berhasil disimpan.',
+            'message' => __('api.layout_template_berhasil_disimpan'),
             'data'    => $validated['fields'],
         ]);
     }
@@ -229,7 +229,7 @@ class AdminCertificateController extends Controller
                 : null);
 
         if (! $templatePath || ! file_exists($templatePath)) {
-            return response()->json(['message' => 'Template image tidak ditemukan.'], 404);
+            return response()->json(['message' => __('api.template_image_tidak_ditemukan')], 404);
         }
 
         $extension = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));

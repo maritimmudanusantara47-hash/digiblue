@@ -77,13 +77,13 @@ class CertificateController extends Controller
         if (! $cert) {
             return response()->json([
                 'valid'   => false,
-                'message' => 'Sertifikat tidak ditemukan atau tidak valid.',
+                'message' => __('api.sertifikat_tidak_ditemukan_atau'),
             ], 404);
         }
 
         return response()->json([
             'valid'   => true,
-            'message' => 'Sertifikat ini valid dan diterbitkan resmi oleh DigiBlueCamp x The Blue Economist International Association.',
+            'message' => __('api.sertifikat_ini_valid_dan'),
             'data'    => [
                 'recipient_name'    => $cert->user->name,
                 'program_name'      => 'Certified Blue Economist (CBEc)',
