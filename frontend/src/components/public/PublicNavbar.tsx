@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/Icon';
 import { useAuthStore } from '@/store/authStore';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function PublicNavbar() {
   const pathname = usePathname();
@@ -79,6 +80,7 @@ export default function PublicNavbar() {
 
           {/* Right Action Buttons */}
           <div className="hidden sm:flex items-center gap-3">
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <Link
                 href={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
@@ -131,7 +133,10 @@ export default function PublicNavbar() {
             >
               Kursus
             </Link>
-            <div className="pt-2 border-t border-slate-100">
+            <div className="pt-2 border-t border-slate-100 space-y-3">
+              <div className="flex justify-center mb-2">
+                <LanguageSwitcher />
+              </div>
               {isAuthenticated ? (
                 <Link
                   href={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
