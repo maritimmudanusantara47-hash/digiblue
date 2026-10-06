@@ -19,14 +19,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally — redirect to login
+// Handle 401 globally — redirect to login only on protected pages
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       Cookies.remove('auth_token');
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        const isPublicPath =
+          path === '/' ||
+          path.startsWith('/catalog') ||
+          path.startsWith('/student/catalog') ||
+          path.startsWith('/courses') ||
+          path.startsWith('/login') ||
+          path.startsWith('/register');
+
+        if (!isPublicPath) {
+          window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
+        }
       }
     }
     return Promise.reject(error);

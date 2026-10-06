@@ -33,6 +33,14 @@ export interface CertificationLevel {
   is_field_trip_required: boolean;
 }
 
+export interface CourseSection {
+  id: number;
+  course_id?: number;
+  title: string;
+  order_index: number;
+  contents: CourseContent[];
+}
+
 export interface Course {
   id: number;
   certification_level: CertificationLevel;
@@ -42,6 +50,8 @@ export interface Course {
   price: number;
   thumbnail_url: string | null;
   is_active: boolean;
+  sections_count?: number;
+  sections?: CourseSection[];
 }
 
 // ─── Enrollment ──────────────────────────────────────────────────────────────

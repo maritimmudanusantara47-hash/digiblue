@@ -71,6 +71,7 @@ Route::prefix('v1')->group(function () {
 
         // Pembayaran Midtrans Snap
         Route::post('payments/create-snap-token', [PaymentController::class, 'createSnapToken']);
+        Route::post('payments/create-snap',       [PaymentController::class, 'createSnapToken']);
         Route::post('payments/verify-status',     [PaymentController::class, 'verifyStatus']);
 
         // ─── Assessor & Admin Routes ─────────────────────────────────────────

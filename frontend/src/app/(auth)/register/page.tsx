@@ -1,15 +1,15 @@
 'use client';
 
-import Icon from '@/components/Icon';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { AuthResponse } from '@/types';
+import Icon from '@/components/Icon';
 
 const COUNTRIES = [
   { code: 'ID', name: 'Indonesia', flag: '🇮🇩' },
@@ -64,8 +64,11 @@ const registerSchema = z.object({
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
-export default function RegisterPage() {
-  const router  = useRouter();
+function RegisterFormContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams?.get('redirect');
+
   const setAuth = useAuthStore(s => s.setAuth);
   const [serverError, setServerError] = useState('');
 
@@ -81,7 +84,13 @@ export default function RegisterPage() {
     try {
       const res = await api.post<AuthResponse>('/auth/register', data);
       setAuth(res.data.data.user, res.data.data.token);
-      router.replace('/student/dashboard');
+
+      // Prioritaskan redirect jika user datang dari tombol daftar kursus
+      if (redirect && redirect.startsWith('/')) {
+        router.replace(redirect);
+      } else {
+        router.replace('/student/dashboard');
+      }
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } })?.response?.data;
       const firstError = errData?.errors ? Object.values(errData.errors)[0][0] : errData?.message;
@@ -89,10 +98,21 @@ export default function RegisterPage() {
     }
   };
 
+  const loginHref = redirect
+    ? `/login?redirect=${encodeURIComponent(redirect)}`
+    : '/login';
+
   return (
     <div className="animate-fadeup">
       <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Buat Akun Baru</h1>
-      <p className="text-slate-500 text-sm mb-8">Daftar untuk memulai perjalanan Blue Economy-mu</p>
+      <p className="text-slate-500 text-sm mb-6">Daftar untuk memulai perjalanan Blue Economy-mu</p>
+
+      {redirect && (
+        <div className="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-4 py-3 rounded-xl mb-6 flex items-center gap-2.5">
+          <Icon name="information" size={16} className="text-sky-600 shrink-0" />
+          <span>Selesaikan pendaftaran akun untuk langsung lanjut ke checkout kursus yang kamu pilih.</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         {/* Nama */}
@@ -163,16 +183,24 @@ export default function RegisterPage() {
 
         <button id="reg-submit" type="submit" disabled={isSubmitting}
           className="btn btn-primary btn-lg w-full mt-1">
-          {isSubmitting ? 'Mendaftarkan...' : 'Buat Akun'}
+          {isSubmitting ? 'Mendaftarkan...' : 'Buat Akun & Lanjutkan'}
         </button>
       </form>
 
       <p className="text-center text-sm text-slate-500 mt-5">
         Sudah punya akun?{' '}
-        <Link href="/login" className="font-semibold text-navy hover:text-gold transition-colors">
+        <Link href={loginHref} className="font-semibold text-navy hover:text-gold transition-colors">
           Masuk di sini
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 text-sm">Memuat formulir pendaftaran...</div>}>
+      <RegisterFormContent />
+    </Suspense>
   );
 }

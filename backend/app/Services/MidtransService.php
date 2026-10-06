@@ -23,9 +23,9 @@ class MidtransService
             }
         }
 
-        \Midtrans\Config::$serverKey    = config('midtrans.server_key');
-        \Midtrans\Config::$clientKey    = config('midtrans.client_key');
-        \Midtrans\Config::$isProduction = (bool) config('midtrans.is_production', false);
+        \Midtrans\Config::$serverKey    = config('midtrans.server_key') ?: env('MIDTRANS_SERVER_KEY');
+        \Midtrans\Config::$clientKey    = config('midtrans.client_key') ?: env('MIDTRANS_CLIENT_KEY');
+        \Midtrans\Config::$isProduction = (bool) (config('midtrans.is_production') ?? env('MIDTRANS_IS_PRODUCTION', false));
         \Midtrans\Config::$isSanitized  = (bool) config('midtrans.is_sanitized', true);
         \Midtrans\Config::$is3ds        = (bool) config('midtrans.is_3ds', true);
     }
@@ -109,9 +109,10 @@ class MidtransService
         }
 
         try {
-            $midtransStatus = \Midtrans\Transaction::status($enrollment->order_id);
-            $trxStatus      = $midtransStatus->transaction_status ?? null;
-            $fraudStatus    = $midtransStatus->fraud_status ?? null;
+            $rawStatus      = \Midtrans\Transaction::status($enrollment->order_id);
+            $midtransStatus = (array) $rawStatus;
+            $trxStatus      = $midtransStatus['transaction_status'] ?? null;
+            $fraudStatus    = $midtransStatus['fraud_status'] ?? null;
 
             if ($trxStatus === 'capture') {
                 if ($fraudStatus === 'accept') {

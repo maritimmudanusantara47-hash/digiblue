@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -30,21 +31,39 @@ class EnrollmentController extends Controller
 
         $user = $request->user();
 
-        // ── Cegah duplikasi enrollment ─────────────────────────────────────────
-        if (Enrollment::where('user_id', $user->id)
-            ->where('course_id', $validated['course_id'])->exists()) {
-            return response()->json(['message' => 'Kamu sudah terdaftar di kursus ini.'], 409);
+        // ── Cek apakah user sudah punya enrollment di kursus ini ──────────────
+        $existing = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $validated['course_id'])
+            ->first();
+
+        if ($existing) {
+            // Jika sebelumnya aktif tanpa paid_at (auto-activated 0 price) dan user mau checkout:
+            if ($existing->status === 'active' && !$existing->paid_at) {
+                $existing->update(['status' => 'payment_pending']);
+            } elseif ($existing->status === 'active' && $existing->paid_at) {
+                return response()->json([
+                    'message' => 'Kamu sudah terdaftar dan kursus ini sudah aktif di akun kamu.',
+                    'data'    => $existing->load('course'),
+                ], 200);
+            }
+            return response()->json([
+                'message' => 'Melanjutkan proses pembayaran kursus kamu.',
+                'data'    => $existing->load('course'),
+            ], 200);
         }
+
+        $targetCourse = Course::findOrFail($validated['course_id']);
 
         $enrollment = Enrollment::create([
             'user_id'         => $user->id,
             'course_id'       => $validated['course_id'],
             'enrollment_type' => 'self_paid',
             'status'          => 'payment_pending',
+            'paid_at'         => null,
         ]);
 
         return response()->json([
-            'message' => 'Pendaftaran berhasil. Lanjutkan ke pembayaran.',
+            'message' => 'Pendaftaran berhasil. Silakan selesaikan pembayaran.',
             'data'    => $enrollment->load('course'),
         ], 201);
     }
