@@ -247,14 +247,13 @@ function StudentCatalogContent() {
   const specLabel = useMemo(() => certLevels.find(l => l.code === 'SPEC')?.name ?? 'Specialization Level', [certLevels]);
 
   const tabs = useMemo(() => {
-    const list: { id: TabCategory; label: string; icon: string }[] = [
-      { id: 'ALL', label: 'Semua Kursus', icon: 'star-fat' },
+    return [
+      { id: 'ALL' as TabCategory, label: 'Semua', icon: 'star-fat' },
+      { id: 'INT_CERT' as TabCategory, label: intCertLabel, icon: 'graduation-cap-1' },
+      { id: 'NAT' as TabCategory, label: natLabel, icon: 'flag-1' },
+      { id: 'SGL' as TabCategory, label: sglLabel, icon: 'book-1' },
     ];
-    if (countIntCert > 0) list.push({ id: 'INT_CERT', label: intCertLabel, icon: 'graduation-cap-1' });
-    if (countNat > 0)     list.push({ id: 'NAT',      label: natLabel,      icon: 'flag-1' });
-    if (countSgl > 0)     list.push({ id: 'SGL',      label: sglLabel,      icon: 'book-1' });
-    return list;
-  }, [countIntCert, countNat, countSgl, intCertLabel, natLabel, sglLabel]);
+  }, [intCertLabel, natLabel, sglLabel]);
 
 
   return (

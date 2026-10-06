@@ -71,20 +71,14 @@ export default function CoursesPage() {
     certLevels.filter(l => l.code === 'FND' || l.code === 'SPEC').sort((a, b) => a.order_index - b.order_index),
     [certLevels]);
 
-  // Tab list dinamis — hanya tampilkan tab yang ada datanya
-  const hasInt = useMemo(() => courses.some(c => c.certification_level?.code === 'FND' || c.certification_level?.code === 'SPEC'), [courses]);
-  const hasNat = useMemo(() => courses.some(c => c.certification_level?.code === 'NAT'), [courses]);
-  const hasSgl = useMemo(() => courses.some(c => c.certification_level?.code === 'SGL'), [courses]);
-
   const tabs = useMemo(() => {
-    const list: { id: TabCategory; label: string; icon: string }[] = [
-      { id: 'ALL', label: 'Semua Kursus', icon: 'star-fat' },
+    return [
+      { id: 'ALL' as TabCategory, label: 'Semua', icon: 'star-fat' },
+      { id: 'INT_CERT' as TabCategory, label: intCertLabel, icon: 'graduation-cap-1' },
+      { id: 'NAT' as TabCategory, label: natLabel, icon: 'flag-1' },
+      { id: 'SGL' as TabCategory, label: sglLabel, icon: 'book-1' },
     ];
-    if (hasInt) list.push({ id: 'INT_CERT', label: intCertLabel, icon: 'graduation-cap-1' });
-    if (hasNat) list.push({ id: 'NAT', label: natLabel, icon: 'flag-1' });
-    if (hasSgl) list.push({ id: 'SGL', label: sglLabel, icon: 'book-1' });
-    return list;
-  }, [hasInt, hasNat, hasSgl, intCertLabel, natLabel, sglLabel]);
+  }, [intCertLabel, natLabel, sglLabel]);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((c) => {
@@ -206,7 +200,7 @@ export default function CoursesPage() {
                       className={`px-3 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${subTrackCode === lvl.code ? 'bg-white shadow-xs text-navy font-bold' : 'text-slate-600 hover:text-navy'
                         }`}
                     >
-                      {lvl.name}
+                      {lvl.name.replace(/\s+Level$/i, '')}
                     </button>
                   ))}
                 </div>

@@ -52,19 +52,15 @@ export default function LandingCourseTabs() {
   const natLabel = useMemo(() => certLevels.find(l => l.code === 'NAT')?.name ?? 'National Training Course', [certLevels]);
   const sglLabel = useMemo(() => certLevels.find(l => l.code === 'SGL')?.name ?? 'Single Modul Course', [certLevels]);
 
-  // Bangun tabs dinamis — hanya tampilkan tab bila ada kursus
+  // Bangun tabs — selalu tampilkan 3 jenis kursus agar sinkron dengan admin
   const tabs = useMemo(() => {
-    const hasInt = courses.some(c => c.certification_level?.code === 'FND' || c.certification_level?.code === 'SPEC');
-    const hasNat = courses.some(c => c.certification_level?.code === 'NAT');
-    const hasSgl = courses.some(c => c.certification_level?.code === 'SGL');
-    const list: { id: TabCategory; label: string; icon: string }[] = [
-      { id: 'ALL', label: 'Semua Kursus', icon: 'star-fat' },
+    return [
+      { id: 'ALL' as TabCategory, label: 'Semua', icon: 'star-fat' },
+      { id: 'INT_CERT' as TabCategory, label: intCertLabel, icon: 'graduation-cap-1' },
+      { id: 'NAT' as TabCategory, label: natLabel, icon: 'flag-1' },
+      { id: 'SGL' as TabCategory, label: sglLabel, icon: 'book-1' },
     ];
-    if (hasInt) list.push({ id: 'INT_CERT', label: intCertLabel, icon: 'graduation-cap-1' });
-    if (hasNat) list.push({ id: 'NAT', label: natLabel, icon: 'flag-1' });
-    if (hasSgl) list.push({ id: 'SGL', label: sglLabel, icon: 'book-1' });
-    return list;
-  }, [courses, intCertLabel, natLabel, sglLabel]);
+  }, [intCertLabel, natLabel, sglLabel]);
 
 
   const filteredCourses = courses.filter((c) => {
