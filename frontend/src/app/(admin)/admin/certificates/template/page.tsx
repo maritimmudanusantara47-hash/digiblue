@@ -1,21 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
 
 /* ─── Icons ─────────────────────────────────────────────────────── */
 const Ico = {
-  Back: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
-  Save: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
-  Reset: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
-  Download: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-  Check: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-  Eye: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
-  Edit: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-  QR: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>,
-  Info: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
-  ChevronDown: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
+  Back: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>,
+  Save: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>,
+  Reset: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>,
+  Download: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>,
+  Check: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
+  Eye: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>,
+  Edit: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>,
+  QR: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3" /><path d="M21 21v.01" /><path d="M12 7v3a2 2 0 0 1-2 2H7" /><path d="M3 12h.01" /><path d="M12 3h.01" /><path d="M12 16v.01" /><path d="M16 12h1" /><path d="M21 12v.01" /><path d="M12 21v-1" /></svg>,
+  Info: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>,
+  ChevronDown: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>,
 };
 
 /* ─── Types ──────────────────────────────────────────────────────── */
@@ -32,58 +32,58 @@ interface FieldConfig {
 type LayoutState = Record<string, FieldConfig>;
 
 const DEFAULT_LAYOUT: LayoutState = {
-  serial_no:      { top: 13.0, right: 14.0, width: 105, font_size: 8.8,  label: 'Nomor Seri (Top-Right)' },
-  recipient_name: { top: 67.0, font_size: 27,            label: 'Nama Peserta' },
-  ribbon_text:    { top: 100.5, height: 14.0, font_size: 14.5, label: 'Teks Ribbon' },
-  level_value:    { top: 124.5, font_size: 11.5,         label: 'Level Sertifikasi' },
-  meta_block:     { top: 138.2, font_size: 8.4,          label: 'Grade, Tanggal & Tempat' },
-  qr_left:        { top: 147.5, left: 67.0,  size: 26,   label: 'QR Kiri' },
-  qr_right:       { top: 147.5, left: 196.4, size: 26,   label: 'QR Kanan' },
+  serial_no: { top: 13.0, right: 14.0, width: 105, font_size: 8.8, label: 'Nomor Seri (Top-Right)' },
+  recipient_name: { top: 67.0, font_size: 27, label: 'Nama Peserta' },
+  ribbon_text: { top: 100.5, height: 14.0, font_size: 14.5, label: 'Teks Ribbon' },
+  level_value: { top: 124.5, font_size: 11.5, label: 'Level Sertifikasi' },
+  meta_block: { top: 138.2, font_size: 8.4, label: 'Grade, Tanggal & Tempat' },
+  qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
+  qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
 };
 
 const PRESETS = {
   nabila: { name: 'Nabila Azzahro Widodo', serial: 'CBEC/BCB/ID/IX/20260022', ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)', level: 'Blue Carbon Specialization', grade: 'Excellent', date: 'September 21, 2026', place: 'Jakarta' },
-  budi:   { name: 'Budi Santoso', serial: 'CBEC/ID/III/20260102', ribbon: 'Certified Blue Economist (CBEc) — Foundation Level', level: 'Foundation Level', grade: 'Excellent', date: 'October 2, 2026', place: 'Jakarta, Indonesia' },
+  budi: { name: 'Budi Santoso', serial: 'CBEC/ID/III/20260102', ribbon: 'Certified Blue Economist (CBEc) — Foundation Level', level: 'Foundation Level', grade: 'Excellent', date: 'October 2, 2026', place: 'Jakarta, Indonesia' },
 };
 
 const CANVAS_W = 880;
 const CANVAS_H = Math.round(CANVAS_W * (210 / 297));
-const SCALE    = CANVAS_W / 297;
-const mmToPx   = (mm: number) => mm * SCALE;
+const SCALE = CANVAS_W / 297;
+const mmToPx = (mm: number) => mm * SCALE;
 
 const FIELD_LIST = [
   { key: 'recipient_name', label: 'Nama Peserta' },
-  { key: 'ribbon_text',    label: 'Teks Ribbon' },
-  { key: 'serial_no',      label: 'Nomor Seri' },
-  { key: 'level_value',    label: 'Level Sertifikasi' },
-  { key: 'meta_block',     label: 'Grade, Tanggal & Tempat' },
-  { key: 'qr_left',        label: 'QR Kiri' },
-  { key: 'qr_right',       label: 'QR Kanan' },
+  { key: 'ribbon_text', label: 'Teks Ribbon' },
+  { key: 'serial_no', label: 'Nomor Seri' },
+  { key: 'level_value', label: 'Level Sertifikasi' },
+  { key: 'meta_block', label: 'Grade, Tanggal & Tempat' },
+  { key: 'qr_left', label: 'QR Kiri' },
+  { key: 'qr_right', label: 'QR Kanan' },
 ];
 
 export default function CertificateTemplateAdminPage() {
-  const [layout, setLayout]             = useState<LayoutState>(DEFAULT_LAYOUT);
-  const [templateImg, setTemplateImg]   = useState<string | null>(null);
-  const [selectedKey, setSelectedKey]   = useState('recipient_name');
-  const [editMode, setEditMode]         = useState(false);
-  const [saving, setSaving]             = useState(false);
-  const [savedOk, setSavedOk]           = useState(false);
-  const [resetting, setResetting]       = useState(false);
-  const [resetOk, setResetOk]           = useState(false);
-  const [downloading, setDownloading]   = useState(false);
-  const [sample, setSample]             = useState(PRESETS.nabila);
-  const [openSection, setOpenSection]   = useState<'fields' | 'preview' | null>('fields');
+  const [layout, setLayout] = useState<LayoutState>(DEFAULT_LAYOUT);
+  const [templateImg, setTemplateImg] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState('recipient_name');
+  const [editMode, setEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetOk, setResetOk] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [sample, setSample] = useState(PRESETS.nabila);
+  const [openSection, setOpenSection] = useState<'fields' | 'preview' | null>('fields');
 
   useEffect(() => {
     api.get('/admin/certificates/template/layout').then(res => {
       if (res.data?.data && Object.keys(res.data.data).length > 0)
         setLayout(prev => ({ ...prev, ...res.data.data }));
-    }).catch(() => {});
+    }).catch(() => { });
 
     api.get('/admin/certificates/template/image').then(res => {
       const { base64, mime_type } = res.data.data;
       setTemplateImg(`data:${mime_type};base64,${base64}`);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const handleSave = async () => {
@@ -121,8 +121,8 @@ export default function CertificateTemplateAdminPage() {
     try {
       setDownloading(true);
       const res = await api.get('/admin/certificates/1/download', { responseType: 'blob' });
-      const url  = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a    = document.createElement('a');
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
       a.href = url; a.download = 'Contoh-Sertifikat.pdf';
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
@@ -377,7 +377,7 @@ export default function CertificateTemplateAdminPage() {
                     { label: 'Grade', key: 'grade', full: false },
                     { label: 'Tanggal', key: 'date', full: false },
                     { label: 'Tempat', key: 'place', full: false },
-                  ].reduce<React.ReactElement[]>((acc, field, idx, arr) => {
+                  ].reduce<React.ReactNode[]>((acc, field, idx, arr) => {
                     if (!field.full && idx > 0 && !arr[idx - 1].full) {
                       // Group pairs in a grid
                       return acc;

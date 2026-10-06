@@ -8,12 +8,6 @@ export const metadata: Metadata = {
     'Kursus online Blue Economy dengan sertifikat yang bisa diverifikasi. Foundation Level & Specialization bersama The Blue Economist International Association.',
 };
 
-const stats = [
-  { num: '3.000+', label: 'peserta terlatih', sub: 'di 30+ negara' },
-  { num: '12', label: 'program sertifikasi', sub: 'Foundation & Specialization' },
-  { num: '100%', label: 'sertifikat terverifikasi', sub: 'QR code & ID unik' },
-];
-
 const certPoints = [
   { icon: 'file-multiple', title: 'PDF instan', desc: 'Terbit otomatis setelah lulus. Unduh, cetak, atau bagikan.' },
   { icon: 'shield-2-check', title: 'Dapat diverifikasi pemberi kerja', desc: 'ID unik & QR code bisa dicek online dalam hitungan detik.' },
@@ -55,90 +49,139 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100">
-        <div className="container flex items-center justify-between h-[72px]">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-navy flex items-center justify-center text-gold font-extrabold">D</span>
-            <span className="font-extrabold text-navy-dark text-lg tracking-tight">DigiBlueCamp</span>
+      {/* Header (IBMI Style) */}
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-200/80 shadow-xs">
+        <div className="container flex items-center justify-between h-[76px]">
+          {/* Logo & Institute Brand Title */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-navy-dark text-white flex items-center justify-center p-2 border border-slate-200 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
+              <Icon name="certificate-badge-1" size={24} className="text-gold" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-extrabold text-navy-dark text-sm sm:text-base tracking-tight leading-tight uppercase font-heading">
+                DigiBlue
+              </span>
+              <span className="font-semibold text-slate-500 text-[11px] tracking-wider uppercase">
+                Center for Maritime Education
+              </span>
+            </div>
           </Link>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-navy-dark" aria-label="Navigasi utama">
-            <Link href="/" className="hover:text-navy-light">Home</Link>
-            <Link href="/courses" className="hover:text-navy-light">Kursus</Link>
+
+          {/* Center Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-navy-dark" aria-label="Navigasi utama">
+            <Link href="/" className="text-navy hover:text-sky-600 transition-colors">
+              Beranda
+            </Link>
+            <Link href="/courses" className="hover:text-sky-600 flex items-center gap-1 transition-colors">
+              Kursus
+            </Link>
           </nav>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden sm:inline text-sm font-semibold text-navy-dark hover:text-navy-light">Masuk</Link>
-            <Link href="/register" className="btn btn-primary btn-sm">Daftar</Link>
+
+          {/* Right Action Buttons: LOGIN / REGISTER + Cart */}
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/login"
+              className="px-4 sm:px-5 py-2 rounded-xl text-xs font-extrabold tracking-wider uppercase border border-sky-300 bg-sky-50/80 hover:bg-sky-100 text-sky-700 transition-colors shadow-xs"
+            >
+              Login / Register
+            </Link>
           </div>
         </div>
       </header>
 
       <main>
-        {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 to-white">
-          <div className="absolute -top-24 -right-24 w-[480px] h-[480px] rounded-full bg-navy-light/10 blur-3xl" />
-          <div className="container relative grid lg:grid-cols-2 gap-12 items-center py-16 lg:py-24">
-            <div>
-              <span className="inline-flex items-center gap-2 text-xs font-bold text-navy bg-white border border-slate-200 rounded-full px-3 py-1 mb-5 shadow-sm">
-                <Icon name="water-drop-1" size={14} className="text-navy-light" /> Blue Economy · Online · Bersertifikat
-              </span>
-              <h1 className="text-4xl lg:text-5xl font-extrabold text-navy-dark leading-[1.1] mb-4">
-                Kuasai keahlian<br />
-                <span className="text-navy-light">ekonomi biru.</span>
+        {/* Hero Section (IBMI Style dengan Nuansa Lautan Indonesia) */}
+        <section
+          className="relative overflow-hidden bg-navy-dark text-white pt-14 pb-20 lg:pt-20 lg:pb-28"
+          style={{
+            backgroundImage: `linear-gradient(105deg, rgba(3, 21, 39, 0.94) 0%, rgba(4, 31, 57, 0.88) 55%, rgba(6, 45, 79, 0.65) 100%), url('/images/indonesia_ocean_backdrop.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Subtle ocean depth radial lights */}
+          <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-sky-400/15 blur-3xl pointer-events-none" />
+
+          <div className="container relative z-10 grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+            {/* Left Column: Headline, Subtitle, CTA, Value Checklist */}
+            <div className="lg:col-span-7 flex flex-col items-start text-left">
+              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-extrabold text-white leading-[1.1] tracking-tight mb-5">
+                Kuasai keahlian maritim masa depan.<br />
+                <span className="text-[#38bdf8]">Dalam hitungan jam, bukan tahun.</span>
               </h1>
-              <p className="text-lg font-semibold text-navy mb-3">Praktis. Terverifikasi. Terjangkau.</p>
-              <p className="text-slate-600 max-w-lg mb-8">
-                Kursus online Blue Economy dari pemula hingga spesialis. Selesaikan program dan dapatkan sertifikat yang bisa diverifikasi pemberi kerja secara online.
+
+              <p className="text-sm sm:text-base lg:text-lg text-slate-200/90 max-w-xl leading-relaxed mb-8">
+                Kursus online ekonomi biru & maritim intensif 2–3 jam, 100% online, lengkap dengan sertifikat digital resmi yang dapat diverifikasi oleh industri & institusi global.
               </p>
-              <div className="flex flex-wrap gap-3 mb-8">
-                <Link href="/courses" className="btn btn-primary btn-lg flex items-center gap-2 shadow-lg shadow-navy/20">
-                  <span>Pilih Kursus</span>
-                  <Icon name="arrow-right" size={16} />
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3.5 mb-8">
+                <Link
+                  href="/courses"
+                  className="px-7 py-3.5 rounded-full bg-[#00a3e0] hover:bg-[#0284c7] text-white font-bold text-sm tracking-wide shadow-lg shadow-sky-500/30 transition-all inline-flex items-center gap-2 group"
+                >
+                  <span>Pilih Kursus Kamu</span>
+                  <Icon name="arrow-right" size={15} className="transition-transform group-hover:translate-x-1" />
                 </Link>
-                <a href="#harga" className="btn btn-lg border-2 border-slate-200 text-navy-dark hover:bg-slate-50">Apa yang Kamu Dapat</a>
+                <a
+                  href="#harga"
+                  className="px-6 py-3.5 rounded-full border border-white/30 hover:border-white/60 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm backdrop-blur-sm transition-all"
+                >
+                  Apa yang Kamu Dapat
+                </a>
               </div>
-              <ul className="flex flex-col gap-2 text-sm text-slate-600">
-                {['Beasiswa tersedia untuk peserta terpilih', 'Tanpa prasyarat, mulai kapan saja', 'Sertifikat dengan ID & QR code'].map(t => (
-                  <li key={t} className="flex items-center gap-2">
-                    <Icon name="check-circle-1" size={16} className="text-emerald-500" /> {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            <div className="relative">
-              <div className="rounded-3xl gradient-hero p-8 text-white shadow-2xl relative overflow-hidden">
-                <div className="absolute -bottom-10 -right-10 w-56 h-56 rounded-full bg-gold/20 blur-2xl" />
-                <Icon name="certificate-badge-1" size={56} className="text-gold mb-5" />
-                <p className="text-xs uppercase tracking-widest text-white/60 mb-1">Certified Blue Economist</p>
-                <h2 className="text-2xl font-extrabold mb-4 text-white">CBEc — Foundation Level</h2>
-                <ul className="flex flex-col gap-2.5 text-sm text-white/80 mb-6">
-                  <li className="flex items-center gap-2"><Icon name="book-1" size={15} className="text-gold" /> Modul pembelajaran interaktif</li>
-                  <li className="flex items-center gap-2"><Icon name="clipboard" size={15} className="text-gold" /> Ujian pilihan ganda & studi kasus</li>
-                  <li className="flex items-center gap-2"><Icon name="water-drop-1" size={15} className="text-gold" /> Field Study lapangan</li>
-                </ul>
-                <Link href="/register" className="btn btn-gold btn-sm">Mulai Foundation <Icon name="arrow-right" size={14} className="ml-1.5" /></Link>
-              </div>
-              <div className="hidden sm:flex absolute -bottom-5 -left-5 bg-white rounded-2xl shadow-xl border border-slate-100 px-4 py-3 items-center gap-3">
-                <span className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"><Icon name="check-circle-1" size={20} /></span>
-                <div>
-                  <p className="text-sm font-bold text-navy-dark leading-none">Terverifikasi</p>
-                  <p className="text-xs text-slate-500">theblueeconomist.org</p>
+              {/* Value proposition checklist */}
+              <div className="flex flex-col gap-2.5 text-xs sm:text-sm text-slate-200">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span><strong className="text-white">Mulai dari Rp 150rb</strong>, termasuk sertifikat ber-QR code & ID unik</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span><strong className="text-white">Tanpa prasyarat</strong>, mulai belajar mandiri kapan saja dari perangkat apa pun</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Stats strip */}
-          <div className="container relative pb-14">
-            <div className="grid sm:grid-cols-3 gap-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              {stats.map(s => (
-                <div key={s.label} className="text-center sm:border-r last:border-r-0 border-slate-100">
-                  <div className="text-3xl font-extrabold text-navy-dark">{s.num}</div>
-                  <div className="text-sm font-semibold text-slate-700">{s.label}</div>
-                  <div className="text-xs text-slate-400">{s.sub}</div>
+            {/* Right Column: Hero Professionals Photo + Floating Dual-Pill Stat Badge */}
+            <div className="lg:col-span-5 relative flex justify-center lg:justify-end items-end pt-4 lg:pt-0">
+              <div className="relative w-full max-w-md lg:max-w-none rounded-3xl overflow-hidden shadow-2xl border border-white/15 bg-navy-dark/40">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/hero_professionals.jpg"
+                  alt="Peserta & Profesional Maritim DigiBlueCamp"
+                  className="w-full h-auto object-cover object-top"
+                />
+                {/* Soft bottom vignette blend */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#031527] via-transparent to-transparent opacity-50" />
+              </div>
+
+              {/* Floating dual-pill badge anchored at the bottom (Like IBMI) */}
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-2 z-20 bg-white rounded-full p-2.5 px-4 sm:px-5 shadow-2xl border border-slate-100 flex items-center gap-3 sm:gap-5 text-navy-dark animate-fadeup whitespace-nowrap">
+                {/* Left pill stat */}
+                <div className="flex items-center gap-2.5 sm:gap-3 pr-3 sm:pr-4 border-r border-slate-200">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0">
+                    <Icon name="globe" size={17} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs sm:text-sm font-extrabold text-navy-dark leading-tight">3.000+ peserta</p>
+                    <p className="text-[10px] sm:text-[11px] text-slate-500">di 39 provinsi & global</p>
+                  </div>
                 </div>
-              ))}
+
+                {/* Right pill stat */}
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0">
+                    <Icon name="thumbs-up" size={17} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs sm:text-sm font-extrabold text-navy-dark leading-tight">98% merekomendasikan</p>
+                    <p className="text-[10px] sm:text-[11px] text-slate-500">survei alumni 2026</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -415,4 +458,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

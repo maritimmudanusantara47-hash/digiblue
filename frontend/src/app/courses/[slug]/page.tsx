@@ -9,10 +9,10 @@ import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
 
 const LEVEL_STYLE: Record<string, { badge: string; border: string; bg: string }> = {
-  FND:  { badge: 'bg-amber-100 text-amber-800 border-amber-300', border: 'border-amber-500', bg: 'bg-amber-500' },
-  SPEC: { badge: 'bg-navy/10 text-navy border-navy/30',            border: 'border-navy',      bg: 'bg-navy' },
-  NAT:  { badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', border: 'border-emerald-600', bg: 'bg-emerald-600' },
-  SGL:  { badge: 'bg-purple-100 text-purple-800 border-purple-300', border: 'border-purple-600', bg: 'bg-purple-600' },
+  FND: { badge: 'bg-amber-100 text-amber-800 border-amber-300', border: 'border-amber-500', bg: 'bg-amber-500' },
+  SPEC: { badge: 'bg-navy/10 text-navy border-navy/30', border: 'border-navy', bg: 'bg-navy' },
+  NAT: { badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', border: 'border-emerald-600', bg: 'bg-emerald-600' },
+  SGL: { badge: 'bg-purple-100 text-purple-800 border-purple-300', border: 'border-purple-600', bg: 'bg-purple-600' },
 };
 
 export default function PublicCourseDetailPage() {
@@ -84,32 +84,42 @@ export default function PublicCourseDetailPage() {
           </div>
         </div>
 
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200">
-          <div className="container flex items-center justify-between h-[72px]">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="w-9 h-9 rounded-xl bg-navy flex items-center justify-center text-gold font-extrabold">D</span>
-              <span className="font-extrabold text-navy-dark text-lg tracking-tight">DigiBlueCamp</span>
+        {/* Header (IBMI Style) */}
+        <header className="sticky top-0 z-50 bg-white border-b border-slate-200/80 shadow-xs">
+          <div className="container flex items-center justify-between h-[76px]">
+            {/* Logo & Institute Brand Title */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-navy-dark text-white flex items-center justify-center p-2 border border-slate-200 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
+                <Icon name="certificate-badge-1" size={24} className="text-gold" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-navy-dark text-sm sm:text-base tracking-tight leading-tight uppercase font-heading">
+                  DigiBlue
+                </span>
+                <span className="font-semibold text-slate-500 text-[11px] tracking-wider uppercase">
+                  Center for Maritime Education
+                </span>
+              </div>
             </Link>
-            <nav className="hidden md:flex items-center gap-8 text-sm font-semibold" aria-label="Navigasi utama">
-              <Link href="/" className="text-slate-600 hover:text-navy transition-colors">Home</Link>
-              <Link href="/courses" className="text-navy font-bold border-b-2 border-navy pb-0.5">Kursus</Link>
+
+            {/* Center Navigation Links */}
+            <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-navy-dark" aria-label="Navigasi utama">
+              <Link href="/" className="text-navy hover:text-sky-600 transition-colors">
+                Beranda
+              </Link>
+              <Link href="/courses" className="hover:text-sky-600 flex items-center gap-1 transition-colors">
+                Kursus
+              </Link>
             </nav>
-            <div className="flex items-center gap-3">
-              {isAuthenticated ? (
-                <Link
-                  href={user?.roles?.some(r => r.name === 'admin') ? '/admin/dashboard' : '/student/dashboard'}
-                  className="btn btn-primary btn-sm flex items-center gap-1.5"
-                >
-                  <Icon name="user-circle" size={15} />
-                  <span>Dashboard</span>
-                </Link>
-              ) : (
-                <>
-                  <Link href="/login" className="hidden sm:inline text-sm font-semibold text-navy-dark hover:text-navy-light">Masuk</Link>
-                  <Link href="/register" className="btn btn-primary btn-sm">Daftar</Link>
-                </>
-              )}
+
+            {/* Right Action Buttons: LOGIN / REGISTER + Cart */}
+            <div className="flex items-center gap-2.5">
+              <Link
+                href="/login"
+                className="px-4 sm:px-5 py-2 rounded-xl text-xs font-extrabold tracking-wider uppercase border border-sky-300 bg-sky-50/80 hover:bg-sky-100 text-sky-700 transition-colors shadow-xs"
+              >
+                Login / Register
+              </Link>
             </div>
           </div>
         </header>
@@ -370,7 +380,7 @@ export default function PublicCourseDetailPage() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-3">
               <span className="w-9 h-9 rounded-xl bg-gold flex items-center justify-center text-navy-dark font-extrabold">D</span>
-              <span className="font-extrabold text-white text-lg">DigiBlueCamp</span>
+              <span className="font-extrabold text-white text-lg">DigiBlue</span>
             </div>
             <p className="max-w-sm leading-relaxed">
               Platform kursus dan sertifikasi online Blue Economy bersama The Blue Economist International Association.
