@@ -55,14 +55,9 @@ export interface Course {
 }
 
 // ─── Enrollment ──────────────────────────────────────────────────────────────
-export type EnrollmentType =
-  | 'self_paid'
-  | 'scholarship_fully'
-  | 'scholarship_partial_a'
-  | 'scholarship_partial_b';
+export type EnrollmentType = 'self_paid';
 
 export type EnrollmentStatus =
-  | 'pending_review'
   | 'payment_pending'
   | 'active'
   | 'completed'
@@ -78,36 +73,6 @@ export interface Enrollment {
   created_at: string;
 }
 
-// ─── Scholarship ─────────────────────────────────────────────────────────────
-export type ScholarshipDecision =
-  | 'pending'
-  | 'approved_fully'
-  | 'approved_partial_a'
-  | 'approved_partial_b'
-  | 'rejected';
-
-export interface ScholarshipApplication {
-  id: number;
-  enrollment: Enrollment;
-  motivation_letter: string;
-  document_url: string;
-  decision_status: ScholarshipDecision;
-  reviewer_notes: string | null;
-  reviewed_by: User | null;
-  created_at: string;
-}
-
-export interface ScholarshipAppeal {
-  id: number;
-  scholarship_application_id: number;
-  reason: string;
-  proposed_amount: number | null;
-  supporting_document_url: string | null;
-  final_agreed_amount: number | null;
-  status: 'pending' | 'approved' | 'rejected';
-  admin_response_notes: string | null;
-  created_at: string;
-}
 
 // ─── Course Content ──────────────────────────────────────────────────────────
 export type ContentType =

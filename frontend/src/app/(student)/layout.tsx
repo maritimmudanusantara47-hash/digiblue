@@ -9,7 +9,6 @@ import api from '@/lib/api';
 const navItems = [
   { href: '/student/dashboard',   label: 'Dashboard',      icon: 'home-2' },
   { href: '/student/catalog',     label: 'Katalog Kursus', icon: 'books-2' },
-  { href: '/student/scholarship', label: 'Beasiswa',       icon: 'graduation-cap-1' },
   { href: '/student/certificates',label: 'Sertifikat Saya',icon: 'certificate-badge-1' },
 ];
 
