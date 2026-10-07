@@ -230,7 +230,6 @@ export default function AdminEnrollmentsPage() {
                 <th className="px-4 py-3 text-left font-semibold">#</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_participant')}</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_course')}</th>
-                <th className="px-4 py-3 text-left font-semibold">{t('col_type')}</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_status')}</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_ft')}</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_register')}</th>
@@ -240,7 +239,7 @@ export default function AdminEnrollmentsPage() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-5 w-5 text-navy" viewBox="0 0 24 24" fill="none">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -252,7 +251,7 @@ export default function AdminEnrollmentsPage() {
                 </tr>
               ) : enrollments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
                     <div className="text-4xl mb-3"><Icon name="clipboard" size={36} /></div>
                     <p>{t('empty')}</p>
                   </td>
@@ -269,9 +268,6 @@ export default function AdminEnrollmentsPage() {
                       {en.course?.title ?? '—'}
                     </p>
                     <span className="text-[10px] text-slate-400">{en.course?.certification_level?.code}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs text-slate-500">{typeLabel(en.enrollment_type, t)}</span>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusStyle(en.status, t)}`}>
@@ -367,23 +363,13 @@ export default function AdminEnrollmentsPage() {
                     {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="form-label">{t('col_type')}</label>
-                    <select value={addForm.enrollment_type}
-                      onChange={e => setAddForm(f => ({ ...f, enrollment_type: e.target.value }))}
-                      className="form-input text-sm">
-                      {TYPE_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="form-label">{t('col_status')} Awal</label>
-                    <select value={addForm.status}
-                      onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))}
-                      className="form-input text-sm">
-                      {STATUS_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                  </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="form-label">{t('col_status')} Awal</label>
+                  <select value={addForm.status}
+                    onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))}
+                    className="form-input text-sm">
+                    {STATUS_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
                 </div>
                 {addError && (
                   <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">{addError}</div>
@@ -420,12 +406,7 @@ export default function AdminEnrollmentsPage() {
                     {STATUS_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label">{t('col_type')} Enrollment</label>
-                  <select value={newType} onChange={e => setNewType(e.target.value)} className="form-input">
-                    {TYPE_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </div>
+
                 <div className="flex gap-3">
                   <button id="save-status-btn" onClick={handleStatusUpdate} disabled={updatingStatus} className="btn btn-primary flex-1">
                     {updatingStatus ? t('btn_saving') : <><Icon name="check-circle-1" size={16} className="mr-1.5" />Update {t('col_status')}</>}
