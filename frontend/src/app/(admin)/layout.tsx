@@ -5,27 +5,26 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 
 const adminNav = [
-  { href: '/admin/dashboard',    label: 'nav_dashboard',         icon: 'dashboard-square-1' },
-  { href: '/admin/users',        label: 'nav_users',          icon: 'user-multiple-4' },
-  { href: '/admin/courses',      label: 'nav_courses',  icon: 'books-2' },
-  { href: '/admin/enrollments',  label: 'nav_enrollments',        icon: 'clipboard' },
-  { href: '/admin/certificates', label: 'nav_certificates',        icon: 'certificate-badge-1' },
+  { href: '/admin/dashboard', label: 'nav_dashboard', icon: 'dashboard-square-1' },
+  { href: '/admin/users', label: 'nav_users', icon: 'user-multiple-4' },
+  { href: '/admin/courses', label: 'nav_courses', icon: 'books-2' },
+  { href: '/admin/enrollments', label: 'nav_enrollments', icon: 'clipboard' },
+  { href: '/admin/certificates', label: 'nav_certificates', icon: 'certificate-badge-1' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('AdminPortal');
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
 
   const handleLogout = async () => {
-    try { await api.post('/auth/logout'); } catch {}
+    try { await api.post('/auth/logout'); } catch { }
     clearAuth();
     window.location.replace('/');
   };
@@ -91,9 +90,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="px-3 pb-6 flex-shrink-0 mt-auto">
-          <div className="flex justify-center mb-4">
-            <LanguageSwitcher />
-          </div>
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
             <span><Icon name="exit" size={18} /></span><span>{t('btn_logout')}</span>

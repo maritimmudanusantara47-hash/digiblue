@@ -16,13 +16,11 @@ use App\Http\Controllers\Api\PaymentController;
 // ─── Public Routes ───────────────────────────────────────────────────────────
 Route::prefix('v1')->group(function () {
 
-    // Auth (mendukung format /auth/login dan /login)
+    // Auth
     Route::prefix('auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login',    [AuthController::class, 'login']);
     });
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login',    [AuthController::class, 'login']);
 
     // Public: Katalog & Verifikasi Sertifikat
     Route::get('courses',              [CourseController::class, 'index']);
@@ -41,15 +39,12 @@ Route::prefix('v1')->group(function () {
             Route::post('logout', [AuthController::class, 'logout']);
             Route::get('me',      [AuthController::class, 'me']);
         });
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('me',      [AuthController::class, 'me']);
 
         // Enrollment & Kursus Peserta
         Route::get('enrollments',           [EnrollmentController::class, 'index']);
         Route::post('enrollments',          [EnrollmentController::class, 'store']);          // Daftar kursus
         Route::get('enrollments/{id}',      [EnrollmentController::class, 'show']);
         Route::get('enrollments/{id}/contents', [ContentController::class, 'index']);         // Daftar konten kursus
-
 
         // Student: Konfirmasi kehadiran Field Study
         Route::patch('enrollments/{id}/confirm-field-study', [EnrollmentController::class, 'studentConfirmFieldStudy']);
@@ -67,7 +62,6 @@ Route::prefix('v1')->group(function () {
 
         // Pembayaran Midtrans Snap
         Route::post('payments/create-snap-token', [PaymentController::class, 'createSnapToken']);
-        Route::post('payments/create-snap',       [PaymentController::class, 'createSnapToken']);
         Route::post('payments/verify-status',     [PaymentController::class, 'verifyStatus']);
 
         // ─── Assessor & Admin Routes ─────────────────────────────────────────
@@ -101,7 +95,6 @@ Route::prefix('v1')->group(function () {
             Route::get('enrollments',                       [EnrollmentController::class, 'adminIndex']);   // List semua enrollment
             Route::post('enrollments',                      [EnrollmentController::class, 'adminStore']);   // Manual enroll user
             Route::patch('enrollments/{id}/status',         [EnrollmentController::class, 'updateStatus']); // Ubah status
-            Route::patch('enrollments/{id}/field-trip',     [EnrollmentController::class, 'toggleFieldTrip']); // Toggle field trip
             Route::delete('enrollments/{id}',               [EnrollmentController::class, 'destroy']);      // Hapus enrollment
 
             // Course Management (CRUD Dinamis)

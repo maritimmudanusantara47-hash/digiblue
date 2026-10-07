@@ -228,7 +228,7 @@ function LoginFormContent() {
           id="login-submit"
           type="submit"
           disabled={isSubmitting}
-          className="btn btn-primary btn-lg w-full mt-1"
+          className="w-full h-12 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-[#0f2b48] font-bold text-sm rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer font-heading disabled:opacity-50 mt-1"
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">

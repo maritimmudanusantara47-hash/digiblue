@@ -71,7 +71,10 @@ class CertificateController extends Controller
     public function verify(string $serialUrlKey): JsonResponse
     {
         $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])
-            ->where('serial_url_key', $serialUrlKey)
+            ->where(function ($q) use ($serialUrlKey) {
+                $q->where('serial_url_key', $serialUrlKey)
+                  ->orWhere('serial_number', $serialUrlKey);
+            })
             ->first();
 
         if (! $cert) {

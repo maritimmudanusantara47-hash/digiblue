@@ -1,6 +1,7 @@
 import Icon from '@/components/Icon';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export const metadata: Metadata = {
   title: 'Verifikasi Sertifikat',
@@ -23,7 +24,11 @@ export default async function VerifyPage({ params }: { params: Promise<{ serialK
   }
 
   return (
-    <div className="min-h-screen gradient-hero flex items-center justify-center p-6">
+    <div className="min-h-screen gradient-hero flex items-center justify-center p-6 relative">
+      <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-20">
+        <LanguageSwitcher />
+      </div>
+
       <div className="w-full max-w-lg">
         {/* Logo */}
         <div className="text-center mb-8">
