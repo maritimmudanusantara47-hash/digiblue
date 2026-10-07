@@ -4,18 +4,20 @@ import Icon from '@/components/Icon';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
 
 const navItems = [
-  { href: '/student/dashboard',   label: 'Dashboard',      icon: 'home-2' },
-  { href: '/student/catalog',     label: 'Katalog Kursus', icon: 'books-2' },
-  { href: '/student/certificates',label: 'Sertifikat Saya',icon: 'certificate-badge-1' },
+  { href: '/student/dashboard',   label: 'nav_dashboard',      icon: 'home-2' },
+  { href: '/student/catalog',     label: 'nav_catalog', icon: 'books-2' },
+  { href: '/student/certificates',label: 'nav_certificates',icon: 'certificate-badge-1' },
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('StudentPortal');
   const pathname = usePathname();
   const router   = useRouter();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
@@ -59,7 +61,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               {user?.name?.[0]?.toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-white text-sm font-semibold truncate">{user?.name ?? 'Peserta'}</p>
+              <p className="text-white text-sm font-semibold truncate">{user?.name ?? t('default_user')}</p>
               <p className="text-white/40 text-[11px] truncate">{user?.country ?? user?.institution ?? ''}</p>
             </div>
           </div>
@@ -74,7 +76,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}
             >
               <Icon name={item.icon} size={18} />
-              <span>{item.label}</span>
+              <span>{t(item.label as any)}</span>
             </Link>
           ))}
         </nav>
@@ -86,7 +88,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </div>
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
-            <span><Icon name="exit" size={18} /></span><span>Keluar</span>
+            <span><Icon name="exit" size={18} /></span><span>{t('btn_logout')}</span>
           </button>
         </div>
       </aside>

@@ -10,15 +10,19 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { AuthResponse } from '@/types';
 import Icon from '@/components/Icon';
+import { useTranslations } from 'next-intl';
 
-const loginSchema = z.object({
-  email:    z.string().email('Format email tidak valid'),
-  password: z.string().min(6, 'Password minimal 6 karakter'),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginForm = {
+  email: string;
+  password: string;
+};
 
 function LoginFormContent() {
+  const t = useTranslations('Auth');
+  const loginSchema = z.object({
+    email:    z.string().email(t('login_err_email')),
+    password: z.string().min(6, t('login_err_pwd')),
+  });
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams?.get('redirect');
@@ -50,7 +54,7 @@ function LoginFormContent() {
       else                          router.replace('/student/dashboard');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? 'Login gagal. Periksa email dan password.';
+        ?.response?.data?.message ?? t('login_failed_fallback');
       setServerError(msg);
     }
   };
@@ -61,24 +65,24 @@ function LoginFormContent() {
 
   return (
     <div className="animate-fadeup">
-      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Selamat Datang Kembali</h1>
-      <p className="text-slate-500 text-sm mb-6">Masuk ke akun DigiBlueCamp kamu</p>
+      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">{t('login_title')}</h1>
+      <p className="text-slate-500 text-sm mb-6">{t('login_desc')}</p>
 
       {redirect && (
         <div className="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-4 py-3 rounded-xl mb-6 flex items-center gap-2.5">
           <Icon name="information" size={16} className="text-sky-600 shrink-0" />
-          <span>Silakan masuk untuk melanjutkan proses pendaftaran ke kursus pilihanmu.</span>
+          <span>Please log in to continue the enrollment process for your selected course.</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {/* Email */}
         <div className="form-group flex flex-col gap-1.5">
-          <label className="form-label">Email</label>
+          <label className="form-label">{t('email_label')}</label>
           <input
             id="login-email"
             type="email"
-            placeholder="email@kamu.com"
+            placeholder={t('placeholder_email')}
             className={`form-input ${errors.email ? 'error' : ''}`}
             {...register('email')}
           />
@@ -87,7 +91,7 @@ function LoginFormContent() {
 
         {/* Password */}
         <div className="form-group flex flex-col gap-1.5">
-          <label className="form-label">Password</label>
+          <label className="form-label">{t('password_label')}</label>
           <input
             id="login-password"
             type="password"
@@ -118,16 +122,16 @@ function LoginFormContent() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
               </svg>
-              Memproses...
+              {t('btn_processing')}
             </span>
-          ) : 'Masuk'}
+          ) : t('btn_login')}
         </button>
       </form>
 
       <p className="text-center text-sm text-slate-500 mt-6">
-        Belum punya akun?{' '}
+        {t('no_account')}{' '}
         <Link href={registerHref} className="font-semibold text-navy hover:text-gold transition-colors">
-          Daftar sekarang
+          {t('register_here')}
         </Link>
       </p>
     </div>
