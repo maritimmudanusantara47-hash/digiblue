@@ -39,9 +39,9 @@ type LayoutState = Record<string, FieldConfig>;
 const DEFAULT_LAYOUT: LayoutState = {
   serial_no: { top: 13.0, right: 16.5, width: 105, font_size: 11.0, label: 'Nomor Seri (Top-Right)' },
   recipient_name: { top: 69.5, font_size: 32.5, label: 'Nama Peserta' },
-  ribbon_text: { top: 100.5, height: 14.0, font_size: 22.5, label: 'Teks Ribbon' },
-  level_value: { top: 124.5, font_size: 14.5, label: 'Level Sertifikasi' },
-  meta_block: { top: 138.2, font_size: 11.5, label: 'Grade, Tanggal & Tempat' },
+  ribbon_text: { top: 99.0, height: 14.0, font_size: 22.5, label: 'Teks Ribbon' },
+  level_value: { top: 122.8, font_size: 14.5, label: 'Level Sertifikasi' },
+  meta_block: { top: 138.0, font_size: 10.5, label: 'Grade, Tanggal & Tempat' },
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
 };
@@ -543,7 +543,7 @@ export default function CertificateTemplateAdminPage() {
 
                 <button onClick={() => handleResetField(selectedKey)}
                   className="w-full text-[11px] text-slate-500 hover:text-amber-400 flex items-center justify-center gap-1.5 pt-1 transition cursor-pointer">
-                  <Ico.Reset /> Reset "{sel.label}" ke default
+                  <Ico.Reset /> Reset &quot;{sel.label}&quot; ke default
                 </button>
               </div>
             )}

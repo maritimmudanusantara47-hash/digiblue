@@ -73,7 +73,7 @@
         /* ── Ribbon Specialization / Course Title ── */
         .f-ribbon {
             position: absolute;
-            top: 100.5mm;
+            top: 99.0mm;
             left: 20mm;
             right: 20mm;
             height: 14mm;
@@ -90,7 +90,7 @@
         /* ── Level Value (Directly below "Level:") ── */
         .f-level {
             position: absolute;
-            top: 124.5mm;
+            top: 122.8mm;
             left: 0;
             right: 0;
             text-align: center;
@@ -101,34 +101,39 @@
             z-index: 3;
         }
 
-        /* ── Grade, Date of issue, Place of issue (Blends seamlessly into #F8F8F8) ── */
+        /* ── Grade, Date of issue, Place of issue ── */
         .f-meta-block {
             position: absolute;
-            top: 138.2mm;
+            top: 138.0mm;
             left: 103.5mm;
             width: 90mm;
-            height: 18.5mm;
-            background: #F8F8F8;
+            background: transparent;
             text-align: center;
-            font-size: 11.5pt;
+            font-size: 10.5pt;
             font-family: 'Poppins', 'DejaVu Sans', sans-serif;
-            line-height: 1.55;
-            color: #111827;
+            line-height: 1.35;
+            color: #1f2937;
             z-index: 3;
+        }
+
+        .f-meta-block .meta-line {
+            margin: 0;
+            padding: 0;
+            line-height: 1.35;
         }
 
         .f-meta-block strong {
             font-weight: bold;
-            color: #000000;
+            color: #111827;
         }
 
-        /* ── QR Codes (Left and Right of TBE bottom logo) ── */
+        /* ── QR Codes with Clean Framed Card ── */
         .f-qr-left {
             position: absolute;
             top: 147.5mm;
             left: 67.0mm;
-            width: 26mm;
-            height: 26mm;
+            width: 25mm;
+            height: 25mm;
             z-index: 3;
         }
 
@@ -136,14 +141,22 @@
             position: absolute;
             top: 147.5mm;
             left: 196.4mm;
-            width: 26mm;
-            height: 26mm;
+            width: 25mm;
+            height: 25mm;
             z-index: 3;
         }
 
+        .f-qr-card {
+            background: #ffffff;
+            border: 0.5pt solid #cbd5e1;
+            border-radius: 4px;
+            padding: 1.2mm;
+            box-sizing: border-box;
+        }
+
         .f-qr-img {
-            width: 26mm;
-            height: 26mm;
+            width: 100%;
+            height: 100%;
             display: block;
         }
     </style>
@@ -189,15 +202,15 @@
         $nTop = $L['recipient_name']['top'] ?? 69.5;
         $nFs  = $L['recipient_name']['font_size'] ?? 32.5;
 
-        $rTop = $L['ribbon_text']['top'] ?? 100.5;
+        $rTop = $L['ribbon_text']['top'] ?? 99.0;
         $rFs  = $L['ribbon_text']['font_size'] ?? 22.5;
         $rH   = $L['ribbon_text']['height'] ?? 14.0;
 
-        $lTop = $L['level_value']['top'] ?? 124.5;
+        $lTop = $L['level_value']['top'] ?? 122.8;
         $lFs  = $L['level_value']['font_size'] ?? 14.5;
 
-        $mTop = $L['meta_block']['top'] ?? 138.2;
-        $mFs  = $L['meta_block']['font_size'] ?? 11.5;
+        $mTop = $L['meta_block']['top'] ?? 138.0;
+        $mFs  = $L['meta_block']['font_size'] ?? 10.5;
 
         $qlTop  = $L['qr_left']['top'] ?? 147.5;
         $qlLeft = $L['qr_left']['left'] ?? 67.0;
@@ -236,22 +249,22 @@
 
         {{-- Grade, Date, Place block --}}
         <div class="f-meta-block" style="top: {{ $mTop }}mm; font-size: {{ $mFs }}pt;">
-            <div><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
-            <div><strong>Date of issue:</strong> {{ \Carbon\Carbon::parse($certificate->date_of_issue)->format('F j, Y') }}</div>
-            <div><strong>Place of issue:</strong> {{ $certificate->place_of_issue ?? 'Jakarta' }}</div>
+            <div class="meta-line"><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
+            <div class="meta-line"><strong>Date of issue:</strong> {{ \Carbon\Carbon::parse($certificate->date_of_issue)->format('F j, Y') }}</div>
+            <div class="meta-line"><strong>Place of issue:</strong> {{ $certificate->place_of_issue ?? 'Jakarta' }}</div>
         </div>
 
         {{-- Left QR Code --}}
         @if($qrImageBase64 ?? false)
-            <div class="f-qr-left" style="top: {{ $qlTop }}mm; left: {{ $qlLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
-                <img class="f-qr-img" style="width: {{ $qSize }}mm; height: {{ $qSize }}mm;" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Left">
+            <div class="f-qr-left f-qr-card" style="top: {{ $qlTop }}mm; left: {{ $qlLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
+                <img class="f-qr-img" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Left">
             </div>
         @endif
 
         {{-- Right QR Code --}}
         @if($qrImageBase64 ?? false)
-            <div class="f-qr-right" style="top: {{ $qrTop }}mm; left: {{ $qrLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
-                <img class="f-qr-img" style="width: {{ $qSize }}mm; height: {{ $qSize }}mm;" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Right">
+            <div class="f-qr-right f-qr-card" style="top: {{ $qrTop }}mm; left: {{ $qrLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
+                <img class="f-qr-img" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Right">
             </div>
         @endif
 
