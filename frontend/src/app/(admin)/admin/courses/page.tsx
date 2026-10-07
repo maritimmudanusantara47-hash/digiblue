@@ -2,8 +2,8 @@
 
 import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useTranslations } from 'next-intl';
 
 interface CertLevel { id: number; code: string; name: string }
 interface Course {
@@ -38,6 +38,7 @@ const emptyForm = {
 };
 
 export default function AdminCoursesPage() {
+  const t = useTranslations('AdminCourses');
   const [courses, setCourses]       = useState<Course[]>([]);
   const [levels, setLevels]         = useState<CertLevel[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -183,18 +184,18 @@ export default function AdminCoursesPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) {
-      setFormError('Nama kursus wajib diisi.');
+      setFormError(t('msg_title_required'));
       return;
     }
     if (!selectedCategory) {
-      setFormError('Silakan pilih Kategori Kursus terlebih dahulu.');
+      setFormError(t('msg_category_required'));
       return;
     }
     if (!form.certification_level_id) {
       setFormError(
         selectedCategory === 'INTERNATIONAL'
-          ? 'Pilih salah satu tipe sertifikasi: Foundation atau Specialization.'
-          : 'Level kursus belum tersedia di sistem.'
+          ? t('msg_cert_type_required')
+          : t('msg_level_not_found')
       );
       return;
     }
@@ -218,7 +219,7 @@ export default function AdminCoursesPage() {
       fetchCourses();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setFormError(msg ?? 'Gagal menyimpan kursus.');
+      setFormError(msg ?? t('msg_save_fail'));
     } finally {
       setSaving(false);
     }
@@ -237,7 +238,7 @@ export default function AdminCoursesPage() {
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal menghapus kursus.');
+      alert(msg ?? t('msg_delete_fail'));
     } finally {
       setDeleting(false);
     }
@@ -248,7 +249,7 @@ export default function AdminCoursesPage() {
       await api.patch(`/admin/courses/${course.id}`, { is_active: !course.is_active });
       fetchCourses();
     } catch {
-      alert('Gagal mengubah status kursus.');
+      alert(t('msg_toggle_fail'));
     }
   };
 
@@ -271,13 +272,13 @@ export default function AdminCoursesPage() {
       {/* Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-navy-dark">Manajemen Kursus</h1>
+          <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Kelola kurikulum International, National, dan Single Module — {total} kursus terdaftar
+            {t('subtitle', { total })}
           </p>
         </div>
         <button id="btn-create-course" onClick={openCreate} className="btn btn-primary whitespace-nowrap">
-          + Tambah Kursus
+          {t('btn_add_course')}
         </button>
       </div>
 
@@ -289,7 +290,7 @@ export default function AdminCoursesPage() {
             <input
               id="course-search"
               type="text"
-              placeholder="Cari nama kursus..."
+              placeholder={t('placeholder_search')}
               value={search}
               onChange={e => handleSearchChange(e.target.value)}
               className="form-input pl-9 py-2 text-sm w-full"
@@ -301,7 +302,7 @@ export default function AdminCoursesPage() {
               onClick={() => handleFilterChange('')}
               className={`btn btn-sm ${filterLevel === '' ? 'btn-primary' : 'btn-secondary'}`}
             >
-              Semua
+              {t('filter_all')}
             </button>
 
             <button
@@ -310,21 +311,21 @@ export default function AdminCoursesPage() {
                 ['INT_CERT', 'FND', 'SPEC'].includes(filterLevel) ? 'btn-primary' : 'btn-secondary'
               }`}
             >
-              International Certification Training Course
+              {t('filter_int')}
             </button>
 
             <button
               onClick={() => handleFilterChange(filterLevel === 'NAT' ? '' : 'NAT')}
               className={`btn btn-sm ${filterLevel === 'NAT' ? 'btn-primary' : 'btn-secondary'}`}
             >
-              National Training Course
+              {t('filter_nat')}
             </button>
 
             <button
               onClick={() => handleFilterChange(filterLevel === 'SGL' ? '' : 'SGL')}
               className={`btn btn-sm ${filterLevel === 'SGL' ? 'btn-primary' : 'btn-secondary'}`}
             >
-              Single Modul Course
+              {t('filter_sgl')}
             </button>
           </div>
         </div>
@@ -332,7 +333,7 @@ export default function AdminCoursesPage() {
         {/* Sub-filter untuk International Certification Track (Foundation & Specialization) */}
         {['INT_CERT', 'FND', 'SPEC'].includes(filterLevel) && (
           <div className="flex items-center gap-2 pt-3 border-t border-slate-100 animate-fadeup flex-wrap">
-            <span className="text-xs font-semibold text-slate-500">Track International:</span>
+            <span className="text-xs font-semibold text-slate-500">{t('lbl_track_int')}</span>
             <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
               <button
                 onClick={() => handleFilterChange('INT_CERT')}
@@ -340,7 +341,7 @@ export default function AdminCoursesPage() {
                   filterLevel === 'INT_CERT' ? 'bg-white shadow text-navy font-bold' : 'text-slate-600 hover:text-navy'
                 }`}
               >
-                Semua Track
+                {t('filter_all_track')}
               </button>
               <button
                 onClick={() => handleFilterChange('FND')}
@@ -348,7 +349,7 @@ export default function AdminCoursesPage() {
                   filterLevel === 'FND' ? 'bg-white shadow text-emerald-700 font-bold' : 'text-slate-600 hover:text-navy'
                 }`}
               >
-                Foundation
+                {t('filter_fnd')}
               </button>
               <button
                 onClick={() => handleFilterChange('SPEC')}
@@ -356,7 +357,7 @@ export default function AdminCoursesPage() {
                   filterLevel === 'SPEC' ? 'bg-white shadow text-navy font-bold' : 'text-slate-600 hover:text-navy'
                 }`}
               >
-                Specialization
+                {t('filter_spec')}
               </button>
             </div>
           </div>
@@ -370,15 +371,15 @@ export default function AdminCoursesPage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
           </svg>
-          Memuat kursus...
+          {t('msg_loading')}
         </div>
       ) : courses.length === 0 ? (
         <div className="flex-1 card py-16 text-center">
           <div className="text-5xl mb-4"><Icon name="books-2" size={48} /></div>
-          <p className="font-semibold text-navy-dark">Tidak ada kursus ditemukan</p>
-          <p className="text-slate-400 text-sm mt-1">Coba ubah filter atau tambah kursus baru</p>
+          <p className="font-semibold text-navy-dark">{t('msg_empty')}</p>
+          <p className="text-slate-400 text-sm mt-1">{t('desc_empty')}</p>
           <button onClick={openCreate} className="btn btn-primary btn-sm mt-5 inline-flex">
-            + Tambah Kursus Pertama
+            {t('btn_add_first')}
           </button>
         </div>
       ) : (
@@ -390,11 +391,11 @@ export default function AdminCoursesPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b border-slate-200">
                   <div className="flex items-center gap-3">
                     <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-extrabold border bg-navy text-white border-navy shadow-sm">
-                      International Certification Training Course
+                      {t('filter_int')}
                     </span>
-                    <span className="text-slate-400 text-sm font-medium">{intCourses.length} kursus</span>
+                    <span className="text-slate-400 text-sm font-medium">{intCourses.length} {t('lbl_courses')}</span>
                   </div>
-                  <span className="text-xs text-slate-400">Foundation Level & Specialization Track</span>
+                  <span className="text-xs text-slate-400">{t('lbl_fnd_spec_track')}</span>
                 </div>
 
                 <div className="space-y-6">
@@ -403,12 +404,12 @@ export default function AdminCoursesPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border bg-emerald-100 text-emerald-800 border-emerald-300">
-                          Foundation Level
+                          {t('lbl_fnd_level')}
                         </span>
-                        <span className="text-slate-400 text-xs">{foundationCourses.length} program</span>
+                        <span className="text-slate-400 text-xs">{foundationCourses.length} {t('lbl_program')}</span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                        {foundationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                        {foundationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
                       </div>
                     </div>
                   )}
@@ -418,12 +419,12 @@ export default function AdminCoursesPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border bg-navy/10 text-navy border-navy/30">
-                          Specialization Level
+                          {t('lbl_spec_level')}
                         </span>
-                        <span className="text-slate-400 text-xs">{specializationCourses.length} track</span>
+                        <span className="text-slate-400 text-xs">{specializationCourses.length} {t('lbl_track')}</span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                        {specializationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                        {specializationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
                       </div>
                     </div>
                   )}
@@ -431,7 +432,7 @@ export default function AdminCoursesPage() {
                   {/* Other International */}
                   {otherIntCourses.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                      {otherIntCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                      {otherIntCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
                     </div>
                   )}
                 </div>
@@ -443,12 +444,12 @@ export default function AdminCoursesPage() {
               <section className="bg-slate-50/70 p-5 sm:p-6 rounded-2xl border border-slate-200">
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
                   <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-extrabold border bg-amber-600 text-white border-amber-600 shadow-sm">
-                    National Training Course
+                    {t('filter_nat')}
                   </span>
-                  <span className="text-slate-400 text-sm font-medium">{nationalCourses.length} kursus</span>
+                  <span className="text-slate-400 text-sm font-medium">{nationalCourses.length} {t('lbl_courses')}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {nationalCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                  {nationalCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
                 </div>
               </section>
             )}
@@ -458,12 +459,12 @@ export default function AdminCoursesPage() {
               <section className="bg-slate-50/70 p-5 sm:p-6 rounded-2xl border border-slate-200">
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
                   <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-extrabold border bg-purple-600 text-white border-purple-600 shadow-sm">
-                    Single Modul Course
+                    {t('filter_sgl')}
                   </span>
-                  <span className="text-slate-400 text-sm font-medium">{singleModuleCourses.length} kursus</span>
+                  <span className="text-slate-400 text-sm font-medium">{singleModuleCourses.length} {t('lbl_courses')}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {singleModuleCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                  {singleModuleCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
                 </div>
               </section>
             )}
@@ -473,12 +474,12 @@ export default function AdminCoursesPage() {
               <section>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border bg-slate-200 text-slate-700">
-                    Kursus Lainnya
+                    {t('lbl_other_courses')}
                   </span>
-                  <span className="text-slate-400 text-sm">{uncategorizedCourses.length} kursus</span>
+                  <span className="text-slate-400 text-sm">{uncategorizedCourses.length} {t('lbl_courses')}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {uncategorizedCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} />)}
+                  {uncategorizedCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
                 </div>
               </section>
             )}
@@ -489,18 +490,18 @@ export default function AdminCoursesPage() {
             <div className="card mt-8 sticky bottom-0 sm:bottom-4 z-20 shadow-lg shadow-navy/5 backdrop-blur-md bg-white/95 border border-slate-200/90 p-4 flex flex-col md:flex-row items-center justify-between gap-4 rounded-2xl">
               <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                 <span>
-                  Menampilkan <strong className="text-navy-dark font-bold">{from}</strong> – <strong className="text-navy-dark font-bold">{to}</strong> dari <strong className="text-navy-dark font-bold">{total}</strong> kursus
+                  {t('lbl_showing')} <strong className="text-navy-dark font-bold">{from}</strong> – <strong className="text-navy-dark font-bold">{to}</strong> {t('lbl_from')} <strong className="text-navy-dark font-bold">{total}</strong> {t('lbl_courses')}
                 </span>
                 <div className="flex items-center gap-1.5 text-xs text-slate-400 border-l border-slate-200 pl-3">
-                  <span>Tampilkan:</span>
+                  <span>{t('lbl_show')}</span>
                   <select
                     value={perPage}
                     onChange={e => handlePerPageChange(Number(e.target.value))}
                     className="form-input py-1 px-2 text-xs rounded-lg border-slate-200 bg-white text-navy font-semibold outline-none cursor-pointer"
                   >
-                    <option value={5}>5 per halaman</option>
-                    <option value={10}>10 per halaman</option>
-                    <option value={20}>20 per halaman</option>
+                    <option value={5}>{t('opt_5_per_page')}</option>
+                    <option value={10}>{t('opt_10_per_page')}</option>
+                    <option value={20}>{t('opt_20_per_page')}</option>
                   </select>
                 </div>
               </div>
@@ -512,7 +513,7 @@ export default function AdminCoursesPage() {
                   disabled={currentPage <= 1 || loading}
                   className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  <Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya
+                  <Icon name="arrow-left" size={16} className="mr-1.5" />{t('btn_prev')}
                 </button>
 
                 <div className="flex items-center gap-1">
@@ -542,7 +543,7 @@ export default function AdminCoursesPage() {
                   disabled={currentPage >= lastPage || loading}
                   className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  Selanjutnya <Icon name="arrow-right" size={14} className="ml-1.5" />
+                  {t('btn_next')} <Icon name="arrow-right" size={14} className="ml-1.5" />
                 </button>
               </div>
             </div>
@@ -556,7 +557,7 @@ export default function AdminCoursesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
               <h2 className="text-lg font-extrabold text-navy-dark">
-                {modal === 'create' ? '+ Tambah Kursus Baru' : <><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Kursus</>}
+                {modal === 'create' ? t('title_add_course') : <><Icon name="pencil-1" size={16} className="mr-1.5" />{t('title_edit_course')}</>}
               </h2>
               <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
@@ -564,14 +565,14 @@ export default function AdminCoursesPage() {
             <form onSubmit={handleSave} className="px-6 py-5 flex flex-col gap-4">
               {/* Kategori Kursus */}
               <div className="flex flex-col gap-1.5">
-                <label className="form-label">Kategori Kursus <span className="text-red-500">*</span></label>
+                <label className="form-label">{t('lbl_category')} <span className="text-red-500">*</span></label>
                 <select
                   required
                   value={selectedCategory}
                   onChange={e => handleCategoryChange(e.target.value)}
                   className="form-input"
                 >
-                  <option value="">-- Pilih Kategori Kursus --</option>
+                  <option value="">{t('opt_select_category')}</option>
                   <option value="INTERNATIONAL">International Certification Training Course</option>
                   <option value="NATIONAL">National Training Course</option>
                   <option value="SINGLE_MODULE">Single Modul Course</option>
@@ -583,9 +584,9 @@ export default function AdminCoursesPage() {
                 <div className="flex flex-col gap-2 p-3.5 bg-slate-50 border border-slate-200 rounded-xl animate-fadeup">
                   <div className="flex items-center justify-between">
                     <label className="form-label text-xs font-bold text-navy-dark">
-                      Pilihan Track International <span className="text-red-500">*</span>
+                      {t('lbl_int_track_opt')} <span className="text-red-500">*</span>
                     </label>
-                    <span className="text-[11px] text-slate-400">Pilih salah satu</span>
+                    <span className="text-[11px] text-slate-400">{t('lbl_choose_one')}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {/* Option Foundation */}
@@ -610,7 +611,7 @@ export default function AdminCoursesPage() {
                               {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 leading-tight">Program sertifikasi dasar CBEc</p>
+                          <p className="text-[11px] text-slate-500 leading-tight">{t('desc_fnd')}</p>
                         </button>
                       );
                     })()}
@@ -637,14 +638,14 @@ export default function AdminCoursesPage() {
                               {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 leading-tight">Jalur peminatan mendalam (10 Track)</p>
+                          <p className="text-[11px] text-slate-500 leading-tight">{t('desc_spec')}</p>
                         </button>
                       );
                     })()}
                   </div>
                   {!form.certification_level_id && (
                     <span className="text-[11px] text-amber-600 font-medium">
-                      * Silakan klik salah satu: Foundation atau Specialization.
+                      {t('msg_click_fnd_spec')}
                     </span>
                   )}
                 </div>
@@ -652,12 +653,12 @@ export default function AdminCoursesPage() {
 
               {/* Title */}
               <div className="flex flex-col gap-1.5">
-                <label className="form-label">Nama Kursus <span className="text-red-500">*</span></label>
+                <label className="form-label">{t('lbl_course_name')} <span className="text-red-500">*</span></label>
                 <input
                   id="course-title"
                   type="text"
                   required
-                  placeholder="Contoh: CBEc Specialization — Blue Carbon"
+                  placeholder={t('placeholder_course_name')}
                   value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                   className="form-input"
@@ -666,10 +667,10 @@ export default function AdminCoursesPage() {
 
               {/* Description */}
               <div className="flex flex-col gap-1.5">
-                <label className="form-label">Deskripsi <span className="text-slate-400 font-normal">(opsional)</span></label>
+                <label className="form-label">{t('lbl_desc')} <span className="text-slate-400 font-normal">{t('lbl_optional')}</span></label>
                 <textarea
                   rows={4}
-                  placeholder="Deskripsi singkat tentang kursus ini..."
+                  placeholder={t('placeholder_desc')}
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   className="form-input resize-none"
@@ -679,7 +680,7 @@ export default function AdminCoursesPage() {
               {/* Price & Order */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Harga (Rp)</label>
+                  <label className="form-label">{t('lbl_price')}</label>
                   <input
                     id="course-price"
                     type="number"
@@ -690,7 +691,7 @@ export default function AdminCoursesPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Urutan Tampil</label>
+                  <label className="form-label">{t('lbl_order')}</label>
                   <input
                     type="number"
                     min={0}
@@ -714,7 +715,7 @@ export default function AdminCoursesPage() {
                   <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.is_active ? 'translate-x-4' : ''}`} />
                 </div>
                 <span className="text-sm font-medium text-slate-700">
-                  {form.is_active ? 'Kursus Aktif (visible)' : 'Kursus Nonaktif (hidden)'}
+                  {form.is_active ? t('lbl_active_visible') : t('lbl_inactive_hidden')}
                 </span>
               </label>
 
@@ -732,12 +733,12 @@ export default function AdminCoursesPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>
-                      Menyimpan...
+                      {t('btn_saving')}
                     </span>
-                  ) : modal === 'create' ? <><Icon name="check-circle-1" size={16} className="mr-1.5" />Simpan Kursus</> : <><Icon name="check-circle-1" size={16} className="mr-1.5" />Update Kursus</>}
+                  ) : modal === 'create' ? <><Icon name="check-circle-1" size={16} className="mr-1.5" />{t('btn_save')}</> : <><Icon name="check-circle-1" size={16} className="mr-1.5" />{t('btn_update')}</>}
                 </button>
                 <button type="button" onClick={() => setModal(null)} className="btn btn-secondary">
-                  Batal
+                  {t('btn_cancel')}
                 </button>
               </div>
             </form>
@@ -751,14 +752,13 @@ export default function AdminCoursesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup p-6">
             <div className="text-center mb-6">
               <div className="text-5xl mb-3"><Icon name="info" size={48} /></div>
-              <h2 className="text-lg font-extrabold text-navy-dark">Hapus Kursus?</h2>
+              <h2 className="text-lg font-extrabold text-navy-dark">{t('title_delete')}</h2>
               <p className="text-slate-500 text-sm mt-2">
-                Kursus <strong>&ldquo;{deleteTarget.title}&rdquo;</strong> dengan{' '}
-                <strong>{deleteTarget.enrollments_count ?? 0} peserta</strong> akan dihapus permanen.
+                {t('desc_delete', { title: deleteTarget.title, count: deleteTarget.enrollments_count ?? 0 })}
               </p>
               {(deleteTarget.enrollments_count ?? 0) > 0 && (
                 <p className="text-red-500 text-xs mt-2 font-semibold">
-                  <Icon name="info" size={16} className="mr-1.5" />Kursus ini masih memiliki peserta aktif!
+                  <Icon name="info" size={16} className="mr-1.5" />{t('msg_active_participants')}
                 </p>
               )}
             </div>
@@ -769,10 +769,10 @@ export default function AdminCoursesPage() {
                 disabled={deleting}
                 className="btn flex-1 bg-red-500 text-white hover:bg-red-600"
               >
-                {deleting ? 'Menghapus...' : <><Icon name="trash-3" size={16} className="mr-1.5" />Hapus</>}
+                {deleting ? t('btn_deleting') : <><Icon name="trash-3" size={16} className="mr-1.5" />{t('btn_delete')}</>}
               </button>
               <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary flex-1">
-                Batal
+                {t('btn_cancel')}
               </button>
             </div>
           </div>
@@ -798,12 +798,13 @@ function getPageNumbers(current: number, last: number): (number | string)[] {
 
 // ── Course Card Component ────────────────────────────────────────────────────
 function CourseCard({
-  course, onEdit, onDelete, onToggle,
+  course, onEdit, onDelete, onToggle, t
 }: {
   course: Course;
   onEdit: (c: Course) => void;
   onDelete: (c: Course) => void;
   onToggle: (c: Course) => void;
+  t: any;
 }) {
   const router = useRouter();
   const code  = course.certification_level?.code ?? 'SPEC';
@@ -818,14 +819,14 @@ function CourseCard({
         </span>
         <button
           onClick={() => onToggle(course)}
-          title={course.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+          title={course.is_active ? t('tooltip_deactivate') : t('tooltip_activate')}
           className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border transition-colors cursor-pointer ${
             course.is_active
               ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200'
               : 'bg-slate-100 text-slate-400 border-slate-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
           }`}
         >
-          {course.is_active ? '● Aktif' : '○ Nonaktif'}
+          {course.is_active ? t('badge_active') : t('badge_inactive')}
         </button>
       </div>
 
@@ -839,8 +840,8 @@ function CourseCard({
 
       {/* Meta */}
       <div className="flex items-center justify-between text-xs text-slate-400 border-t border-slate-100 pt-3">
-        <span><Icon name="user-multiple-4" size={16} className="mr-1.5" />{course.enrollments_count ?? 0} peserta</span>
-        <span><Icon name="dollar-circle" size={16} className="mr-1.5" />{course.price > 0 ? `Rp${Number(course.price).toLocaleString('id-ID')}` : 'Gratis'}</span>
+        <span><Icon name="user-multiple-4" size={16} className="mr-1.5" />{course.enrollments_count ?? 0} {t('lbl_participants')}</span>
+        <span><Icon name="dollar-circle" size={16} className="mr-1.5" />{course.price > 0 ? `Rp${Number(course.price).toLocaleString('id-ID')}` : t('lbl_free')}</span>
         <span>#{course.order_index}</span>
       </div>
 
@@ -851,7 +852,7 @@ function CourseCard({
           onClick={() => router.push(`/admin/courses/${course.id}/content`)}
           className="btn btn-sm text-xs bg-navy/10 text-navy border border-navy/20 hover:bg-navy hover:text-white transition-colors flex-1"
         >
-          <Icon name="books-2" size={16} className="mr-1.5" />Kelola Konten
+          <Icon name="books-2" size={16} className="mr-1.5" />{t('btn_manage_content')}
         </button>
         <button
           id={`edit-course-${course.id}`}

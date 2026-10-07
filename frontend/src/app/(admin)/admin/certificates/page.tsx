@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import type { Certificate } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface EnrollmentOption {
   id: number;
@@ -15,6 +16,7 @@ interface EnrollmentOption {
 }
 
 export default function AdminCertificatesPage() {
+  const t = useTranslations('AdminCertificates');
   const [certs, setCerts]         = useState<Certificate[]>([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
@@ -91,7 +93,7 @@ export default function AdminCertificatesPage() {
   const handleIssueSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!issueForm.enrollment_id) {
-      setIssueError('Silakan pilih enrollment peserta.');
+      setIssueError(t('msg_enrollment_required'));
       return;
     }
     setIssuing(true);
@@ -112,7 +114,7 @@ export default function AdminCertificatesPage() {
       fetchData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setIssueError(msg ?? 'Gagal menerbitkan sertifikat.');
+      setIssueError(msg ?? t('msg_issue_fail'));
     } finally {
       setIssuing(false);
     }
@@ -140,7 +142,7 @@ export default function AdminCertificatesPage() {
       fetchData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setEditError(msg ?? 'Gagal memperbarui sertifikat.');
+      setEditError(msg ?? t('msg_edit_fail'));
     } finally {
       setSavingEdit(false);
     }
@@ -164,7 +166,7 @@ export default function AdminCertificatesPage() {
         URL.revokeObjectURL(url);
       }, 1000);
     } catch {
-      alert('Gagal mengunduh PDF sertifikat.');
+      alert(t('msg_download_fail'));
     } finally {
       setDownloading(null);
     }
@@ -177,19 +179,19 @@ export default function AdminCertificatesPage() {
       fetchData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal sinkronisasi.');
+      alert(msg ?? t('msg_sync_fail'));
     } finally {
       setSyncing(null);
     }
   };
 
   const handleResyncAll = async () => {
-    if (!confirm('Re-sync semua sertifikat yang gagal ke The Blue Economist?')) return;
+    if (!confirm(t('msg_resync_confirm'))) return;
     try {
       await api.post('/admin/certificates/resync-failed');
       fetchData();
     } catch {
-      alert('Gagal memicu re-sync massal.');
+      alert(t('msg_resync_fail'));
     }
   };
 
@@ -204,7 +206,7 @@ export default function AdminCertificatesPage() {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch {
-      alert('Gagal mengekspor data sertifikat.');
+      alert(t('msg_export_fail'));
     } finally {
       setExporting(false);
     }
@@ -221,34 +223,34 @@ export default function AdminCertificatesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-extrabold text-navy-dark">Manajemen Sertifikat</h1>
-          <p className="text-slate-500 text-sm mt-1">Terbitkan, kelola nomor seri, unduh PDF, dan sinkronkan ke The Blue Economist</p>
+          <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
+          <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
             href="/admin/certificates/template"
             className="btn btn-secondary btn-sm flex items-center gap-1.5"
           >
-            <Icon name="colour-palette-3" size={16} className="mr-1.5" />Design Template
+            <Icon name="colour-palette-3" size={16} className="mr-1.5" />{t('btn_design_template')}
           </Link>
           <button
             onClick={handleOpenIssue}
             className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
           >
-            <span><Icon name="graduation-cap-1" size={18} /></span> Terbitkan Sertifikat
+            <span><Icon name="graduation-cap-1" size={18} /></span> {t('btn_issue_cert')}
           </button>
           <button
             onClick={handleResyncAll}
             className="btn btn-secondary btn-sm"
           >
-            <Icon name="refresh-circle-1-clockwise" size={16} className="mr-1.5" />Re-Sync Gagal
+            <Icon name="refresh-circle-1-clockwise" size={16} className="mr-1.5" />{t('btn_resync_failed')}
           </button>
           <button
             onClick={handleExport}
             disabled={exporting}
             className="btn btn-gold btn-sm"
           >
-            {exporting ? 'Mengekspor...' : <><Icon name="dashboard-square-1" size={16} className="mr-1.5" />Export Excel</>}
+            {exporting ? t('btn_exporting') : <><Icon name="dashboard-square-1" size={16} className="mr-1.5" />{t('btn_export_excel')}</>}
           </button>
         </div>
       </div>
@@ -259,7 +261,7 @@ export default function AdminCertificatesPage() {
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"><Icon name="search-1" size={18} /></span>
           <input
             type="text"
-            placeholder="Cari berdasarkan nomor seri, nama peserta, atau email..."
+            placeholder={t('placeholder_search')}
             className="form-input w-full pl-10"
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -273,13 +275,13 @@ export default function AdminCertificatesPage() {
           <table className="w-full text-sm">
             <thead className="bg-navy text-white">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">Peserta</th>
-                <th className="px-4 py-3 text-left font-semibold">No. Seri Sertifikat</th>
-                <th className="px-4 py-3 text-left font-semibold">Program</th>
-                <th className="px-4 py-3 text-left font-semibold">Grade</th>
-                <th className="px-4 py-3 text-left font-semibold">Tanggal Terbit</th>
-                <th className="px-4 py-3 text-left font-semibold">Sync TBE</th>
-                <th className="px-4 py-3 text-left font-semibold">Aksi</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_participant')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_serial')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_program')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_grade')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_issue_date')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_sync')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -291,7 +293,7 @@ export default function AdminCertificatesPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>
-                      Memuat data sertifikat...
+                      {t('msg_loading')}
                     </div>
                   </td>
                 </tr>
@@ -299,7 +301,7 @@ export default function AdminCertificatesPage() {
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-slate-400">
                     <div className="text-4xl mb-2"><Icon name="certificate-badge-1" size={36} /></div>
-                    <p>Belum ada sertifikat yang diterbitkan.</p>
+                    <p>{t('msg_empty')}</p>
                   </td>
                 </tr>
               ) : (
@@ -344,17 +346,18 @@ export default function AdminCertificatesPage() {
                           onClick={() => handleDownload(cert)}
                           disabled={downloading === cert.id}
                           className="btn btn-secondary btn-sm text-xs px-2.5 py-1"
-                          title="Unduh PDF"
+                          title={t('tooltip_download')}
                         >
-                          {downloading === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="download-1" size={16} className="mr-1.5" />PDF</>}
+                          {downloading === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_pdf')}</>}
                         </button>
 
                         {/* Edit Override */}
                         <button
                           onClick={() => handleOpenEdit(cert)}
                           className="btn btn-secondary btn-sm text-xs px-2 py-1"
-                          title="Edit Nomor Seri / Data"
-                        ><Icon name="pencil-1" size={16} />
+                          title={t('tooltip_edit')}
+                        >
+<Icon name="pencil-1" size={16} />
                         </button>
 
                         {/* Verify Link */}
@@ -363,9 +366,9 @@ export default function AdminCertificatesPage() {
                           target="_blank"
                           rel="noreferrer"
                           className="btn btn-secondary btn-sm text-xs px-2.5 py-1 text-slate-600"
-                          title="Halaman Verifikasi Publik"
+                          title={t('tooltip_verify')}
                         >
-                          <Icon name="search-1" size={16} className="mr-1.5" />Cek
+                          <Icon name="search-1" size={16} className="mr-1.5" />{t('btn_verify')}
                         </a>
 
                         {/* Sync TBE */}
@@ -374,9 +377,9 @@ export default function AdminCertificatesPage() {
                             onClick={() => handleSync(cert.id)}
                             disabled={syncing === cert.id}
                             className="btn btn-primary btn-sm text-xs px-2 py-1"
-                            title="Push ke The Blue Economist"
+                            title={t('tooltip_push')}
                           >
-                            {syncing === cert.id ? '...' : 'Sync'}
+                            {syncing === cert.id ? '...' : t('btn_sync')}
                           </button>
                         )}
                       </div>
@@ -395,8 +398,8 @@ export default function AdminCertificatesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-fadeup overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="graduation-cap-1" size={16} className="mr-1.5" />Terbitkan Sertifikat Baru</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Sertifikat akan terdaftar di database dan digenerate nomor serinya</p>
+                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="graduation-cap-1" size={16} className="mr-1.5" />{t('title_issue_modal')}</h2>
+                <p className="text-xs text-slate-500 mt-0.5">{t('desc_issue_modal')}</p>
               </div>
               <button
                 onClick={() => setShowIssue(false)}
@@ -417,7 +420,7 @@ export default function AdminCertificatesPage() {
               {/* Enrollment selection */}
               <div className="flex flex-col gap-1.5">
                 <label className="form-label text-xs font-bold text-navy-dark">
-                  Pilih Peserta & Kursus <span className="text-red-500">*</span>
+                  {t('lbl_select_participant')} <span className="text-red-500">*</span>
                 </label>
                 <select
                   required
@@ -425,22 +428,22 @@ export default function AdminCertificatesPage() {
                   onChange={e => setIssueForm(f => ({ ...f, enrollment_id: e.target.value }))}
                   className="form-input text-sm"
                 >
-                  <option value="">-- Pilih Enrollment --</option>
+                  <option value="">{t('opt_select_enrollment')}</option>
                   {enrollments.map(en => (
                     <option key={en.id} value={en.id}>
-                      {en.user?.name} — {en.course?.title} (Status: {en.status} | FT: {en.attended_field_trip ? 'Hadir' : 'Belum'})
+                      {en.user?.name} — {en.course?.title} ({t('lbl_status')}: {en.status} | {t('lbl_ft')}: {en.attended_field_trip ? t('lbl_attended') : t('lbl_not_attended')})
                     </option>
                   ))}
                 </select>
                 <p className="text-[11px] text-slate-400">
-                  Untuk Foundation Level, peserta harus sudah hadir Field Trip ATAU menyelesaikan Critical Thinking.
+                  {t('desc_fnd_requirement')}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 {/* Grade */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">Grade / Predikat <span className="text-red-500">*</span></label>
+                  <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_grade')} <span className="text-red-500">*</span></label>
                   <select
                     value={issueForm.grade}
                     onChange={e => setIssueForm(f => ({ ...f, grade: e.target.value }))}
@@ -454,7 +457,7 @@ export default function AdminCertificatesPage() {
 
                 {/* Date of Issue */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">Tanggal Terbit <span className="text-red-500">*</span></label>
+                  <label className="form-label text-xs font-bold text-navy-dark">{t('col_issue_date')} <span className="text-red-500">*</span></label>
                   <input
                     type="date"
                     required
@@ -467,11 +470,11 @@ export default function AdminCertificatesPage() {
 
               {/* Place of issue */}
               <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">Tempat Terbit <span className="text-red-500">*</span></label>
+                <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_place_of_issue')} <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Jakarta, Indonesia"
+                  placeholder={t('placeholder_place')}
                   value={issueForm.place_of_issue}
                   onChange={e => setIssueForm(f => ({ ...f, place_of_issue: e.target.value }))}
                   className="form-input text-sm"
@@ -481,11 +484,11 @@ export default function AdminCertificatesPage() {
               {/* Custom serial override */}
               <div className="flex flex-col gap-1.5">
                 <label className="form-label text-xs font-bold text-navy-dark">
-                  Nomor Seri Custom <span className="text-slate-400 font-normal">(Opsional - Kosongkan untuk auto-generate)</span>
+                  {t('lbl_custom_serial')} <span className="text-slate-400 font-normal">{t('lbl_optional_serial')}</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="Contoh: CBEC/ID/X/20260001"
+                  placeholder={t('placeholder_serial')}
                   value={issueForm.serial_number}
                   onChange={e => setIssueForm(f => ({ ...f, serial_number: e.target.value }))}
                   className="form-input text-sm font-mono"
@@ -498,14 +501,14 @@ export default function AdminCertificatesPage() {
                   onClick={() => setShowIssue(false)}
                   className="btn btn-secondary btn-sm"
                 >
-                  Batal
+                  {t('btn_cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={issuing}
                   className="btn btn-primary btn-sm flex items-center gap-1.5"
                 >
-                  {issuing ? 'Menerbitkan...' : <><Icon name="graduation-cap-1" size={16} className="mr-1.5" />Terbitkan Sekarang</>}
+                  {issuing ? t('btn_issuing') : <><Icon name="graduation-cap-1" size={16} className="mr-1.5" />{t('btn_issue_now')}</>
                 </button>
               </div>
             </form>
@@ -519,8 +522,8 @@ export default function AdminCertificatesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fadeup overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />Sunting Sertifikat</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Penerima: {editingCert.user?.name}</p>
+                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />{t('title_edit_modal')}</h2>
+                <p className="text-xs text-slate-500 mt-0.5">{t('lbl_recipient')} {editingCert.user?.name}</p>
               </div>
               <button
                 onClick={() => setEditingCert(null)}
@@ -539,7 +542,7 @@ export default function AdminCertificatesPage() {
               )}
 
               <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">Nomor Seri Sertifikat</label>
+                <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_serial')}</label>
                 <input
                   type="text"
                   required
@@ -551,7 +554,7 @@ export default function AdminCertificatesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">Grade</label>
+                  <label className="form-label text-xs font-bold text-navy-dark">{t('col_grade')}</label>
                   <select
                     required
                     value={editForm.grade}
@@ -564,7 +567,7 @@ export default function AdminCertificatesPage() {
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">Tanggal Terbit</label>
+                  <label className="form-label text-xs font-bold text-navy-dark">{t('col_issue_date')}</label>
                   <input
                     type="date"
                     required
@@ -576,7 +579,7 @@ export default function AdminCertificatesPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">Tempat Terbit</label>
+                <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_place_of_issue')}</label>
                 <input
                   type="text"
                   required
@@ -592,14 +595,14 @@ export default function AdminCertificatesPage() {
                   onClick={() => setEditingCert(null)}
                   className="btn btn-secondary btn-sm"
                 >
-                  Batal
+                  {t('btn_cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
                   className="btn btn-primary btn-sm"
                 >
-                  {savingEdit ? 'Menyimpan...' : 'Simpan Perubahan'}
+                  {savingEdit ? t('btn_saving') : t('btn_save_changes')}
                 </button>
               </div>
             </form>

@@ -13,9 +13,14 @@ const api = axios.create({
 // Attach token from cookie on every request
 api.interceptors.request.use((config) => {
   const token = Cookies.get('auth_token');
+  const locale = Cookies.get('NEXT_LOCALE') || 'id';
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  config.headers['Accept-Language'] = locale;
+  
   return config;
 });
 

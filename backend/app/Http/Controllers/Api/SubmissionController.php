@@ -75,7 +75,7 @@ class SubmissionController extends Controller
             // PDF Module & Video: jika sudah ditandai, kembalikan data existing tanpa error
             if (in_array($content->content_type, ['pdf_module', 'video_embed'])) {
                 return response()->json([
-                    'message' => 'Materi ini sudah ditandai selesai.',
+                    'message' => __('api.materi_ini_sudah_ditandai'),
                     'data'    => $existing,
                 ], 200);
             }
@@ -83,7 +83,7 @@ class SubmissionController extends Controller
             // MCQ: kalau sudah lulus (score >= 70) tidak boleh retry
             if ($content->content_type === 'mcq_quiz' && ($existing->score ?? 0) >= 70) {
                 return response()->json([
-                    'message' => 'Kamu sudah lulus kuis ini.',
+                    'message' => __('api.kamu_sudah_lulus_kuis'),
                     'data'    => $existing,
                 ], 409);
             }
@@ -92,7 +92,7 @@ class SubmissionController extends Controller
                 $existing->delete();
             } else {
                 return response()->json([
-                    'message' => 'Kamu sudah pernah mengumpulkan tugas ini.',
+                    'message' => __('api.kamu_sudah_pernah_mengumpulkan'),
                     'data'    => $existing,
                 ], 409);
             }
@@ -192,7 +192,7 @@ class SubmissionController extends Controller
         $submission->delete();
 
         return response()->json([
-            'message' => 'Tanda selesai berhasil dibatalkan.',
+            'message' => __('api.tanda_selesai_berhasil_dibatalkan'),
         ]);
     }
 
@@ -221,7 +221,7 @@ class SubmissionController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Penilaian berhasil disimpan.',
+            'message' => __('api.penilaian_berhasil_disimpan'),
             'data'    => $submission->fresh(['user', 'gradedBy']),
         ]);
     }

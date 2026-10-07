@@ -58,7 +58,7 @@ class AdminUserController extends Controller
         }
 
         return response()->json([
-            'message' => 'Data pengguna berhasil diperbarui.',
+            'message' => __('api.data_pengguna_berhasil_diperbarui'),
             'data'    => $user->load('roles'),
         ]);
     }

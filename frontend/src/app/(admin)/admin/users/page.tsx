@@ -3,6 +3,7 @@
 import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
+import { useTranslations } from 'next-intl';
 
 interface User {
   id: number;
@@ -23,6 +24,7 @@ const ROLE_BADGE: Record<string, string> = {
 };
 
 export default function AdminUsersPage() {
+  const t = useTranslations('AdminUsers');
   const [users, setUsers]     = useState<User[]>([]);
   const [search, setSearch]   = useState('');
   const [roleFilter, setRole] = useState('');
@@ -55,8 +57,8 @@ export default function AdminUsersPage() {
   return (
     <div className="animate-fadeup">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-navy-dark">Manajemen Pengguna</h1>
-        <p className="text-slate-500 text-sm mt-1">Kelola semua pengguna terdaftar di DigiBlueCamp</p>
+        <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
       </div>
 
       <div className="card mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -66,7 +68,7 @@ export default function AdminUsersPage() {
             <input
               id="user-search"
               type="text"
-              placeholder="Cari nama / email..."
+              placeholder={t('placeholder_search')}
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
               className="form-input pl-9 py-2 text-sm w-64"
@@ -78,13 +80,13 @@ export default function AdminUsersPage() {
             onChange={e => { setRole(e.target.value); setPage(1); }}
             className="form-input py-2 text-sm"
           >
-            <option value="">Semua Role</option>
-            <option value="admin">Admin</option>
-            <option value="assessor">Assessor</option>
-            <option value="student">Student</option>
+            <option value="">{t('opt_all_roles')}</option>
+            <option value="admin">{t('opt_admin')}</option>
+            <option value="assessor">{t('opt_assessor')}</option>
+            <option value="student">{t('opt_student')}</option>
           </select>
         </div>
-        <span className="text-slate-400 text-sm">{total} pengguna terdaftar</span>
+        <span className="text-slate-400 text-sm">{total} {t('lbl_registered_users')}</span>
       </div>
 
       <div className="card overflow-hidden p-0">
@@ -92,13 +94,13 @@ export default function AdminUsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-navy text-white">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">#</th>
-                <th className="px-4 py-3 text-left font-semibold">Nama</th>
-                <th className="px-4 py-3 text-left font-semibold">Email</th>
-                <th className="px-4 py-3 text-left font-semibold">Negara / Country</th>
-                <th className="px-4 py-3 text-left font-semibold">Role</th>
-                <th className="px-4 py-3 text-left font-semibold">Verifikasi</th>
-                <th className="px-4 py-3 text-left font-semibold">Bergabung</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_no')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_name')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_email')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_country')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_role')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_verified')}</th>
+                <th className="px-4 py-3 text-left font-semibold">{t('col_joined')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -110,14 +112,14 @@ export default function AdminUsersPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>
-                      Memuat data...
+                      {t('msg_loading')}
                     </div>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
-                    Tidak ada pengguna ditemukan.
+                    {t('msg_empty')}
                   </td>
                 </tr>
               ) : users.map((u, i) => {
@@ -142,8 +144,8 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3">
                       {u.email_verified_at
-                        ? <span className="text-emerald-600 text-xs font-semibold"><Icon name="check" size={16} className="mr-1.5" />Terverifikasi</span>
-                        : <span className="text-amber-500 text-xs font-semibold"><Icon name="hourglass" size={16} className="mr-1.5" />Belum</span>}
+                        ? <span className="text-emerald-600 text-xs font-semibold"><Icon name="check" size={16} className="mr-1.5" />{t('lbl_verified')}</span>
+                        : <span className="text-amber-500 text-xs font-semibold"><Icon name="hourglass" size={16} className="mr-1.5" />{t('lbl_unverified')}</span>}
                     </td>
                     <td className="px-4 py-3 text-slate-400 text-xs">
                       {new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -156,9 +158,9 @@ export default function AdminUsersPage() {
         </div>
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40"><Icon name="arrow-left" size={16} className="mr-1.5" />Sebelumnya</button>
-            <span className="text-sm text-slate-500">Halaman {page} dari {totalPages}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn btn-secondary btn-sm disabled:opacity-40">Berikutnya <Icon name="arrow-right" size={14} className="ml-1.5" /></button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40"><Icon name="arrow-left" size={16} className="mr-1.5" />{t('btn_prev')}</button>
+            <span className="text-sm text-slate-500">{t('lbl_page')} {page} {t('lbl_of')} {totalPages}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn btn-secondary btn-sm disabled:opacity-40">{t('btn_next')} <Icon name="arrow-right" size={14} className="ml-1.5" /></button>
           </div>
         )}
       </div>

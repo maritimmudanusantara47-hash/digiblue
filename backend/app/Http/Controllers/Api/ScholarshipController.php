@@ -33,7 +33,7 @@ class ScholarshipController extends Controller
 
             if ($existingSpec && $existingSpec->course_id !== $targetCourse->id) {
                 return response()->json([
-                    'message' => "Kamu sudah terdaftar pada spesialisasi {$existingSpec->course->title}. Setiap peserta hanya diperbolehkan memilih 1 bidang spesialisasi.",
+                    'message' => __('api.kamu_sudah_terdaftar_pada'),
                 ], 422);
             }
         }
@@ -45,7 +45,7 @@ class ScholarshipController extends Controller
         );
 
         if ($enrollment->status === 'active' || $enrollment->status === 'completed') {
-            return response()->json(['message' => 'Kamu sudah memiliki akses aktif untuk kursus ini.'], 409);
+            return response()->json(['message' => __('api.kamu_sudah_memiliki_akses')], 409);
         }
 
         // Upload dokumen
@@ -61,7 +61,7 @@ class ScholarshipController extends Controller
         );
 
         return response()->json([
-            'message' => 'Pengajuan beasiswa berhasil dikirim. Tunggu kurasi dari tim kami.',
+            'message' => __('api.pengajuan_beasiswa_berhasil_dikirim'),
             'data'    => $application,
         ], 201);
     }
@@ -76,7 +76,7 @@ class ScholarshipController extends Controller
 
         // Tolak jika sudah ada appeal yang pending
         if ($application->appeals()->where('status', 'pending')->exists()) {
-            return response()->json(['message' => 'Pengajuan negosiasi kamu sedang dalam proses review.'], 409);
+            return response()->json(['message' => __('api.pengajuan_negosiasi_kamu_sedang')], 409);
         }
 
         $validated = $request->validate([
@@ -99,7 +99,7 @@ class ScholarshipController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Pengajuan keringanan biaya berhasil dikirim. Kami akan segera meninjau permohonanmu.',
+            'message' => __('api.pengajuan_keringanan_biaya_berhasil'),
             'data'    => $appeal,
         ], 201);
     }
@@ -159,7 +159,7 @@ class ScholarshipController extends Controller
         }
 
         return response()->json([
-            'message' => 'Keputusan beasiswa berhasil disimpan.',
+            'message' => __('api.keputusan_beasiswa_berhasil_disimpan'),
             'data'    => $application->fresh(['enrollment.user', 'enrollment.course']),
         ]);
     }

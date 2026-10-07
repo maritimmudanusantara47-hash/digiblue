@@ -4,11 +4,13 @@ import Icon from '@/components/Icon';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import type { Certificate } from '@/types';
+import { useTranslations } from 'next-intl';
 
 export default function StudentCertificatesPage() {
   const [certs, setCerts]     = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<number | null>(null);
+  const t = useTranslations('StudentCertificates');
 
   useEffect(() => {
     api.get('/certificates')
@@ -37,7 +39,7 @@ export default function StudentCertificatesPage() {
         URL.revokeObjectURL(url);
       }, 1000);
     } catch {
-      alert('Gagal mengunduh PDF. Silakan coba lagi.');
+      alert(t('msg_download_fail'));
     } finally {
       setDownloading(null);
     }
@@ -50,9 +52,9 @@ export default function StudentCertificatesPage() {
   return (
     <div className="animate-fadeup">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-navy-dark">Sertifikat Saya</h1>
+        <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
         <p className="text-slate-500 text-sm mt-1">
-          Download dan verifikasi sertifikat kelulusan kamu
+          {t('desc')}
         </p>
       </div>
 
@@ -62,14 +64,14 @@ export default function StudentCertificatesPage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
           </svg>
-          Memuat sertifikat...
+          {t('loading')}
         </div>
       ) : certs.length === 0 ? (
         <div className="card py-20 text-center">
           <div className="text-6xl mb-4"><Icon name="certificate-badge-1" size={18} /></div>
-          <h2 className="font-bold text-navy-dark text-lg">Belum Ada Sertifikat</h2>
+          <h2 className="font-bold text-navy-dark text-lg">{t('empty_title')}</h2>
           <p className="text-slate-400 text-sm mt-2 max-w-sm mx-auto">
-            Selesaikan semua modul dan tugas di kursus yang kamu ikuti, lalu admin akan menerbitkan sertifikatmu.
+            {t('empty_desc')}
           </p>
         </div>
       ) : (
@@ -84,7 +86,7 @@ export default function StudentCertificatesPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold/20 text-gold border border-gold/30 mb-2">
-                      {cert.enrollment?.course?.certification_level?.name ?? 'Sertifikasi'}
+                      {cert.enrollment?.course?.certification_level?.name ?? t('fallback_cert')}
                     </span>
                     <h3 className="font-extrabold text-base leading-snug">
                       {cert.enrollment?.course?.title ?? 'DigiBlueCamp Program'}
@@ -127,16 +129,16 @@ export default function StudentCertificatesPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>
-                      Mengunduh...
+                      {t('btn_downloading')}
                     </span>
-                  ) : <><Icon name="download-1" size={16} className="mr-1.5" />Download PDF</>}
+                  ) : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_download')}</>}
                 </button>
                 <button
                   id={`verify-cert-${cert.id}`}
                   onClick={() => handleVerify(cert)}
                   className="btn btn-secondary text-sm px-4"
                 >
-                  <Icon name="link-2-angular-right" size={16} className="mr-1.5" />Verifikasi
+                  <Icon name="link-2-angular-right" size={16} className="mr-1.5" />{t('btn_verify')}
                 </button>
               </div>
 
@@ -148,8 +150,8 @@ export default function StudentCertificatesPage() {
                     cert.sync_status === 'failed' ? 'bg-red-400' : 'bg-amber-400'
                   }`} />
                   <span className="text-xs text-slate-400">
-                    {cert.sync_status === 'synced' ? 'Tersinkronisasi ke The Blue Economist' :
-                     cert.sync_status === 'failed' ? 'Gagal sinkronisasi' : 'Menunggu sinkronisasi'}
+                    {cert.sync_status === 'synced' ? t('sync_synced') :
+                     cert.sync_status === 'failed' ? t('sync_failed') : t('sync_pending')}
                   </span>
                 </div>
               </div>

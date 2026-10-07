@@ -105,7 +105,7 @@ class MidtransService
         $this->initMidtrans();
 
         if (!$enrollment->order_id) {
-            return ['status' => 'no_order_id', 'message' => 'Belum ada transaksi'];
+            return ['status' => 'no_order_id', 'message' => __('api.belum_ada_transaksi')];
         }
 
         try {

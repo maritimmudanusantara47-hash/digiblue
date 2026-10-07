@@ -18,11 +18,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="id" data-scroll-behavior="smooth">
+    <html lang={locale} data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -38,9 +44,11 @@ export default function RootLayout({
           data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'Mid-client-iJaslbVJufkmXRhn'}
           strategy="afterInteractive"
         />
-        <PublicLayoutWrapper>
-          {children}
-        </PublicLayoutWrapper>
+        <NextIntlClientProvider messages={messages}>
+          <PublicLayoutWrapper>
+            {children}
+          </PublicLayoutWrapper>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

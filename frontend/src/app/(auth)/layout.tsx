@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { useTranslations } from 'next-intl';
 
 export const metadata: Metadata = {
   title: 'Login — DigiBlueCamp',
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('AuthLayout');
   return (
     <div className="min-h-screen flex gradient-hero">
       {/* Left Panel — Branding */}
@@ -29,7 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10">
           <div className="w-10 h-1 bg-gold rounded-full mb-6" />
           <blockquote className="text-white text-2xl font-bold leading-snug mb-4">
-            "Jadilah bagian dari ekonomi yang berkelanjutan untuk masa depan."
+            "{t('quote')}"
           </blockquote>
           <p className="text-white/50 text-sm">The Blue Economist International Association</p>
         </div>
@@ -37,9 +39,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Bottom stats */}
         <div className="relative z-10 flex gap-8">
           {[
-            { number: '2000+', label: 'Peserta Terlatih' },
-            { number: '11', label: 'Program Sertifikasi' },
-            { number: '30+', label: 'Negara' },
+            { number: '2000+', label: t('stat_trained') },
+            { number: '11', label: t('stat_programs') },
+            { number: '30+', label: t('stat_countries') },
           ].map(stat => (
             <div key={stat.label}>
               <div className="text-gold font-extrabold text-2xl">{stat.number}</div>

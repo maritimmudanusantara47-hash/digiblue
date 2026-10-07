@@ -36,7 +36,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Registrasi berhasil. Selamat datang di DigiBlueCamp!',
+            'message' => __('api.registrasi_berhasil_selamat_datang'),
             'data'    => [
                 'token' => $token,
                 'user'  => $user->load('roles'),
@@ -55,7 +55,7 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Email atau password salah.'],
+                'email' => [__('api.invalid_credentials')],
             ]);
         }
 
@@ -64,7 +64,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login berhasil.',
+            'message' => __('api.login_berhasil'),
             'data'    => [
                 'token' => $token,
                 'user'  => $user->load('roles'),
@@ -76,7 +76,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logout berhasil.']);
+        return response()->json(['message' => __('api.logout_berhasil')]);
     }
 
     public function me(Request $request): JsonResponse
