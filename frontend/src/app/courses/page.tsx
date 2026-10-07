@@ -2,10 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
 import { useTranslations } from 'next-intl';
 
@@ -28,8 +26,7 @@ const LEVEL_ICON: Record<string, string> = {
 
 export default function CoursesPage() {
   const t = useTranslations('LandingPage');
-  const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [certLevels, setCertLevels] = useState<CertLevel[]>([]);
@@ -102,14 +99,6 @@ export default function CoursesPage() {
     });
   }, [courses, searchQuery, activeTab, subTrackCode]);
 
-  const handleDaftarClick = (course: Course) => {
-    const targetUrl = `/student/dashboard?pay=${course.slug}`;
-    if (!isAuthenticated) {
-      router.push(`/register?redirect=${encodeURIComponent(targetUrl)}`);
-      return;
-    }
-    router.push(targetUrl);
-  };
 
   return (
     <>
@@ -296,23 +285,14 @@ export default function CoursesPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="pt-4 border-t border-slate-100 space-y-2 mt-auto">
+                    <div className="pt-4 border-t border-slate-100 mt-auto">
                       <Link
                         href={`/courses/${c.slug}`}
-                        className="btn btn-secondary btn-sm w-full text-xs font-bold hover:bg-slate-100 flex items-center justify-center gap-1.5"
-                      >
-                        <Icon name="book-open" size={14} className="text-navy" />
-                        <span>{t('courses_btn_detail')}</span>
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDaftarClick(c)}
-                        className="btn btn-primary btn-sm w-full text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                        className="btn btn-primary btn-sm w-full text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md transition-all"
                       >
                         <Icon name="rocket-5" size={14} />
                         <span>{t('courses_btn_enroll')}</span>
-                      </button>
+                      </Link>
                     </div>
                   </article>
                 );

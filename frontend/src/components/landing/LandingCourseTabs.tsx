@@ -2,10 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
 import { useTranslations } from 'next-intl';
 
@@ -22,8 +20,7 @@ const LEVEL_STYLE: Record<string, { banner: string; badge: string; card: string 
 
 export default function LandingCourseTabs() {
   const t = useTranslations('LandingCourseTabs');
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+
   const [courses, setCourses]       = useState<Course[]>([]);
   const [certLevels, setCertLevels] = useState<CertLevel[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -78,16 +75,6 @@ export default function LandingCourseTabs() {
     if (activeTab === 'SGL') return code === 'SGL';
     return true;
   });
-
-  const handleDaftarClick = (course: Course) => {
-    // Alur intent redirection langsung ke dashboard peserta dengan trigger pop-up pembayaran
-    const targetUrl = `/student/dashboard?pay=${course.slug}`;
-    if (!isAuthenticated) {
-      router.push(`/register?redirect=${encodeURIComponent(targetUrl)}`);
-      return;
-    }
-    router.push(targetUrl);
-  };
 
   return (
     <div>
@@ -196,23 +183,14 @@ export default function LandingCourseTabs() {
                     </div>
 
                     {/* Actions */}
-                    <div className="pt-4 border-t border-slate-100 space-y-2 mt-auto">
+                    <div className="pt-4 border-t border-slate-100 mt-auto">
                       <Link
-                        href={`/student/catalog/${c.slug}`}
-                        className="btn btn-secondary btn-sm w-full text-xs font-bold hover:bg-slate-100 flex items-center justify-center gap-1.5"
-                      >
-                        <Icon name="book-open" size={14} className="text-navy" />
-                        <span>{t('btn_syllabus')}</span>
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDaftarClick(c)}
-                        className="btn btn-primary btn-sm w-full text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                        href={`/courses/${c.slug}`}
+                        className="btn btn-primary btn-sm w-full text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md transition-all"
                       >
                         <Icon name="rocket-5" size={14} />
                         <span>{t('btn_enroll')}</span>
-                      </button>
+                      </Link>
                     </div>
                   </article>
                 );
