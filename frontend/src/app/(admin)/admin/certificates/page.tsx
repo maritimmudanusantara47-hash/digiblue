@@ -508,7 +508,7 @@ export default function AdminCertificatesPage() {
                   disabled={issuing}
                   className="btn btn-primary btn-sm flex items-center gap-1.5"
                 >
-                  {issuing ? t('btn_issuing') : <><Icon name="graduation-cap-1" size={16} className="mr-1.5" />{t('btn_issue_now')}</>
+                  {issuing ? t('btn_issuing') : <><Icon name="graduation-cap-1" size={16} className="mr-1.5" />{t('btn_issue_now')}</>}
                 </button>
               </div>
             </form>
