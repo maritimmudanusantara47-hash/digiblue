@@ -7,6 +7,7 @@ import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
+import { useTranslations } from 'next-intl';
 
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
 
@@ -20,6 +21,7 @@ const LEVEL_STYLE: Record<string, { banner: string; badge: string; card: string 
 };
 
 export default function LandingCourseTabs() {
+  const t = useTranslations('LandingCourseTabs');
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [courses, setCourses]       = useState<Course[]>([]);
@@ -55,7 +57,7 @@ export default function LandingCourseTabs() {
   // Bangun tabs — selalu tampilkan 3 jenis kursus agar sinkron dengan admin
   const tabs = useMemo(() => {
     return [
-      { id: 'ALL' as TabCategory, label: 'Semua', icon: 'star-fat' },
+      { id: 'ALL' as TabCategory, label: t('tab_all'), icon: 'star-fat' },
       { id: 'INT_CERT' as TabCategory, label: intCertLabel, icon: 'graduation-cap-1' },
       { id: 'NAT' as TabCategory, label: natLabel, icon: 'flag-1' },
       { id: 'SGL' as TabCategory, label: sglLabel, icon: 'book-1' },
@@ -98,7 +100,7 @@ export default function LandingCourseTabs() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Cari kursus unggulan, materi Blue Carbon, Finance, Foundation..."
+          placeholder={t('lbl_search_placeholder')}
           className="w-full bg-white text-navy-dark text-sm sm:text-base pl-11 pr-24 py-3.5 rounded-2xl border border-slate-200 shadow-sm focus:ring-4 focus:ring-navy/10 focus:border-navy outline-none placeholder:text-slate-400 transition-all font-medium"
         />
         {searchQuery && (
@@ -106,7 +108,7 @@ export default function LandingCourseTabs() {
             onClick={() => setSearchQuery('')}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
           >
-            Hapus
+            {t('btn_clear')}
           </button>
         )}
       </div>
@@ -153,8 +155,8 @@ export default function LandingCourseTabs() {
           {filteredCourses.length === 0 ? (
             <div className="p-12 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400">
               <Icon name="search-1" size={32} className="mx-auto mb-2 text-slate-300" />
-              <p className="font-semibold text-navy-dark">Tidak ada kursus yang cocok</p>
-              <p className="text-xs text-slate-400 mt-1">Coba gunakan kata kunci pencarian yang lain.</p>
+              <p className="font-semibold text-navy-dark">{t('msg_not_found')}</p>
+              <p className="text-xs text-slate-400 mt-1">{t('msg_try_again')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -163,7 +165,7 @@ export default function LandingCourseTabs() {
                 const style = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
                 const isFree = Number(c.price) <= 0;
                 const formattedPrice = isFree
-                  ? 'Gratis'
+                  ? t('lbl_free')
                   : `Rp${Number(c.price).toLocaleString('id-ID')}`;
 
                 return (
@@ -200,7 +202,7 @@ export default function LandingCourseTabs() {
                         className="btn btn-secondary btn-sm w-full text-xs font-bold hover:bg-slate-100 flex items-center justify-center gap-1.5"
                       >
                         <Icon name="book-open" size={14} className="text-navy" />
-                        <span>Lihat Silabus & Detail</span>
+                        <span>{t('btn_syllabus')}</span>
                       </Link>
 
                       <button
@@ -209,7 +211,7 @@ export default function LandingCourseTabs() {
                         className="btn btn-primary btn-sm w-full text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <Icon name="rocket-5" size={14} />
-                        <span>Daftar Sekarang</span>
+                        <span>{t('btn_enroll')}</span>
                       </button>
                     </div>
                   </article>
