@@ -41,12 +41,12 @@
         .f-serial {
             position: absolute;
             top: 13.0mm;
-            right: 14.0mm;
+            right: 16.5mm;
             width: 105mm;
             height: 7.5mm;
             line-height: 7.5mm;
             background: transparent;
-            font-size: 8.8pt;
+            font-size: 11pt;
             font-family: 'Poppins', 'DejaVu Sans', sans-serif;
             color: #111827;
             text-align: right;
@@ -56,13 +56,13 @@
         /* ── Recipient Name (Centered right above the blue line) ── */
         .f-name {
             position: absolute;
-            top: 67.0mm;
+            top: 69.5mm;
             left: 0;
             right: 0;
             height: 16mm;
             line-height: 16mm;
             text-align: center;
-            font-size: 27pt;
+            font-size: 32.5pt;
             font-weight: bold;
             font-family: 'Arial MT Pro', Arial, Helvetica, sans-serif;
             color: #000000;
@@ -79,7 +79,7 @@
             height: 14mm;
             line-height: 14mm;
             text-align: center;
-            font-size: 14.5pt;
+            font-size: 22.5pt;
             font-weight: bold;
             font-family: 'Arial MT Pro', Arial, Helvetica, sans-serif;
             color: #173874;
@@ -94,7 +94,7 @@
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 11.5pt;
+            font-size: 14.5pt;
             font-weight: bold;
             font-family: 'Poppins', 'DejaVu Sans', sans-serif;
             color: #000000;
@@ -110,7 +110,7 @@
             height: 18.5mm;
             background: #F8F8F8;
             text-align: center;
-            font-size: 8.4pt;
+            font-size: 11.5pt;
             font-family: 'Poppins', 'DejaVu Sans', sans-serif;
             line-height: 1.55;
             color: #111827;
@@ -182,22 +182,22 @@
         $L = file_exists($layoutPath) ? json_decode(file_get_contents($layoutPath), true) : [];
 
         $sTop   = $L['serial_no']['top'] ?? 13.0;
-        $sRight = $L['serial_no']['right'] ?? 14.0;
+        $sRight = $L['serial_no']['right'] ?? 16.5;
         $sWidth = $L['serial_no']['width'] ?? 105;
-        $sFs    = $L['serial_no']['font_size'] ?? 8.8;
+        $sFs    = $L['serial_no']['font_size'] ?? 11.0;
 
-        $nTop = $L['recipient_name']['top'] ?? 67.0;
-        $nFs  = $L['recipient_name']['font_size'] ?? 27;
+        $nTop = $L['recipient_name']['top'] ?? 69.5;
+        $nFs  = $L['recipient_name']['font_size'] ?? 32.5;
 
         $rTop = $L['ribbon_text']['top'] ?? 100.5;
-        $rFs  = $L['ribbon_text']['font_size'] ?? 14.5;
+        $rFs  = $L['ribbon_text']['font_size'] ?? 22.5;
         $rH   = $L['ribbon_text']['height'] ?? 14.0;
 
         $lTop = $L['level_value']['top'] ?? 124.5;
-        $lFs  = $L['level_value']['font_size'] ?? 11.5;
+        $lFs  = $L['level_value']['font_size'] ?? 14.5;
 
         $mTop = $L['meta_block']['top'] ?? 138.2;
-        $mFs  = $L['meta_block']['font_size'] ?? 8.4;
+        $mFs  = $L['meta_block']['font_size'] ?? 11.5;
 
         $qlTop  = $L['qr_left']['top'] ?? 147.5;
         $qlLeft = $L['qr_left']['left'] ?? 67.0;

@@ -37,11 +37,11 @@ interface FieldConfig {
 type LayoutState = Record<string, FieldConfig>;
 
 const DEFAULT_LAYOUT: LayoutState = {
-  serial_no: { top: 13.0, right: 14.0, width: 105, font_size: 8.8, label: 'Nomor Seri (Top-Right)' },
-  recipient_name: { top: 67.0, font_size: 27, label: 'Nama Peserta' },
-  ribbon_text: { top: 100.5, height: 14.0, font_size: 14.5, label: 'Teks Ribbon' },
-  level_value: { top: 124.5, font_size: 11.5, label: 'Level Sertifikasi' },
-  meta_block: { top: 138.2, font_size: 8.4, label: 'Grade, Tanggal & Tempat' },
+  serial_no: { top: 13.0, right: 16.5, width: 105, font_size: 11.0, label: 'Nomor Seri (Top-Right)' },
+  recipient_name: { top: 69.5, font_size: 32.5, label: 'Nama Peserta' },
+  ribbon_text: { top: 100.5, height: 14.0, font_size: 22.5, label: 'Teks Ribbon' },
+  level_value: { top: 124.5, font_size: 14.5, label: 'Level Sertifikasi' },
+  meta_block: { top: 138.2, font_size: 11.5, label: 'Grade, Tanggal & Tempat' },
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
 };
@@ -293,7 +293,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('serial_no'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'serial_no' ? 'ring-2 ring-blue-500 bg-blue-50/70 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 14), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: 'transparent', fontSize: `${(layout.serial_no?.font_size ?? 8.8) * (SCALE / 3.4)}px`, fontFamily: "'Poppins', sans-serif", color: '#111827', textAlign: 'right', zIndex: 10 }}
+                style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 16.5), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: 'transparent', fontSize: `${(layout.serial_no?.font_size ?? 11) * (SCALE / 3.4)}px`, fontFamily: "'Poppins', sans-serif", color: '#111827', textAlign: 'right', zIndex: 10 }}
               >
                 Certificate Serial No. {sample.serial}
               </div>
@@ -302,7 +302,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.recipient_name?.top ?? 67), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 27) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                style={{ top: mmToPx(layout.recipient_name?.top ?? 69.5), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 32.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
               >
                 {sample.name}
               </div>
@@ -311,7 +311,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
               >
                 {sample.ribbon}
               </div>
@@ -320,7 +320,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('level_value'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'level_value' ? 'ring-2 ring-blue-500 bg-blue-50/30 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 11.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
               >
                 {sample.level}
               </div>
@@ -329,7 +329,7 @@ export default function CertificateTemplateAdminPage() {
               <div
                 onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 8.4) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 11.5) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
               >
                 <div><strong>Grade:</strong> {sample.grade}</div>
                 <div><strong>Date of issue:</strong> {sample.date}</div>
@@ -558,54 +558,71 @@ export default function CertificateTemplateAdminPage() {
 
               {openSection === 'preview' && (
                 <div className="px-4 pb-4 space-y-3">
-                  {[
-                    { label: 'Nama Peserta', key: 'name', full: true },
-                    { label: 'Teks Ribbon', key: 'ribbon', full: true },
-                    { label: 'Level', key: 'level', full: false },
-                    { label: 'Grade', key: 'grade', full: false },
-                    { label: 'Tanggal', key: 'date', full: false },
-                    { label: 'Tempat', key: 'place', full: false },
-                  ].reduce<React.ReactNode[]>((acc, field, idx, arr) => {
-                    if (!field.full && idx > 0 && !arr[idx - 1].full) {
-                      return acc;
-                    }
-                    if (field.full) {
-                      acc.push(
-                        <div key={field.key}>
-                          <label className="text-[11px] text-slate-500 block mb-1">{field.label}</label>
-                          <input type="text" value={sample[field.key as keyof typeof sample]}
-                            onChange={e => setSample({ ...sample, [field.key]: e.target.value })}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500" />
-                        </div>
-                      );
-                    } else {
-                      const next = arr[idx + 1];
-                      if (next && !next.full) {
-                        acc.push(
-                          <div key={field.key} className="grid grid-cols-2 gap-2">
-                            {[field, next].map(f => (
-                              <div key={f.key}>
-                                <label className="text-[11px] text-slate-500 block mb-1">{f.label}</label>
-                                <input type="text" value={sample[f.key as keyof typeof sample]}
-                                  onChange={e => setSample({ ...sample, [f.key]: e.target.value })}
-                                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500" />
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      } else if (!next || next.full) {
-                        acc.push(
-                          <div key={field.key}>
-                            <label className="text-[11px] text-slate-500 block mb-1">{field.label}</label>
-                            <input type="text" value={sample[field.key as keyof typeof sample]}
-                              onChange={e => setSample({ ...sample, [field.key]: e.target.value })}
-                              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500" />
-                          </div>
-                        );
-                      }
-                    }
-                    return acc;
-                  }, [])}
+                  {/* Nama Peserta */}
+                  <div>
+                    <label className="text-[11px] text-slate-500 block mb-1">Nama Peserta</label>
+                    <input
+                      type="text"
+                      value={sample.name}
+                      onChange={e => setSample({ ...sample, name: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Teks Ribbon */}
+                  <div>
+                    <label className="text-[11px] text-slate-500 block mb-1">Teks Ribbon</label>
+                    <input
+                      type="text"
+                      value={sample.ribbon}
+                      onChange={e => setSample({ ...sample, ribbon: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Level & Grade */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1">Level</label>
+                      <input
+                        type="text"
+                        value={sample.level}
+                        onChange={e => setSample({ ...sample, level: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1">Grade</label>
+                      <input
+                        type="text"
+                        value={sample.grade}
+                        onChange={e => setSample({ ...sample, grade: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Date of issue & Place of issue */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1">Date of issue</label>
+                      <input
+                        type="text"
+                        value={sample.date}
+                        onChange={e => setSample({ ...sample, date: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1">Place of issue</label>
+                      <input
+                        type="text"
+                        value={sample.place}
+                        onChange={e => setSample({ ...sample, place: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

@@ -184,11 +184,11 @@ class AdminCertificateController extends Controller
     private function defaultLayout(): array
     {
         return [
-            'serial_no'      => ['top' => 13.0, 'right' => 14.0, 'width' => 105, 'font_size' => 8.8, 'label' => 'Nomor Seri'],
-            'recipient_name' => ['top' => 67.0, 'font_size' => 27, 'label' => 'Nama Peserta'],
-            'ribbon_text'    => ['top' => 100.5, 'height' => 14.0, 'font_size' => 14.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
-            'level_value'    => ['top' => 124.5, 'font_size' => 11.5, 'label' => 'Level Sertifikasi'],
-            'meta_block'     => ['top' => 138.2, 'font_size' => 8.4, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
+            'serial_no'      => ['top' => 13.0, 'right' => 16.5, 'width' => 105, 'font_size' => 11.0, 'label' => 'Nomor Seri'],
+            'recipient_name' => ['top' => 69.5, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
+            'ribbon_text'    => ['top' => 100.5, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
+            'level_value'    => ['top' => 124.5, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
+            'meta_block'     => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
             'qr_left'        => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
             'qr_right'       => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
         ];
