@@ -75,6 +75,8 @@ function StudentCatalogContent() {
         }
       });
       setEnrollment(map);
+    }).catch((err) => {
+      console.error('Failed to load catalog data:', err);
     }).finally(() => setLoading(false));
   }, []);
 
