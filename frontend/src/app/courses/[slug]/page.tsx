@@ -288,8 +288,8 @@ export default function PublicCourseDetailPage() {
                           onClick={handleEnrollClick}
                           className="btn btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-navy/20 cursor-pointer mb-6"
                         >
-                          <Icon name="rocket-5" size={16} />
-                          <span>Daftar Sekarang</span>
+                          <Icon name={isFree ? 'rocket-5' : 'credit-card-multiple'} size={16} />
+                          <span>{isFree ? 'Daftar Sekarang' : 'Bayar Sekarang'}</span>
                         </button>
 
                         <div className="space-y-3 pt-6 border-t border-slate-100 text-xs text-slate-600">
