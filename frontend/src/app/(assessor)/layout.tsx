@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
@@ -82,6 +83,9 @@ export default function AssessorLayout({ children }: { children: React.ReactNode
         </nav>
 
         <div className="px-3 pb-6 flex-shrink-0 mt-auto">
+          <div className="flex justify-center mb-4">
+            <LanguageSwitcher />
+          </div>
           <button onClick={handleLogout}
             className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
             <span><Icon name="exit" size={18} /></span><span>Keluar</span>

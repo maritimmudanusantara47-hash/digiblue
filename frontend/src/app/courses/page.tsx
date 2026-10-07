@@ -7,6 +7,7 @@ import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
+import { useTranslations } from 'next-intl';
 
 // Tab category tetap berbasis kode logis (grouping)
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
@@ -26,6 +27,7 @@ const LEVEL_ICON: Record<string, string> = {
 };
 
 export default function CoursesPage() {
+  const t = useTranslations('LandingPage');
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
 
@@ -63,8 +65,8 @@ export default function CoursesPage() {
     return fnd?.name ?? spec?.name ?? 'International Certification';
   }, [certLevels]);
 
-  const natLabel = useMemo(() => certLevels.find(l => l.code === 'NAT')?.name ?? 'National Training Course', [certLevels]);
-  const sglLabel = useMemo(() => certLevels.find(l => l.code === 'SGL')?.name ?? 'Single Modul Course', [certLevels]);
+  const natLabel = useMemo(() => certLevels.find(l => l.code === 'NAT')?.name ?? t('courses_tab_nat'), [certLevels, t]);
+  const sglLabel = useMemo(() => certLevels.find(l => l.code === 'SGL')?.name ?? t('courses_tab_sgl'), [certLevels, t]);
 
   // Sub-tracks untuk INT_CERT — diambil dari API (FND & SPEC)
   const intSubTracks = useMemo(() =>
@@ -73,7 +75,7 @@ export default function CoursesPage() {
 
   const tabs = useMemo(() => {
     return [
-      { id: 'ALL' as TabCategory, label: 'Semua', icon: 'star-fat' },
+      { id: 'ALL' as TabCategory, label: t('courses_tab_all'), icon: 'star-fat' },
       { id: 'INT_CERT' as TabCategory, label: intCertLabel, icon: 'graduation-cap-1' },
       { id: 'NAT' as TabCategory, label: natLabel, icon: 'flag-1' },
       { id: 'SGL' as TabCategory, label: sglLabel, icon: 'book-1' },
@@ -118,13 +120,13 @@ export default function CoursesPage() {
             <div className="max-w-3xl mx-auto text-center">
               <span className="inline-flex items-center gap-2 text-xs font-bold text-navy bg-white border border-slate-200 rounded-full px-3.5 py-1 mb-4 shadow-xs">
                 <Icon name="books-2" size={14} className="text-navy-light" />
-                Katalog Program & Kursus
+                {t('courses_hero_badge')}
               </span>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-dark mb-4 tracking-tight leading-tight">
-                Pilih Program & Mulai Pembelajaran
+                {t('courses_hero_title')}
               </h1>
               <p className="text-slate-600 text-base sm:text-lg mb-8 leading-relaxed">
-                Tingkatkan kompetensi ekonomi maritim dan biru Anda melalui program sertifikasi internasional, pelatihan nasional, dan modul tematik yang terstruktur.
+                {t('courses_hero_desc')}
               </p>
 
               {/* Search Box */}
@@ -136,7 +138,7 @@ export default function CoursesPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari kursus: Blue Carbon, Finance, Foundation, dsb..."
+                  placeholder={t('courses_search_placeholder')}
                   className="w-full bg-white text-navy-dark text-sm sm:text-base pl-11 pr-24 py-3.5 rounded-2xl border border-slate-200 shadow-sm focus:ring-4 focus:ring-navy/10 focus:border-navy outline-none placeholder:text-slate-400 transition-all font-medium"
                 />
                 {searchQuery && (
@@ -144,7 +146,7 @@ export default function CoursesPage() {
                     onClick={() => setSearchQuery('')}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
                   >
-                    Hapus
+                    {t('courses_btn_clear')}
                   </button>
                 )}
               </div>
@@ -184,14 +186,14 @@ export default function CoursesPage() {
             {/* Sub-filter untuk International Certification Track — dinamis dari API */}
             {activeTab === 'INT_CERT' && intSubTracks.length > 0 && (
               <div className="flex items-center gap-2 pt-1 animate-fadeup flex-wrap justify-center">
-                <span className="text-xs font-semibold text-slate-500">Track International:</span>
+                <span className="text-xs font-semibold text-slate-500">{t('courses_track_label')}</span>
                 <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
                   <button
                     onClick={() => setSubTrack('ALL')}
                     className={`px-3 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${subTrackCode === 'ALL' ? 'bg-white shadow-xs text-navy font-bold' : 'text-slate-600 hover:text-navy'
                       }`}
                   >
-                    Semua Track
+                    {t('courses_subtrack_all')}
                   </button>
                   {intSubTracks.map((lvl) => (
                     <button
@@ -211,8 +213,8 @@ export default function CoursesPage() {
           {/* Results count header */}
           <div className="flex items-center justify-between mb-6">
             <p className="text-sm font-semibold text-slate-600">
-              Menampilkan <span className="text-navy-dark font-extrabold">{filteredCourses.length}</span> program kursus
-              {searchQuery ? ` untuk pencarian "${searchQuery}"` : ''}
+              {t('courses_show_prefix')} <span className="text-navy-dark font-extrabold">{filteredCourses.length}</span> {t('courses_show_suffix')}
+              {searchQuery ? ` ${t('courses_search_for')} "${searchQuery}"` : ''}
             </p>
           </div>
 
@@ -233,9 +235,9 @@ export default function CoursesPage() {
               <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4 text-slate-400">
                 <Icon name="search-1" size={28} />
               </div>
-              <h3 className="text-lg font-bold text-navy-dark mb-1">Tidak ada kursus yang cocok</h3>
+              <h3 className="text-lg font-bold text-navy-dark mb-1">{t('courses_empty_title')}</h3>
               <p className="text-xs text-slate-500 mb-6">
-                Tidak ditemukan program yang sesuai dengan kata kunci atau kategori terpilih.
+                {t('courses_empty_desc')}
               </p>
               <button
                 type="button"
@@ -245,7 +247,7 @@ export default function CoursesPage() {
                 }}
                 className="btn btn-secondary btn-sm"
               >
-                Reset Filter & Pencarian
+                {t('courses_btn_reset')}
               </button>
             </div>
           ) : (
@@ -255,7 +257,7 @@ export default function CoursesPage() {
                 const style = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
                 const isFree = Number(c.price) <= 0;
                 const formattedPrice = isFree
-                  ? 'Gratis'
+                  ? t('courses_price_free')
                   : `Rp${Number(c.price).toLocaleString('id-ID')}`;
                 const sectionsCount = (c as unknown as { sections_count?: number }).sections_count ?? 0;
 
@@ -288,7 +290,7 @@ export default function CoursesPage() {
                       {sectionsCount > 0 && (
                         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 mb-2">
                           <Icon name="layers-1" size={13} className="text-navy" />
-                          <span>{sectionsCount} Modul Silabus</span>
+                          <span>{sectionsCount} {t('courses_module_count')}</span>
                         </div>
                       )}
                     </div>
@@ -300,7 +302,7 @@ export default function CoursesPage() {
                         className="btn btn-secondary btn-sm w-full text-xs font-bold hover:bg-slate-100 flex items-center justify-center gap-1.5"
                       >
                         <Icon name="book-open" size={14} className="text-navy" />
-                        <span>Lihat Silabus & Detail</span>
+                        <span>{t('courses_btn_detail')}</span>
                       </Link>
 
                       <button
@@ -309,7 +311,7 @@ export default function CoursesPage() {
                         className="btn btn-primary btn-sm w-full text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <Icon name="rocket-5" size={14} />
-                        <span>Daftar Sekarang</span>
+                        <span>{t('courses_btn_enroll')}</span>
                       </button>
                     </div>
                   </article>

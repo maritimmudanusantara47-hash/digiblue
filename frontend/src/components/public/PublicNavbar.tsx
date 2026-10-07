@@ -4,10 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/Icon';
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/authStore';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function PublicNavbar() {
+  const t = useTranslations('LandingPage');
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
   const isAdmin = user?.roles?.some(r => r.name === 'admin');
@@ -23,14 +25,14 @@ export default function PublicNavbar() {
         <div className="container flex items-center justify-between h-9">
           <span className="flex items-center gap-2">
             <Icon name="shield-2-check" size={14} className="text-gold" />
-            <span>Resmi bersama The Blue Economist International Association</span>
+            <span>{t('topbar_official')}</span>
           </span>
           <span className="hidden sm:flex items-center gap-4">
             <Link href="/#sertifikat" className="hover:text-white transition-colors">
-              Tentang Sertifikat
+              {t('topbar_about')}
             </Link>
             <Link href="/#faq" className="hover:text-white transition-colors">
-              Bantuan
+              {t('topbar_help')}
             </Link>
           </span>
         </div>
@@ -63,9 +65,7 @@ export default function PublicNavbar() {
                   ? 'text-sky-600 font-bold border-b-2 border-sky-600'
                   : 'text-navy-dark hover:text-sky-600'
               }`}
-            >
-              Beranda
-            </Link>
+            >{t('nav_home')}</Link>
             <Link
               href="/courses"
               className={`transition-colors pb-0.5 ${
@@ -73,9 +73,7 @@ export default function PublicNavbar() {
                   ? 'text-sky-600 font-bold border-b-2 border-sky-600'
                   : 'text-navy-dark hover:text-sky-600'
               }`}
-            >
-              Kursus
-            </Link>
+            >{t('nav_courses')}</Link>
           </nav>
 
           {/* Right Action Buttons */}
@@ -87,15 +85,13 @@ export default function PublicNavbar() {
                 className="px-4 py-2 rounded-xl text-xs font-bold tracking-wide uppercase bg-navy text-white hover:bg-navy-dark transition-colors shadow-xs flex items-center gap-2"
               >
                 <Icon name="user-circle" size={15} />
-                <span>Dashboard {user?.name ? `(${user.name.split(' ')[0]})` : ''}</span>
+                <span>{t('nav_dashboard')} {user?.name ? `(${user.name.split(' ')[0]})` : ''}</span>
               </Link>
             ) : (
               <Link
                 href="/login"
                 className="px-5 py-2.5 rounded-xl text-xs font-extrabold tracking-wider uppercase border border-sky-300 bg-sky-50/80 hover:bg-sky-100 text-sky-700 transition-colors shadow-xs"
-              >
-                Login / Register
-              </Link>
+              >{t('nav_login_reg')}</Link>
             )}
           </div>
 
@@ -129,31 +125,27 @@ export default function PublicNavbar() {
               className={`block px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 isHome ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-700 hover:bg-slate-50'
               }`}
-            >
-              Beranda
-            </Link>
+            >{t('nav_home')}</Link>
             <Link
               href="/courses"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 isCourses ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-700 hover:bg-slate-50'
               }`}
-            >
-              Katalog Kursus
-            </Link>
+            >{t('nav_catalog')}</Link>
             <Link
               href="/#sertifikat"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50"
             >
-              Tentang Sertifikat
+              {t('topbar_about')}
             </Link>
             <Link
               href="/#faq"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50"
             >
-              Bantuan & FAQ
+              {t('topbar_help')} & FAQ
             </Link>
             <div className="pt-2 border-t border-slate-100 space-y-3">
               <div className="flex justify-center mb-2">
@@ -166,16 +158,14 @@ export default function PublicNavbar() {
                   className="w-full px-4 py-3 rounded-xl text-xs font-bold uppercase bg-navy text-white hover:bg-navy-dark transition-colors flex items-center justify-center gap-2 shadow-xs"
                 >
                   <Icon name="user-circle" size={15} />
-                  <span>Dashboard {user?.name ? `(${user.name.split(' ')[0]})` : ''}</span>
+                  <span>{t('nav_dashboard')} {user?.name ? `(${user.name.split(' ')[0]})` : ''}</span>
                 </Link>
               ) : (
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full block text-center px-4 py-3 rounded-xl text-xs font-bold uppercase border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors shadow-xs"
-                >
-                  Login / Register
-                </Link>
+                >{t('nav_login_reg')}</Link>
               )}
             </div>
           </div>

@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import { useTranslations } from 'next-intl';
 
 export default function PublicFooter() {
+  const t = useTranslations('LandingPage');
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -57,13 +59,13 @@ export default function PublicFooter() {
             <div className="max-w-xl text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100/70 text-sky-800 text-xs font-semibold mb-2.5">
                 <Icon name="water-drop-1" size={13} className="text-sky-600" />
-                <span>Maritime Intelligence & Scholarship Alert</span>
+                <span>{t('footer_newsletter_badge')}</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-extrabold text-navy-dark tracking-tight font-heading">
-                Siap Melangkah di Industri Ekonomi Biru?
+                {t('footer_newsletter_title')}
               </h3>
               <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                Dapatkan rilis modul baru, agenda riset lapangan, dan pembukaan beasiswa langsung di inbox kamu.
+                {t('footer_newsletter_desc')}
               </p>
             </div>
 
@@ -71,7 +73,7 @@ export default function PublicFooter() {
               {subscribed ? (
                 <div className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold animate-fadeup">
                   <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">✓</span>
-                  <span>Terima kasih! Kamu telah terdaftar dalam buletin maritim kami.</span>
+                  <span>{t('footer_newsletter_success')}</span>
                 </div>
               ) : (
                 <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-[420px]">
@@ -79,7 +81,7 @@ export default function PublicFooter() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Masukkan alamat email kamu..."
+                    placeholder={t('footer_newsletter_placeholder')}
                     required
                     className="flex-1 px-4 py-3 rounded-xl text-sm border border-slate-200 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all shadow-xs"
                   />
@@ -87,7 +89,7 @@ export default function PublicFooter() {
                     type="submit"
                     className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-navy hover:bg-navy-dark transition-all flex items-center justify-center gap-2 shadow-sm shadow-navy/20 shrink-0 cursor-pointer"
                   >
-                    <span>Langganan</span>
+                    <span>{t('footer_newsletter_btn')}</span>
                     <Icon name="arrow-right" size={14} />
                   </button>
                 </form>
@@ -119,13 +121,13 @@ export default function PublicFooter() {
               </Link>
 
               <p className="text-slate-600 text-sm leading-relaxed mb-4">
-                Platform pelatihan dan sertifikasi maritim berstandar internasional bersama <strong>The Blue Economist International Association</strong> & <strong>Maritim Muda Nusantara</strong>.
+                {t.rich('footer_brand_desc', { navy: (chunks) => <strong className="text-navy">{chunks}</strong> })}
               </p>
             </div>
 
             {/* Sekretariat / Office Address */}
             <div className="pt-2 border-t border-slate-100 text-xs text-slate-500 space-y-1">
-              <p className="font-semibold text-slate-700">Kantor Sekretariat:</p>
+              <p className="font-semibold text-slate-700">{t('footer_office_title')}</p>
               <p>Indonesia Blue Economy Center (IBEC)</p>
               <p>Campus C, STIE Indonesia Jakarta</p>
               <p>Jalan Pratekan No. 9A, Rawamangun</p>
@@ -138,13 +140,13 @@ export default function PublicFooter() {
           <div className="lg:col-span-3">
             <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
               <Icon name="graduation-cap-1" size={16} className="text-sky-600" />
-              <span>Jalur Sertifikasi</span>
+              <span>{t('footer_nav_cert')}</span>
             </h4>
             <ul className="flex flex-col gap-2.5 text-sm text-slate-600">
               <li>
                 <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Foundation Level (CBEc)</span>
+                  <span>{t('hero_card_level').split(' — ')[1]}</span>
                 </Link>
               </li>
               <li>
@@ -178,37 +180,37 @@ export default function PublicFooter() {
           <div className="lg:col-span-2">
             <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
               <Icon name="book-1" size={16} className="text-sky-600" />
-              <span>Ekosistem</span>
+              <span>{t('footer_nav_eco')}</span>
             </h4>
             <ul className="flex flex-col gap-2.5 text-sm text-slate-600">
               <li>
                 <Link href="/#harga" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Program Beasiswa</span>
+                  <span>{t('footer_nav_eco_1')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/#sertifikat" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Standar Kurikulum</span>
+                  <span>{t('footer_nav_eco_2')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/#faq" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Field Study & Riset</span>
+                  <span>{t('footer_nav_eco_3')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/#faq" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Pertanyaan Umum (FAQ)</span>
+                  <span>{t('footer_nav_eco_4')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/#tentang" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Tentang Asosiasi</span>
+                  <span>{t('footer_nav_eco_5')}</span>
                 </Link>
               </li>
             </ul>
@@ -218,11 +220,11 @@ export default function PublicFooter() {
           <div className="lg:col-span-3">
             <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
               <Icon name="headphone" size={16} className="text-sky-600" />
-              <span>Layanan & Hubungi Kami</span>
+              <span>{t('footer_nav_contact')}</span>
             </h4>
 
             <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-              Konsultasi pemilihan kurikulum, sertifikasi institusi, atau bantuan pendaftaran:
+              {t('footer_nav_contact_desc')}
             </p>
 
             {/* Direct Contact Pills */}
@@ -248,7 +250,7 @@ export default function PublicFooter() {
             {/* Social Media Channels with Premium Tooltips */}
             <div>
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
-                Kanal Resmi Komunitas:
+                {t('footer_nav_social')}
               </p>
               <div className="flex items-center gap-2">
                 {/* LinkedIn */}
@@ -325,18 +327,18 @@ export default function PublicFooter() {
         {/* Bottom Bar: Copyright & Legal Compliance */}
         <div className="border-t border-slate-200/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-left">
-            <span>© 2026 DigiBlue. All rights reserved.</span>
+            <span>{t('footer_copyright')}</span>
             <span className="hidden sm:inline text-slate-300">•</span>
-            <span>Didukung oleh The Blue Economist International Association & Maritim Muda Nusantara.</span>
+            <span>{t('footer_supported')}</span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-600 font-medium">
             <Link href="/#terms" className="hover:text-navy-dark transition-colors">
-              Syarat Layanan
+              {t('footer_terms')}
             </Link>
             <span className="text-slate-300">|</span>
             <Link href="/#privacy" className="hover:text-navy-dark transition-colors">
-              Kebijakan Privasi
+              {t('footer_privacy')}
             </Link>
           </div>
         </div>
