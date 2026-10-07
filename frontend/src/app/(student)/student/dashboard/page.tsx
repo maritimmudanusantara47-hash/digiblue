@@ -2,6 +2,7 @@
 
 import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
@@ -9,14 +10,15 @@ import { useAuthStore } from '@/store/authStore';
 import type { Enrollment, Certificate, Course } from '@/types';
 
 const statusLabel: Record<string, { label: string; class: string }> = {
-  active:         { label: 'Aktif',              class: 'badge-success' },
-  completed:      { label: 'Selesai',             class: 'badge-navy' },
+  active:         { label: 'status_active',              class: 'badge-success' },
+  completed:      { label: 'status_completed',             class: 'badge-navy' },
 
-  payment_pending:{ label: 'Menunggu Pembayaran', class: 'badge-gold' },
-  rejected:       { label: 'Ditolak',             class: 'badge-danger' },
+  payment_pending:{ label: 'status_payment_pending', class: 'badge-gold' },
+  rejected:       { label: 'status_rejected',             class: 'badge-danger' },
 };
 
 function StudentDashboardContent() {
+  const t = useTranslations('StudentDashboard');
   const { user } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -183,10 +185,10 @@ function StudentDashboardContent() {
   }, [loading, payParam, enrollments, handlePay, loadData]);
 
   const stats = [
-    { number: enrollments.filter(e => e.status === 'active').length,         label: 'Kursus Aktif',   icon: 'book-1' },
-    { number: enrollments.filter(e => e.status === 'payment_pending').length, label: 'Menunggu Bayar', icon: 'credit-card-multiple' },
-    { number: enrollments.filter(e => e.status === 'completed').length,       label: 'Kursus Selesai', icon: 'check-circle-1' },
-    { number: certificates.length,                                             label: 'Sertifikat',     icon: 'certificate-badge-1' },
+    { number: enrollments.filter(e => e.status === 'active').length,         label: t('stat_active'),   icon: 'book-1' },
+    { number: enrollments.filter(e => e.status === 'payment_pending').length, label: t('stat_pending'), icon: 'credit-card-multiple' },
+    { number: enrollments.filter(e => e.status === 'completed').length,       label: t('stat_completed'), icon: 'check-circle-1' },
+    { number: certificates.length,                                             label: t('stat_cert'),     icon: 'certificate-badge-1' },
   ];
 
   return (
@@ -194,7 +196,7 @@ function StudentDashboardContent() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold text-navy-dark">
-          Selamat datang, {user?.name?.split(' ')[0] ?? 'Peserta'}
+          {t('title')} {user?.name?.split(' ')[0] ?? t('default_name')}
         </h1>
         <p className="text-slate-500 text-sm mt-1">{user?.country ?? user?.institution}</p>
       </div>
@@ -214,11 +216,11 @@ function StudentDashboardContent() {
       <div className="card mb-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-lg font-bold text-navy-dark">Kursus Saya</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Daftar kursus terdaftar dan status pembelajaran kamu</p>
+            <h2 className="text-lg font-bold text-navy-dark">{t('section_courses')}</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{t('section_courses_desc')}</p>
           </div>
           <Link href="/student/catalog" className="btn btn-outline btn-sm">
-            + Tambah Kursus
+            {t('btn_add')}
           </Link>
         </div>
 
@@ -229,9 +231,9 @@ function StudentDashboardContent() {
         ) : enrollments.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-5xl mb-3"><Icon name="books-2" size={48} /></div>
-            <p className="text-slate-500 text-sm">Kamu belum mendaftar kursus apapun.</p>
+            <p className="text-slate-500 text-sm">{t('empty_courses')}</p>
             <Link href="/student/catalog" className="btn btn-primary btn-sm mt-4 inline-flex">
-              Lihat Katalog Kursus
+              {t('btn_catalog')}
             </Link>
           </div>
         ) : (
@@ -256,7 +258,7 @@ function StudentDashboardContent() {
 
                   <div className="flex items-center gap-3 shrink-0">
                     <span className={`badge ${statusLabel[e.status]?.class ?? 'badge-pending'}`}>
-                      {statusLabel[e.status]?.label ?? e.status}
+                      {statusLabel[e.status] ? t(statusLabel[e.status].label as any) : e.status}
                     </span>
 
                     {/* Tombol Bayar Sekarang jika Menunggu Pembayaran */}
@@ -268,7 +270,7 @@ function StudentDashboardContent() {
                         className="btn btn-gold btn-sm text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105 transition-transform"
                       >
                         <Icon name="credit-card-multiple" size={14} />
-                        <span>{payingId === e.id ? 'Memuat Snap...' : 'Bayar Sekarang'}</span>
+                        <span>{payingId === e.id ? t('btn_loading_snap') : t('btn_pay')}</span>
                       </button>
                     )}
 
@@ -278,7 +280,7 @@ function StudentDashboardContent() {
                         href={`/student/courses/${e.course.slug}`}
                         className="btn btn-primary btn-sm text-xs font-bold flex items-center gap-1.5"
                       >
-                        <span>Mulai Belajar</span>
+                        <span>{t('btn_start')}</span>
                         <Icon name="arrow-right" size={13} />
                       </Link>
                     )}
@@ -294,7 +296,7 @@ function StudentDashboardContent() {
       {certificates.length > 0 && (
         <div className="card">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-bold text-navy-dark">Sertifikat Terbaru</h2>
+            <h2 className="text-lg font-bold text-navy-dark">{t('section_certs')}</h2>
             <Link href="/student/certificates" className="text-sm text-navy font-semibold hover:text-gold transition-colors">
               Lihat Semua <Icon name="arrow-right" size={14} className="ml-1.5" />
             </Link>

@@ -2,6 +2,7 @@
 
 import Icon from '@/components/Icon';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import api from '@/lib/api';
 
@@ -13,6 +14,7 @@ interface DashStats {
 }
 
 export default function AdminDashboard() {
+  const t = useTranslations('AdminDashboard');
   const [stats, setStats] = useState<DashStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -53,23 +55,23 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { label: 'Total Pengguna',      value: stats?.total_users,               icon: 'user-multiple-4', href: '/admin/users',        color: 'from-navy to-navy-light' },
-    { label: 'Enrollment Aktif',    value: stats?.active_enrollments,        icon: 'book-1', href: '/admin/enrollments',  color: 'from-emerald-600 to-emerald-400' },
-    { label: 'Sertifikat Terbit',   value: stats?.certificates_issued,       icon: 'certificate-badge-1', href: '/admin/certificates', color: 'from-gold-dark to-gold' },
-    { label: 'Sinkronisasi Gagal',  value: stats?.certificates_pending_sync, icon: 'info', href: '/admin/certificates', color: 'from-red-600 to-red-400' },
+    { label: t('stat_users'),      value: stats?.total_users,               icon: 'user-multiple-4', href: '/admin/users',        color: 'from-navy to-navy-light' },
+    { label: t('stat_enroll'),    value: stats?.active_enrollments,        icon: 'book-1', href: '/admin/enrollments',  color: 'from-emerald-600 to-emerald-400' },
+    { label: t('stat_certs'),   value: stats?.certificates_issued,       icon: 'certificate-badge-1', href: '/admin/certificates', color: 'from-gold-dark to-gold' },
+    { label: t('stat_sync'),  value: stats?.certificates_pending_sync, icon: 'info', href: '/admin/certificates', color: 'from-red-600 to-red-400' },
   ];
 
   const quickActions = [
-    { label: 'Terbitkan Sertifikat',       href: '/admin/certificates', icon: 'certificate-badge-1', desc: 'Approve kelulusan & cetak sertifikat' },
-    { label: 'Re-Sync ke The Blue Economist', href: '/admin/certificates', icon: 'refresh-circle-1-clockwise', desc: 'Sinkronisasi ulang data yang gagal' },
-    { label: 'Export Database Sertifikat', href: '/admin/certificates', icon: 'dashboard-square-1', desc: 'Download rekap .xlsx format lama' },
+    { label: t('action_cert'),       href: '/admin/certificates', icon: 'certificate-badge-1', desc: t('desc_cert') },
+    { label: t('action_sync'), href: '/admin/certificates', icon: 'refresh-circle-1-clockwise', desc: t('desc_sync') },
+    { label: t('action_export'), href: '/admin/certificates', icon: 'dashboard-square-1', desc: t('desc_export') },
   ];
 
   return (
     <div className="animate-fadeup">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-navy-dark">Admin Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">Selamat datang di panel administrasi DigiBlueCamp</p>
+        <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Stats Grid */}
@@ -89,7 +91,7 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="card">
-        <h2 className="text-lg font-bold text-navy-dark mb-5">Aksi Cepat</h2>
+        <h2 className="text-lg font-bold text-navy-dark mb-5">{t('quick_actions')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map(action => (
             <Link key={action.label} href={action.href}

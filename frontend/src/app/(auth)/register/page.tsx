@@ -10,6 +10,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { AuthResponse } from '@/types';
 import Icon from '@/components/Icon';
+import { useTranslations } from 'next-intl';
 
 const COUNTRIES = [
   { code: 'ID', name: 'Indonesia', flag: '🇮🇩' },
@@ -50,21 +51,28 @@ const COUNTRIES = [
   { code: 'OTHER', name: 'Other / Lainnya', flag: '🌍' },
 ];
 
-const registerSchema = z.object({
-  name:             z.string().min(3, 'Nama minimal 3 karakter'),
-  email:            z.string().email('Format email tidak valid'),
-  password:         z.string().min(8, 'Password minimal 8 karakter'),
-  password_confirmation: z.string(),
-  phone_number:     z.string().optional(),
-  country:          z.string().min(2, 'Pilih Negara / Country asal'),
-}).refine(d => d.password === d.password_confirmation, {
-  message: 'Konfirmasi password tidak cocok',
-  path: ['password_confirmation'],
-});
-
-type RegisterForm = z.infer<typeof registerSchema>;
+type RegisterForm = {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  phone_number?: string;
+  country: string;
+};
 
 function RegisterFormContent() {
+  const t = useTranslations('Auth');
+  const registerSchema = z.object({
+    name:             z.string().min(3, t('reg_err_name')),
+    email:            z.string().email(t('reg_err_email')),
+    password:         z.string().min(8, t('reg_err_pwd')),
+    password_confirmation: z.string(),
+    phone_number:     z.string().optional(),
+    country:          z.string().min(2, t('reg_err_country')),
+  }).refine(d => d.password === d.password_confirmation, {
+    message: t('reg_err_pwd_match'),
+    path: ['password_confirmation'],
+  });
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams?.get('redirect');
@@ -94,7 +102,7 @@ function RegisterFormContent() {
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } })?.response?.data;
       const firstError = errData?.errors ? Object.values(errData.errors)[0][0] : errData?.message;
-      setServerError(firstError ?? 'Registrasi gagal. Coba lagi.');
+      setServerError(firstError ?? t('reg_failed_fallback'));
     }
   };
 
@@ -104,42 +112,42 @@ function RegisterFormContent() {
 
   return (
     <div className="animate-fadeup">
-      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">Buat Akun Baru</h1>
-      <p className="text-slate-500 text-sm mb-6">Daftar untuk memulai perjalanan Blue Economy-mu</p>
+      <h1 className="text-2xl font-extrabold text-navy-dark mb-1">{t('reg_title')}</h1>
+      <p className="text-slate-500 text-sm mb-6">{t('reg_desc')}</p>
 
       {redirect && (
         <div className="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-4 py-3 rounded-xl mb-6 flex items-center gap-2.5">
           <Icon name="information" size={16} className="text-sky-600 shrink-0" />
-          <span>Selesaikan pendaftaran akun untuk langsung lanjut ke checkout kursus yang kamu pilih.</span>
+          <span>Complete your account registration to proceed to the checkout for your selected course.</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         {/* Nama */}
         <div className="flex flex-col gap-1.5">
-          <label className="form-label">Nama Lengkap</label>
-          <input id="reg-name" type="text" placeholder="Nama Lengkap"
+          <label className="form-label">{t('name_label')}</label>
+          <input id="reg-name" type="text" placeholder={t("name_placeholder")}
             className={`form-input ${errors.name ? 'error' : ''}`} {...register('name')} />
           {errors.name && <span className="form-error">{errors.name.message}</span>}
         </div>
 
         {/* Email */}
         <div className="flex flex-col gap-1.5">
-          <label className="form-label">Email</label>
-          <input id="reg-email" type="email" placeholder="email@kamu.com"
+          <label className="form-label">{t('email_label')}</label>
+          <input id="reg-email" type="email" placeholder={t("email_placeholder")}
             className={`form-input ${errors.email ? 'error' : ''}`} {...register('email')} />
           {errors.email && <span className="form-error">{errors.email.message}</span>}
         </div>
 
         {/* Negara / Country */}
         <div className="flex flex-col gap-1.5">
-          <label className="form-label">Negara / Country</label>
+          <label className="form-label">{t('country_label')}</label>
           <select
             id="reg-country"
             className={`form-input ${errors.country ? 'error' : ''}`}
             {...register('country')}
           >
-            <option value="" disabled>-- Pilih Negara / Country --</option>
+            <option value="" disabled>{t('country_placeholder')}</option>
             {COUNTRIES.map(c => (
               <option key={c.name} value={c.name}>
                 {c.flag} {c.name}
@@ -149,9 +157,9 @@ function RegisterFormContent() {
           {errors.country && <span className="form-error">{errors.country.message}</span>}
         </div>
 
-        {/* No. WhatsApp */}
+        {/* {t('phone_label')} */}
         <div className="flex flex-col gap-1.5">
-          <label className="form-label">No. WhatsApp <span className="text-slate-400 font-normal">(opsional)</span></label>
+          <label className="form-label">{t('phone_label')} <span className="text-slate-400 font-normal">{t('phone_opt')}</span></label>
           <input id="reg-phone" type="tel" placeholder="08xx-xxxx-xxxx"
             className="form-input" {...register('phone_number')} />
         </div>
@@ -159,14 +167,14 @@ function RegisterFormContent() {
         {/* Password row */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="form-label">Password</label>
-            <input id="reg-password" type="password" placeholder="Min. 8 karakter"
+            <label className="form-label">{t('password_label')}</label>
+            <input id="reg-password" type="password" placeholder={t("pwd_placeholder")}
               className={`form-input ${errors.password ? 'error' : ''}`} {...register('password')} />
             {errors.password && <span className="form-error">{errors.password.message}</span>}
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="form-label">Konfirmasi</label>
-            <input id="reg-password-confirm" type="password" placeholder="Ulangi password"
+            <label className="form-label">{t('pwd_confirm_label')}</label>
+            <input id="reg-password-confirm" type="password" placeholder={t("pwd_confirm_placeholder")}
               className={`form-input ${errors.password_confirmation ? 'error' : ''}`}
               {...register('password_confirmation')} />
             {errors.password_confirmation && (
@@ -183,14 +191,14 @@ function RegisterFormContent() {
 
         <button id="reg-submit" type="submit" disabled={isSubmitting}
           className="btn btn-primary btn-lg w-full mt-1">
-          {isSubmitting ? 'Mendaftarkan...' : 'Buat Akun & Lanjutkan'}
+          {isSubmitting ? t('btn_registering') : t('btn_register')}
         </button>
       </form>
 
       <p className="text-center text-sm text-slate-500 mt-5">
-        Sudah punya akun?{' '}
+        {t('has_account')}{' '}
         <Link href={loginHref} className="font-semibold text-navy hover:text-gold transition-colors">
-          Masuk di sini
+          {t('login_here')}
         </Link>
       </p>
     </div>
