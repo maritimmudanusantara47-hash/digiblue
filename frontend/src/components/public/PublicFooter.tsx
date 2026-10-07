@@ -146,7 +146,7 @@ export default function PublicFooter() {
               <li>
                 <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>{t('hero_card_level').split(' — ')[1]}</span>
+                  <span>{t('hero_card_level')}</span>
                 </Link>
               </li>
               <li>
