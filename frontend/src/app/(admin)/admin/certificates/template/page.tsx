@@ -49,7 +49,7 @@ const DEFAULT_LAYOUT: LayoutState = {
 
 const PRESETS = {
   nabila: { name: 'Nabila Azzahro Widodo', serial: 'CBEC/BCB/ID/IX/20260022', ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)', level: 'Blue Carbon Specialization', grade: 'Excellent', date: 'September 21, 2026', place: 'Jakarta' },
-  budi: { name: 'Budi Santoso', serial: 'CBEC/ID/III/20260102', ribbon: 'Certified Blue Economist (CBEc) — Foundation Level', level: 'Foundation Level', grade: 'Excellent', date: 'October 2, 2026', place: 'Jakarta, Indonesia' },
+  budi: { name: 'Budi Santoso', serial: 'CBEC/ID/III/20260102', ribbon: 'Certified Blue Economist (CBEc)', level: 'Foundation Level', grade: 'Excellent', date: 'October 2, 2026', place: 'Jakarta, Indonesia' },
 };
 
 // Ukuran virtual canvas A4 Landscape (297 × 210 mm)

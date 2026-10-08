@@ -94,6 +94,7 @@
             font-family: 'Arial MT Pro', Arial, Helvetica, sans-serif;
             color: #173874;
             letter-spacing: 0.1px;
+            white-space: nowrap;
             z-index: 3;
         }
 
@@ -209,14 +210,17 @@
         $levelName   = $level->name ?? '';
         $levelCode   = $level->code ?? '';
 
-        $isFoundation = str_contains(strtolower($courseTitle), 'foundation');
+        $isFoundation = str_contains(strtolower($courseTitle), 'foundation')
+            || str_contains(strtolower($levelName), 'foundation')
+            || strtolower($levelCode) === 'fnd'
+            || strtolower($levelCode) === 'foundation';
 
         if ($isFoundation) {
-            $ribbonText   = 'Certified Blue Economist (CBEc) — Foundation Level';
+            $ribbonText   = 'Certified Blue Economist (CBEc)';
             $levelDisplay = 'Foundation Level';
         } else {
             // Extract specialization name
-            $specName = preg_replace('/^Certified Blue Economist\s*(in)?\s*/i', '', $courseTitle);
+            $specName = preg_replace('/^(Certified Blue Economist|CBEc Specialization|CBEc)\s*(in|—|-)?\s*/iu', '', $courseTitle);
             $specName = trim(str_replace(['—', '-'], '', $specName));
             if (empty($specName)) {
                 $specName = $levelName ?: 'Specialization';
@@ -244,6 +248,11 @@
 
         $rTop = $L['ribbon_text']['top'] ?? 99.0;
         $rFs  = $L['ribbon_text']['font_size'] ?? 22.5;
+        if (mb_strlen($ribbonText) > 65) {
+            $rFs = min($rFs, 17.5);
+        } elseif (mb_strlen($ribbonText) > 52) {
+            $rFs = min($rFs, 19.5);
+        }
         $rH   = $L['ribbon_text']['height'] ?? 14.0;
 
         $lTop = $L['level_value']['top'] ?? 122.8;
