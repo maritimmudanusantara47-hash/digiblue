@@ -270,6 +270,16 @@
 
         $btTop = $L['back_title']['top'] ?? 20.0;
         $btFs  = $L['back_title']['font_size'] ?? 15.0;
+
+        if (empty($templateBase64)) {
+            $tplName = $isFoundation ? 'template_foundation.png' : 'template_CBEc.png';
+            $tplFile = resource_path("images/{$tplName}");
+            if (file_exists($tplFile)) {
+                $templateBase64 = base64_encode(file_get_contents($tplFile));
+            } elseif (file_exists(resource_path('images/template_CBEc.png'))) {
+                $templateBase64 = base64_encode(file_get_contents(resource_path('images/template_CBEc.png')));
+            }
+        }
     @endphp
 
     {{-- ==================== PAGE 1: FRONT ==================== --}}

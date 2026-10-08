@@ -45,10 +45,21 @@ class CertificateController extends Controller
         $qrSvg = QrCode::format('svg')->size(140)->generate($verificationUrl);
         $qrImageBase64 = base64_encode($qrSvg);
 
-        // Load template background images as base64 for inline embedding in PDF
-        $templatePath = file_exists(resource_path('images/template_CBEc.png'))
-            ? resource_path('images/template_CBEc.png')
-            : resource_path('images/cbectemplate.jpg');
+        $courseTitle = $cert->enrollment->course->title ?? '';
+        $levelName   = $cert->enrollment->course->certificationLevel->name ?? '';
+        $levelCode   = $cert->enrollment->course->certificationLevel->code ?? '';
+
+        $isFoundation = str_contains(strtolower($courseTitle), 'foundation')
+            || str_contains(strtolower($levelName), 'foundation')
+            || strtolower($levelCode) === 'fnd'
+            || strtolower($levelCode) === 'foundation';
+
+        $frontTemplateName = $isFoundation ? 'template_foundation.png' : 'template_CBEc.png';
+        $templatePath = file_exists(resource_path("images/{$frontTemplateName}"))
+            ? resource_path("images/{$frontTemplateName}")
+            : (file_exists(resource_path('images/template_CBEc.png'))
+                ? resource_path('images/template_CBEc.png')
+                : resource_path('images/cbectemplate.jpg'));
         $templateBase64 = file_exists($templatePath)
             ? base64_encode(file_get_contents($templatePath))
             : null;

@@ -155,9 +155,21 @@ class AdminCertificateController extends Controller
         $qrSvg = QrCode::format('svg')->size(140)->generate($verificationUrl);
         $qrImageBase64 = base64_encode($qrSvg);
 
-        $templatePath = file_exists(resource_path('images/template_CBEc.png'))
-            ? resource_path('images/template_CBEc.png')
-            : resource_path('images/cbectemplate.jpg');
+        $courseTitle = $cert->enrollment->course->title ?? '';
+        $levelName   = $cert->enrollment->course->certificationLevel->name ?? '';
+        $levelCode   = $cert->enrollment->course->certificationLevel->code ?? '';
+
+        $isFoundation = str_contains(strtolower($courseTitle), 'foundation')
+            || str_contains(strtolower($levelName), 'foundation')
+            || strtolower($levelCode) === 'fnd'
+            || strtolower($levelCode) === 'foundation';
+
+        $frontTemplateName = $isFoundation ? 'template_foundation.png' : 'template_CBEc.png';
+        $templatePath = file_exists(resource_path("images/{$frontTemplateName}"))
+            ? resource_path("images/{$frontTemplateName}")
+            : (file_exists(resource_path('images/template_CBEc.png'))
+                ? resource_path('images/template_CBEc.png')
+                : resource_path('images/cbectemplate.jpg'));
         $templateBase64 = file_exists($templatePath)
             ? base64_encode(file_get_contents($templatePath))
             : null;
@@ -243,6 +255,13 @@ class AdminCertificateController extends Controller
         $extension = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));
         $mimeType  = ($extension === 'jpg' || $extension === 'jpeg') ? 'image/jpeg' : 'image/png';
 
+        $foundPath = file_exists(resource_path('images/template_foundation.png'))
+            ? resource_path('images/template_foundation.png')
+            : $templatePath;
+        $foundBase64 = file_exists($foundPath)
+            ? base64_encode(file_get_contents($foundPath))
+            : null;
+
         $templateBackPath = resource_path('images/template_back.png');
         $backBase64 = file_exists($templateBackPath)
             ? base64_encode(file_get_contents($templateBackPath))
@@ -250,12 +269,13 @@ class AdminCertificateController extends Controller
 
         return response()->json([
             'data' => [
-                'base64'         => base64_encode(file_get_contents($templatePath)),
-                'mime_type'      => $mimeType,
-                'back_base64'    => $backBase64,
-                'back_mime_type' => 'image/png',
-                'width_mm'       => 297,
-                'height_mm'      => 210,
+                'base64'            => base64_encode(file_get_contents($templatePath)),
+                'mime_type'         => $mimeType,
+                'foundation_base64' => $foundBase64,
+                'back_base64'       => $backBase64,
+                'back_mime_type'    => 'image/png',
+                'width_mm'          => 297,
+                'height_mm'         => 210,
             ],
         ]);
     }

@@ -75,6 +75,8 @@ const FIELD_LIST_BACK = [
 export default function CertificateTemplateAdminPage() {
   const [layout, setLayout] = useState<LayoutState>(DEFAULT_LAYOUT);
   const [templateImg, setTemplateImg] = useState<string | null>(null);
+  const [templateImgSpec, setTemplateImgSpec] = useState<string | null>(null);
+  const [templateImgFound, setTemplateImgFound] = useState<string | null>(null);
   const [templateBackImg, setTemplateBackImg] = useState<string | null>(null);
   const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
   const [selectedKey, setSelectedKey] = useState('recipient_name');
@@ -100,8 +102,15 @@ export default function CertificateTemplateAdminPage() {
     }).catch(() => { });
 
     api.get('/admin/certificates/template/image').then(res => {
-      const { base64, mime_type, back_base64, back_mime_type } = res.data.data;
-      if (base64) setTemplateImg(`data:${mime_type};base64,${base64}`);
+      const { base64, mime_type, foundation_base64, back_base64, back_mime_type } = res.data.data;
+      if (base64) {
+        const specUrl = `data:${mime_type || 'image/png'};base64,${base64}`;
+        setTemplateImg(specUrl);
+        setTemplateImgSpec(specUrl);
+      }
+      if (foundation_base64) {
+        setTemplateImgFound(`data:image/png;base64,${foundation_base64}`);
+      }
       if (back_base64) setTemplateBackImg(`data:${back_mime_type || 'image/png'};base64,${back_base64}`);
     }).catch(() => { });
   }, []);
@@ -313,10 +322,13 @@ export default function CertificateTemplateAdminPage() {
               {activeSide === 'front' ? (
                 <>
                   {/* FRONT TEMPLATE */}
-                  {templateImg
-                    ? <img src={templateImg} alt="Template" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                    : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template depan...</div>
-                  }
+                  {(() => {
+                    const isFoundationSample = sample.level.toLowerCase().includes('foundation');
+                    const activeFrontImg = isFoundationSample ? (templateImgFound || templateImg) : (templateImgSpec || templateImg);
+                    return activeFrontImg
+                      ? <img src={activeFrontImg} alt="Template" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                      : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template depan...</div>;
+                  })()}
 
                   {/* Serial Number */}
                   <div
