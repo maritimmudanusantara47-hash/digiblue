@@ -117,7 +117,7 @@ class CourseSeeder extends Seeder
             $data = [
                 'certification_level_id' => $spec->id,
                 'slug'                   => $spec_course['slug'],
-                'title'                  => 'CBEc Specialization — ' . $spec_course['title'],
+                'title'                  => "Certified Blue Economist in {$spec_course['title']} - {$spec_course['acronym']}",
                 'description'            => "Program sertifikasi peminatan {$spec_course['title']} : {$spec_course['acronym']} dalam ekosistem Blue Economy.",
                 'price'                  => 0,
                 'is_active'              => true,

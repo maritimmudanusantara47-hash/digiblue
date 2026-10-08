@@ -219,20 +219,48 @@
             $ribbonText   = 'Certified Blue Economist (CBEc)';
             $levelDisplay = 'Foundation Level';
         } else {
-            // Extract specialization name
-            $specName = preg_replace('/^(Certified Blue Economist|CBEc Specialization|CBEc)\s*(in|—|-)?\s*/iu', '', $courseTitle);
-            $specName = trim(str_replace(['—', '-'], '', $specName));
-            if (empty($specName)) {
-                $specName = $levelName ?: 'Specialization';
+            $specMap = [
+                'blue business development'   => ['title' => 'Blue Business Development',   'acronym' => 'CBEc. (BizDev.)'],
+                'blue carbon'                 => ['title' => 'Blue Carbon',                 'acronym' => 'CBEc. (Carb.)'],
+                'blue community development'  => ['title' => 'Blue Community Development',  'acronym' => 'CBEc. (CommDev.)'],
+                'blue circular economy'       => ['title' => 'Blue Circular Economy',       'acronym' => 'CBEc. (CirEc.)'],
+                'blue data intelligence'      => ['title' => 'Blue Data Intelligence',      'acronym' => 'CBEc. (DataIntel.)'],
+                'blue energy'                 => ['title' => 'Blue Energy',                 'acronym' => 'CBEc. (Ener.)'],
+                'blue farming'                => ['title' => 'Blue Farming',                'acronym' => 'CBEc. (Farm.)'],
+                'blue finance'                => ['title' => 'Blue Finance',                'acronym' => 'CBEc. (Fin.)'],
+                'blue food'                   => ['title' => 'Blue Food',                   'acronym' => 'CBEc. (Food.)'],
+                'blue port'                   => ['title' => 'Blue Port',                   'acronym' => 'CBEc. (Port.)'],
+                'blue shipping'               => ['title' => 'Blue Shipping',               'acronym' => 'CBEc. (Ship.)'],
+                'blue tourism'                => ['title' => 'Blue Tourism',                'acronym' => 'CBEc. (Tour.)'],
+            ];
+
+            if (preg_match('/^Certified Blue Economist in .+ - CBEc\.\s*\([^)]+\)/iu', $courseTitle)) {
+                $ribbonText = $courseTitle;
+            } else {
+                $matched = null;
+                $lowerTitle = strtolower($courseTitle);
+                foreach ($specMap as $key => $info) {
+                    if (str_contains($lowerTitle, $key)) {
+                        $matched = $info;
+                        break;
+                    }
+                }
+
+                if ($matched) {
+                    $ribbonText = "Certified Blue Economist in {$matched['title']} - {$matched['acronym']}";
+                } else {
+                    $cleanName = preg_replace('/^(Certified Blue Economist|CBEc Specialization|CBEc)\s*(in|—|-)?\s*/iu', '', $courseTitle);
+                    $cleanName = trim(str_replace(['—', '-'], '', $cleanName));
+                    if (empty($cleanName)) {
+                        $cleanName = $levelName ?: 'Specialization';
+                    }
+                    $codeSuffix = $levelCode ? "({$levelCode}.)" : "";
+                    $ribbonText = "Certified Blue Economist in {$cleanName} - CBEc. {$codeSuffix}";
+                }
             }
 
-            $codeSuffix = $levelCode ? "({$levelCode}.)" : "";
-            $ribbonText = "Certified Blue Economist in {$specName} - CBEc. {$codeSuffix}";
-            $ribbonText = trim($ribbonText);
-
-            $levelDisplay = str_contains(strtolower($levelName), 'specialization')
-                ? $levelName
-                : "{$specName} Specialization";
+            $ribbonText   = trim($ribbonText);
+            $levelDisplay = 'Specialization Level';
         }
         // Load optional layout overrides from cert_layout.json
         $layoutPath = storage_path('app/cert_layout.json');
