@@ -7,6 +7,7 @@ use App\Models\Certificate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CertificateController extends Controller
 {
@@ -41,7 +42,7 @@ class CertificateController extends Controller
         $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
             . "/certification/{$cert->serial_url_key}";
         
-        $qrSvg = \QrCode::format('svg')->size(140)->generate($verificationUrl);
+        $qrSvg = QrCode::format('svg')->size(140)->generate($verificationUrl);
         $qrImageBase64 = base64_encode($qrSvg);
 
         // Load template background image as base64 for inline embedding in PDF

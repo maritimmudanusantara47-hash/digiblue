@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AdminCertificateController extends Controller
 {
@@ -151,7 +152,7 @@ class AdminCertificateController extends Controller
         $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
             . "/certification/{$cert->serial_url_key}";
 
-        $qrSvg = \QrCode::format('svg')->size(140)->generate($verificationUrl);
+        $qrSvg = QrCode::format('svg')->size(140)->generate($verificationUrl);
         $qrImageBase64 = base64_encode($qrSvg);
 
         $templatePath = file_exists(resource_path('images/template_CBEc.png'))

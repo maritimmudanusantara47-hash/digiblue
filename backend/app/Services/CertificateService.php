@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Certificate;
 use App\Models\Enrollment;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CertificateService
 {
@@ -71,7 +72,7 @@ class CertificateService
 
         $qrPath = "certificates/qr/{$serialUrlKey}.png";
 
-        \QrCode::format('png')
+        QrCode::format('png')
             ->size(300)
             ->errorCorrection('H')
             ->generate($verificationUrl, storage_path("app/public/{$qrPath}"));
