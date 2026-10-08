@@ -162,13 +162,19 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($templatePath))
             : null;
 
+        $templateBackPath = resource_path('images/template_back.png');
+        $templateBackBase64 = file_exists($templateBackPath)
+            ? base64_encode(file_get_contents($templateBackPath))
+            : null;
+
         $pdf = Pdf::loadView('certificates.template', [
-            'certificate'    => $cert,
-            'user'           => $cert->user,
-            'course'         => $cert->enrollment->course,
-            'level'          => $cert->enrollment->course->certificationLevel,
-            'qrImageBase64'  => $qrImageBase64,
-            'templateBase64' => $templateBase64,
+            'certificate'        => $cert,
+            'user'               => $cert->user,
+            'course'             => $cert->enrollment->course,
+            'level'              => $cert->enrollment->course->certificationLevel,
+            'qrImageBase64'      => $qrImageBase64,
+            'templateBase64'     => $templateBase64,
+            'templateBackBase64' => $templateBackBase64,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";

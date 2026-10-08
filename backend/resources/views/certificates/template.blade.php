@@ -13,12 +13,22 @@
         @page { margin: 0; size: A4 landscape; }
 
         body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', 'DejaVu Sans', Arial, Helvetica, sans-serif;
+            background: #ffffff;
+        }
+
+        .cert-page {
             width: 297mm;
-            height: 210mm;
+            height: 209.5mm;
             position: relative;
             overflow: hidden;
-            font-family: 'Poppins', 'DejaVu Sans', Arial, Helvetica, sans-serif;
-            background: #F8F8F8;
+            page-break-after: always;
+        }
+
+        .cert-page:last-child {
+            page-break-after: avoid;
         }
 
         .bg-template {
@@ -159,6 +169,36 @@
             height: 100%;
             display: block;
         }
+
+        /* ── Page 2: Back Side Competencies Title Block ── */
+        .back-title-block {
+            position: absolute;
+            top: 21.0mm;
+            left: 20mm;
+            right: 20mm;
+            text-align: center;
+            z-index: 3;
+        }
+
+        .back-title {
+            font-family: 'Poppins', 'DejaVu Sans', Arial, Helvetica, sans-serif;
+            font-size: 15.5pt;
+            font-weight: 700;
+            color: #000000;
+            letter-spacing: 0.1px;
+            line-height: 1.25;
+            margin: 0;
+            padding: 0;
+        }
+
+        .back-subtitle {
+            font-family: 'Poppins', 'DejaVu Sans', Arial, Helvetica, sans-serif;
+            font-size: 13.5pt;
+            font-weight: 400;
+            color: #000000;
+            margin-top: 2.2mm;
+            line-height: 1.2;
+        }
     </style>
 </head>
 <body>
@@ -220,55 +260,76 @@
         $qrLeft = $L['qr_right']['left'] ?? 196.4;
     @endphp
 
-    {{-- Background Template Image --}}
-    @if($templateBase64 ?? false)
-        <img class="bg-template" src="data:image/png;base64,{{ $templateBase64 }}" alt="Certificate Template">
-    @endif
-
-    <div class="overlay">
-
-        {{-- Serial Number --}}
-        <div class="f-serial" style="top: {{ $sTop }}mm; right: {{ $sRight }}mm; width: {{ $sWidth }}mm; font-size: {{ $sFs }}pt;">
-            Certificate Serial No. {{ $certificate->serial_number }}
-        </div>
-
-        {{-- Recipient Name --}}
-        <div class="f-name" style="top: {{ $nTop }}mm; font-size: {{ $nFs }}pt;">
-            {{ $user->name }}
-        </div>
-
-        {{-- Gold Ribbon Specialization Text --}}
-        <div class="f-ribbon" style="top: {{ $rTop }}mm; height: {{ $rH }}mm; line-height: {{ $rH }}mm; font-size: {{ $rFs }}pt;">
-            {{ $ribbonText }}
-        </div>
-
-        {{-- Level Value --}}
-        <div class="f-level" style="top: {{ $lTop }}mm; font-size: {{ $lFs }}pt;">
-            {{ $levelDisplay }}
-        </div>
-
-        {{-- Grade, Date, Place block --}}
-        <div class="f-meta-block" style="top: {{ $mTop }}mm; font-size: {{ $mFs }}pt;">
-            <div class="meta-line"><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
-            <div class="meta-line"><strong>Date of issue:</strong> {{ \Carbon\Carbon::parse($certificate->date_of_issue)->format('F j, Y') }}</div>
-            <div class="meta-line"><strong>Place of issue:</strong> {{ $certificate->place_of_issue ?? 'Jakarta' }}</div>
-        </div>
-
-        {{-- Left QR Code --}}
-        @if($qrImageBase64 ?? false)
-            <div class="f-qr-left f-qr-card" style="top: {{ $qlTop }}mm; left: {{ $qlLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
-                <img class="f-qr-img" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Left">
-            </div>
+    {{-- ==================== PAGE 1: FRONT ==================== --}}
+    <div class="cert-page cert-page-front">
+        {{-- Background Template Image --}}
+        @if($templateBase64 ?? false)
+            <img class="bg-template" src="data:image/png;base64,{{ $templateBase64 }}" alt="Certificate Template">
         @endif
 
-        {{-- Right QR Code --}}
-        @if($qrImageBase64 ?? false)
-            <div class="f-qr-right f-qr-card" style="top: {{ $qrTop }}mm; left: {{ $qrLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
-                <img class="f-qr-img" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Right">
-            </div>
-        @endif
+        <div class="overlay">
 
+            {{-- Serial Number --}}
+            <div class="f-serial" style="top: {{ $sTop }}mm; right: {{ $sRight }}mm; width: {{ $sWidth }}mm; font-size: {{ $sFs }}pt;">
+                Certificate Serial No. {{ $certificate->serial_number }}
+            </div>
+
+            {{-- Recipient Name --}}
+            <div class="f-name" style="top: {{ $nTop }}mm; font-size: {{ $nFs }}pt;">
+                {{ $user->name }}
+            </div>
+
+            {{-- Gold Ribbon Specialization Text --}}
+            <div class="f-ribbon" style="top: {{ $rTop }}mm; height: {{ $rH }}mm; line-height: {{ $rH }}mm; font-size: {{ $rFs }}pt;">
+                {{ $ribbonText }}
+            </div>
+
+            {{-- Level Value --}}
+            <div class="f-level" style="top: {{ $lTop }}mm; font-size: {{ $lFs }}pt;">
+                {{ $levelDisplay }}
+            </div>
+
+            {{-- Grade, Date, Place block --}}
+            <div class="f-meta-block" style="top: {{ $mTop }}mm; font-size: {{ $mFs }}pt;">
+                <div class="meta-line"><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
+                <div class="meta-line"><strong>Date of issue:</strong> {{ \Carbon\Carbon::parse($certificate->date_of_issue)->format('F j, Y') }}</div>
+                <div class="meta-line"><strong>Place of issue:</strong> {{ $certificate->place_of_issue ?? 'Jakarta' }}</div>
+            </div>
+
+            {{-- Left QR Code --}}
+            @if($qrImageBase64 ?? false)
+                <div class="f-qr-left f-qr-card" style="top: {{ $qlTop }}mm; left: {{ $qlLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
+                    <img class="f-qr-img" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Left">
+                </div>
+            @endif
+
+            {{-- Right QR Code --}}
+            @if($qrImageBase64 ?? false)
+                <div class="f-qr-right f-qr-card" style="top: {{ $qrTop }}mm; left: {{ $qrLeft }}mm; width: {{ $qSize }}mm; height: {{ $qSize }}mm;">
+                    <img class="f-qr-img" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Right">
+                </div>
+            @endif
+
+        </div>
     </div>
+
+    {{-- ==================== PAGE 2: BACK ==================== --}}
+    @if($templateBackBase64 ?? false)
+    <div class="cert-page cert-page-back">
+        <img class="bg-template" src="data:image/png;base64,{{ $templateBackBase64 }}" alt="Certificate Back Template">
+
+        <div class="overlay">
+            <div class="back-title-block">
+                @if($isFoundation)
+                    <div class="back-title">List of Competency Units of Certified Blue Economist (CBEc)</div>
+                    <div class="back-subtitle">Foundation Level</div>
+                @else
+                    <div class="back-title" style="margin-top: 3.5mm;">List of Competency Units of {{ $ribbonText }}</div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
 
 </body>
 </html>
