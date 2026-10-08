@@ -28,7 +28,7 @@ Route::prefix('v1')->group(function () {
     Route::get('certification-levels', function () {
         return response()->json(['data' => \App\Models\CertificationLevel::where('is_active', true)->orderBy('order_index')->get()]);
     });
-    Route::get('verify/{serialUrlKey}',[CertificateController::class, 'verify']); // Halaman verifikasi publik QR Code
+    Route::get('verify/{serialUrlKey?}', [CertificateController::class, 'verify'])->where('serialUrlKey', '.*'); // Halaman verifikasi publik QR Code / Serial
     Route::post('payments/notification',[PaymentController::class, 'handleNotification']); // Webhook Midtrans
 
     // ─── Protected Routes (All Authenticated Users) ───────────────────────────

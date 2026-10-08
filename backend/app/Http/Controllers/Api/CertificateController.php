@@ -68,13 +68,22 @@ class CertificateController extends Controller
         return $pdf->download($filename);
     }
 
-    /** PUBLIC: Verifikasi sertifikat via serial URL key (diakses dari QR Code) */
-    public function verify(string $serialUrlKey): JsonResponse
+    /** PUBLIC: Verifikasi sertifikat via serial URL key atau serial number */
+    public function verify(Request $request, ?string $serialUrlKey = null): JsonResponse
     {
+        $lookupKey = trim($serialUrlKey ?? $request->query('code', $request->query('serial', '')));
+
+        if (! $lookupKey) {
+            return response()->json([
+                'valid'   => false,
+                'message' => __('api.sertifikat_tidak_ditemukan_atau'),
+            ], 404);
+        }
+
         $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])
-            ->where(function ($q) use ($serialUrlKey) {
-                $q->where('serial_url_key', $serialUrlKey)
-                  ->orWhere('serial_number', $serialUrlKey);
+            ->where(function ($q) use ($lookupKey) {
+                $q->where('serial_url_key', $lookupKey)
+                  ->orWhere('serial_number', $lookupKey);
             })
             ->first();
 
