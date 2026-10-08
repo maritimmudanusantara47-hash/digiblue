@@ -62,8 +62,10 @@ class AdminCertificateController extends Controller
 
         // Generate serial number (atau pakai override dari admin)
         if (empty($validated['serial_number'])) {
-            $sequence = $this->certService->getNextSequence();
-            $serials  = $this->certService->generateSerialNumbers($sequence, new \DateTime($validated['date_of_issue']));
+            $dateObj  = new \DateTime($validated['date_of_issue']);
+            $year     = (int)$dateObj->format('Y');
+            $sequence = $this->certService->getNextSequence($year);
+            $serials  = $this->certService->generateSerialNumbers($sequence, $dateObj);
         } else {
             // Admin menginput nomor seri manual
             $baseKey  = preg_replace('/[^A-Z0-9]/', '', strtoupper($validated['serial_number']));
@@ -276,6 +278,23 @@ class AdminCertificateController extends Controller
                 'back_mime_type'    => 'image/png',
                 'width_mm'          => 297,
                 'height_mm'         => 210,
+            ],
+        ]);
+    }
+
+    /** Ambil nomor seri berikutnya yang diestimasi */
+    public function getNextSerial(Request $request): JsonResponse
+    {
+        $dateObj  = $request->query('date') ? new \DateTime($request->query('date')) : now();
+        $year     = (int)$dateObj->format('Y');
+        $sequence = $this->certService->getNextSequence($year);
+        $serials  = $this->certService->generateSerialNumbers($sequence, $dateObj);
+
+        return response()->json([
+            'data' => [
+                'next_sequence'       => $sequence,
+                'next_serial_number'  => $serials['serial_number'],
+                'next_serial_url_key' => $serials['serial_url_key'],
             ],
         ]);
     }

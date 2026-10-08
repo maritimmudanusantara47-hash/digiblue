@@ -32,19 +32,39 @@ class CertificateService
 
     /**
      * Dapatkan sequence berikutnya (nomor urut sertifikat selanjutnya)
+     * Memindai semua nomor seri yang ada di database untuk menemukan angka tertinggi
+     * di belakang tahun (contoh: 20260187 -> sequence 187 -> urutan selanjutnya 188 / 0188).
      */
-    public function getNextSequence(): int
+    public function getNextSequence(?int $year = null): int
     {
-        $last = Certificate::orderByDesc('id')->first();
+        $year = $year ?? (int)date('Y');
 
-        if (! $last) {
-            return 1;
+        $serials = Certificate::whereNotNull('serial_number')->pluck('serial_number');
+
+        $maxSeq = 0;
+
+        foreach ($serials as $sn) {
+            $sn = trim((string)$sn);
+            if (empty($sn)) {
+                continue;
+            }
+
+            // Pola 1: Mencari tahun diikuti separator opsional lalu angka urut, contoh: 20260187, 2026/0187, 2026-0187
+            if (preg_match('/' . $year . '[\/\-_]?(\d+)/', $sn, $matches)) {
+                $seqVal = (int)$matches[1];
+                if ($seqVal > $maxSeq) {
+                    $maxSeq = $seqVal;
+                }
+            } elseif (preg_match('/(\d{4})$/', $sn, $matches)) {
+                // Pola 2: Fallback 4 digit di akhir string jika tidak cocok dengan tahun spesifik
+                $seqVal = (int)$matches[1];
+                if ($seqVal > $maxSeq) {
+                    $maxSeq = $seqVal;
+                }
+            }
         }
 
-        // Extract 4-digit sequence dari ujung serial_number
-        preg_match('/(\d{4})$/', $last->serial_number, $matches);
-
-        return isset($matches[1]) ? ((int)$matches[1]) + 1 : 1;
+        return $maxSeq > 0 ? $maxSeq + 1 : 1;
     }
 
     /**

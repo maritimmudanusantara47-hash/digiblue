@@ -28,6 +28,7 @@ export default function AdminCertificatesPage() {
   const [showIssue, setShowIssue]         = useState(false);
   const [issuing, setIssuing]             = useState(false);
   const [issueError, setIssueError]       = useState('');
+  const [suggestedSerial, setSuggestedSerial] = useState('');
   const [enrollments, setEnrollments]     = useState<EnrollmentOption[]>([]);
   const [issueForm, setIssueForm]         = useState({
     enrollment_id: '',
@@ -87,6 +88,13 @@ export default function AdminCertificatesPage() {
       serial_number: '',
     });
     loadEnrollments();
+    api.get('/admin/certificates/next-serial')
+      .then(res => {
+        if (res.data?.data?.next_serial_number) {
+          setSuggestedSerial(res.data.data.next_serial_number);
+        }
+      })
+      .catch(() => {});
     setShowIssue(true);
   };
 
@@ -488,11 +496,16 @@ export default function AdminCertificatesPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder={t('placeholder_serial')}
+                  placeholder={suggestedSerial || t('placeholder_serial')}
                   value={issueForm.serial_number}
                   onChange={e => setIssueForm(f => ({ ...f, serial_number: e.target.value }))}
                   className="form-input text-sm font-mono"
                 />
+                {suggestedSerial && (
+                  <p className="text-[11px] text-slate-400">
+                    Nomor urut berikutnya otomatis: <strong className="font-mono text-blue-600">{suggestedSerial}</strong> (kosongkan kolom ini jika ingin menggunakan urutan otomatis).
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100">

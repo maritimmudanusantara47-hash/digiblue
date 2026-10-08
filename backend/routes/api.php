@@ -115,6 +115,7 @@ Route::prefix('v1')->group(function () {
 
             // Certificate Management
             Route::get('certificates',                   [AdminCertificateController::class, 'index']);
+            Route::get('certificates/next-serial',       [AdminCertificateController::class, 'getNextSerial']); // Ambil estimasi serial berikutnya
             Route::post('certificates',                  [AdminCertificateController::class, 'issue']);        // Terbitkan sertifikat
             Route::patch('certificates/{id}',            [AdminCertificateController::class, 'update']);       // Override nomor seri
             Route::post('certificates/{id}/sync',        [AdminCertificateController::class, 'syncToTBE']);    // Push ke The Blue Economist

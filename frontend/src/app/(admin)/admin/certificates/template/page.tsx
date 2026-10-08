@@ -649,7 +649,26 @@ export default function CertificateTemplateAdminPage() {
                 <div className="px-4 pb-4 space-y-3">
                   {/* Nomor Seri */}
                   <div>
-                    <label className="text-[11px] text-slate-500 block mb-1">Nomor Seri</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] text-slate-500">Nomor Seri</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const match = sample.serial.match(/(20\d{2}[\/\-_]?)(\d+)/);
+                          if (match) {
+                            const prefix = match[1];
+                            const numStr = match[2];
+                            const nextNum = (parseInt(numStr, 10) + 1).toString().padStart(numStr.length, '0');
+                            const nextSerial = sample.serial.replace(`${prefix}${numStr}`, `${prefix}${nextNum}`);
+                            setSample({ ...sample, serial: nextSerial });
+                          }
+                        }}
+                        className="text-[10px] text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer flex items-center gap-1"
+                        title="Klik untuk menaikkan nomor urut berikutnya (+1)"
+                      >
+                        +1 Urutan Selanjutnya
+                      </button>
+                    </div>
                     <input
                       type="text"
                       value={sample.serial}
