@@ -20,7 +20,7 @@ export default function PublicLayoutWrapper({
     pathname.startsWith('/register') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/reset-password') ||
-    pathname.startsWith('/verify');
+    (pathname.startsWith('/verify/') && pathname !== '/verify');
 
   if (isDashboardOrAuth) {
     return <>{children}</>;

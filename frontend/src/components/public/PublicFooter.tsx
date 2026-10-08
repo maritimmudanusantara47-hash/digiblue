@@ -52,12 +52,12 @@ export default function PublicFooter() {
         </svg>
       </div>
 
-      {/* Top Pre-Footer Banner: Wawasan Maritim & Beasiswa Newsletter */}
-      <div className="relative z-10 border-b border-slate-100 bg-gradient-to-r from-sky-50/70 via-white to-slate-50/70 py-10">
+      {/* Top Pre-Footer Banner: Wawasan Maritim & Beasiswa Newsletter (Stitch Screenshot 113621) */}
+      <div className="relative z-10 py-10">
         <div className="container">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 bg-white/90 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-sky-100/80 shadow-xs">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
             <div className="max-w-xl text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100/70 text-sky-800 text-xs font-semibold mb-2.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-semibold mb-2.5 border border-sky-100">
                 <Icon name="water-drop-1" size={13} className="text-sky-600" />
                 <span>{t('footer_newsletter_badge')}</span>
               </div>
@@ -71,23 +71,25 @@ export default function PublicFooter() {
 
             <div className="w-full lg:w-auto shrink-0">
               {subscribed ? (
-                <div className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold animate-fadeup">
-                  <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">✓</span>
+                <div className="flex items-center gap-2.5 px-6 py-3 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold animate-fadeup">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <Icon name="check" size={12} />
+                  </span>
                   <span>{t('footer_newsletter_success')}</span>
                 </div>
               ) : (
-                <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-[420px]">
+                <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-[460px]">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t('footer_newsletter_placeholder')}
                     required
-                    className="flex-1 px-4 py-3 rounded-xl text-sm border border-slate-200 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all shadow-xs"
+                    className="flex-1 px-5 py-3 rounded-full text-sm border border-slate-200 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all shadow-xs"
                   />
                   <button
                     type="submit"
-                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-navy hover:bg-navy-dark transition-all flex items-center justify-center gap-2 shadow-sm shadow-navy/20 shrink-0 cursor-pointer"
+                    className="px-7 py-3 rounded-full text-sm font-bold text-white bg-[#1A3358] hover:bg-[#0E2038] transition-all flex items-center justify-center gap-2 shadow-sm shrink-0 cursor-pointer"
                   >
                     <span>{t('footer_newsletter_btn')}</span>
                     <Icon name="arrow-right" size={14} />
@@ -102,8 +104,8 @@ export default function PublicFooter() {
       {/* Main Footer Grid */}
       <div className="container relative z-10 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12 pb-12">
-          {/* Column 1: Brand & Credentials (span 4) */}
-          <div className="lg:col-span-4 flex flex-col justify-between">
+          {/* Column 1: Brand & Credentials (span 5) */}
+          <div className="lg:col-span-5 md:col-span-2 flex flex-col justify-between">
             <div>
               {/* Crest & Identity */}
               <Link href="/" className="inline-flex items-center gap-3 group mb-4">
@@ -120,24 +122,23 @@ export default function PublicFooter() {
                 </div>
               </Link>
 
-              <p className="text-slate-600 text-sm leading-relaxed mb-4">
+              <p className="text-slate-600 text-sm leading-relaxed mb-4 max-w-md">
                 {t.rich('footer_brand_desc', { navy: (chunks) => <strong className="text-navy">{chunks}</strong> })}
               </p>
             </div>
 
             {/* Sekretariat / Office Address */}
-            <div className="pt-2 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+            <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1">
               <p className="font-semibold text-slate-700">{t('footer_office_title')}</p>
               <p>Indonesia Blue Economy Center (IBEC)</p>
               <p>Campus C, STIE Indonesia Jakarta</p>
-              <p>Jalan Pratekan No. 9A, Rawamangun</p>
-              <p>Jakarta, Indonesia 13220</p>
-              <p className="text-slate-400 pt-0.5">Koordinat: 6°11'47&apos;S 106°52'55&apos;E • Zona DKI Jakarta</p>
+              <p>Jalan Pratekan No. 9A, Rawamangun, Jakarta 13220</p>
+              <p className="text-slate-400 pt-0.5">{t('footer_coord')}</p>
             </div>
           </div>
 
           {/* Column 2: Program & Sertifikasi (span 3) */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 md:col-span-1">
             <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
               <Icon name="graduation-cap-1" size={16} className="text-sky-600" />
               <span>{t('footer_nav_cert')}</span>
@@ -146,105 +147,84 @@ export default function PublicFooter() {
               <li>
                 <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>{t('hero_card_level')}</span>
+                  <span>{t('footer_nav_cbec')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Blue Carbon Specialist</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/courses?track=INT_CERT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
-                  <span className="text-xs text-slate-300">›</span>
-                  <span>Sustainable Ocean Finance</span>
+                  <span>{t('footer_nav_spec')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/courses?track=NAT" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>National Maritime Training</span>
+                  <span>{t('footer_nav_nat')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/courses?track=SGL" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
                   <span className="text-xs text-slate-300">›</span>
-                  <span>Single Modul Mandiri</span>
+                  <span>{t('footer_nav_sgl')}</span>
+                </Link>
+              </li>
+              <li className="pt-1.5 border-t border-slate-100">
+                <Link
+                  href="/verify"
+                  className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5 font-medium text-navy-dark group text-xs sm:text-sm"
+                >
+                  <Icon name="shield-2-check" size={15} className="text-emerald-600 group-hover:scale-110 transition-transform shrink-0" />
+                  <span>{t('footer_nav_verify')}</span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: Ekosistem & Riset (span 2) */}
-          <div className="lg:col-span-2">
+          {/* Column 3: Layanan & Bantuan (span 4) */}
+          <div className="lg:col-span-4 md:col-span-1">
             <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
-              <Icon name="book-1" size={16} className="text-sky-600" />
-              <span>{t('footer_nav_eco')}</span>
-            </h4>
-            <ul className="flex flex-col gap-2.5 text-sm text-slate-600">
-              <li>
-                <Link href="/#harga" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
-                  <span className="text-xs text-slate-300">›</span>
-                  <span>{t('footer_nav_eco_1')}</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/#sertifikat" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
-                  <span className="text-xs text-slate-300">›</span>
-                  <span>{t('footer_nav_eco_2')}</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/#faq" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
-                  <span className="text-xs text-slate-300">›</span>
-                  <span>{t('footer_nav_eco_3')}</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/#faq" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
-                  <span className="text-xs text-slate-300">›</span>
-                  <span>{t('footer_nav_eco_4')}</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/#tentang" className="hover:text-sky-600 hover:translate-x-0.5 transition-all inline-flex items-center gap-1.5">
-                  <span className="text-xs text-slate-300">›</span>
-                  <span>{t('footer_nav_eco_5')}</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Koneksi & Bantuan Konsultasi (span 3) */}
-          <div className="lg:col-span-3">
-            <h4 className="font-bold text-navy-dark text-sm mb-4 tracking-tight font-heading flex items-center gap-2">
-              <Icon name="headphone" size={16} className="text-sky-600" />
               <span>{t('footer_nav_contact')}</span>
             </h4>
 
-            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+            <p className="text-xs text-slate-500 mb-3.5 leading-relaxed">
               {t('footer_nav_contact_desc')}
             </p>
 
             {/* Direct Contact Pills */}
-            <div className="space-y-2 mb-6 text-xs">
+            <div className="space-y-2 mb-4 text-xs">
               <a
                 href="mailto:halo@digibluecamp.id"
                 className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200/80 transition-colors"
               >
-                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-sky-600 shrink-0">@</span>
-                <span className="truncate">halo@digibluecamp.id</span>
+                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-sky-600 shrink-0">
+                  <Icon name="envelope-1" size={14} />
+                </span>
+                <span className="truncate font-medium">halo@digibluecamp.id</span>
               </a>
               <a
-                href="https://wa.me/6281210106680"
+                href="https://wa.me/6285710914949"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200/80 transition-colors"
               >
-                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-emerald-600 shrink-0">💬</span>
-                <span>WhatsApp (+6285710914949)</span>
+                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-emerald-600 shrink-0">
+                  <Icon name="whatsapp" size={14} />
+                </span>
+                <span className="font-medium">WhatsApp (+6285710914949)</span>
               </a>
+            </div>
+
+            {/* Quick Informational Links: Help Center & About Us */}
+            <div className="flex items-center gap-3 text-xs font-medium text-slate-600 mb-5 pb-3 border-b border-slate-100">
+              <Link href="/help" className="hover:text-sky-600 inline-flex items-center gap-1.5 transition-colors">
+                <Icon name="question-mark-circle" size={14} className="text-sky-600" />
+                <span>{t('footer_nav_help')}</span>
+              </Link>
+              <span className="text-slate-300">•</span>
+              <Link href="/about" className="hover:text-sky-600 inline-flex items-center gap-1.5 transition-colors">
+                <Icon name="buildings-1" size={14} className="text-sky-600" />
+                <span>{t('footer_nav_about')}</span>
+              </Link>
             </div>
 
             {/* Social Media Channels with Premium Tooltips */}
@@ -332,12 +312,12 @@ export default function PublicFooter() {
             <span>{t('footer_supported')}</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-600 font-medium">
-            <Link href="/#terms" className="hover:text-navy-dark transition-colors">
+          <div className="flex items-center gap-3.5 text-slate-600 font-medium flex-wrap">
+            <Link href="/terms" className="hover:text-navy-dark transition-colors">
               {t('footer_terms')}
             </Link>
             <span className="text-slate-300">|</span>
-            <Link href="/#privacy" className="hover:text-navy-dark transition-colors">
+            <Link href="/privacy" className="hover:text-navy-dark transition-colors">
               {t('footer_privacy')}
             </Link>
           </div>

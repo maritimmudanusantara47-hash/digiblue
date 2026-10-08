@@ -143,7 +143,7 @@ export default function CourseSyllabusDetailPage() {
               {totalSections} Modul Silabus
             </span>
             <span className="text-xs text-white/70 flex items-center gap-1">
-              <Icon name="book-open" size={14} className="text-gold" />
+              <Icon name="book-1" size={14} className="text-gold" />
               {totalContents} Materi & Asesmen
             </span>
           </div>
@@ -164,7 +164,7 @@ export default function CourseSyllabusDetailPage() {
               Sertifikat Terverifikasi
             </span>
             <span className="flex items-center gap-1.5">
-              <Icon name="timer" size={16} className="text-gold" />
+              <Icon name="stopwatch" size={16} className="text-gold" />
               Akses Pembelajaran Fleksibel
             </span>
           </div>

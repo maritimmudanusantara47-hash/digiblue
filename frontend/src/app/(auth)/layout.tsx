@@ -52,7 +52,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right Panel — Form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-slate-50">
+      <div className="flex-1 flex items-center justify-center p-6 bg-slate-50 relative">
         <div className="w-full max-w-[420px]">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">

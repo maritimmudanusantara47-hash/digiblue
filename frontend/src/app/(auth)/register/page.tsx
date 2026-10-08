@@ -201,7 +201,7 @@ function RegisterFormContent() {
       {redirect && (
         <div className="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-4 py-3 rounded-xl mb-6 flex items-center gap-2.5">
           <Icon
-            name="information"
+            name="info"
             size={16}
             className="text-sky-600 shrink-0"
           />
@@ -369,9 +369,9 @@ function RegisterFormContent() {
           id="reg-submit"
           type="submit"
           disabled={isSubmitting}
-          className="btn btn-primary btn-lg w-full mt-1"
+          className="w-full h-12 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-[#0f2b48] font-bold text-sm rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer font-heading disabled:opacity-50 mt-1"
         >
-          {isSubmitting ? t("btn_registering") : t("btn_register")}
+          {isSubmitting ? t('btn_registering') : t('btn_register')}
         </button>
       </form>
 
