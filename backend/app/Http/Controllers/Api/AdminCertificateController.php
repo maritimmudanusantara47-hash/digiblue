@@ -198,6 +198,7 @@ class AdminCertificateController extends Controller
             'meta_block'     => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
             'qr_left'        => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
             'qr_right'       => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
+            'back_title'     => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
         ];
     }
 
@@ -242,12 +243,19 @@ class AdminCertificateController extends Controller
         $extension = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));
         $mimeType  = ($extension === 'jpg' || $extension === 'jpeg') ? 'image/jpeg' : 'image/png';
 
+        $templateBackPath = resource_path('images/template_back.png');
+        $backBase64 = file_exists($templateBackPath)
+            ? base64_encode(file_get_contents($templateBackPath))
+            : null;
+
         return response()->json([
             'data' => [
-                'base64'    => base64_encode(file_get_contents($templatePath)),
-                'mime_type' => $mimeType,
-                'width_mm'  => 297,
-                'height_mm' => 210,
+                'base64'         => base64_encode(file_get_contents($templatePath)),
+                'mime_type'      => $mimeType,
+                'back_base64'    => $backBase64,
+                'back_mime_type' => 'image/png',
+                'width_mm'       => 297,
+                'height_mm'      => 210,
             ],
         ]);
     }

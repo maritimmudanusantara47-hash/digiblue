@@ -258,6 +258,9 @@
 
         $qrTop  = $L['qr_right']['top'] ?? 147.5;
         $qrLeft = $L['qr_right']['left'] ?? 196.4;
+
+        $btTop = $L['back_title']['top'] ?? 20.0;
+        $btFs  = $L['back_title']['font_size'] ?? 15.0;
     @endphp
 
     {{-- ==================== PAGE 1: FRONT ==================== --}}
@@ -319,12 +322,12 @@
         <img class="bg-template" src="data:image/png;base64,{{ $templateBackBase64 }}" alt="Certificate Back Template">
 
         <div class="overlay">
-            <div class="back-title-block">
+            <div class="back-title-block" style="top: {{ $btTop }}mm;">
                 @if($isFoundation)
-                    <div class="back-title">List of Competency Units of Certified Blue Economist (CBEc)</div>
-                    <div class="back-subtitle">Foundation Level</div>
+                    <div class="back-title" style="font-size: {{ $btFs }}pt;">List of Competency Units of Certified Blue Economist (CBEc)</div>
+                    <div class="back-subtitle" style="font-size: {{ max(10, $btFs - 2.0) }}pt;">Foundation Level</div>
                 @else
-                    <div class="back-title" style="margin-top: 3.5mm;">List of Competency Units of {{ $ribbonText }}</div>
+                    <div class="back-title" style="margin-top: 3.5mm; font-size: {{ $btFs }}pt;">List of Competency Units of {{ $ribbonText }}</div>
                 @endif
             </div>
         </div>

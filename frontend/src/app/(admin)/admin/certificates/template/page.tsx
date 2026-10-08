@@ -44,6 +44,7 @@ const DEFAULT_LAYOUT: LayoutState = {
   meta_block: { top: 138.0, font_size: 10.5, label: 'Grade, Tanggal & Tempat' },
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
+  back_title: { top: 20.0, font_size: 15.0, label: 'Judul Halaman Belakang' },
 };
 
 const PRESETS = {
@@ -57,7 +58,7 @@ const CANVAS_H = Math.round(CANVAS_W * (210 / 297)); // ~622px
 const SCALE = CANVAS_W / 297;
 const mmToPx = (mm: number) => mm * SCALE;
 
-const FIELD_LIST = [
+const FIELD_LIST_FRONT = [
   { key: 'recipient_name', label: 'Nama Peserta' },
   { key: 'ribbon_text', label: 'Teks Ribbon' },
   { key: 'serial_no', label: 'Nomor Seri' },
@@ -67,9 +68,15 @@ const FIELD_LIST = [
   { key: 'qr_right', label: 'QR Kanan' },
 ];
 
+const FIELD_LIST_BACK = [
+  { key: 'back_title', label: 'Judul Halaman Belakang' },
+];
+
 export default function CertificateTemplateAdminPage() {
   const [layout, setLayout] = useState<LayoutState>(DEFAULT_LAYOUT);
   const [templateImg, setTemplateImg] = useState<string | null>(null);
+  const [templateBackImg, setTemplateBackImg] = useState<string | null>(null);
+  const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
   const [selectedKey, setSelectedKey] = useState('recipient_name');
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -93,8 +100,9 @@ export default function CertificateTemplateAdminPage() {
     }).catch(() => { });
 
     api.get('/admin/certificates/template/image').then(res => {
-      const { base64, mime_type } = res.data.data;
-      setTemplateImg(`data:${mime_type};base64,${base64}`);
+      const { base64, mime_type, back_base64, back_mime_type } = res.data.data;
+      if (base64) setTemplateImg(`data:${mime_type};base64,${base64}`);
+      if (back_base64) setTemplateBackImg(`data:${back_mime_type || 'image/png'};base64,${back_base64}`);
     }).catch(() => { });
   }, []);
 
@@ -201,6 +209,24 @@ export default function CertificateTemplateAdminPage() {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Page side toggle */}
+          <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 gap-0.5">
+            <button
+              type="button"
+              onClick={() => { setActiveSide('front'); setSelectedKey('recipient_name'); }}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${activeSide === 'front' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-slate-400 hover:text-white'}`}
+            >
+              Halaman Depan
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveSide('back'); setSelectedKey('back_title'); }}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${activeSide === 'back' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-slate-400 hover:text-white'}`}
+            >
+              Halaman Belakang
+            </button>
+          </div>
+
           {/* Preview sample toggle */}
           <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 gap-0.5">
             <button onClick={() => setSample(PRESETS.nabila)} className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.name.includes('Nabila') ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}>
@@ -284,79 +310,121 @@ export default function CertificateTemplateAdminPage() {
                 left: 0,
               }}
             >
-              {templateImg
-                ? <img src={templateImg} alt="Template" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template...</div>
-              }
+              {activeSide === 'front' ? (
+                <>
+                  {/* FRONT TEMPLATE */}
+                  {templateImg
+                    ? <img src={templateImg} alt="Template" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                    : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template depan...</div>
+                  }
 
-              {/* Serial Number */}
-              <div
-                onClick={() => { setSelectedKey('serial_no'); setEditMode(true); setMobilePanelOpen(true); }}
-                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'serial_no' ? 'ring-2 ring-blue-500 bg-blue-50/70 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 16.5), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: 'transparent', fontSize: `${(layout.serial_no?.font_size ?? 11) * (SCALE / 3.4)}px`, fontFamily: "'Poppins', sans-serif", color: '#111827', textAlign: 'right', zIndex: 10 }}
-              >
-                Certificate Serial No. {sample.serial}
-              </div>
+                  {/* Serial Number */}
+                  <div
+                    onClick={() => { setSelectedKey('serial_no'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'serial_no' ? 'ring-2 ring-blue-500 bg-blue-50/70 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 16.5), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: 'transparent', fontSize: `${(layout.serial_no?.font_size ?? 11) * (SCALE / 3.4)}px`, fontFamily: "'Poppins', sans-serif", color: '#111827', textAlign: 'right', zIndex: 10 }}
+                  >
+                    Certificate Serial No. {sample.serial}
+                  </div>
 
-              {/* Recipient Name */}
-              <div
-                onClick={() => { setSelectedKey('recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
-                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.recipient_name?.top ?? 69.5), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 32.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
-              >
-                {sample.name}
-              </div>
+                  {/* Recipient Name */}
+                  <div
+                    onClick={() => { setSelectedKey('recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{ top: mmToPx(layout.recipient_name?.top ?? 69.5), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 32.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                  >
+                    {sample.name}
+                  </div>
 
-              {/* Ribbon Text */}
-              <div
-                onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
-                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
-              >
-                {sample.ribbon}
-              </div>
+                  {/* Ribbon Text */}
+                  <div
+                    onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                  >
+                    {sample.ribbon}
+                  </div>
 
-              {/* Level */}
-              <div
-                onClick={() => { setSelectedKey('level_value'); setEditMode(true); setMobilePanelOpen(true); }}
-                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'level_value' ? 'ring-2 ring-blue-500 bg-blue-50/30 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
-              >
-                {sample.level}
-              </div>
+                  {/* Level */}
+                  <div
+                    onClick={() => { setSelectedKey('level_value'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'level_value' ? 'ring-2 ring-blue-500 bg-blue-50/30 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                  >
+                    {sample.level}
+                  </div>
 
-              {/* Meta Block */}
-              <div
-                onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
-                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 11.5) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
-              >
-                <div><strong>Grade:</strong> {sample.grade}</div>
-                <div><strong>Date of issue:</strong> {sample.date}</div>
-                <div><strong>Place of issue:</strong> {sample.place}</div>
-              </div>
+                  {/* Meta Block */}
+                  <div
+                    onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 11.5) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                  >
+                    <div><strong>Grade:</strong> {sample.grade}</div>
+                    <div><strong>Date of issue:</strong> {sample.date}</div>
+                    <div><strong>Place of issue:</strong> {sample.place}</div>
+                  </div>
 
-              {/* QR Left */}
-              <div
-                onClick={() => { setSelectedKey('qr_left'); setEditMode(true); setMobilePanelOpen(true); }}
-                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_left' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.qr_left?.top ?? 147.5), left: mmToPx(layout.qr_left?.left ?? 67), width: mmToPx(layout.qr_left?.size ?? 26), height: mmToPx(layout.qr_left?.size ?? 26), zIndex: 10 }}
-              >
-                <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
-                  <Ico.QR />
-                </div>
-              </div>
+                  {/* QR Left */}
+                  <div
+                    onClick={() => { setSelectedKey('qr_left'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_left' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{ top: mmToPx(layout.qr_left?.top ?? 147.5), left: mmToPx(layout.qr_left?.left ?? 67), width: mmToPx(layout.qr_left?.size ?? 26), height: mmToPx(layout.qr_left?.size ?? 26), zIndex: 10 }}
+                  >
+                    <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
+                      <Ico.QR />
+                    </div>
+                  </div>
 
-              {/* QR Right */}
-              <div
-                onClick={() => { setSelectedKey('qr_right'); setEditMode(true); setMobilePanelOpen(true); }}
-                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_right' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                style={{ top: mmToPx(layout.qr_right?.top ?? 147.5), left: mmToPx(layout.qr_right?.left ?? 196.4), width: mmToPx(layout.qr_right?.size ?? 26), height: mmToPx(layout.qr_right?.size ?? 26), zIndex: 10 }}
-              >
-                <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
-                  <Ico.QR />
-                </div>
-              </div>
+                  {/* QR Right */}
+                  <div
+                    onClick={() => { setSelectedKey('qr_right'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_right' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{ top: mmToPx(layout.qr_right?.top ?? 147.5), left: mmToPx(layout.qr_right?.left ?? 196.4), width: mmToPx(layout.qr_right?.size ?? 26), height: mmToPx(layout.qr_right?.size ?? 26), zIndex: 10 }}
+                  >
+                    <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
+                      <Ico.QR />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* BACK TEMPLATE */}
+                  {templateBackImg
+                    ? <img src={templateBackImg} alt="Template Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                    : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>
+                  }
+
+                  {/* Back Side Title Block */}
+                  <div
+                    onClick={() => { setSelectedKey('back_title'); setEditMode(true); setMobilePanelOpen(true); }}
+                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'back_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded p-1.5' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                    style={{
+                      top: mmToPx(layout.back_title?.top ?? 20.0),
+                      left: mmToPx(20),
+                      right: mmToPx(20),
+                      textAlign: 'center',
+                      fontFamily: "'Poppins', sans-serif",
+                      zIndex: 10,
+                    }}
+                  >
+                    {sample.name.includes('Budi') ? (
+                      <>
+                        <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25 }}>
+                          List of Competency Units of Certified Blue Economist (CBEc)
+                        </div>
+                        <div style={{ fontSize: `${Math.max(10, (layout.back_title?.font_size ?? 15.0) - 2.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', marginTop: `${mmToPx(2.2)}px`, lineHeight: 1.2 }}>
+                          Foundation Level
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25, marginTop: `${mmToPx(3.5)}px` }}>
+                        List of Competency Units of {sample.ribbon}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -441,6 +509,15 @@ export default function CertificateTemplateAdminPage() {
 
           <div className="flex-1 overflow-y-auto divide-y divide-slate-800">
 
+            {activeSide === 'back' && (
+              <div className="p-3 bg-indigo-950/40 border-b border-indigo-800/40 text-[11px] text-indigo-200">
+                <div className="font-semibold text-indigo-300 flex items-center gap-1.5 mb-1">
+                  <Ico.Info /> Desain Halaman Belakang
+                </div>
+                Template background unit kompetensi resmi konsorsium. Judul di atas tabel dirender dinamis dengan font <strong>Poppins</strong> sesuai program.
+              </div>
+            )}
+
             {/* Section: Field Selector */}
             <div>
               <button onClick={() => setOpenSection(openSection === 'fields' ? null : 'fields')}
@@ -451,7 +528,7 @@ export default function CertificateTemplateAdminPage() {
 
               {openSection === 'fields' && (
                 <div className="px-3 pb-3 space-y-1">
-                  {FIELD_LIST.map(({ key, label }) => (
+                  {(activeSide === 'front' ? FIELD_LIST_FRONT : FIELD_LIST_BACK).map(({ key, label }) => (
                     <button key={key} onClick={() => { setSelectedKey(key); setEditMode(true); }}
                       className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${selectedKey === key ? 'bg-blue-600/25 text-blue-200 border border-blue-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
                       {label}
@@ -471,7 +548,7 @@ export default function CertificateTemplateAdminPage() {
                     {['recipient_name', 'ribbon_text'].includes(selectedKey) && (
                       <span className="text-[10px] text-amber-300 bg-amber-950/60 border border-amber-800/60 px-2 py-0.5 rounded font-medium">Arial MT Pro</span>
                     )}
-                    {['serial_no', 'level_value', 'meta_block'].includes(selectedKey) && (
+                    {['serial_no', 'level_value', 'meta_block', 'back_title'].includes(selectedKey) && (
                       <span className="text-[10px] text-sky-300 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded font-medium">Poppins</span>
                     )}
                     <span className="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded font-mono">mm</span>
