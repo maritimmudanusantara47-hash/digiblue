@@ -647,6 +647,18 @@ export default function CertificateTemplateAdminPage() {
 
               {openSection === 'preview' && (
                 <div className="px-4 pb-4 space-y-3">
+                  {/* Nomor Seri */}
+                  <div>
+                    <label className="text-[11px] text-slate-500 block mb-1">Nomor Seri</label>
+                    <input
+                      type="text"
+                      value={sample.serial}
+                      onChange={e => setSample({ ...sample, serial: e.target.value })}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
+                      placeholder="Contoh: CBEC/ID/X/20260001"
+                    />
+                  </div>
+
                   {/* Nama Peserta */}
                   <div>
                     <label className="text-[11px] text-slate-500 block mb-1">Nama Peserta</label>
