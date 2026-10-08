@@ -48,8 +48,8 @@ const DEFAULT_LAYOUT: LayoutState = {
 };
 
 const PRESETS = {
-  nabila: { name: 'Nabila Azzahro Widodo', serial: 'CBEC/BCB/ID/IX/20260022', ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)', level: 'Blue Carbon Specialization', grade: 'Excellent', date: 'September 21, 2026', place: 'Jakarta' },
-  budi: { name: 'Budi Santoso', serial: 'CBEC/ID/III/20260102', ribbon: 'Certified Blue Economist (CBEc)', level: 'Foundation Level', grade: 'Excellent', date: 'October 2, 2026', place: 'Jakarta, Indonesia' },
+  nabila: { name: 'Nabila Azzahro Widodo', serial: 'CBEC/ID/IX/20260187', ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)', level: 'Blue Carbon Specialization', grade: 'Excellent', date: 'September 21, 2026', place: 'Jakarta' },
+  budi: { name: 'Budi Santoso', serial: 'CBEC/ID/IX/20260187', ribbon: 'Certified Blue Economist (CBEc)', level: 'Foundation Level', grade: 'Excellent', date: 'October 2, 2026', place: 'Jakarta, Indonesia' },
 };
 
 // Ukuran virtual canvas A4 Landscape (297 × 210 mm)
@@ -655,7 +655,7 @@ export default function CertificateTemplateAdminPage() {
                       value={sample.serial}
                       onChange={e => setSample({ ...sample, serial: e.target.value })}
                       className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
-                      placeholder="Contoh: CBEC/ID/X/20260001"
+                      placeholder="Contoh: CBEC/ID/IX/20260187"
                     />
                   </div>
 
