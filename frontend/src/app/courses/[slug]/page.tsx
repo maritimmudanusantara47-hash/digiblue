@@ -143,7 +143,7 @@ export default function PublicCourseDetailPage() {
                         {totalSections} Modul Silabus
                       </span>
                       <span className="text-xs text-white/80 flex items-center gap-1 font-mono">
-                        <Icon name="book-open" size={14} className="text-amber-400" />
+                        <Icon name="book-1" size={14} className="text-amber-400" />
                         {totalContents} Materi & Asesmen
                       </span>
                     </div>
@@ -177,7 +177,7 @@ export default function PublicCourseDetailPage() {
                     { id: 'syllabus', label: 'Silabus & Modul', icon: 'layers-1' },
                     { id: 'overview', label: 'Capaian Pembelajaran', icon: 'check-circle-1' },
                     { id: 'cert', label: 'Sertifikat CBEc', icon: 'certificate-badge-1' },
-                    { id: 'instructor', label: 'Instruktur & Asesor', icon: 'user-circle' },
+                    { id: 'instructor', label: 'Instruktur & Asesor', icon: 'user-4' },
                   ].map((tab) => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -295,7 +295,7 @@ export default function PublicCourseDetailPage() {
                                                 </div>
                                               </div>
                                               <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 font-mono">
-                                                <Icon name="lock" size={12} />
+                                                <Icon name="locked-1" size={12} />
                                                 Terkunci
                                               </span>
                                             </div>
@@ -326,7 +326,9 @@ export default function PublicCourseDetailPage() {
                             'Mendapatkan sertifikat resmi dengan kode verifikasi internasional',
                           ].map((comp, i) => (
                             <div key={i} className="flex items-start gap-3 p-4 rounded-2xl bg-sky-50/50 border border-sky-100">
-                              <span className="w-5 h-5 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs shrink-0 mt-0.5">✓</span>
+                              <span className="w-5 h-5 rounded-full bg-sky-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                                <Icon name="check" size={11} />
+                              </span>
                               <span className="text-xs sm:text-sm text-slate-700 leading-relaxed">{comp}</span>
                             </div>
                           ))}

@@ -288,7 +288,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t border-slate-100 text-xs">
                   <div className="flex items-center gap-2 text-slate-600">
-                    <Icon name="book-open" size={16} className="text-navy" />
+                    <Icon name="book-1" size={16} className="text-navy" />
                     <span>{course.sections_count ?? 1} Bagian Materi</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
@@ -296,7 +296,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
                     <span>e-Sertifikat QR Code</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
-                    <Icon name="timer" size={16} className="text-amber-600" />
+                    <Icon name="stopwatch" size={16} className="text-amber-600" />
                     <span>Akses Selamanya</span>
                   </div>
                 </div>
@@ -306,7 +306,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
             {/* Data Diri Peserta */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
               <h2 className="text-sm font-bold text-navy-dark uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Icon name="user-1" size={16} className="text-navy" />
+                <Icon name="user-4" size={16} className="text-navy" />
                 Data Diri Peserta Terdaftar
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">

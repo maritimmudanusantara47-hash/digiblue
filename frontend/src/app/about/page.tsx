@@ -21,13 +21,13 @@ export default function AboutPage() {
       color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     },
     {
-      icon: 'ship-2',
+      icon: 'ship-1',
       title: t('p3_title'),
       desc: t('p3_desc'),
       color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     },
     {
-      icon: 'users-social',
+      icon: 'user-multiple-4',
       title: t('p4_title'),
       desc: t('p4_desc'),
       color: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -78,7 +78,7 @@ export default function AboutPage() {
       name: 'Indonesia Blue Economy Center (IBEC)',
       tag: t('ent3_tag'),
       desc: t('ent3_desc'),
-      icon: 'building-1',
+      icon: 'buildings-1',
     },
   ];
 

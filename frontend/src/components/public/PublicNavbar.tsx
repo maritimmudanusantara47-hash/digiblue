@@ -113,7 +113,7 @@ export default function PublicNavbar() {
                 href={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
                 className="px-5 py-2 rounded-full text-xs font-bold tracking-wide uppercase bg-[#00162d] text-white hover:bg-[#0f2b48] transition-colors shadow-xs flex items-center gap-2"
               >
-                <Icon name="user-circle" size={15} />
+                <Icon name="user-4" size={15} />
                 <span>{t('nav_dashboard')} {user?.name ? `(${user.name.split(' ')[0]})` : ''}</span>
               </Link>
             ) : (
@@ -200,7 +200,7 @@ export default function PublicNavbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full px-4 py-3 rounded-xl text-xs font-bold uppercase bg-[#00162d] text-white hover:bg-[#0f2b48] transition-colors flex items-center justify-center gap-2 shadow-xs"
                 >
-                  <Icon name="user-circle" size={15} />
+                  <Icon name="user-4" size={15} />
                   <span>{t('nav_dashboard')} {user?.name ? `(${user.name.split(' ')[0]})` : ''}</span>
                 </Link>
               ) : (

@@ -72,7 +72,9 @@ export default function PublicFooter() {
             <div className="w-full lg:w-auto shrink-0">
               {subscribed ? (
                 <div className="flex items-center gap-2.5 px-6 py-3 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold animate-fadeup">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">✓</span>
+                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <Icon name="check" size={12} />
+                  </span>
                   <span>{t('footer_newsletter_success')}</span>
                 </div>
               ) : (
@@ -194,7 +196,9 @@ export default function PublicFooter() {
                 href="mailto:halo@digibluecamp.id"
                 className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200/80 transition-colors"
               >
-                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-sky-600 shrink-0 font-bold">@</span>
+                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-sky-600 shrink-0">
+                  <Icon name="envelope-1" size={14} />
+                </span>
                 <span className="truncate font-medium">halo@digibluecamp.id</span>
               </a>
               <a
@@ -203,7 +207,9 @@ export default function PublicFooter() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200/80 transition-colors"
               >
-                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-emerald-600 shrink-0">💬</span>
+                <span className="w-6 h-6 rounded-lg bg-white shadow-xs flex items-center justify-center text-emerald-600 shrink-0">
+                  <Icon name="whatsapp" size={14} />
+                </span>
                 <span className="font-medium">WhatsApp (+6285710914949)</span>
               </a>
             </div>
@@ -211,10 +217,12 @@ export default function PublicFooter() {
             {/* Quick Informational Links: Help Center & About Us */}
             <div className="flex items-center gap-3 text-xs font-medium text-slate-600 mb-5 pb-3 border-b border-slate-100">
               <Link href="/help" className="hover:text-sky-600 inline-flex items-center gap-1.5 transition-colors">
+                <Icon name="question-mark-circle" size={14} className="text-sky-600" />
                 <span>{t('footer_nav_help')}</span>
               </Link>
               <span className="text-slate-300">•</span>
               <Link href="/about" className="hover:text-sky-600 inline-flex items-center gap-1.5 transition-colors">
+                <Icon name="buildings-1" size={14} className="text-sky-600" />
                 <span>{t('footer_nav_about')}</span>
               </Link>
             </div>

@@ -356,7 +356,7 @@ function StudentCatalogContent() {
                 </div>
                 {!foundationCompleted && (
                   <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm p-4 rounded-lg flex gap-3 items-start">
-                    <span>⚠️</span>
+                    <Icon name="warning" size={18} className="text-amber-600 shrink-0 mt-0.5" />
                     <p><em>{t('info_spec_warn')}</em></p>
                   </div>
                 )}
@@ -524,7 +524,7 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompl
         href={`/student/catalog/${course.slug}`}
         className="btn btn-secondary btn-sm w-full text-xs font-semibold hover:bg-slate-100 flex items-center justify-center gap-1.5"
       >
-        <Icon name="book-open" size={14} className="text-navy" />
+        <Icon name="book-1" size={14} className="text-navy" />
         <span>{t('btn_view_syllabus')}</span>
       </Link>
 
@@ -567,7 +567,7 @@ function CourseCard({ course, enrollment, isEnrolling, isPaying, foundationCompl
         <Link href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
           className="btn w-full text-sm font-semibold text-center bg-emerald-600 hover:bg-emerald-700 text-white">
-          <Icon name="check-circle" size={16} className="mr-1.5" />Kursus Selesai
+          <Icon name="check-circle-1" size={16} className="mr-1.5" />Kursus Selesai
         </Link>
       ) : enrollment.status === 'active' && accessBlocked ? (
         <button disabled className="btn w-full text-sm font-semibold text-center bg-amber-50 text-amber-700 border border-amber-300 cursor-not-allowed">

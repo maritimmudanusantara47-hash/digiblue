@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         {/* Card Header */}
         <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-4 border border-emerald-200">
-            <Icon name="lock" size={14} />
+            <Icon name="locked-1" size={14} />
             <span>Kepatuhan UU Pelindungan Data Pribadi (UU PDP)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#00162d] tracking-tight mb-4">

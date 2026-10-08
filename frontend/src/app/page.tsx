@@ -95,11 +95,15 @@ export default function LandingPage() {
             {/* Feature Bullets with Emerald Checkmarks */}
             <div className="flex flex-col gap-2.5 text-xs sm:text-sm text-slate-200">
               <div className="flex items-center gap-2.5">
-                <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-xs">✓</span>
+                <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Icon name="check" size={10} />
+                </span>
                 <span><strong className="text-white">{t('hero_feat_1_bold')}</strong>{t('hero_feat_1_desc')}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-xs">✓</span>
+                <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Icon name="check" size={10} />
+                </span>
                 <span><strong className="text-white">{t('hero_feat_2_bold')}</strong>{t('hero_feat_2_desc')}</span>
               </div>
             </div>
@@ -425,7 +429,7 @@ export default function LandingPage() {
               </p>
               <div className="inline-flex items-center gap-3.5 bg-white rounded-2xl border border-slate-200 px-5 py-3.5 shadow-xs">
                 <div className="w-10 h-10 rounded-full bg-sky-100 text-[#0284C7] flex items-center justify-center shrink-0">
-                  <Icon name="medal-1" size={22} />
+                  <Icon name="trophy-1" size={20} />
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 font-medium">{t('inc_sec_badge_title')}</p>

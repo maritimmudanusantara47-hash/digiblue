@@ -209,7 +209,7 @@ export default function VerifyPortalPage() {
 
               {/* Informational Guidance Text */}
               <div className="mt-3 pt-2.5 border-t border-slate-100 text-[11px] sm:text-xs text-slate-500 flex items-center gap-1.5">
-                <Icon name="shield-check" size={14} className="text-emerald-600 shrink-0" />
+                <Icon name="shield-2-check" size={14} className="text-emerald-600 shrink-0" />
                 <span>{t('search_guidance')}</span>
               </div>
             </div>
@@ -283,7 +283,7 @@ export default function VerifyPortalPage() {
 
               <div className="bg-slate-50 rounded-2xl p-5 text-left border border-slate-200 text-xs text-slate-600 space-y-2 mb-8 max-w-lg mx-auto">
                 <div className="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
-                  <Icon name="question-circle" size={14} className="text-sky-600" />
+                  <Icon name="question-mark-circle" size={14} className="text-sky-600" />
                   <span>{t('invalid_troubleshoot')}</span>
                 </div>
                 <p>{t('invalid_tip1')}</p>
@@ -306,7 +306,7 @@ export default function VerifyPortalPage() {
                   href="/help"
                   className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors border border-slate-200 inline-flex items-center gap-1.5"
                 >
-                  <Icon name="chat-bubble-dots" size={14} />
+                  <Icon name="chat-bubble-2" size={14} />
                   <span>{t('btn_contact_support')}</span>
                 </Link>
               </div>
@@ -459,7 +459,7 @@ export default function VerifyPortalPage() {
                       onClick={handleCopyValidationLink}
                       className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Icon name="link" size={14} />
+                      <Icon name="link-2-angular-right" size={14} />
                       <span>{copiedLink ? t('btn_copied') : t('btn_copy_link')}</span>
                     </button>
                     <button
@@ -515,7 +515,7 @@ export default function VerifyPortalPage() {
           {/* Card 3 */}
           <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow">
             <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-5 border border-emerald-100">
-              <Icon name="bolt" size={24} />
+              <Icon name="bolt-2" size={24} />
             </div>
             <h3 className="text-lg font-bold text-[#00162d] mb-2 font-heading">{t('p3_title')}</h3>
             <p className="text-sm text-slate-600 leading-relaxed">

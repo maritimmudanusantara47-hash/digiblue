@@ -104,7 +104,7 @@ function CoursesContent() {
 
   const tabs = useMemo(() => {
     return [
-      { id: 'ALL' as TabCategory, label: t('tab_all'), icon: 'apps' },
+      { id: 'ALL' as TabCategory, label: t('tab_all'), icon: 'layout-9' },
       { id: 'INT_CERT' as TabCategory, label: intCertLabel, icon: 'graduation-cap-1' },
       { id: 'NAT' as TabCategory, label: natLabel, icon: 'flag-1' },
       { id: 'SGL' as TabCategory, label: sglLabel, icon: 'book-1' },
@@ -304,7 +304,7 @@ function CoursesContent() {
                         {c.certification_level?.name ?? code}
                       </span>
                       <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 font-mono">
-                        <Icon name="alarm-clock" size={12} />
+                        <Icon name="alarm-1" size={12} />
                         {t('duration')}
                       </span>
                     </div>

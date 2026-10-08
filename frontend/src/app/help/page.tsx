@@ -29,9 +29,9 @@ export default function HelpCenterPage() {
   const [ticketNumber, setTicketNumber] = useState('');
 
   const categories = useMemo(() => [
-    { id: 'all', label: t('cat_all'), icon: 'apps' },
-    { id: 'account', label: t('cat_account'), icon: 'user-circle' },
-    { id: 'payment', label: t('cat_payment'), icon: 'credit-card-1' },
+    { id: 'all', label: t('cat_all'), icon: 'layout-9' },
+    { id: 'account', label: t('cat_account'), icon: 'user-4' },
+    { id: 'payment', label: t('cat_payment'), icon: 'credit-card-multiple' },
     { id: 'exam', label: t('cat_exam'), icon: 'certificate-badge-1' },
     { id: 'lms', label: t('cat_lms'), icon: 'book-1' },
   ], [t]);
@@ -145,7 +145,7 @@ export default function HelpCenterPage() {
         <div className="container relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-xs font-semibold tracking-wider uppercase text-sky-200 mb-6 font-mono">
-              <Icon name="headphone" size={15} className="text-amber-400" />
+              <Icon name="headphone-1" size={15} className="text-amber-400" />
               <span>{t('badge')}</span>
             </div>
 
@@ -313,8 +313,8 @@ export default function HelpCenterPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
-                    💬
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Icon name="whatsapp" size={24} />
                   </div>
                   <div className="flex-1">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 block font-mono">
@@ -353,7 +353,7 @@ export default function HelpCenterPage() {
                 {/* Office Info */}
                 <div className="p-4 rounded-2xl bg-slate-100/70 border border-slate-200/80 text-xs text-slate-600 space-y-1">
                   <p className="font-bold text-slate-800 flex items-center gap-2">
-                    <Icon name="building-1" size={14} className="text-slate-500" />
+                    <Icon name="buildings-1" size={14} className="text-slate-500" />
                     <span>{t('office_title')}</span>
                   </p>
                   <p>Indonesia Blue Economy Center (IBEC), Kampus C STIE Indonesia</p>

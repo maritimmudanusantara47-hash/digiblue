@@ -909,7 +909,7 @@ export default function AdminCourseContentPage() {
                   imageTab === 'url' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
                 }`}
               >
-                <Icon name="link-2" size={14} />
+                <Icon name="link-2-angular-right" size={14} />
                 Tautan URL Gambar
               </button>
             </div>
@@ -1136,7 +1136,7 @@ function QuestionCard({ question, index, onEdit, onDelete }: {
         </div>
         <div className="flex gap-2">
           <button onClick={onEdit} className="btn btn-sm btn-secondary"><Icon name="pencil-1" size={16} className="mr-1.5" />Edit</button>
-          <button onClick={onDelete} className="btn btn-sm text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded-xl px-3 py-1.5">🗑️</button>
+          <button onClick={onDelete} className="btn btn-sm text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded-xl px-3 py-1.5"><Icon name="trash-3" size={14} /></button>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-1.5 ml-11">
@@ -1445,7 +1445,7 @@ Kunci: B`}
                   Memproses Import...
                 </>
               ) : (
-                '🚀 Proses Import Soal'
+                <span className="flex items-center justify-center gap-2"><Icon name="rocket-5" size={15} /><span>Proses Import Soal</span></span>
               )}
             </button>
           </div>

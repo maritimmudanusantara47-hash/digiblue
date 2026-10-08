@@ -201,7 +201,7 @@ function RegisterFormContent() {
       {redirect && (
         <div className="bg-sky-50 border border-sky-200 text-sky-800 text-xs px-4 py-3 rounded-xl mb-6 flex items-center gap-2.5">
           <Icon
-            name="information"
+            name="info"
             size={16}
             className="text-sky-600 shrink-0"
           />
