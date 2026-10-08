@@ -147,9 +147,13 @@ class AdminCertificateController extends Controller
     }
 
     /** Admin: Download PDF sertifikat */
-    public function download(int $id)
+    public function download(Request $request, int $id)
     {
         $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])->findOrFail($id);
+
+        if ($request->query('type') === 'field_study') {
+            return $this->downloadFieldStudy($cert);
+        }
 
         $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
             . "/certification/{$cert->serial_url_key}";
@@ -197,6 +201,48 @@ class AdminCertificateController extends Controller
         return $pdf->download($filename);
     }
 
+    /** Download PDF Field Study (Certificate of Completion) */
+    public function downloadFieldStudy(Certificate $cert)
+    {
+        $layoutPath = storage_path('app/cert_layout.json');
+        $layout = file_exists($layoutPath)
+            ? json_decode(file_get_contents($layoutPath), true)
+            : $this->defaultLayout();
+
+        $frontTemplatePath = file_exists(resource_path('images/template_field_study_front.png'))
+            ? resource_path('images/template_field_study_front.png')
+            : resource_path('images/Foundation.png');
+        $frontBase64 = file_exists($frontTemplatePath)
+            ? base64_encode(file_get_contents($frontTemplatePath))
+            : null;
+
+        $backTemplatePath = file_exists(resource_path('images/template_field_study_back.png'))
+            ? resource_path('images/template_field_study_back.png')
+            : resource_path('images/Foundation (2).png');
+        $backBase64 = file_exists($backTemplatePath)
+            ? base64_encode(file_get_contents($backTemplatePath))
+            : null;
+
+        $issueCarbon = \Carbon\Carbon::parse($cert->date_of_issue);
+        $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
+        $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
+
+        $pdf = Pdf::loadView('certificates.template_field_study', [
+            'certificate'         => $cert,
+            'user'                => $cert->user,
+            'course'              => $cert->enrollment->course,
+            'regNo'               => $regNo,
+            'templateFrontBase64' => $frontBase64,
+            'templateBackBase64'  => $backBase64,
+            'layout'              => $layout,
+        ])->setPaper('a4', 'landscape');
+
+        $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
+        $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+
+        return $pdf->download($filename);
+    }
+
     /* ──────────────────────────────────────────────
        TEMPLATE DESIGNER
     ────────────────────────────────────────────── */
@@ -205,14 +251,22 @@ class AdminCertificateController extends Controller
     private function defaultLayout(): array
     {
         return [
-            'serial_no'      => ['top' => 13.0, 'right' => 16.5, 'width' => 105, 'font_size' => 11.0, 'label' => 'Nomor Seri'],
-            'recipient_name' => ['top' => 69.5, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
-            'ribbon_text'    => ['top' => 100.5, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
-            'level_value'    => ['top' => 124.5, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
-            'meta_block'     => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
-            'qr_left'        => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
-            'qr_right'       => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
-            'back_title'     => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
+            'serial_no'             => ['top' => 13.0, 'right' => 16.5, 'width' => 105, 'font_size' => 11.0, 'label' => 'Nomor Seri'],
+            'recipient_name'        => ['top' => 69.5, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
+            'ribbon_text'           => ['top' => 100.5, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
+            'level_value'           => ['top' => 124.5, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
+            'meta_block'            => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
+            'qr_left'               => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
+            'qr_right'              => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
+            'back_title'            => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
+
+            // Field Study / Completion template fields
+            'fs_recipient_name'     => ['top' => 70.0, 'font_size' => 32.0, 'label' => 'FS: Nama Peserta'],
+            'fs_course_title'       => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'FS: Judul Pelatihan'],
+            'fs_date_participation' => ['top' => 129.5, 'font_size' => 13.0, 'label' => 'FS: Tanggal Partisipasi'],
+            'fs_date_issue'         => ['top' => 141.0, 'font_size' => 12.0, 'label' => 'FS: Tempat & Tanggal Terbit'],
+            'fs_back_name'          => ['top' => 25.5, 'left' => 45.0, 'font_size' => 13.0, 'label' => 'FS Belakang: Nama Peserta'],
+            'fs_back_reg_no'        => ['top' => 30.2, 'left' => 62.0, 'font_size' => 13.0, 'label' => 'FS Belakang: No. Registrasi'],
         ];
     }
 
@@ -269,15 +323,31 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($templateBackPath))
             : null;
 
+        $fsFrontPath = file_exists(resource_path('images/template_field_study_front.png'))
+            ? resource_path('images/template_field_study_front.png')
+            : resource_path('images/Foundation.png');
+        $fsFrontBase64 = file_exists($fsFrontPath)
+            ? base64_encode(file_get_contents($fsFrontPath))
+            : null;
+
+        $fsBackPath = file_exists(resource_path('images/template_field_study_back.png'))
+            ? resource_path('images/template_field_study_back.png')
+            : resource_path('images/Foundation (2).png');
+        $fsBackBase64 = file_exists($fsBackPath)
+            ? base64_encode(file_get_contents($fsBackPath))
+            : null;
+
         return response()->json([
             'data' => [
-                'base64'            => base64_encode(file_get_contents($templatePath)),
-                'mime_type'         => $mimeType,
-                'foundation_base64' => $foundBase64,
-                'back_base64'       => $backBase64,
-                'back_mime_type'    => 'image/png',
-                'width_mm'          => 297,
-                'height_mm'         => 210,
+                'base64'                   => base64_encode(file_get_contents($templatePath)),
+                'mime_type'                => $mimeType,
+                'foundation_base64'        => $foundBase64,
+                'back_base64'              => $backBase64,
+                'back_mime_type'           => 'image/png',
+                'field_study_front_base64' => $fsFrontBase64,
+                'field_study_back_base64'  => $fsBackBase64,
+                'width_mm'                 => 297,
+                'height_mm'                => 210,
             ],
         ]);
     }

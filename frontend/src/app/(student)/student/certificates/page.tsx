@@ -10,6 +10,7 @@ export default function StudentCertificatesPage() {
   const [certs, setCerts]     = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<number | null>(null);
+  const [downloadingFs, setDownloadingFs] = useState<number | null>(null);
   const t = useTranslations('StudentCertificates');
 
   useEffect(() => {
@@ -21,17 +22,25 @@ export default function StudentCertificatesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDownload = async (cert: Certificate) => {
-    setDownloading(cert.id);
+  const handleDownload = async (cert: Certificate, type?: 'field_study') => {
+    if (type === 'field_study') {
+      setDownloadingFs(cert.id);
+    } else {
+      setDownloading(cert.id);
+    }
     try {
-      const res = await api.get(`/certificates/${cert.id}/download`, {
+      const urlPath = type === 'field_study'
+        ? `/certificates/${cert.id}/download?type=field_study`
+        : `/certificates/${cert.id}/download`;
+      const res = await api.get(urlPath, {
         responseType: 'blob',
       });
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      link.setAttribute('download', `Sertifikat-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
+      const prefix = type === 'field_study' ? 'Sertifikat-Field-Study' : 'Sertifikat';
+      link.setAttribute('download', `${prefix}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {
@@ -41,7 +50,11 @@ export default function StudentCertificatesPage() {
     } catch {
       alert(t('msg_download_fail'));
     } finally {
-      setDownloading(null);
+      if (type === 'field_study') {
+        setDownloadingFs(null);
+      } else {
+        setDownloading(null);
+      }
     }
   };
 
@@ -116,30 +129,44 @@ export default function StudentCertificatesPage() {
               </div>
 
               {/* Footer actions */}
-              <div className="px-6 py-4 flex gap-3">
-                <button
-                  id={`download-cert-${cert.id}`}
-                  onClick={() => handleDownload(cert)}
-                  disabled={downloading === cert.id}
-                  className="btn btn-primary flex-1 text-sm"
-                >
-                  {downloading === cert.id ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                      </svg>
-                      {t('btn_downloading')}
-                    </span>
-                  ) : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_download')}</>}
-                </button>
-                <button
-                  id={`verify-cert-${cert.id}`}
-                  onClick={() => handleVerify(cert)}
-                  className="btn btn-secondary text-sm px-4"
-                >
-                  <Icon name="link-2-angular-right" size={16} className="mr-1.5" />{t('btn_verify')}
-                </button>
+              <div className="px-6 py-4 flex flex-col gap-2.5">
+                <div className="flex gap-3">
+                  <button
+                    id={`download-cert-${cert.id}`}
+                    onClick={() => handleDownload(cert)}
+                    disabled={downloading === cert.id}
+                    className="btn btn-primary flex-1 text-sm"
+                  >
+                    {downloading === cert.id ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                        {t('btn_downloading')}
+                      </span>
+                    ) : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_download')}</>}
+                  </button>
+                  <button
+                    id={`verify-cert-${cert.id}`}
+                    onClick={() => handleVerify(cert)}
+                    className="btn btn-secondary text-sm px-4"
+                  >
+                    <Icon name="link-2-angular-right" size={16} className="mr-1.5" />{t('btn_verify')}
+                  </button>
+                </div>
+
+                {cert.enrollment?.attended_field_trip && (
+                  <button
+                    id={`download-fs-cert-${cert.id}`}
+                    onClick={() => handleDownload(cert, 'field_study')}
+                    disabled={downloadingFs === cert.id}
+                    className="btn btn-gold w-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 py-2 shadow-xs"
+                  >
+                    <Icon name="certificate-badge-1" size={16} />
+                    {downloadingFs === cert.id ? 'Mengunduh Field Study...' : 'Unduh Sertifikat Field Study (Completion)'}
+                  </button>
+                )}
               </div>
 
               {/* Sync status indicator */}

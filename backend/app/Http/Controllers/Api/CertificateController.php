@@ -33,11 +33,57 @@ class CertificateController extends Controller
     }
 
     /** Student: Download PDF sertifikat */
-    public function download(int $id)
+    public function download(Request $request, int $id)
     {
         $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])
             ->where('user_id', auth()->id())
             ->findOrFail($id);
+
+        if ($request->query('type') === 'field_study') {
+            if (! $cert->enrollment || ! $cert->enrollment->attended_field_trip) {
+                return response()->json([
+                    'message' => 'Peserta tidak terdaftar atau belum menyelesaikan Field Study.',
+                ], 403);
+            }
+
+            $layoutPath = storage_path('app/cert_layout.json');
+            $layout = file_exists($layoutPath)
+                ? json_decode(file_get_contents($layoutPath), true)
+                : [];
+
+            $frontTemplatePath = file_exists(resource_path('images/template_field_study_front.png'))
+                ? resource_path('images/template_field_study_front.png')
+                : resource_path('images/Foundation.png');
+            $frontBase64 = file_exists($frontTemplatePath)
+                ? base64_encode(file_get_contents($frontTemplatePath))
+                : null;
+
+            $backTemplatePath = file_exists(resource_path('images/template_field_study_back.png'))
+                ? resource_path('images/template_field_study_back.png')
+                : resource_path('images/Foundation (2).png');
+            $backBase64 = file_exists($backTemplatePath)
+                ? base64_encode(file_get_contents($backTemplatePath))
+                : null;
+
+            $issueCarbon = \Carbon\Carbon::parse($cert->date_of_issue);
+            $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
+            $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
+
+            $pdf = Pdf::loadView('certificates.template_field_study', [
+                'certificate'         => $cert,
+                'user'                => $cert->user,
+                'course'              => $cert->enrollment->course,
+                'regNo'               => $regNo,
+                'templateFrontBase64' => $frontBase64,
+                'templateBackBase64'  => $backBase64,
+                'layout'              => $layout,
+            ])->setPaper('a4', 'landscape');
+
+            $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
+            $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+
+            return $pdf->download($filename);
+        }
 
         $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
             . "/certification/{$cert->serial_url_key}";

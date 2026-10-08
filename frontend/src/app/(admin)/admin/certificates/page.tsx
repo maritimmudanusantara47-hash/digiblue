@@ -22,6 +22,7 @@ export default function AdminCertificatesPage() {
   const [search, setSearch]       = useState('');
   const [syncing, setSyncing]     = useState<number | null>(null);
   const [downloading, setDownloading] = useState<number | null>(null);
+  const [downloadingFs, setDownloadingFs] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
 
   // Issue modal
@@ -156,17 +157,25 @@ export default function AdminCertificatesPage() {
     }
   };
 
-  const handleDownload = async (cert: Certificate) => {
-    setDownloading(cert.id);
+  const handleDownload = async (cert: Certificate, type?: 'field_study') => {
+    if (type === 'field_study') {
+      setDownloadingFs(cert.id);
+    } else {
+      setDownloading(cert.id);
+    }
     try {
-      const res = await api.get(`/admin/certificates/${cert.id}/download`, {
+      const urlPath = type === 'field_study'
+        ? `/admin/certificates/${cert.id}/download?type=field_study`
+        : `/admin/certificates/${cert.id}/download`;
+      const res = await api.get(urlPath, {
         responseType: 'blob',
       });
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      link.setAttribute('download', `Sertifikat-${cert.user?.name ?? 'Peserta'}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
+      const prefix = type === 'field_study' ? 'Sertifikat-Field-Study' : 'Sertifikat';
+      link.setAttribute('download', `${prefix}-${cert.user?.name ?? 'Peserta'}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {
@@ -176,7 +185,11 @@ export default function AdminCertificatesPage() {
     } catch {
       alert(t('msg_download_fail'));
     } finally {
-      setDownloading(null);
+      if (type === 'field_study') {
+        setDownloadingFs(null);
+      } else {
+        setDownloading(null);
+      }
     }
   };
 
@@ -358,6 +371,18 @@ export default function AdminCertificatesPage() {
                         >
                           {downloading === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_pdf')}</>}
                         </button>
+
+                        {/* Download Field Study (Certificate of Completion) */}
+                        {cert.enrollment?.attended_field_trip && (
+                          <button
+                            onClick={() => handleDownload(cert, 'field_study')}
+                            disabled={downloadingFs === cert.id}
+                            className="btn btn-gold btn-sm text-xs px-2.5 py-1"
+                            title="Unduh Sertifikat Field Study (Certificate of Completion)"
+                          >
+                            {downloadingFs === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="certificate-badge-1" size={16} className="mr-1.5" />Field Study</>}
+                          </button>
+                        )}
 
                         {/* Edit Override */}
                         <button

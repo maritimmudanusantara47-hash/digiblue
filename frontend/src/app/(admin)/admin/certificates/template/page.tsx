@@ -45,11 +45,59 @@ const DEFAULT_LAYOUT: LayoutState = {
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
   back_title: { top: 20.0, font_size: 15.0, label: 'Judul Halaman Belakang' },
+
+  // Field Study Layout
+  fs_recipient_name: { top: 70.0, font_size: 32.0, label: 'Nama Peserta (Depan)' },
+  fs_course_title: { top: 108.5, font_size: 19.0, label: 'Judul Pelatihan (Depan)' },
+  fs_date_participation: { top: 129.5, font_size: 13.0, label: 'Tanggal Partisipasi (Depan)' },
+  fs_date_issue: { top: 141.0, font_size: 12.0, label: 'Tempat & Tanggal Terbit (Depan)' },
+  fs_back_name: { top: 25.5, left: 45.0, font_size: 13.0, label: 'Nama Peserta (Belakang)' },
+  fs_back_reg_no: { top: 30.2, left: 62.0, font_size: 13.0, label: 'Nomor Registrasi (Belakang)' },
 };
 
 const PRESETS = {
-  nabila: { name: 'Nabila Azzahro Widodo', serial: 'CBEC/ID/IX/20260187', ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)', level: 'Blue Carbon Specialization', grade: 'Excellent', date: 'September 21, 2026', place: 'Jakarta' },
-  budi: { name: 'Budi Santoso', serial: 'CBEC/ID/IX/20260187', ribbon: 'Certified Blue Economist (CBEc)', level: 'Foundation Level', grade: 'Excellent', date: 'October 2, 2026', place: 'Jakarta, Indonesia' },
+  nabila: {
+    type: 'specialization',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)',
+    level: 'Blue Carbon Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  budi: {
+    type: 'foundation',
+    name: 'Budi Santoso',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist (CBEc)',
+    level: 'Foundation Level',
+    grade: 'Excellent',
+    date: 'October 2, 2026',
+    place: 'Jakarta, Indonesia',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  field_study: {
+    type: 'field_study',
+    name: 'Diana Supriati',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study / Training Course',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
 };
 
 // Ukuran virtual canvas A4 Landscape (297 × 210 mm)
@@ -72,12 +120,26 @@ const FIELD_LIST_BACK = [
   { key: 'back_title', label: 'Judul Halaman Belakang' },
 ];
 
+const FIELD_LIST_FS_FRONT = [
+  { key: 'fs_recipient_name', label: 'Nama Peserta (Depan)' },
+  { key: 'fs_course_title', label: 'Judul Pelatihan (Depan)' },
+  { key: 'fs_date_participation', label: 'Tanggal Partisipasi (Depan)' },
+  { key: 'fs_date_issue', label: 'Tempat & Tanggal Terbit (Depan)' },
+];
+
+const FIELD_LIST_FS_BACK = [
+  { key: 'fs_back_name', label: 'Nama Peserta (Belakang)' },
+  { key: 'fs_back_reg_no', label: 'Nomor Registrasi (Belakang)' },
+];
+
 export default function CertificateTemplateAdminPage() {
   const [layout, setLayout] = useState<LayoutState>(DEFAULT_LAYOUT);
   const [templateImg, setTemplateImg] = useState<string | null>(null);
   const [templateImgSpec, setTemplateImgSpec] = useState<string | null>(null);
   const [templateImgFound, setTemplateImgFound] = useState<string | null>(null);
   const [templateBackImg, setTemplateBackImg] = useState<string | null>(null);
+  const [templateImgFsFront, setTemplateImgFsFront] = useState<string | null>(null);
+  const [templateImgFsBack, setTemplateImgFsBack] = useState<string | null>(null);
   const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
   const [selectedKey, setSelectedKey] = useState('recipient_name');
   const [editMode, setEditMode] = useState(false);
@@ -102,7 +164,7 @@ export default function CertificateTemplateAdminPage() {
     }).catch(() => { });
 
     api.get('/admin/certificates/template/image').then(res => {
-      const { base64, mime_type, foundation_base64, back_base64, back_mime_type } = res.data.data;
+      const { base64, mime_type, foundation_base64, back_base64, back_mime_type, field_study_front_base64, field_study_back_base64 } = res.data.data;
       if (base64) {
         const specUrl = `data:${mime_type || 'image/png'};base64,${base64}`;
         setTemplateImg(specUrl);
@@ -112,6 +174,8 @@ export default function CertificateTemplateAdminPage() {
         setTemplateImgFound(`data:image/png;base64,${foundation_base64}`);
       }
       if (back_base64) setTemplateBackImg(`data:${back_mime_type || 'image/png'};base64,${back_base64}`);
+      if (field_study_front_base64) setTemplateImgFsFront(`data:image/png;base64,${field_study_front_base64}`);
+      if (field_study_back_base64) setTemplateImgFsBack(`data:image/png;base64,${field_study_back_base64}`);
     }).catch(() => { });
   }, []);
 
@@ -190,10 +254,13 @@ export default function CertificateTemplateAdminPage() {
   const handleDownload = async () => {
     try {
       setDownloading(true);
-      const res = await api.get('/admin/certificates/1/download', { responseType: 'blob' });
+      const isFs = sample.type === 'field_study';
+      const endpoint = isFs ? '/admin/certificates/1/download?type=field_study' : '/admin/certificates/1/download';
+      const res = await api.get(endpoint, { responseType: 'blob' });
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const a = document.createElement('a');
-      a.href = url; a.download = 'Contoh-Sertifikat.pdf';
+      a.href = url;
+      a.download = isFs ? 'Contoh-Sertifikat-Field-Study.pdf' : 'Contoh-Sertifikat.pdf';
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     } catch { alert('Gagal mengunduh PDF.'); }
@@ -222,14 +289,20 @@ export default function CertificateTemplateAdminPage() {
           <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 gap-0.5">
             <button
               type="button"
-              onClick={() => { setActiveSide('front'); setSelectedKey('recipient_name'); }}
+              onClick={() => {
+                setActiveSide('front');
+                setSelectedKey(sample.type === 'field_study' ? 'fs_recipient_name' : 'recipient_name');
+              }}
               className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${activeSide === 'front' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-slate-400 hover:text-white'}`}
             >
               Halaman Depan
             </button>
             <button
               type="button"
-              onClick={() => { setActiveSide('back'); setSelectedKey('back_title'); }}
+              onClick={() => {
+                setActiveSide('back');
+                setSelectedKey(sample.type === 'field_study' ? 'fs_back_name' : 'back_title');
+              }}
               className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${activeSide === 'back' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-slate-400 hover:text-white'}`}
             >
               Halaman Belakang
@@ -238,11 +311,32 @@ export default function CertificateTemplateAdminPage() {
 
           {/* Preview sample toggle */}
           <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 gap-0.5">
-            <button onClick={() => setSample(PRESETS.nabila)} className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.name.includes('Nabila') ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}>
+            <button
+              onClick={() => {
+                setSample(PRESETS.nabila);
+                setSelectedKey(activeSide === 'front' ? 'recipient_name' : 'back_title');
+              }}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.type === 'specialization' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
+            >
               Spesialisasi
             </button>
-            <button onClick={() => setSample(PRESETS.budi)} className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.name.includes('Budi') ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}>
+            <button
+              onClick={() => {
+                setSample(PRESETS.budi);
+                setSelectedKey(activeSide === 'front' ? 'recipient_name' : 'back_title');
+              }}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.type === 'foundation' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
+            >
               Foundation
+            </button>
+            <button
+              onClick={() => {
+                setSample(PRESETS.field_study);
+                setSelectedKey(activeSide === 'front' ? 'fs_recipient_name' : 'fs_back_name');
+              }}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.type === 'field_study' ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
+            >
+              Field Study
             </button>
           </div>
 
@@ -322,119 +416,195 @@ export default function CertificateTemplateAdminPage() {
               {activeSide === 'front' ? (
                 <>
                   {/* FRONT TEMPLATE */}
-                  {(() => {
-                    const isFoundationSample = sample.level.toLowerCase().includes('foundation');
-                    const activeFrontImg = isFoundationSample ? (templateImgFound || templateImg) : (templateImgSpec || templateImg);
-                    return activeFrontImg
-                      ? <img src={activeFrontImg} alt="Template" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                      : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template depan...</div>;
-                  })()}
+                  {sample.type === 'field_study' ? (
+                    <>
+                      {templateImgFsFront
+                        ? <img src={templateImgFsFront} alt="Template Field Study Depan" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template field study depan...</div>
+                      }
 
-                  {/* Serial Number */}
-                  <div
-                    onClick={() => { setSelectedKey('serial_no'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'serial_no' ? 'ring-2 ring-blue-500 bg-blue-50/70 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 16.5), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: 'transparent', fontSize: `${(layout.serial_no?.font_size ?? 11) * (SCALE / 3.4)}px`, fontFamily: "'Poppins', sans-serif", color: '#111827', textAlign: 'right', zIndex: 10 }}
-                  >
-                    Certificate Serial No. {sample.serial}
-                  </div>
+                      {/* Recipient Name */}
+                      <div
+                        onClick={() => { setSelectedKey('fs_recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.fs_recipient_name?.top ?? 70.0), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.fs_recipient_name?.font_size ?? 32.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                      >
+                        {sample.name}
+                      </div>
 
-                  {/* Recipient Name */}
-                  <div
-                    onClick={() => { setSelectedKey('recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{ top: mmToPx(layout.recipient_name?.top ?? 69.5), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 32.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
-                  >
-                    {sample.name}
-                  </div>
+                      {/* Training Course Title */}
+                      <div
+                        onClick={() => { setSelectedKey('fs_course_title'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_course_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.fs_course_title?.top ?? 108.5), left: mmToPx(15), right: mmToPx(15), textAlign: 'center', fontSize: `${(layout.fs_course_title?.font_size ?? 19.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#133e7c', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                      >
+                        {sample.courseTitle || 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE'}
+                      </div>
 
-                  {/* Ribbon Text */}
-                  <div
-                    onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
-                  >
-                    {sample.ribbon}
-                  </div>
+                      {/* Date of Participation */}
+                      <div
+                        onClick={() => { setSelectedKey('fs_date_participation'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_participation' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.fs_date_participation?.top ?? 129.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_participation?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                      >
+                        <span className="bg-white px-2">on {sample.dateParticipation || '20 May – 11 June 2026'}</span>
+                      </div>
 
-                  {/* Level */}
-                  <div
-                    onClick={() => { setSelectedKey('level_value'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'level_value' ? 'ring-2 ring-blue-500 bg-blue-50/30 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
-                  >
-                    {sample.level}
-                  </div>
+                      {/* Place & Issue Date */}
+                      <div
+                        onClick={() => { setSelectedKey('fs_date_issue'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_issue' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.fs_date_issue?.top ?? 141.0), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_issue?.font_size ?? 12.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                      >
+                        <span className="bg-white px-2">{sample.dateIssue || 'Jakarta, 11 June 2026'}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {(() => {
+                        const isFoundationSample = sample.level.toLowerCase().includes('foundation');
+                        const activeFrontImg = isFoundationSample ? (templateImgFound || templateImg) : (templateImgSpec || templateImg);
+                        return activeFrontImg
+                          ? <img src={activeFrontImg} alt="Template" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                          : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template depan...</div>;
+                      })()}
 
-                  {/* Meta Block */}
-                  <div
-                    onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 11.5) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
-                  >
-                    <div><strong>Grade:</strong> {sample.grade}</div>
-                    <div><strong>Date of issue:</strong> {sample.date}</div>
-                    <div><strong>Place of issue:</strong> {sample.place}</div>
-                  </div>
+                      {/* Serial Number */}
+                      <div
+                        onClick={() => { setSelectedKey('serial_no'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'serial_no' ? 'ring-2 ring-blue-500 bg-blue-50/70 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.serial_no?.top ?? 13), right: mmToPx(layout.serial_no?.right ?? 16.5), width: mmToPx(layout.serial_no?.width ?? 105), height: mmToPx(7.5), lineHeight: `${mmToPx(7.5)}px`, backgroundColor: 'transparent', fontSize: `${(layout.serial_no?.font_size ?? 11) * (SCALE / 3.4)}px`, fontFamily: "'Poppins', sans-serif", color: '#111827', textAlign: 'right', zIndex: 10 }}
+                      >
+                        Certificate Serial No. {sample.serial}
+                      </div>
 
-                  {/* QR Left */}
-                  <div
-                    onClick={() => { setSelectedKey('qr_left'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_left' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{ top: mmToPx(layout.qr_left?.top ?? 147.5), left: mmToPx(layout.qr_left?.left ?? 67), width: mmToPx(layout.qr_left?.size ?? 26), height: mmToPx(layout.qr_left?.size ?? 26), zIndex: 10 }}
-                  >
-                    <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
-                      <Ico.QR />
-                    </div>
-                  </div>
+                      {/* Recipient Name */}
+                      <div
+                        onClick={() => { setSelectedKey('recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.recipient_name?.top ?? 69.5), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 32.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                      >
+                        {sample.name}
+                      </div>
 
-                  {/* QR Right */}
-                  <div
-                    onClick={() => { setSelectedKey('qr_right'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_right' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{ top: mmToPx(layout.qr_right?.top ?? 147.5), left: mmToPx(layout.qr_right?.left ?? 196.4), width: mmToPx(layout.qr_right?.size ?? 26), height: mmToPx(layout.qr_right?.size ?? 26), zIndex: 10 }}
-                  >
-                    <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
-                      <Ico.QR />
-                    </div>
-                  </div>
+                      {/* Ribbon Text */}
+                      <div
+                        onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                      >
+                        {sample.ribbon}
+                      </div>
+
+                      {/* Level */}
+                      <div
+                        onClick={() => { setSelectedKey('level_value'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'level_value' ? 'ring-2 ring-blue-500 bg-blue-50/30 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                      >
+                        {sample.level}
+                      </div>
+
+                      {/* Meta Block */}
+                      <div
+                        onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 11.5) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                      >
+                        <div><strong>Grade:</strong> {sample.grade}</div>
+                        <div><strong>Date of issue:</strong> {sample.date}</div>
+                        <div><strong>Place of issue:</strong> {sample.place}</div>
+                      </div>
+
+                      {/* QR Left */}
+                      <div
+                        onClick={() => { setSelectedKey('qr_left'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_left' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.qr_left?.top ?? 147.5), left: mmToPx(layout.qr_left?.left ?? 67), width: mmToPx(layout.qr_left?.size ?? 26), height: mmToPx(layout.qr_left?.size ?? 26), zIndex: 10 }}
+                      >
+                        <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
+                          <Ico.QR />
+                        </div>
+                      </div>
+
+                      {/* QR Right */}
+                      <div
+                        onClick={() => { setSelectedKey('qr_right'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'qr_right' ? 'ring-2 ring-blue-500' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.qr_right?.top ?? 147.5), left: mmToPx(layout.qr_right?.left ?? 196.4), width: mmToPx(layout.qr_right?.size ?? 26), height: mmToPx(layout.qr_right?.size ?? 26), zIndex: 10 }}
+                      >
+                        <div className="w-full h-full p-1 bg-white border border-slate-300 rounded flex items-center justify-center">
+                          <Ico.QR />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
                   {/* BACK TEMPLATE */}
-                  {templateBackImg
-                    ? <img src={templateBackImg} alt="Template Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                    : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>
-                  }
+                  {sample.type === 'field_study' ? (
+                    <>
+                      {templateImgFsBack
+                        ? <img src={templateImgFsBack} alt="Template Field Study Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template field study belakang...</div>
+                      }
 
-                  {/* Back Side Title Block */}
-                  <div
-                    onClick={() => { setSelectedKey('back_title'); setEditMode(true); setMobilePanelOpen(true); }}
-                    className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'back_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded p-1.5' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                    style={{
-                      top: mmToPx(layout.back_title?.top ?? 20.0),
-                      left: mmToPx(20),
-                      right: mmToPx(20),
-                      textAlign: 'center',
-                      fontFamily: "'Poppins', sans-serif",
-                      zIndex: 10,
-                    }}
-                  >
-                    {sample.name.includes('Budi') ? (
-                      <>
-                        <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25 }}>
-                          List of Competency Units of Certified Blue Economist (CBEc)
-                        </div>
-                        <div style={{ fontSize: `${Math.max(10, (layout.back_title?.font_size ?? 15.0) - 2.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', marginTop: `${mmToPx(2.2)}px`, lineHeight: 1.2 }}>
-                          Foundation Level
-                        </div>
-                      </>
-                    ) : (
-                      <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25, marginTop: `${mmToPx(3.5)}px` }}>
-                        List of Competency Units of {sample.ribbon}
+                      {/* Back Name */}
+                      <div
+                        onClick={() => { setSelectedKey('fs_back_name'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.fs_back_name?.top ?? 25.5), left: mmToPx(layout.fs_back_name?.left ?? 45.0), fontSize: `${(layout.fs_back_name?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                      >
+                        {sample.name}
                       </div>
-                    )}
-                  </div>
+
+                      {/* Back Registration Number */}
+                      <div
+                        onClick={() => { setSelectedKey('fs_back_reg_no'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_reg_no' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.fs_back_reg_no?.top ?? 30.2), left: mmToPx(layout.fs_back_reg_no?.left ?? 62.0), fontSize: `${(layout.fs_back_reg_no?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                      >
+                        {sample.regNo || 'CBETC144062026'}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {templateBackImg
+                        ? <img src={templateBackImg} alt="Template Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>
+                      }
+
+                      {/* Back Side Title Block */}
+                      <div
+                        onClick={() => { setSelectedKey('back_title'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'back_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded p-1.5' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{
+                          top: mmToPx(layout.back_title?.top ?? 20.0),
+                          left: mmToPx(20),
+                          right: mmToPx(20),
+                          textAlign: 'center',
+                          fontFamily: "'Poppins', sans-serif",
+                          zIndex: 10,
+                        }}
+                      >
+                        {sample.name.includes('Budi') ? (
+                          <>
+                            <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25 }}>
+                              List of Competency Units of Certified Blue Economist (CBEc)
+                            </div>
+                            <div style={{ fontSize: `${Math.max(10, (layout.back_title?.font_size ?? 15.0) - 2.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', marginTop: `${mmToPx(2.2)}px`, lineHeight: 1.2 }}>
+                              Foundation Level
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25, marginTop: `${mmToPx(3.5)}px` }}>
+                            List of Competency Units of {sample.ribbon}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -526,7 +696,10 @@ export default function CertificateTemplateAdminPage() {
                 <div className="font-semibold text-indigo-300 flex items-center gap-1.5 mb-1">
                   <Ico.Info /> Desain Halaman Belakang
                 </div>
-                Template background unit kompetensi resmi konsorsium. Judul di atas tabel dirender dinamis dengan font <strong>Poppins</strong> sesuai program.
+                {sample.type === 'field_study'
+                  ? 'Struktur kurikulum Field Study / Training Course (30 Jam, 1.5 ECTS) resmi konsorsium.'
+                  : 'Template background unit kompetensi resmi konsorsium. Judul di atas tabel dirender dinamis.'
+                }
               </div>
             )}
 
@@ -540,7 +713,10 @@ export default function CertificateTemplateAdminPage() {
 
               {openSection === 'fields' && (
                 <div className="px-3 pb-3 space-y-1">
-                  {(activeSide === 'front' ? FIELD_LIST_FRONT : FIELD_LIST_BACK).map(({ key, label }) => (
+                  {(sample.type === 'field_study'
+                    ? (activeSide === 'front' ? FIELD_LIST_FS_FRONT : FIELD_LIST_FS_BACK)
+                    : (activeSide === 'front' ? FIELD_LIST_FRONT : FIELD_LIST_BACK)
+                  ).map(({ key, label }) => (
                     <button key={key} onClick={() => { setSelectedKey(key); setEditMode(true); }}
                       className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${selectedKey === key ? 'bg-blue-600/25 text-blue-200 border border-blue-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
                       {label}
@@ -557,7 +733,7 @@ export default function CertificateTemplateAdminPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-200">{sel.label}</span>
                   <div className="flex items-center gap-1.5">
-                    {['recipient_name', 'ribbon_text'].includes(selectedKey) && (
+                    {['recipient_name', 'ribbon_text', 'fs_recipient_name', 'fs_course_title'].includes(selectedKey) && (
                       <span className="text-[10px] text-amber-300 bg-amber-950/60 border border-amber-800/60 px-2 py-0.5 rounded font-medium">Arial MT Pro</span>
                     )}
                     {['serial_no', 'level_value', 'meta_block', 'back_title'].includes(selectedKey) && (
@@ -647,102 +823,166 @@ export default function CertificateTemplateAdminPage() {
 
               {openSection === 'preview' && (
                 <div className="px-4 pb-4 space-y-3">
-                  {/* Nomor Seri */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] text-slate-500">Nomor Seri</label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const match = sample.serial.match(/(20\d{2}[\/\-_]?)(\d+)/);
-                          if (match) {
-                            const prefix = match[1];
-                            const numStr = match[2];
-                            const nextNum = (parseInt(numStr, 10) + 1).toString().padStart(numStr.length, '0');
-                            const nextSerial = sample.serial.replace(`${prefix}${numStr}`, `${prefix}${nextNum}`);
-                            setSample({ ...sample, serial: nextSerial });
-                          }
-                        }}
-                        className="text-[10px] text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer flex items-center gap-1"
-                        title="Klik untuk menaikkan nomor urut berikutnya (+1)"
-                      >
-                        +1 Urutan Selanjutnya
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      value={sample.serial}
-                      onChange={e => setSample({ ...sample, serial: e.target.value })}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
-                      placeholder="Contoh: CBEC/ID/IX/20260187"
-                    />
-                  </div>
+                  {sample.type === 'field_study' ? (
+                    <>
+                      {/* Nama Peserta */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Nama Peserta</label>
+                        <input
+                          type="text"
+                          value={sample.name}
+                          onChange={e => setSample({ ...sample, name: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
 
-                  {/* Nama Peserta */}
-                  <div>
-                    <label className="text-[11px] text-slate-500 block mb-1">Nama Peserta</label>
-                    <input
-                      type="text"
-                      value={sample.name}
-                      onChange={e => setSample({ ...sample, name: e.target.value })}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                      {/* Judul Pelatihan */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Judul Pelatihan</label>
+                        <input
+                          type="text"
+                          value={sample.courseTitle || ''}
+                          onChange={e => setSample({ ...sample, courseTitle: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
 
-                  {/* Teks Ribbon */}
-                  <div>
-                    <label className="text-[11px] text-slate-500 block mb-1">Teks Ribbon</label>
-                    <input
-                      type="text"
-                      value={sample.ribbon}
-                      onChange={e => setSample({ ...sample, ribbon: e.target.value })}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                      {/* Tanggal Partisipasi */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Tanggal Partisipasi</label>
+                        <input
+                          type="text"
+                          value={sample.dateParticipation || ''}
+                          onChange={e => setSample({ ...sample, dateParticipation: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                          placeholder="20 May – 11 June 2026"
+                        />
+                      </div>
 
-                  {/* Level & Grade */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[11px] text-slate-500 block mb-1">Level</label>
-                      <input
-                        type="text"
-                        value={sample.level}
-                        onChange={e => setSample({ ...sample, level: e.target.value })}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] text-slate-500 block mb-1">Grade</label>
-                      <input
-                        type="text"
-                        value={sample.grade}
-                        onChange={e => setSample({ ...sample, grade: e.target.value })}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
+                      {/* Tempat & Tanggal Terbit */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Tempat & Tanggal Terbit</label>
+                        <input
+                          type="text"
+                          value={sample.dateIssue || ''}
+                          onChange={e => setSample({ ...sample, dateIssue: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                          placeholder="Jakarta, 11 June 2026"
+                        />
+                      </div>
 
-                  {/* Date of issue & Place of issue */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[11px] text-slate-500 block mb-1">Date of issue</label>
-                      <input
-                        type="text"
-                        value={sample.date}
-                        onChange={e => setSample({ ...sample, date: e.target.value })}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] text-slate-500 block mb-1">Place of issue</label>
-                      <input
-                        type="text"
-                        value={sample.place}
-                        onChange={e => setSample({ ...sample, place: e.target.value })}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
+                      {/* Nomor Registrasi Belakang */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Nomor Registrasi (Halaman Belakang)</label>
+                        <input
+                          type="text"
+                          value={sample.regNo || ''}
+                          onChange={e => setSample({ ...sample, regNo: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
+                          placeholder="CBETC144062026"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Nomor Seri */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] text-slate-500">Nomor Seri</label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const match = sample.serial.match(/(20\d{2}[\/\-_]?)(\d+)/);
+                              if (match) {
+                                const prefix = match[1];
+                                const numStr = match[2];
+                                const nextNum = (parseInt(numStr, 10) + 1).toString().padStart(numStr.length, '0');
+                                const nextSerial = sample.serial.replace(`${prefix}${numStr}`, `${prefix}${nextNum}`);
+                                setSample({ ...sample, serial: nextSerial });
+                              }
+                            }}
+                            className="text-[10px] text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer flex items-center gap-1"
+                            title="Klik untuk menaikkan nomor urut berikutnya (+1)"
+                          >
+                            +1 Urutan Selanjutnya
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={sample.serial}
+                          onChange={e => setSample({ ...sample, serial: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
+                          placeholder="Contoh: CBEC/ID/IX/20260187"
+                        />
+                      </div>
+
+                      {/* Nama Peserta */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Nama Peserta</label>
+                        <input
+                          type="text"
+                          value={sample.name}
+                          onChange={e => setSample({ ...sample, name: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      {/* Teks Ribbon */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Teks Ribbon</label>
+                        <input
+                          type="text"
+                          value={sample.ribbon}
+                          onChange={e => setSample({ ...sample, ribbon: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      {/* Level & Grade */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[11px] text-slate-500 block mb-1">Level</label>
+                          <input
+                            type="text"
+                            value={sample.level}
+                            onChange={e => setSample({ ...sample, level: e.target.value })}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-slate-500 block mb-1">Grade</label>
+                          <input
+                            type="text"
+                            value={sample.grade}
+                            onChange={e => setSample({ ...sample, grade: e.target.value })}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Date of issue & Place of issue */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[11px] text-slate-500 block mb-1">Date of issue</label>
+                          <input
+                            type="text"
+                            value={sample.date}
+                            onChange={e => setSample({ ...sample, date: e.target.value })}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-slate-500 block mb-1">Place of issue</label>
+                          <input
+                            type="text"
+                            value={sample.place}
+                            onChange={e => setSample({ ...sample, place: e.target.value })}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
