@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -16,6 +17,7 @@ const LEVEL_STYLE: Record<string, { badge: string; border: string; bg: string }>
 };
 
 export default function PublicCourseDetailPage() {
+  const t = useTranslations('PublicCourseDetail');
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
@@ -44,7 +46,7 @@ export default function PublicCourseDetailPage() {
       })
       .catch((err) => {
         console.error('Failed to load course details:', err);
-        setError('Kursus tidak ditemukan atau sedang tidak aktif.');
+        setError(t('err_not_found'));
       })
       .finally(() => {
         setLoading(false);
@@ -89,14 +91,14 @@ export default function PublicCourseDetailPage() {
             <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 mx-auto flex items-center justify-center mb-4">
               <Icon name="warning" size={28} />
             </div>
-            <h2 className="text-xl font-bold text-[#00162d] mb-2 font-heading">Kursus Tidak Ditemukan</h2>
-            <p className="text-slate-500 text-sm mb-6">{error ?? 'Materi kursus tidak dapat dimuat.'}</p>
+            <h2 className="text-xl font-bold text-[#00162d] mb-2 font-heading">{t('title_not_found')}</h2>
+            <p className="text-slate-500 text-sm mb-6">{error ?? t('desc_not_found')}</p>
             <Link
               href="/courses"
               className="px-6 py-3 bg-[#00162d] text-white rounded-xl text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2"
             >
               <Icon name="arrow-left" size={16} />
-              <span>Kembali ke Katalog Kursus</span>
+              <span>{t('btn_back_catalog')}</span>
             </Link>
           </div>
         ) : (
@@ -105,7 +107,7 @@ export default function PublicCourseDetailPage() {
             const style = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
             const isFree = Number(course.price) <= 0;
             const formattedPrice = isFree
-              ? 'Gratis'
+              ? t('lbl_free')
               : `Rp${Number(course.price).toLocaleString('id-ID')}`;
 
             const totalSections = course.sections?.length ?? 0;
@@ -120,7 +122,7 @@ export default function PublicCourseDetailPage() {
                 <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-6 flex-wrap font-mono">
                   <Link href="/" className="hover:text-navy transition-colors flex items-center gap-1">
                     <Icon name="home-2" size={14} />
-                    <span>Beranda</span>
+                    <span>{t('nav_home')}</span>
                   </Link>
                   <span>/</span>
                   <Link href="/courses" className="hover:text-navy transition-colors">
@@ -140,11 +142,11 @@ export default function PublicCourseDetailPage() {
                       </span>
                       <span className="text-xs text-white/80 flex items-center gap-1 font-mono">
                         <Icon name="layers-1" size={14} className="text-amber-400" />
-                        {totalSections} Modul Silabus
+                        {totalSections} {t('lbl_modules')}
                       </span>
                       <span className="text-xs text-white/80 flex items-center gap-1 font-mono">
                         <Icon name="book-1" size={14} className="text-amber-400" />
-                        {totalContents} Materi & Asesmen
+                        {totalContents} {t('lbl_materials')}
                       </span>
                     </div>
 
@@ -161,11 +163,11 @@ export default function PublicCourseDetailPage() {
                     <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-white/10 text-xs text-slate-300 font-mono">
                       <span className="flex items-center gap-1.5">
                         <Icon name="shield-2-check" size={15} className="text-amber-400" />
-                        Akreditasi The Blue Economist International
+                        {t('feature_1')}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Icon name="water-drop-1" size={15} className="text-amber-400" />
-                        Standar SDG 14 & UN Ocean Decade
+                        {t('feature_2')}
                       </span>
                     </div>
                   </div>
@@ -174,10 +176,10 @@ export default function PublicCourseDetailPage() {
                 {/* Navigation Tabs on Detail Page */}
                 <div className="flex items-center gap-2 mb-8 border-b border-slate-200 overflow-x-auto pb-1">
                   {[
-                    { id: 'syllabus', label: 'Silabus & Modul', icon: 'layers-1' },
-                    { id: 'overview', label: 'Capaian Pembelajaran', icon: 'check-circle-1' },
-                    { id: 'cert', label: 'Sertifikat CBEc', icon: 'certificate-badge-1' },
-                    { id: 'instructor', label: 'Instruktur & Asesor', icon: 'user-4' },
+                    { id: 'syllabus', label: t('tab_syllabus'), icon: 'layers-1' },
+                    { id: 'overview', label: t('tab_overview'), icon: 'check-circle-1' },
+                    { id: 'cert', label: t('tab_cert'), icon: 'certificate-badge-1' },
+                    { id: 'instructor', label: t('tab_instructor'), icon: 'user-4' },
                   ].map((tab) => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -185,11 +187,10 @@ export default function PublicCourseDetailPage() {
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                        className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer font-heading whitespace-nowrap ${
-                          isActive
-                            ? 'bg-[#00162d] text-white shadow-xs'
-                            : 'text-slate-600 hover:text-navy hover:bg-slate-100'
-                        }`}
+                        className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer font-heading whitespace-nowrap ${isActive
+                          ? 'bg-[#00162d] text-white shadow-xs'
+                          : 'text-slate-600 hover:text-navy hover:bg-slate-100'
+                          }`}
                       >
                         <Icon name={tab.icon} size={15} />
                         <span>{tab.label}</span>
@@ -208,22 +209,22 @@ export default function PublicCourseDetailPage() {
                         <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                           <div>
                             <h2 className="text-xl font-extrabold text-[#00162d] font-heading">
-                              Daftar Modul & Materi Pembelajaran
+                              {t('title_syllabus')}
                             </h2>
                             <p className="text-xs text-slate-500 mt-0.5">
-                              Pelajari materi terstruktur secara bertahap
+                              {t('desc_syllabus')}
                             </p>
                           </div>
                           <span className="text-xs font-bold text-sky-800 bg-sky-50 px-3 py-1 rounded-lg font-mono border border-sky-200">
-                            {totalSections} Modul
+                            {totalSections} {t('lbl_module_count')}
                           </span>
                         </div>
 
                         {totalSections === 0 ? (
                           <div className="p-8 text-center bg-white border border-slate-200 rounded-2xl text-slate-400">
                             <Icon name="layers-1" size={32} className="mx-auto mb-2 text-slate-300" />
-                            <p className="font-semibold text-slate-600">Silabus Sedang Disusun</p>
-                            <p className="text-xs text-slate-400 mt-1">Daftar modul dan materi akan segera dirilis oleh instruktur.</p>
+                            <p className="font-semibold text-slate-600">{t('empty_syllabus_title')}</p>
+                            <p className="text-xs text-slate-400 mt-1">{t('empty_syllabus_desc')}</p>
                           </div>
                         ) : (
                           <div className="space-y-3.5">
@@ -250,23 +251,22 @@ export default function PublicCourseDetailPage() {
                                           {section.title}
                                         </h3>
                                         <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
-                                          {contents.length} Materi / Asesmen
+                                          {contents.length} {t('lbl_materials_count')}
                                         </p>
                                       </div>
                                     </div>
                                     <Icon
                                       name="chevron-down"
                                       size={16}
-                                      className={`text-slate-400 transition-transform duration-200 ${
-                                        isOpen ? 'rotate-180 text-sky-600' : ''
-                                      }`}
+                                      className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-sky-600' : ''
+                                        }`}
                                     />
                                   </button>
 
                                   {isOpen && (
                                     <div className="p-5 border-t border-slate-100 space-y-2.5 bg-white">
                                       {contents.length === 0 ? (
-                                        <p className="text-xs text-slate-400 italic py-2">Belum ada materi pada modul ini.</p>
+                                        <p className="text-xs text-slate-400 italic py-2">{t('empty_module')}</p>
                                       ) : (
                                         contents.map((content) => {
                                           const isVideo = content.content_type === 'video_embed' || content.content_type === 'oral_video_task';
@@ -296,7 +296,7 @@ export default function PublicCourseDetailPage() {
                                               </div>
                                               <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 font-mono">
                                                 <Icon name="locked-1" size={12} />
-                                                Terkunci
+                                                {t('lbl_locked')}
                                               </span>
                                             </div>
                                           );
@@ -320,10 +320,10 @@ export default function PublicCourseDetailPage() {
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {[
-                            'Menguasai taksonomi dan prinsip keberlanjutan ekonomi maritim terkini',
-                            'Mampu melakukan valuasi ekonomi ekosistem pesisir dan karbon biru (blue carbon)',
-                            'Memahami regulasi dan instrumen dekarbonisasi pelabuhan serta perkapalan hijau',
-                            'Mendapatkan sertifikat resmi dengan kode verifikasi internasional',
+                            t('comp_1'),
+                            t('comp_2'),
+                            t('comp_3'),
+                            t('comp_4'),
                           ].map((comp, i) => (
                             <div key={i} className="flex items-start gap-3 p-4 rounded-2xl bg-sky-50/50 border border-sky-100">
                               <span className="w-5 h-5 rounded-full bg-sky-500 text-white flex items-center justify-center shrink-0 mt-0.5">
@@ -340,21 +340,21 @@ export default function PublicCourseDetailPage() {
                     {activeTab === 'cert' && (
                       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
                         <h2 className="text-xl font-bold text-[#00162d] font-heading">
-                          Spesifikasi Kredensial Sertifikasi
+                          {t('title_cert')}
                         </h2>
                         <p className="text-xs text-slate-500 leading-relaxed">
-                          Sertifikat ini diterbitkan secara otomatis setelah Anda menyelesaikan seluruh materi dan lulus ujian asesmen dengan nilai minimal 70%.
+                          {t('desc_cert')}
                         </p>
                         <div className="p-6 rounded-2xl border-2 border-amber-400/80 bg-gradient-to-br from-[#00162d] to-[#0f2b48] text-white">
                           <span className="text-[10px] font-mono font-bold tracking-widest text-amber-400 uppercase block mb-1">
-                            CERTIFIED CREDENTIAL PREVIEW
+                            {t('cert_preview')}
                           </span>
                           <h3 className="text-lg font-bold font-heading">{course.title}</h3>
-                          <p className="text-xs text-slate-300 mt-2">Diterbitkan oleh: The Blue Economist International Association x Maritim Muda Nusantara</p>
+                          <p className="text-xs text-slate-300 mt-2">{t('cert_issued_by')}</p>
                           <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono">
-                            <span className="text-emerald-400 font-bold">QR AKTIF & SERIAL VALID</span>
+                            <span className="text-emerald-400 font-bold">{t('cert_status')}</span>
                             <Link href="/verify" className="underline text-sky-300 hover:text-white">
-                              Uji Sistem Verifikasi →
+                              {t('btn_verify')}
                             </Link>
                           </div>
                         </div>
@@ -372,9 +372,9 @@ export default function PublicCourseDetailPage() {
                             M
                           </div>
                           <div>
-                            <h3 className="text-sm font-bold text-[#00162d] font-heading">Tim Pakar & Asesor Senior DigiBlue</h3>
-                            <p className="text-xs text-slate-500 font-mono">The Blue Economist International Faculty</p>
-                            <p className="text-xs text-slate-600 mt-1">Berpengalaman 15+ tahun dalam kebijakan kelautan dan proyek ekonomi biru internasional.</p>
+                            <h3 className="text-sm font-bold text-[#00162d] font-heading">{t('instructor_name')}</h3>
+                            <p className="text-xs text-slate-500 font-mono">{t('instructor_title')}</p>
+                            <p className="text-xs text-slate-600 mt-1">{t('instructor_desc')}</p>
                           </div>
                         </div>
                       </div>
@@ -386,8 +386,8 @@ export default function PublicCourseDetailPage() {
                     <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xl">
                       <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-slate-100">
                         <div>
-                          <span className="text-[11px] uppercase tracking-wider font-bold text-slate-400 font-mono block">Biaya Investasi</span>
-                          <span className="text-[11px] text-emerald-600 font-bold font-mono">Termasuk Sertifikat & Ujian</span>
+                          <span className="text-[11px] uppercase tracking-wider font-bold text-slate-400 font-mono block">{t('lbl_investment')}</span>
+                          <span className="text-[11px] text-emerald-600 font-bold font-mono">{t('lbl_includes')}</span>
                         </div>
                         <span className={`text-2xl sm:text-3xl font-black ${isFree ? 'text-emerald-600' : 'text-[#00162d]'} font-heading`}>
                           {formattedPrice}
@@ -400,26 +400,26 @@ export default function PublicCourseDetailPage() {
                         onClick={handleEnrollClick}
                         className="w-full py-3.5 px-6 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-[#0f2b48] text-sm font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer mb-5 font-heading"
                       >
-                        <span>{isFree ? 'Daftar Sekarang' : 'Beli & Ikuti Kursus'}</span>
+                        <span>{isFree ? t('btn_enroll_free') : t('btn_enroll_paid')}</span>
                         <Icon name="arrow-right" size={16} />
                       </button>
 
                       <div className="space-y-3 pt-3 text-xs text-slate-600">
                         <div className="flex items-center gap-2.5">
                           <Icon name="check-circle-1" size={15} className="text-emerald-500 shrink-0" />
-                          <span>Akses modul pembelajaran 24/7 online</span>
+                          <span>{t('inc_1')}</span>
                         </div>
                         <div className="flex items-center gap-2.5">
                           <Icon name="check-circle-1" size={15} className="text-emerald-500 shrink-0" />
-                          <span>Sertifikat terverifikasi QR Code & ID Unik</span>
+                          <span>{t('inc_2')}</span>
                         </div>
                         <div className="flex items-center gap-2.5">
                           <Icon name="check-circle-1" size={15} className="text-emerald-500 shrink-0" />
-                          <span>Tercatat resmi di The Blue Economist Association</span>
+                          <span>{t('inc_3')}</span>
                         </div>
                         <div className="flex items-center gap-2.5">
                           <Icon name="check-circle-1" size={15} className="text-emerald-500 shrink-0" />
-                          <span>Tersedia bantuan live via WhatsApp</span>
+                          <span>{t('inc_4')}</span>
                         </div>
                       </div>
 
@@ -430,7 +430,7 @@ export default function PublicCourseDetailPage() {
                           rel="noopener noreferrer"
                           className="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 border border-slate-200 transition-colors"
                         >
-                          <span>Tanya Silabus via WhatsApp</span>
+                          <span>{t('btn_ask_wa')}</span>
                           <Icon name="arrow-right" size={13} />
                         </a>
                       </div>
