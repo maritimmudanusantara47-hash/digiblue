@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import type { Course } from '@/types';
 import { useTranslations, useLocale } from 'next-intl';
 import { translateText } from '@/lib/translator';
+import Cookies from 'js-cookie';
+import { useAuthStore } from '@/store/authStore';
 
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
 
@@ -18,34 +20,25 @@ interface CertLevel {
   order_index: number;
 }
 
-const LEVEL_STYLE: Record<string, { badge: string; card: string; border: string }> = {
-  FND: {
-    badge: 'bg-[#E0F2FE] text-[#0369A1] border-sky-300',
-    card: 'from-[#0A192F] to-[#0F2B48]',
-    border: 'border-sky-300',
-  },
-  SPEC: {
-    badge: 'bg-[#E0F2FE] text-[#0369A1] border-sky-300',
-    card: 'from-[#0F2B48] to-[#1E3A5F]',
-    border: 'border-sky-200',
-  },
-  NAT: {
-    badge: 'bg-[#DCFCE7] text-[#15803D] border-emerald-300',
-    card: 'from-emerald-800 to-teal-900',
-    border: 'border-emerald-300',
-  },
-  SGL: {
-    badge: 'bg-[#F3E8FF] text-[#7E22CE] border-purple-300',
-    card: 'from-purple-900 to-indigo-950',
-    border: 'border-purple-300',
-  },
+const LEVEL_STYLE: Record<string, { badge: string; card: string }> = {
+  FND: { badge: 'bg-emerald-100 text-emerald-700 border border-emerald-300', card: 'from-emerald-500 to-emerald-600' },
+  SPEC: { badge: 'bg-navy/10 text-navy border border-navy/30', card: 'from-navy to-navy-light' },
+  NAT: { badge: 'bg-amber-100 text-amber-800 border border-amber-300', card: 'from-amber-500 to-amber-600' },
+  SGL: { badge: 'bg-purple-100 text-purple-800 border border-purple-300', card: 'from-purple-500 to-purple-700' },
 };
 
 function CoursesContent() {
   const t = useTranslations('CoursesPage');
   const locale = useLocale();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const trackParam = searchParams?.get('track') as TabCategory | null;
+  const { isAuthenticated } = useAuthStore();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(isAuthenticated || !!Cookies.get('auth_token'));
+  }, [isAuthenticated]);
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [certLevels, setCertLevels] = useState<CertLevel[]>([]);
@@ -303,70 +296,57 @@ function CoursesContent() {
             {filteredCourses.map((c) => {
               const code = c.certification_level?.code ?? 'SPEC';
               const style = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
-              const isFree = Number(c.price) <= 0;
-              const formattedPrice = isFree
-                ? t('free')
-                : `Rp${Number(c.price).toLocaleString('id-ID')}`;
-              const sectionsCount = (c as unknown as { sections_count?: number }).sections_count ?? 0;
+              const formattedPrice =
+                Number(c.price) <= 0
+                  ? t('free')
+                  : `Rp${Number(c.price).toLocaleString('id-ID')}`;
 
               return (
-                <article
+                <div
                   key={c.id}
-                  className="bg-white rounded-2xl border border-slate-200/90 flex flex-col justify-between overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group"
+                  className="card transition-all duration-200 flex flex-col gap-4 hover:shadow-lg hover:-translate-y-0.5"
                 >
-                  {/* Card Top Border Accent */}
-                  <div className={`h-2.5 bg-gradient-to-r ${style.card}`} />
+                  {/* 1. Gradient accent line di atas card */}
+                  <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card}`} />
 
-                  <div className="p-5 sm:p-6 flex-1 flex flex-col">
-                    {/* Badge & Meta */}
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase border ${style.badge}`}>
-                        {c.certification_level?.name ?? code}
-                      </span>
-                      <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 font-mono">
-                        <Icon name="alarm-1" size={12} />
-                        {t('duration')}
-                      </span>
-                    </div>
+                  {/* 2. Badge Level di kiri & Harga di kanan atas */}
+                  <div className="flex items-start justify-between gap-2 pt-1">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.badge}`}>
+                      {c.certification_level?.name ?? code}
+                    </span>
+                    <span className="text-sm font-bold text-navy-dark">
+                      {formattedPrice}
+                    </span>
+                  </div>
 
-                    <h3 className="text-base font-bold text-[#00162d] mb-2 line-clamp-2 leading-snug font-heading group-hover:text-sky-700 transition-colors">
-                      {c.title}
-                    </h3>
+                  {/* 3. Judul dan Deskripsi */}
+                  <div className="flex-1">
+                    <h3 className="font-bold text-navy-dark text-base leading-snug">{c.title}</h3>
                     {c.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">
-                        {c.description}
-                      </p>
+                      <p className="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">{c.description}</p>
                     )}
-
-                    <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      {sectionsCount > 0 ? (
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-                          <Icon name="layers-1" size={13} className="text-sky-600" />
-                          <span>{sectionsCount} {t('modules_suffix')}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-                          <Icon name="certificate-badge-1" size={13} />
-                          <span>{t('official_cert')}</span>
-                        </div>
-                      )}
-                      <span className={`font-extrabold text-sm ${isFree ? 'text-emerald-600' : 'text-[#00162d]'}`}>
-                        {formattedPrice}
-                      </span>
-                    </div>
                   </div>
 
-                  {/* Actions: Warm Sand Amber CTA Button matching Stitch */}
-                  <div className="p-4 pt-0">
-                    <Link
-                      href={`/courses/${c.slug}`}
-                      className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-[#0f2b48] text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all font-heading"
-                    >
-                      <span>{t('btn_enroll')}</span>
-                      <Icon name="arrow-right" size={14} />
-                    </Link>
-                  </div>
-                </article>
+                  {/* 4. Tombol CTA Enroll Now (Direct ke Silabus jika login, direct ke Login jika belum) */}
+                  <Link
+                    href={
+                      isLoggedIn
+                        ? `/student/catalog/${c.slug}`
+                        : `/login?redirect=${encodeURIComponent('/student/catalog/' + c.slug)}`
+                    }
+                    onClick={(e) => {
+                      const token = Cookies.get('auth_token');
+                      if (isAuthenticated || !!token) {
+                        e.preventDefault();
+                        router.push(`/student/catalog/${c.slug}`);
+                      }
+                    }}
+                    className="btn btn-primary w-full text-sm font-semibold flex items-center justify-center gap-1.5"
+                  >
+                    <Icon name="rocket-5" size={16} />
+                    <span>{t.has?.('btn_enroll_now') ? t('btn_enroll_now') : (locale === 'en' ? 'Enroll Now' : 'Daftar Sekarang')}</span>
+                  </Link>
+                </div>
               );
             })}
           </div>
