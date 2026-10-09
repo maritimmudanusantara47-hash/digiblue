@@ -119,8 +119,16 @@ export default function StudentCoursePage() {
 
 
   const totalContents  = data?.sections.reduce((acc, s) => acc + s.contents.filter(c => c.content_type !== 'field_study').length, 0) ?? 0;
-  const completedCount = [...submissions.values()].filter(s => s.score !== null).length;
-  const progressPct    = totalContents > 0 ? Math.round((completedCount / totalContents) * 100) : 0;
+  
+  const currentCourseContentIds = new Set(
+    data?.sections.flatMap(s => s.contents.map(c => c.id)) ?? []
+  );
+
+  const completedCount = [...submissions.values()].filter(
+    s => currentCourseContentIds.has(s.content_id) && s.score !== null
+  ).length;
+
+  const progressPct = totalContents > 0 ? Math.min(100, Math.round((completedCount / totalContents) * 100)) : 0;
 
   if (loading) return (
     <div className="flex items-center justify-center py-32 text-slate-400 gap-3">
