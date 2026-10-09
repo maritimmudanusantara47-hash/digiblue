@@ -722,14 +722,6 @@ function CourseCard({
         )}
       </div>
 
-      {/* Lihat Silabus & Detail */}
-      <Link
-        href={`/student/catalog/${course.slug}`}
-        className="btn btn-secondary btn-sm w-full text-xs font-semibold hover:bg-slate-100 flex items-center justify-center gap-1.5"
-      >
-        <Icon name="book-1" size={14} className="text-navy" />
-        <span>{t("btn_view_syllabus")}</span>
-      </Link>
 
       {/* CTA Button */}
       {!enrollment ? (

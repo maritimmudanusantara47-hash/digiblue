@@ -103,6 +103,10 @@
     @apply bg-transparent text-navy border-2 border-navy hover:bg-navy hover:text-white;
   }
 
+  .btn-secondary {
+    @apply bg-white text-navy border border-slate-200 hover:bg-slate-100;
+  }
+
   .btn-sm  { @apply px-4 py-2 text-xs rounded-lg; }
   .btn-lg  { @apply px-10 py-4 text-base rounded-2xl; }
   .btn:disabled { @apply opacity-50 cursor-not-allowed translate-y-0; }
