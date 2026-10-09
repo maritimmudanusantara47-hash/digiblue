@@ -6,7 +6,8 @@ import Link from 'next/link';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import type { Course } from '@/types';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { translateText } from '@/lib/translator';
 
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
 
@@ -42,6 +43,7 @@ const LEVEL_STYLE: Record<string, { badge: string; card: string; border: string 
 
 function CoursesContent() {
   const t = useTranslations('CoursesPage');
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const trackParam = searchParams?.get('track') as TabCategory | null;
 
@@ -64,10 +66,28 @@ function CoursesContent() {
       api.get('/courses'),
       api.get('/certification-levels'),
     ])
-      .then(([courseRes, levelRes]) => {
+      .then(async ([courseRes, levelRes]) => {
         if (!mounted) return;
-        setCourses(courseRes.data.data ?? []);
-        setCertLevels(levelRes.data.data ?? []);
+        
+        let coursesData = courseRes.data.data ?? [];
+        let levelsData = levelRes.data.data ?? [];
+
+        if (locale === 'en') {
+          levelsData = await Promise.all(levelsData.map(async (l: any) => ({
+            ...l,
+            name: await translateText(l.name, 'en')
+          })));
+
+          coursesData = await Promise.all(coursesData.map(async (c: any) => ({
+            ...c,
+            title: await translateText(c.title, 'en'),
+            description: await translateText(c.description, 'en')
+          })));
+        }
+
+        if (!mounted) return;
+        setCourses(coursesData);
+        setCertLevels(levelsData);
       })
       .catch(console.error)
       .finally(() => {
@@ -76,7 +96,7 @@ function CoursesContent() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [locale]);
 
   const intCertLabel = useMemo(() => {
     const fnd = certLevels.find((l) => l.code === 'FND');

@@ -3,22 +3,26 @@
 import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import MarkdownViewer from '@/components/MarkdownViewer';
 
 const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader'), {
   ssr: false,
-  loading: () => (
-    <div className="rounded-3xl border border-slate-800 bg-slate-950 p-12 flex flex-col items-center justify-center gap-3 text-sky-400">
-      <div className="w-10 h-10 border-4 border-sky-400/20 border-t-sky-400 rounded-full animate-spin" />
-      <p className="text-xs font-semibold">Menyiapkan Reader Dokumen Digital...</p>
-    </div>
-  ),
+  loading: function LoadingPdfReader() {
+    const t = useTranslations('AdminCourseContentPage');
+    return (
+      <div className="rounded-3xl border border-slate-800 bg-slate-950 p-12 flex flex-col items-center justify-center gap-3 text-sky-400">
+        <div className="w-10 h-10 border-4 border-sky-400/20 border-t-sky-400 rounded-full animate-spin" />
+        <p className="text-xs font-semibold">{t('msg_preparing_reader')}</p>
+      </div>
+    );
+  },
 });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface QuizOption   { id: number; option_text: string; is_correct: boolean }
+interface QuizOption { id: number; option_text: string; is_correct: boolean }
 interface QuizQuestion { id: number; question_text: string; weight_score: number; options: QuizOption[] }
 interface Content {
   id: number;
@@ -39,40 +43,41 @@ interface CourseDetail {
 }
 
 const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
-  pdf_module:       { icon: 'file-multiple', label: 'Learning Module',              color: 'blue' },
-  video_embed:      { icon: 'camera-movie-1', label: 'Video Lecture',                color: 'purple' },
-  mcq_quiz:         { icon: 'pen-to-square', label: 'Multiple-Choice Examination',  color: 'amber' },
-  essay_task:       { icon: 'pencil-1', label: 'Case-Study Essay Submission',  color: 'teal' },
-  oral_video_task:  { icon: 'camera-movie-1', label: 'Oral Video Exam',              color: 'rose' },
-  critical_thinking:{ icon: 'bulb-2', label: 'Critical Thinking Exam',       color: 'indigo' },
-  field_study:      { icon: 'water-drop-1', label: 'Training Course (Field Study)', color: 'emerald' },
+  pdf_module: { icon: 'file-multiple', label: 'Learning Module', color: 'blue' },
+  video_embed: { icon: 'camera-movie-1', label: 'Video Lecture', color: 'purple' },
+  mcq_quiz: { icon: 'pen-to-square', label: 'Multiple-Choice Examination', color: 'amber' },
+  essay_task: { icon: 'pencil-1', label: 'Case-Study Essay Submission', color: 'teal' },
+  oral_video_task: { icon: 'camera-movie-1', label: 'Oral Video Exam', color: 'rose' },
+  critical_thinking: { icon: 'bulb-2', label: 'Critical Thinking Exam', color: 'indigo' },
+  field_study: { icon: 'water-drop-1', label: 'Training Course (Field Study)', color: 'emerald' },
 };
 
 export default function AdminCourseContentPage() {
-  const params  = useParams<{ id: string }>();
-  const router  = useRouter();
+  const t = useTranslations('AdminCourseContentPage');
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
   const courseId = Number(params.id);
 
-  const [course, setCourse]     = useState<CourseDetail | null>(null);
-  const [loading, setLoading]   = useState(true);
+  const [course, setCourse] = useState<CourseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'quiz'>('overview');
 
   // Content being managed
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
 
   // PDF Upload & Preview
-  const [uploadFile, setUploadFile]   = useState<File | null>(null);
-  const [uploading, setUploading]     = useState(false);
-  const [previewPdfUrl, setPreviewPdfUrl]     = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [previewPdfTitle, setPreviewPdfTitle] = useState('');
 
   // Edit instruction text
   const [editInstruction, setEditInstruction] = useState('');
   const [editContentBody, setEditContentBody] = useState('');
   const [bodyTab, setBodyTab] = useState<'editor' | 'preview'>('editor');
-  const [editEmbedUrl, setEditEmbedUrl]       = useState('');
-  const [instructionTab, setInstructionTab]   = useState<'editor' | 'preview'>('editor');
-  const [savingContent, setSavingContent]     = useState(false);
+  const [editEmbedUrl, setEditEmbedUrl] = useState('');
+  const [instructionTab, setInstructionTab] = useState<'editor' | 'preview'>('editor');
+  const [savingContent, setSavingContent] = useState(false);
 
   // References and helper for smart markdown formatting (wrap selected text or insert at cursor)
   const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -156,7 +161,7 @@ export default function AdminCourseContentPage() {
   const handleInsertImage = async () => {
     if (imageTab === 'upload') {
       if (!localImageFile) {
-        alert('Pilih file gambar dari komputer terlebih dahulu.');
+        alert(t('err_select_image'));
         return;
       }
       setUploadingImage(true);
@@ -170,21 +175,21 @@ export default function AdminCourseContentPage() {
           .replace(/\/api\/v1\/?$/, '')
           .replace(/\/api\/?$/, '');
         const fullImgUrl = res.data.file_path ? `${backendBase}/storage/${res.data.file_path}` : res.data.url;
-        const alt = imageAltText.trim() || 'Ilustrasi Modul';
+        const alt = imageAltText.trim() || t('alt_module_illustration');
         insertMarkdown(imageModalTarget, `\n![${alt}](${fullImgUrl})\n`, '', '');
         setImageModalOpen(false);
       } catch (err: unknown) {
         const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-        alert(msg ?? 'Gagal mengupload gambar.');
+        alert(msg ?? t('err_upload_image'));
       } finally {
         setUploadingImage(false);
       }
     } else {
       if (!webImageUrl.trim()) {
-        alert('Masukkan URL gambar terlebih dahulu.');
+        alert(t('err_no_image_url'));
         return;
       }
-      const alt = imageAltText.trim() || 'Ilustrasi Modul';
+      const alt = imageAltText.trim() || t('alt_module_illustration');
       insertMarkdown(imageModalTarget, `\n![${alt}](${webImageUrl.trim()})\n`, '', '');
       setImageModalOpen(false);
     }
@@ -207,17 +212,17 @@ export default function AdminCourseContentPage() {
       insertMarkdown(target, `\n![${alt}](${fullImgUrl})\n`, '', '');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal mengupload gambar.');
+      alert(msg ?? t('err_upload_image'));
     } finally {
       e.target.value = '';
     }
   };
 
   // Quiz Questions
-  const [questions, setQuestions]     = useState<QuizQuestion[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [quizLoading, setQuizLoading] = useState(false);
-  const [showAddQuestion, setShowAddQ]= useState(false);
-  const [editingQuestion, setEditingQ]= useState<QuizQuestion | null>(null);
+  const [showAddQuestion, setShowAddQ] = useState(false);
+  const [editingQuestion, setEditingQ] = useState<QuizQuestion | null>(null);
 
   const fetchCourse = useCallback(async () => {
     setLoading(true);
@@ -225,7 +230,7 @@ export default function AdminCourseContentPage() {
       const res = await api.get(`/admin/courses/${courseId}`);
       setCourse(res.data.data);
     } catch {
-      alert('Gagal memuat kursus.');
+      alert(t('err_load_course'));
     } finally {
       setLoading(false);
     }
@@ -270,12 +275,12 @@ export default function AdminCourseContentPage() {
       await api.post(`/admin/contents/${selectedContent.id}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert('PDF berhasil diupload!');
+      alert(t('succ_upload_pdf'));
       setUploadFile(null);
       fetchCourse();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal upload PDF.');
+      alert(msg ?? t('err_upload_pdf'));
     } finally {
       setUploading(false);
     }
@@ -290,11 +295,11 @@ export default function AdminCourseContentPage() {
         content_body: editContentBody || null,
         embed_url: editEmbedUrl || null,
       });
-      alert('Konten berhasil disimpan!');
+      alert(t('succ_save_content'));
       fetchCourse();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal menyimpan konten.');
+      alert(msg ?? t('err_save_content'));
     } finally {
       setSavingContent(false);
     }
@@ -303,14 +308,14 @@ export default function AdminCourseContentPage() {
   if (loading) return (
     <div className="flex items-center justify-center py-32 gap-3 text-slate-400">
       <svg className="animate-spin h-6 w-6 text-navy" viewBox="0 0 24 24" fill="none">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
       </svg>
-      Memuat kursus...
+      {t('msg_loading')}
     </div>
   );
 
-  if (!course) return <div className="text-center py-20 text-slate-400">Kursus tidak ditemukan.</div>;
+  if (!course) return <div className="text-center py-20 text-slate-400">{t('err_course_not_found')}</div>;
 
   return (
     <div className="animate-fadeup">
@@ -318,10 +323,10 @@ export default function AdminCourseContentPage() {
       <div className="mb-6">
         <button onClick={() => router.push('/admin/courses')}
           className="text-sm text-slate-500 hover:text-navy flex items-center gap-1 mb-3">
-          <Icon name="arrow-left" size={16} className="mr-1.5" />Kembali ke Daftar Kursus
+          <Icon name="arrow-left" size={16} className="mr-1.5" />{t('btn_back_to_courses')}
         </button>
         <h1 className="text-2xl font-extrabold text-navy-dark">{course.title}</h1>
-        <p className="text-slate-500 text-sm mt-1">Kelola konten & soal ujian kursus ini</p>
+        <p className="text-slate-500 text-sm mt-1">{t('desc_manage_course')}</p>
       </div>
 
       <div className="flex gap-6">
@@ -329,7 +334,7 @@ export default function AdminCourseContentPage() {
         <aside className="w-72 flex-shrink-0 self-start">
           <div className="card p-0 overflow-hidden sticky top-6">
             <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Daftar Konten</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('title_content_list')}</p>
             </div>
             <div className="overflow-y-auto max-h-[70vh]">
               {course.sections.map(section => (
@@ -350,7 +355,7 @@ export default function AdminCourseContentPage() {
                           {content.title}
                         </span>
                         {(content.content_body || content.file_path) && (
-                          <span className="text-xs opacity-70" title="Materi sudah terisi"><Icon name="check-circle-1" size={12} /></span>
+                          <span className="text-xs opacity-70" title={t("title_material_filled")}><Icon name="check-circle-1" size={12} /></span>
                         )}
                       </button>
                     );
@@ -366,7 +371,7 @@ export default function AdminCourseContentPage() {
           {!selectedContent ? (
             <div className="card text-center py-20 text-slate-400">
               <div className="text-5xl mb-3"><Icon name="arrow-left" size={48} /></div>
-              <p>Pilih konten dari daftar di sebelah kiri</p>
+              <p>{t('msg_select_content')}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-5">
@@ -383,13 +388,13 @@ export default function AdminCourseContentPage() {
                     {selectedContent.content_type !== 'mcq_quiz' && (
                       <button onClick={() => setActiveTab('content')}
                         className={`btn btn-sm ${activeTab === 'content' ? 'btn-primary' : 'btn-secondary'}`}>
-                        <Icon name="pencil-1" size={16} className="mr-1.5" />Edit Konten
+                        <Icon name="pencil-1" size={16} className="mr-1.5" />{t('btn_edit_content')}
                       </button>
                     )}
                     {selectedContent.content_type === 'mcq_quiz' && (
                       <button onClick={() => setActiveTab('quiz')}
                         className={`btn btn-sm ${activeTab === 'quiz' ? 'btn-primary' : 'btn-secondary'}`}>
-                        <Icon name="pen-to-square" size={16} className="mr-1.5" />Kelola Soal
+                        <Icon name="pen-to-square" size={16} className="mr-1.5" />{t('btn_manage_quiz')}
                       </button>
                     )}
                   </div>
@@ -399,7 +404,7 @@ export default function AdminCourseContentPage() {
               {/* Content Tab */}
               {activeTab === 'content' && (
                 <div className="card flex flex-col gap-5">
-                  <h3 className="font-bold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Konten</h3>
+                  <h3 className="font-bold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />{t('btn_edit_content')}</h3>
 
                   {/* Web-based Course Learning Material Editor (Materi Website Interaktif) */}
                   {selectedContent.content_type === 'pdf_module' && (
@@ -411,11 +416,11 @@ export default function AdminCourseContentPage() {
                               <Icon name="book-1" size={16} />
                             </span>
                             <h4 className="font-extrabold text-navy-dark text-base">
-                              Materi Kursus Langsung di Website (Online Learning)
+                              {t('lbl_web_material_title')}
                             </h4>
                           </div>
                           <p className="text-xs text-slate-500 mt-1">
-                            Tulis materi pembelajaran di sini seperti kursus online modern. Peserta dapat langsung membaca artikel dan modul interaktif tanpa perlu download file PDF.
+                            {t('desc_web_material')}
                           </p>
                         </div>
                         <div className="flex gap-1 bg-white p-1 rounded-xl border border-slate-200 self-start sm:self-auto shadow-sm">
@@ -425,7 +430,7 @@ export default function AdminCourseContentPage() {
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${bodyTab === 'editor' ? 'bg-navy text-white shadow-sm' : 'text-slate-500 hover:text-navy'}`}
                           >
                             <Icon name="pencil-1" size={14} />
-                            Editor Teks
+                            {t('tab_text_editor')}
                           </button>
                           <button
                             type="button"
@@ -433,7 +438,7 @@ export default function AdminCourseContentPage() {
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${bodyTab === 'preview' ? 'bg-navy text-white shadow-sm' : 'text-slate-500 hover:text-navy'}`}
                           >
                             <Icon name="eye" size={14} />
-                            Pratinjau Website
+                            {t('tab_preview_web')}
                           </button>
                         </div>
                       </div>
@@ -441,76 +446,76 @@ export default function AdminCourseContentPage() {
                       {/* Quick Markdown Formatting Helper Toolbar */}
                       {bodyTab === 'editor' && (
                         <div className="flex flex-wrap items-center gap-1.5 bg-white p-2 rounded-xl border border-slate-200 text-xs shadow-sm">
-                          <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase">Format:</span>
+                          <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase">{t('lbl_format')}</span>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n# ', '\n', 'Judul Bab')}
+                            onClick={() => insertMarkdown('body', '\n# ', '\n', t('lbl_h1'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title="Heading 1 (# Judul)"
+                            title={t("title_h1_full")}
                           >
                             H1
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n## ', '\n', 'Sub Judul')}
+                            onClick={() => insertMarkdown('body', '\n## ', '\n', t('lbl_h2'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title="Heading 2 (## Sub Judul)"
+                            title={t("title_h2_full")}
                           >
                             H2
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n### ', '\n', 'Bagian Materi')}
+                            onClick={() => insertMarkdown('body', '\n### ', '\n', t('lbl_h3'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title="Heading 3 (### Bagian Materi)"
+                            title={t("title_h3_full")}
                           >
                             H3
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '**', '**', 'teks tebal')}
+                            onClick={() => insertMarkdown('body', '**', '**', t('lbl_bold'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title="Bold (**teks tebal**)"
+                            title={t("title_bold_full")}
                           >
                             B
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '*', '*', 'teks miring')}
+                            onClick={() => insertMarkdown('body', '*', '*', t('lbl_italic'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 italic font-semibold transition-colors"
-                            title="Italic (*teks miring*)"
+                            title={t("title_italic_full")}
                           >
                             I
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n- ', '\n', 'Poin materi')}
+                            onClick={() => insertMarkdown('body', '\n- ', '\n', t('lbl_bullet'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title="Bullet List (- Poin)"
+                            title={t("title_bullet_full")}
                           >
                             • List
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n1. ', '\n', 'Langkah pertama')}
+                            onClick={() => insertMarkdown('body', '\n1. ', '\n', t('lbl_number'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title="Numbered List (1. Angka)"
+                            title={t("title_number_full")}
                           >
-                            1. Angka
+                            {t('lbl_btn_number')}
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n> ', '\n', 'Kutipan penting atau catatan')}
+                            onClick={() => insertMarkdown('body', '\n> ', '\n', t('lbl_quote'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title="Quote Box (> Catatan)"
+                            title={t("title_quote_full")}
                           >
                             &ldquo; Quote
                           </button>
@@ -519,16 +524,16 @@ export default function AdminCourseContentPage() {
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertMarkdown('body', '\n---\n', '', '')}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title="Garis Pemisah (---)"
+                            title={t("title_divider")}
                           >
-                            — Garis
+                            {t('lbl_btn_line')}
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '[', '](https://example.com)', 'Teks Link')}
+                            onClick={() => insertMarkdown('body', '[', '](https://example.com)', t('lbl_link_text'))}
                             className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium underline transition-colors"
-                            title="Link Tautan [Teks](URL)"
+                            title={t("title_link")}
                           >
                             Link
                           </button>
@@ -537,20 +542,20 @@ export default function AdminCourseContentPage() {
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => openImageModal('body')}
                             className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-md font-bold flex items-center gap-1 transition-colors"
-                            title="Sisipkan Gambar (Upload dari Komputer / URL)"
+                            title={t("title_insert_image_btn")}
                           >
                             <Icon name="camera-movie-1" size={12} />
-                            Gambar
+                            {t('btn_image')}
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => quickBodyImageRef.current?.click()}
                             className="px-2.5 py-1 bg-blue-50 hover:bg-navy hover:text-white border border-blue-200 rounded-md text-navy font-bold flex items-center gap-1 transition-colors"
-                            title="Upload Cepat Gambar dari Komputer Lokal"
+                            title={t("title_quick_upload_body")}
                           >
                             <Icon name="upload-1" size={12} />
-                            Upload Lokal
+                            {t('btn_upload_local')}
                           </button>
                           <input
                             type="file"
@@ -569,11 +574,11 @@ export default function AdminCourseContentPage() {
                             rows={16}
                             value={editContentBody}
                             onChange={e => setEditContentBody(e.target.value)}
-                            placeholder="Tuliskan materi pembelajaran lengkap di sini... (Mendukung format teks kaya Markdown: judul bab, paragraf penjelasan, gambar ilustrasi, daftar materi, dan catatan penting)"
+                            placeholder={t("ph_text_editor")}
                             className="form-input font-mono text-xs leading-relaxed resize-y bg-white border-slate-200 p-4"
                           />
                           <p className="text-[11px] text-slate-400">
-                            Tips: Sorot teks mana pun lalu klik tombol format (seperti B, I, H1, Quote) untuk memformat kata tersebut, atau klik langsung untuk menyisipkan contoh di posisi kursor.
+                            {t('desc_editor_tips')}
                           </p>
                         </div>
                       ) : (
@@ -585,8 +590,8 @@ export default function AdminCourseContentPage() {
                           ) : (
                             <div className="text-center py-16 text-slate-400">
                               <Icon name="book-1" size={32} className="mx-auto mb-2 opacity-40" />
-                              <p className="text-sm font-semibold">Belum ada materi online yang ditulis.</p>
-                              <p className="text-xs mt-1">Pilih tab &lsquo;Editor Teks&rsquo; untuk mulai mengetik materi modul.</p>
+                              <p className="text-sm font-semibold">{t('empty_web_material')}</p>
+                              <p className="text-xs mt-1">{t('msg_select_editor')}</p>
                             </div>
                           )}
                         </div>
@@ -598,75 +603,73 @@ export default function AdminCourseContentPage() {
                   {(selectedContent.content_type === 'pdf_module' ||
                     selectedContent.content_type === 'essay_task' ||
                     selectedContent.content_type === 'critical_thinking') && (
-                    <details className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm group" open={!selectedContent.content_body && !!selectedContent.file_path}>
-                      <summary className="font-semibold text-slate-700 cursor-pointer flex items-center justify-between list-none">
-                        <span className="flex items-center gap-2">
-                          <Icon name="file-multiple" size={16} className="text-navy" />
-                          <span>
-                            {selectedContent.content_type === 'pdf_module'
-                              ? 'Lampiran File PDF (Opsional / Dokumen Tambahan)'
-                              : 'Upload File Soal Studi Kasus (PDF)'}
-                          </span>
-                          {selectedContent.file_path && (
-                            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                              Ada Berkas PDF
+                      <details className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm group" open={!selectedContent.content_body && !!selectedContent.file_path}>
+                        <summary className="font-semibold text-slate-700 cursor-pointer flex items-center justify-between list-none">
+                          <span className="flex items-center gap-2">
+                            <Icon name="file-multiple" size={16} className="text-navy" />
+                            <span>
+                              {selectedContent.content_type === 'pdf_module'
+                                ? t('lbl_pdf_attachment_optional')
+                                : t('lbl_upload_case_study')}
                             </span>
-                          )}
-                        </span>
-                        <Icon name="chevron-down" size={14} className="text-slate-400 transition-transform group-open:rotate-180" />
-                      </summary>
+                            {selectedContent.file_path && (
+                              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                                {t('lbl_has_pdf')}
+                              </span>
+                            )}
+                          </span>
+                          <Icon name="chevron-down" size={14} className="text-slate-400 transition-transform group-open:rotate-180" />
+                        </summary>
 
-                      <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-slate-200/60">
-                        {selectedContent.content_type === 'pdf_module' && (
-                          <p className="text-xs text-slate-500">
-                            Jika Anda ingin melampirkan berkas PDF sebagai buku pedoman / slide presentasi tambahan yang dapat dilihat di reader.
-                          </p>
-                        )}
-                        {selectedContent.file_path && (
-                          <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-200">
-                            <span><Icon name="check-circle-1" size={18} className="text-emerald-500" /></span>
-                            <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
-                                  .replace(/\/api\/v1\/?$/, '')
-                                  .replace(/\/api\/?$/, '');
-                                const rawUrl = `${backendBase}/storage/${selectedContent.file_path}`;
-                                setPreviewPdfUrl(rawUrl);
-                                setPreviewPdfTitle(selectedContent.title);
-                              }}
-                              className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
-                            >
-                              <Icon name="eye" size={16} className="mr-1.5" />Pratinjau di Reader
+                        <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-slate-200/60">
+                          {selectedContent.content_type === 'pdf_module' && (
+                            <p className="text-xs text-slate-500">
+                              {t('desc_pdf_attachment')}
+                            </p>
+                          )}
+                          {selectedContent.file_path && (
+                            <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-200">
+                              <span><Icon name="check-circle-1" size={18} className="text-emerald-500" /></span>
+                              <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
+                                    .replace(/\/api\/v1\/?$/, '')
+                                    .replace(/\/api\/?$/, '');
+                                  const rawUrl = `${backendBase}/storage/${selectedContent.file_path}`;
+                                  setPreviewPdfUrl(rawUrl);
+                                  setPreviewPdfTitle(selectedContent.title);
+                                }}
+                                className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
+                              >
+                                <Icon name="eye" size={16} className="mr-1.5" />{t('btn_preview_reader')}
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <input type="file" accept=".pdf"
+                              onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
+                              className="text-sm text-slate-600 flex-1" />
+                            <button onClick={handleUploadPDF}
+                              disabled={!uploadFile || uploading}
+                              className="btn btn-primary btn-sm">
+                              {uploading ? t('btn_uploading') : <><Icon name="upload-1" size={16} className="mr-1.5" />{t('btn_upload_pdf')}</>}
                             </button>
                           </div>
-                        )}
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                          <input type="file" accept=".pdf"
-                            onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
-                            className="text-sm text-slate-600 flex-1" />
-                          <button onClick={handleUploadPDF}
-                            disabled={!uploadFile || uploading}
-                            className="btn btn-primary btn-sm">
-                            {uploading ? 'Uploading...' : <><Icon name="upload-1" size={16} className="mr-1.5" />Upload PDF</>}
-                          </button>
+                          {uploadFile && (
+                            <p className="text-xs text-slate-500">{t('lbl_file_selected')} {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)</p>
+                          )}
                         </div>
-                        {uploadFile && (
-                          <p className="text-xs text-slate-500">File dipilih: {uploadFile.name} ({(uploadFile.size/1024/1024).toFixed(2)} MB)</p>
-                        )}
-                      </div>
-                    </details>
-                  )}
+                      </details>
+                    )}
 
                   {/* Field Study: admin note */}
                   {selectedContent.content_type === 'field_study' && (
                     <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
                       <p className="font-semibold text-emerald-800 text-sm mb-2"><Icon name="water-drop-1" size={16} className="mr-1.5" />Training Course (Field Study)</p>
                       <p className="text-xs text-emerald-700 leading-relaxed">
-                        Konten ini akan menampilkan formulir konfirmasi kepada user: apakah mereka mengikuti Field Study atau tidak.
-                        Jika ya, modul Critical Thinking akan terkunci otomatis.
-                        Verifikasi kehadiran user dilakukan oleh admin di panel manajemen enrollment.
+                        {t('desc_field_study')}
                       </p>
                     </div>
                   )}
@@ -674,7 +677,7 @@ export default function AdminCourseContentPage() {
                   {/* Video URL (for video_embed) */}
                   {selectedContent.content_type === 'video_embed' && (
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-navy-dark"><Icon name="camera-movie-1" size={16} className="mr-1.5" />URL Video (YouTube / Drive)</label>
+                      <label className="text-sm font-bold text-navy-dark"><Icon name="camera-movie-1" size={16} className="mr-1.5" />{t('lbl_video_url')}</label>
                       <input type="url" value={editEmbedUrl} onChange={e => setEditEmbedUrl(e.target.value)}
                         placeholder="https://www.youtube.com/watch?v=..."
                         className="form-input" />
@@ -687,19 +690,19 @@ export default function AdminCourseContentPage() {
                       <div>
                         <label className="text-sm font-bold text-navy-dark">
                           <Icon name="clipboard" size={16} className="mr-1.5" />{selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking'
-                            ? 'Naskah Soal & Panduan Esai (Mendukung Format Markdown)'
-                            : 'Teks Instruksi / Petunjuk'}
+                            ? t('lbl_essay_prompt')
+                            : t('lbl_instruction_text')}
                         </label>
-                        <p className="text-xs text-slate-400 mt-0.5">Teks ini tampil sebagai panduan dan soal ujian esai bagi peserta.</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{t('desc_instruction_text')}</p>
                       </div>
                       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
                         <button type="button" onClick={() => setInstructionTab('editor')}
                           className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${instructionTab === 'editor' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'}`}>
-                          <Icon name="pencil-1" size={16} className="mr-1.5" />Editor Markdown
+                          <Icon name="pencil-1" size={16} className="mr-1.5" />{t('tab_markdown_editor')}
                         </button>
                         <button type="button" onClick={() => setInstructionTab('preview')}
                           className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${instructionTab === 'preview' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'}`}>
-                          <Icon name="eye" size={16} className="mr-1.5" />Preview Tampilan
+                          <Icon name="eye" size={16} className="mr-1.5" />{t('tab_preview')}
                         </button>
                       </div>
                     </div>
@@ -707,67 +710,67 @@ export default function AdminCourseContentPage() {
                     {instructionTab === 'editor' ? (
                       <div className="flex flex-col gap-2">
                         <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs">
-                          <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase">Format:</span>
+                          <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase">{t('lbl_format')}</span>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('instruction', '\n# ', '\n', 'Judul Soal')}
+                            onClick={() => insertMarkdown('instruction', '\n# ', '\n', t('lbl_question_title'))}
                             className="px-2 py-0.5 bg-white hover:bg-navy hover:text-white rounded border border-slate-200 text-slate-700 font-bold transition-colors"
-                            title="Heading 1"
+                            title={t("title_h1")}
                           >
                             H1
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('instruction', '\n## ', '\n', 'Sub Judul')}
+                            onClick={() => insertMarkdown('instruction', '\n## ', '\n', t('lbl_h2'))}
                             className="px-2 py-0.5 bg-white hover:bg-navy hover:text-white rounded border border-slate-200 text-slate-700 font-bold transition-colors"
-                            title="Heading 2"
+                            title={t("title_h2")}
                           >
                             H2
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('instruction', '**', '**', 'teks tebal')}
+                            onClick={() => insertMarkdown('instruction', '**', '**', t('lbl_bold'))}
                             className="px-2 py-0.5 bg-white hover:bg-navy hover:text-white rounded border border-slate-200 text-slate-700 font-bold transition-colors"
-                            title="Bold"
+                            title={t("title_bold")}
                           >
                             B
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('instruction', '*', '*', 'teks miring')}
+                            onClick={() => insertMarkdown('instruction', '*', '*', t('lbl_italic'))}
                             className="px-2 py-0.5 bg-white hover:bg-navy hover:text-white rounded border border-slate-200 text-slate-700 italic font-semibold transition-colors"
-                            title="Italic"
+                            title={t("title_italic")}
                           >
                             I
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('instruction', '\n- ', '\n', 'Poin instruksi')}
+                            onClick={() => insertMarkdown('instruction', '\n- ', '\n', t('lbl_instruction_point'))}
                             className="px-2 py-0.5 bg-white hover:bg-navy hover:text-white rounded border border-slate-200 text-slate-700 font-medium transition-colors"
-                            title="Bullet List"
+                            title={t("title_bullet")}
                           >
                             • List
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('instruction', '\n1. ', '\n', 'Langkah pengerjaan')}
+                            onClick={() => insertMarkdown('instruction', '\n1. ', '\n', t('lbl_instruction_step'))}
                             className="px-2 py-0.5 bg-white hover:bg-navy hover:text-white rounded border border-slate-200 text-slate-700 font-medium transition-colors"
-                            title="Numbered List"
+                            title={t("title_number")}
                           >
-                            1. Angka
+                            {t('lbl_btn_number')}
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('instruction', '\n> ', '\n', 'Catatan penting')}
+                            onClick={() => insertMarkdown('instruction', '\n> ', '\n', t('lbl_important_note'))}
                             className="px-2 py-0.5 bg-white hover:bg-navy hover:text-white rounded border border-slate-200 text-slate-700 font-medium transition-colors"
-                            title="Quote Box"
+                            title={t("title_quote")}
                           >
                             &ldquo; Quote
                           </button>
@@ -776,20 +779,20 @@ export default function AdminCourseContentPage() {
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => openImageModal('instruction')}
                             className="px-2 py-0.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded font-bold flex items-center gap-1 transition-colors"
-                            title="Sisipkan Gambar (Upload dari Komputer / URL)"
+                            title={t("title_insert_image_btn")}
                           >
                             <Icon name="camera-movie-1" size={12} />
-                            Gambar
+                            {t('btn_image')}
                           </button>
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => quickInstructionImageRef.current?.click()}
                             className="px-2 py-0.5 bg-blue-50 hover:bg-navy hover:text-white border border-blue-200 rounded text-navy font-bold flex items-center gap-1 transition-colors"
-                            title="Upload Cepat Gambar Lokal"
+                            title={t("title_quick_upload_inst")}
                           >
                             <Icon name="upload-1" size={12} />
-                            Upload Lokal
+                            {t('btn_upload_local')}
                           </button>
                           <input
                             type="file"
@@ -800,16 +803,16 @@ export default function AdminCourseContentPage() {
                           />
                         </div>
 
-                      <textarea ref={instructionTextareaRef} rows={10} value={editInstruction} onChange={e => setEditInstruction(e.target.value)}
-                        placeholder="Tulis naskah soal esai, latar belakang studi kasus, atau petunjuk tugas di sini (format Markdown didukung: # Judul, **tebal**, - daftar list)..."
-                        className="form-input font-mono text-xs leading-relaxed resize-y" />
+                        <textarea ref={instructionTextareaRef} rows={10} value={editInstruction} onChange={e => setEditInstruction(e.target.value)}
+                          placeholder={t("ph_essay_prompt")}
+                          className="form-input font-mono text-xs leading-relaxed resize-y" />
                       </div>
                     ) : (
                       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 min-h-[200px] max-h-[500px] overflow-y-auto">
                         {editInstruction ? (
                           <MarkdownViewer content={editInstruction} />
                         ) : (
-                          <p className="text-xs text-slate-400 italic">Belum ada naskah instruksi atau soal esai yang ditulis.</p>
+                          <p className="text-xs text-slate-400 italic">{t('empty_instruction')}</p>
                         )}
                       </div>
                     )}
@@ -817,7 +820,7 @@ export default function AdminCourseContentPage() {
 
                   <button onClick={handleSaveContent} disabled={savingContent}
                     className="btn btn-primary self-start">
-                    {savingContent ? 'Menyimpan...' : <><Icon name="floppy-disk-1" size={16} className="mr-1.5" />Simpan Perubahan</>}
+                    {savingContent ? t('btn_saving') : <><Icon name="floppy-disk-1" size={16} className="mr-1.5" />{t('btn_save_changes')}</>}
                   </button>
                 </div>
               )}
@@ -847,13 +850,13 @@ export default function AdminCourseContentPage() {
             <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className="text-xl"><Icon name="book-1" size={20} /></span>
-                <span className="font-bold text-sm truncate">Pratinjau Reader Admin — {previewPdfTitle}</span>
+                <span className="font-bold text-sm truncate">{t('lbl_admin_reader_preview')} {previewPdfTitle}</span>
               </div>
               <button
                 onClick={() => setPreviewPdfUrl(null)}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold"
               >
-                <Icon name="xmark" size={16} className="mr-1.5" />Tutup
+                <Icon name="xmark" size={16} className="mr-1.5" />{t('btn_close')}
               </button>
             </div>
             <div className="flex-1 overflow-hidden p-2">
@@ -877,8 +880,8 @@ export default function AdminCourseContentPage() {
                   <Icon name="camera-movie-1" size={18} />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-navy-dark text-base">Sisipkan Gambar Materi</h3>
-                  <p className="text-xs text-slate-400">Pilih dari komputer lokal atau gunakan tautan URL</p>
+                  <h3 className="font-extrabold text-navy-dark text-base">{t('title_insert_image')}</h3>
+                  <p className="text-xs text-slate-400">{t('desc_image_source')}</p>
                 </div>
               </div>
               <button
@@ -895,22 +898,20 @@ export default function AdminCourseContentPage() {
               <button
                 type="button"
                 onClick={() => setImageTab('upload')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                  imageTab === 'upload' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
-                }`}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${imageTab === 'upload' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+                  }`}
               >
                 <Icon name="upload-1" size={14} />
-                Upload dari Komputer
+                {t('tab_upload_computer')}
               </button>
               <button
                 type="button"
                 onClick={() => setImageTab('url')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                  imageTab === 'url' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
-                }`}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${imageTab === 'url' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+                  }`}
               >
                 <Icon name="link-2-angular-right" size={14} />
-                Tautan URL Gambar
+                {t('tab_url_image')}
               </button>
             </div>
 
@@ -929,11 +930,11 @@ export default function AdminCourseContentPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={localImagePreview}
-                        alt="Pratinjau"
+                        alt={t("alt_preview")}
                         className="max-h-44 rounded-xl border border-slate-200 object-contain shadow-sm"
                       />
                       <span className="text-[11px] font-semibold text-navy hover:underline">
-                        Ganti file gambar ({localImageFile?.name})
+                        {t('btn_change_image')} ({localImageFile?.name})
                       </span>
                     </div>
                   ) : (
@@ -942,8 +943,8 @@ export default function AdminCourseContentPage() {
                         <Icon name="cloud-upload" size={24} />
                       </div>
                       <div className="text-center">
-                        <p className="text-xs font-bold text-navy-dark">Klik untuk pilih gambar dari komputer</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Format: PNG, JPG, WebP, GIF, SVG (Maks. 10MB)</p>
+                        <p className="text-xs font-bold text-navy-dark">{t('btn_click_image')}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">{t('lbl_format')} {t('lbl_image_format_allowed')}</p>
                       </div>
                     </>
                   )}
@@ -952,7 +953,7 @@ export default function AdminCourseContentPage() {
             ) : (
               /* Tab 2: URL */
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-navy-dark">URL Gambar Internet</label>
+                <label className="text-xs font-bold text-navy-dark">{t('lbl_internet_url')}</label>
                 <input
                   type="url"
                   value={webImageUrl}
@@ -960,20 +961,20 @@ export default function AdminCourseContentPage() {
                   placeholder="https://images.unsplash.com/... atau https://example.com/foto.jpg"
                   className="form-input text-xs"
                 />
-                <p className="text-[10px] text-slate-400">Masukkan tautan gambar langsung dari internet.</p>
+                <p className="text-[10px] text-slate-400">{t('desc_internet_url')}</p>
               </div>
             )}
 
             {/* Caption / Alt Text Input */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-navy-dark">
-                Deskripsi / Keterangan Gambar <span className="text-slate-400 font-normal">(Muncul di bawah gambar)</span>
+                {t('lbl_image_alt')} <span className="text-slate-400 font-normal">({t('desc_image_alt_help')})</span>
               </label>
               <input
                 type="text"
                 value={imageAltText}
                 onChange={e => setImageAltText(e.target.value)}
-                placeholder="Contoh: Diagram Alur Logistik Pelabuhan Maritim"
+                placeholder={t("ph_image_alt")}
                 className="form-input text-xs"
               />
             </div>
@@ -985,7 +986,7 @@ export default function AdminCourseContentPage() {
                 onClick={() => setImageModalOpen(false)}
                 className="btn btn-secondary btn-sm text-xs"
               >
-                Batal
+                {t('btn_cancel')}
               </button>
               <button
                 type="button"
@@ -999,12 +1000,12 @@ export default function AdminCourseContentPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    Mengupload Gambar...
+                    {t('btn_uploading_image')}
                   </>
                 ) : (
                   <>
                     <Icon name="check-circle-1" size={14} />
-                    Sisipkan ke Editor
+                    {t('btn_insert_editor')}
                   </>
                 )}
               </button>
@@ -1030,6 +1031,7 @@ function QuizManager({
   editingQ: QuizQuestion | null;
   setEditingQ: (q: QuizQuestion | null) => void;
 }) {
+  const t = useTranslations('AdminCourseContentPage');
   const [showImport, setShowImport] = useState(false);
   const totalWeight = questions.reduce((sum, q) => sum + (q.weight_score || 0), 0);
 
@@ -1039,23 +1041,23 @@ function QuizManager({
       <div className="card">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h3 className="font-bold text-navy-dark text-lg"><Icon name="pen-to-square" size={16} className="mr-1.5" />Manajemen Soal MCQ</h3>
+            <h3 className="font-bold text-navy-dark text-lg"><Icon name="pen-to-square" size={16} className="mr-1.5" />{t('title_mcq_manager')}</h3>
             <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-              <span>{questions.length} butir soal terdaftar</span>
+              <span>{questions.length} {t('lbl_questions_registered')}</span>
               <span>•</span>
               <span className={`font-bold px-2 py-0.5 rounded-full ${totalWeight === 100 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                Total Bobot: {totalWeight}/100 poin {totalWeight === 100 ? <Icon name="check-circle-1" size={16} /> : <Icon name="info" size={16} />}
+                {t('lbl_total_weight')} {totalWeight}/100 {t('lbl_points')} {totalWeight === 100 ? <Icon name="check-circle-1" size={16} /> : <Icon name="info" size={16} />}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button type="button" onClick={() => setShowImport(true)}
               className="btn btn-secondary btn-sm flex items-center gap-1.5 flex-1 sm:flex-none justify-center">
-              <span><Icon name="download-1" size={18} /></span> Import Soal (PDF / Teks)
+              <span><Icon name="download-1" size={18} /></span> {t('btn_import_questions')}
             </button>
             <button type="button" onClick={() => { setShowAdd(true); setEditingQ(null); }}
               className="btn btn-primary btn-sm flex items-center gap-1.5 flex-1 sm:flex-none justify-center">
-              <span><Icon name="plus" size={18} /></span> Tambah Soal
+              <span><Icon name="plus" size={18} /></span> {t('btn_add_quiz')}
             </button>
           </div>
         </div>
@@ -1085,11 +1087,11 @@ function QuizManager({
 
       {/* Questions List */}
       {loading ? (
-        <div className="card text-center py-10 text-slate-400">Memuat soal...</div>
+        <div className="card text-center py-10 text-slate-400">{t('msg_loading_quiz')}</div>
       ) : questions.length === 0 ? (
         <div className="card text-center py-16 text-slate-400">
           <div className="text-5xl mb-3"><Icon name="envelope-1" size={48} /></div>
-          <p>Belum ada soal. Klik &quot;+ Tambah Soal&quot; untuk mulai.</p>
+          <p>{t('empty_questions')}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -1100,13 +1102,13 @@ function QuizManager({
               index={qi}
               onEdit={() => { setEditingQ(q); setShowAdd(false); }}
               onDelete={async () => {
-                if (!confirm(`Hapus soal "${q.question_text.slice(0, 50)}..."?`)) return;
+                if (!confirm(`t('confirm_delete_question') "${q.question_text.slice(0, 50)}..."?`)) return;
                 try {
                   await api.delete(`/admin/questions/${q.id}`);
                   onRefresh();
                 } catch (err: unknown) {
                   const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-                  alert(msg ?? 'Gagal menghapus soal.');
+                  alert(msg ?? t('err_delete_quiz'));
                 }
               }}
             />
@@ -1124,6 +1126,7 @@ function QuestionCard({ question, index, onEdit, onDelete }: {
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations('AdminCourseContentPage');
   return (
     <div className="card flex flex-col gap-3">
       <div className="flex items-start gap-3">
@@ -1132,7 +1135,7 @@ function QuestionCard({ question, index, onEdit, onDelete }: {
         </span>
         <div className="flex-1">
           <p className="font-semibold text-navy-dark text-sm">{question.question_text}</p>
-          <p className="text-xs text-slate-400 mt-0.5">Bobot: {question.weight_score} poin</p>
+          <p className="text-xs text-slate-400 mt-0.5">{t('lbl_weight')} {question.weight_score} {t('lbl_points')}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={onEdit} className="btn btn-sm btn-secondary"><Icon name="pencil-1" size={16} className="mr-1.5" />Edit</button>
@@ -1161,9 +1164,10 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
   onSave: () => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations('AdminCourseContentPage');
   const [questionText, setQText] = useState(question?.question_text ?? '');
   const [weightScore, setWeight] = useState(String(question?.weight_score ?? 25));
-  const [options, setOptions]    = useState<OptionForm[]>(
+  const [options, setOptions] = useState<OptionForm[]>(
     question?.options.map(o => ({ option_text: o.option_text, is_correct: o.is_correct }))
     ?? [
       { option_text: '', is_correct: true },
@@ -1173,7 +1177,7 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
     ]
   );
   const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
+  const [error, setError] = useState('');
 
   const setCorrect = (idx: number) => {
     setOptions(prev => prev.map((o, i) => ({ ...o, is_correct: i === idx })));
@@ -1202,10 +1206,10 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!questionText.trim()) { setError('Teks soal wajib diisi.'); return; }
-    if (options.some(o => !o.option_text.trim())) { setError('Semua opsi harus diisi.'); return; }
+    if (!questionText.trim()) { setError(t('err_question_empty')); return; }
+    if (options.some(o => !o.option_text.trim())) { setError(t('err_options_empty')); return; }
     const correctCount = options.filter(o => o.is_correct).length;
-    if (correctCount !== 1) { setError('Pilih tepat 1 jawaban yang benar.'); return; }
+    if (correctCount !== 1) { setError(t('err_select_one_correct')); return; }
 
     setSaving(true);
     const payload = {
@@ -1222,7 +1226,7 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
       onSave();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? 'Gagal menyimpan soal.');
+      setError(msg ?? t('err_save_quiz'));
     } finally {
       setSaving(false);
     }
@@ -1230,21 +1234,21 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
 
   return (
     <form onSubmit={handleSave} className="card border-2 border-navy/20 flex flex-col gap-5">
-      <h3 className="font-bold text-navy-dark">{question ? <><Icon name="pencil-1" size={16} className="mr-1.5" />Edit Soal</> : <><Icon name="plus" size={16} className="mr-1.5" />Tambah Soal Baru</>}</h3>
+      <h3 className="font-bold text-navy-dark">{question ? <><Icon name="pencil-1" size={16} className="mr-1.5" />{t('title_edit_question')}</> : <><Icon name="plus" size={16} className="mr-1.5" />{t('title_add_question')}</>}</h3>
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-xl">{error}</div>}
 
       {/* Question Text */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-navy-dark">Teks Soal</label>
+        <label className="text-sm font-bold text-navy-dark">{t('lbl_question_text')}</label>
         <textarea rows={3} value={questionText} onChange={e => setQText(e.target.value)}
-          placeholder="Tulis pertanyaan di sini..."
+          placeholder={t("ph_question_text")}
           className="form-input resize-none" />
       </div>
 
       {/* Weight Score */}
       <div className="flex flex-col gap-1.5 max-w-[200px]">
-        <label className="text-sm font-bold text-navy-dark">Bobot Soal (poin)</label>
+        <label className="text-sm font-bold text-navy-dark">{t('lbl_question_weight')}</label>
         <input type="number" value={weightScore} onChange={e => setWeight(e.target.value)}
           min={1} max={100} className="form-input" />
       </div>
@@ -1252,13 +1256,13 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
       {/* Options */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-bold text-navy-dark">Pilihan Jawaban</label>
+          <label className="text-sm font-bold text-navy-dark">{t('lbl_quiz_options')}</label>
           <button type="button" onClick={addOption} disabled={options.length >= 6}
             className="text-xs text-navy font-medium hover:underline disabled:text-slate-300">
-            + Tambah Opsi
+            {t('btn_add_option')}
           </button>
         </div>
-        <p className="text-xs text-slate-400 -mt-1">Klik radio button ⭕ untuk menandai jawaban yang benar</p>
+        <p className="text-xs text-slate-400 -mt-1">{t('desc_radio_correct')}</p>
         {options.map((opt, idx) => (
           <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors
             ${opt.is_correct ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
@@ -1281,10 +1285,10 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
       {/* Actions */}
       <div className="flex gap-3">
         <button type="submit" disabled={saving} className="btn btn-primary">
-          {saving ? 'Menyimpan...' : question ? <><Icon name="floppy-disk-1" size={16} className="mr-1.5" />Simpan Perubahan</> : <><Icon name="plus" size={16} className="mr-1.5" />Tambah Soal</>}
+          {saving ? t('btn_saving') : question ? <><Icon name="floppy-disk-1" size={16} className="mr-1.5" />{t('btn_save_changes')}</> : <><Icon name="plus" size={16} className="mr-1.5" />{t('btn_add_quiz')}</>}
         </button>
         <button type="button" onClick={onCancel} className="btn btn-secondary">
-          Batal
+          {t('btn_cancel')}
         </button>
       </div>
     </form>
@@ -1301,6 +1305,7 @@ function ImportQuestionsModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const t = useTranslations('AdminCourseContentPage');
   const [file, setFile] = useState<File | null>(null);
   const [rawText, setRawText] = useState('');
   const [replaceExisting, setReplaceExisting] = useState(false);
@@ -1310,7 +1315,7 @@ function ImportQuestionsModal({
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file && !rawText.trim()) {
-      setError('Pilih file (PDF / TXT / JSON) atau tempelkan teks naskah soal terlebih dahulu.');
+      setError(t('err_no_quiz_file'));
       return;
     }
 
@@ -1330,11 +1335,11 @@ function ImportQuestionsModal({
       const res = await api.post(`/admin/contents/${contentId}/questions/import`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert(`${res.data.message ?? 'Soal berhasil diimpor!'}`);
+      alert(`${res.data.message ?? t('succ_import_quiz')}`);
       onSuccess();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? 'Gagal mengimpor soal. Periksa format teks/dokumen.');
+      setError(msg ?? t('err_import_quiz'));
     } finally {
       setImporting(false);
     }
@@ -1346,11 +1351,12 @@ function ImportQuestionsModal({
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div>
             <h3 className="text-xl font-extrabold text-navy-dark flex items-center gap-2">
-              <span><Icon name="download-1" size={18} /></span> Import Bank Soal MCQ
+              <span><Icon name="download-1" size={18} /></span> {t('title_import_mcq')}
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">Unggah berkas soal (PDF, TXT, JSON) atau tempel naskah soal.</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t('desc_upload_quiz')}</p>
           </div>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold"><Icon name="xmark" size={16} />
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold">
+            <Icon name="xmark" size={16} />
           </button>
         </div>
 
@@ -1364,25 +1370,20 @@ function ImportQuestionsModal({
           {/* Format Guide */}
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 leading-relaxed">
             <p className="font-bold flex items-center gap-1.5 mb-1.5 text-blue-800">
-              <Icon name="bulb-2" size={16} className="mr-1.5" />Format Naskah Soal yang Didukung:
+              <Icon name="bulb-2" size={16} className="mr-1.5" />{t('title_supported_format')}
             </p>
             <pre className="bg-white/80 p-2.5 rounded-xl font-mono text-[11px] text-slate-700 overflow-x-auto whitespace-pre">
-{`1. Apa peran utama ekosistem padang lamun dalam mitigasi iklim?
-A. Menyerap emisi sulfur industri
-B. Mengunci cadangan karbon biru pada sedimen dasar
-C. Mencegah kenaikan suhu atmosfer daratan
-D. Mengubah air laut menjadi air tawar
-Kunci: B`}
+              {t('fmt_example_quiz')}
             </pre>
             <p className="text-[10px] text-blue-600 mt-2">
-              * Bobot soal akan dihitung dan dibagi rata secara otomatis sehingga total berjumlah pas 100 poin.
+              {t('desc_auto_weight')}
             </p>
           </div>
 
           {/* Opsi 1: Upload File */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-navy-dark">
-              <Icon name="file-multiple" size={16} className="mr-1.5" />Opsi 1: Upload File Soal (PDF / TXT / JSON)
+              <Icon name="file-multiple" size={16} className="mr-1.5" />{t('opt1_upload')}
             </label>
             <input
               type="file"
@@ -1392,27 +1393,27 @@ Kunci: B`}
             />
             {file && (
               <p className="text-[11px] text-emerald-600 font-medium">
-                <Icon name="check-circle-1" size={16} className="mr-1.5" />Berkas dipilih: {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                <Icon name="check-circle-1" size={16} className="mr-1.5" />{t('lbl_quiz_file_selected')} {file.name} ({(file.size / 1024).toFixed(1)} KB)
               </p>
             )}
           </div>
 
           <div className="flex items-center gap-3">
             <div className="h-px bg-slate-200 flex-1" />
-            <span className="text-xs text-slate-400 font-semibold uppercase">atau</span>
+            <span className="text-xs text-slate-400 font-semibold uppercase">{t('lbl_or')}</span>
             <div className="h-px bg-slate-200 flex-1" />
           </div>
 
           {/* Opsi 2: Paste Raw Text */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-navy-dark">
-              <Icon name="pencil-1" size={16} className="mr-1.5" />Opsi 2: Tempel Naskah Soal Langsung
+              <Icon name="pencil-1" size={16} className="mr-1.5" />{t('opt2_paste')}
             </label>
             <textarea
               rows={8}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="Tempelkan naskah soal hasil copy dari dokumen PDF / Word di sini..."
+              placeholder={t("ph_paste_quiz")}
               className="form-input font-mono text-xs leading-relaxed resize-y"
             />
           </div>
@@ -1426,14 +1427,14 @@ Kunci: B`}
               className="rounded text-navy focus:ring-navy h-4 w-4"
             />
             <span>
-              <strong>Gantikan seluruh soal lama</strong> (soal yang ada di kuis ini akan dihapus dan diganti dengan soal baru hasil impor).
+              <strong>{t('opt_replace_existing')}</strong> ({t('desc_replace_existing')}).
             </span>
           </label>
 
           {/* Buttons */}
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
             <button type="button" onClick={onClose} disabled={importing} className="btn btn-secondary btn-sm">
-              Batal
+              {t('btn_cancel')}
             </button>
             <button type="submit" disabled={importing} className="btn btn-primary btn-sm flex items-center gap-2">
               {importing ? (
@@ -1442,10 +1443,10 @@ Kunci: B`}
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  Memproses Import...
+                  {t('btn_processing_import')}
                 </>
               ) : (
-                <span className="flex items-center justify-center gap-2"><Icon name="rocket-5" size={15} /><span>Proses Import Soal</span></span>
+                <span className="flex items-center justify-center gap-2"><Icon name="rocket-5" size={15} /><span>{t('btn_process_import')}</span></span>
               )}
             </button>
           </div>
