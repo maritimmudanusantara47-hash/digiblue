@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { translateText } from '@/lib/translator';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -18,6 +19,7 @@ const LEVEL_STYLE: Record<string, { badge: string; border: string; bg: string }>
 
 export default function PublicCourseDetailPage() {
   const t = useTranslations('PublicCourseDetail');
+  const locale = useLocale();
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
@@ -31,10 +33,22 @@ export default function PublicCourseDetailPage() {
 
   useEffect(() => {
     if (!slug) return;
+    let mounted = true;
     setLoading(true);
     api.get(`/courses/${slug}`)
-      .then((res) => {
-        const data = res.data.data as Course;
+      .then(async (res) => {
+        if (!mounted) return;
+        let data = res.data.data as Course;
+        
+        if (locale === 'en') {
+           data = {
+             ...data,
+             title: await translateText(data.title, 'en'),
+             description: await translateText(data.description, 'en')
+           };
+        }
+
+        if (!mounted) return;
         setCourse(data);
         if (data.sections) {
           const initialOpen: Record<number, boolean> = {};
@@ -45,13 +59,16 @@ export default function PublicCourseDetailPage() {
         }
       })
       .catch((err) => {
+        if (!mounted) return;
         console.error('Failed to load course details:', err);
         setError(t('err_not_found'));
       })
       .finally(() => {
-        setLoading(false);
+        if (mounted) setLoading(false);
       });
-  }, [slug]);
+      
+    return () => { mounted = false; };
+  }, [slug, locale, t]);
 
   const toggleSection = (id: number) => {
     setOpenSections((prev) => ({
@@ -126,7 +143,7 @@ export default function PublicCourseDetailPage() {
                   </Link>
                   <span>/</span>
                   <Link href="/courses" className="hover:text-navy transition-colors">
-                    Katalog Program
+                    {t('nav_catalog')}
                   </Link>
                   <span>/</span>
                   <span className="text-[#00162d] font-bold truncate max-w-xs">{course.title}</span>
@@ -316,7 +333,7 @@ export default function PublicCourseDetailPage() {
                     {activeTab === 'overview' && (
                       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
                         <h2 className="text-xl font-bold text-[#00162d] font-heading">
-                          Kompetensi & Capaian Belajar Lulusan
+                          {t('title_competency')}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {[
@@ -365,7 +382,7 @@ export default function PublicCourseDetailPage() {
                     {activeTab === 'instructor' && (
                       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
                         <h2 className="text-xl font-bold text-[#00162d] font-heading">
-                          Instruktur & Dewan Asesor Maritim
+                          {t('title_instructors')}
                         </h2>
                         <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
                           <div className="w-14 h-14 rounded-2xl bg-[#00162d] text-white flex items-center justify-center font-bold text-xl font-heading">

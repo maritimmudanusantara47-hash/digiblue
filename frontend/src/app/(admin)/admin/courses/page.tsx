@@ -4,7 +4,8 @@ import Icon from '@/components/Icon';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { translateText } from '@/lib/translator';
 
 interface CertLevel { id: number; code: string; name: string }
 interface Course {
@@ -40,6 +41,7 @@ const emptyForm = {
 
 export default function AdminCoursesPage() {
   const t = useTranslations('AdminCourses');
+  const locale = useLocale();
   const [courses, setCourses]       = useState<Course[]>([]);
   const [levels, setLevels]         = useState<CertLevel[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -80,14 +82,30 @@ export default function AdminCoursesPage() {
       const payload = res.data.data;
 
       if (payload && Array.isArray(payload.data)) {
-        setCourses(payload.data);
+        let coursesData = payload.data;
+        if (locale === 'en') {
+          coursesData = await Promise.all(coursesData.map(async (c: any) => ({
+            ...c,
+            title: await translateText(c.title, 'en'),
+            description: await translateText(c.description, 'en')
+          })));
+        }
+        setCourses(coursesData);
         setCurrentPage(payload.current_page ?? 1);
         setLastPage(payload.last_page ?? 1);
         setTotal(payload.total ?? 0);
         setFrom(payload.from ?? (payload.data.length > 0 ? (payload.current_page - 1) * perPage + 1 : 0));
         setTo(payload.to ?? (payload.data.length > 0 ? (payload.current_page - 1) * perPage + payload.data.length : 0));
       } else if (Array.isArray(payload)) {
-        setCourses(payload);
+        let coursesData = payload;
+        if (locale === 'en') {
+          coursesData = await Promise.all(coursesData.map(async (c: any) => ({
+            ...c,
+            title: await translateText(c.title, 'en'),
+            description: await translateText(c.description, 'en')
+          })));
+        }
+        setCourses(coursesData);
         setTotal(payload.length);
         setLastPage(1);
         setFrom(payload.length > 0 ? 1 : 0);
@@ -108,7 +126,7 @@ export default function AdminCoursesPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, perPage, search, filterLevel]);
+  }, [currentPage, perPage, search, filterLevel, locale]);
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
 
@@ -129,10 +147,17 @@ export default function AdminCoursesPage() {
 
   useEffect(() => {
     // Fetch certification levels for dropdown
-    api.get('/certification-levels').then(res => {
-      setLevels(res.data.data ?? []);
+    api.get('/certification-levels').then(async res => {
+      let levelsData = res.data.data ?? [];
+      if (locale === 'en') {
+        levelsData = await Promise.all(levelsData.map(async (l: any) => ({
+          ...l,
+          name: await translateText(l.name, 'en')
+        })));
+      }
+      setLevels(levelsData);
     }).catch(() => setLevels([]));
-  }, []);
+  }, [locale]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const openCreate = () => {
