@@ -91,6 +91,11 @@ export default function AdminCourseContentPage() {
   const [showAddAdditionalForm, setShowAddAdditionalForm] = useState(false);
   const additionalFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Edit title & metadata
+  const [editTitle, setEditTitle] = useState('');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [savingTitle, setSavingTitle] = useState(false);
+
   // Edit instruction text
   const [editInstruction, setEditInstruction] = useState('');
   const [editContentBody, setEditContentBody] = useState('');
@@ -272,6 +277,8 @@ export default function AdminCourseContentPage() {
 
   const selectContent = (content: Content) => {
     setSelectedContent(content);
+    setEditTitle(content.title);
+    setIsEditingTitle(false);
     setEditInstruction(content.instruction_text ?? '');
     setEditContentBody(content.content_body ?? '');
     setEditEmbedUrl(content.embed_url ?? '');
@@ -366,14 +373,64 @@ export default function AdminCourseContentPage() {
     }
   };
 
+  const handleQuickSaveTitle = async () => {
+    if (!selectedContent) return;
+    if (!editTitle.trim()) {
+      alert('Judul modul tidak boleh kosong.');
+      return;
+    }
+    setSavingTitle(true);
+    try {
+      const res = await api.patch(`/admin/contents/${selectedContent.id}`, {
+        title: editTitle.trim(),
+      });
+      const updated = res.data.data;
+      setSelectedContent(updated);
+      setCourse(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sections: prev.sections.map(sec => ({
+            ...sec,
+            contents: sec.contents.map(c => c.id === updated.id ? updated : c)
+          }))
+        };
+      });
+      setIsEditingTitle(false);
+      alert('Nama modul berhasil diperbarui.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Gagal memperbarui nama modul.');
+    } finally {
+      setSavingTitle(false);
+    }
+  };
+
   const handleSaveContent = async () => {
     if (!selectedContent) return;
+    if (!editTitle.trim()) {
+      alert('Judul modul tidak boleh kosong.');
+      return;
+    }
     setSavingContent(true);
     try {
-      await api.patch(`/admin/contents/${selectedContent.id}`, {
+      const res = await api.patch(`/admin/contents/${selectedContent.id}`, {
+        title: editTitle.trim(),
         instruction_text: editInstruction || null,
         content_body: editContentBody || null,
         embed_url: editEmbedUrl || null,
+      });
+      const updated = res.data.data;
+      setSelectedContent(updated);
+      setCourse(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sections: prev.sections.map(sec => ({
+            ...sec,
+            contents: sec.contents.map(c => c.id === updated.id ? updated : c)
+          }))
+        };
       });
       alert(t('succ_save_content'));
       fetchCourse();
@@ -456,17 +513,106 @@ export default function AdminCourseContentPage() {
           ) : (
             <div className="flex flex-col gap-5">
               {/* Content Header */}
-              <div className="card">
-                <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                  <Icon name={TYPE_META[selectedContent.content_type]?.icon ?? "flag-1"} size={16} className="mr-1.5" />{TYPE_META[selectedContent.content_type]?.label ?? selectedContent.content_type}
-                </span>
-                <h2 className="text-lg font-extrabold text-navy-dark mt-2">{selectedContent.title}</h2>
+              <div className="card flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full flex items-center">
+                    <Icon name={TYPE_META[selectedContent.content_type]?.icon ?? "flag-1"} size={16} className="mr-1.5" />
+                    {TYPE_META[selectedContent.content_type]?.label ?? selectedContent.content_type}
+                  </span>
+                  {!isEditingTitle && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditTitle(selectedContent.title);
+                        setIsEditingTitle(true);
+                      }}
+                      className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5 py-1 px-3 shadow-xs hover:border-slate-300"
+                      title="Ubah judul modul ini"
+                    >
+                      <Icon name="pencil-1" size={13} />
+                      <span>Ubah Nama Modul</span>
+                    </button>
+                  )}
+                </div>
+
+                {isEditingTitle ? (
+                  <div className="flex flex-col sm:flex-row gap-2 mt-1 animate-fadein">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleQuickSaveTitle();
+                        } else if (e.key === 'Escape') {
+                          setIsEditingTitle(false);
+                          setEditTitle(selectedContent.title);
+                        }
+                      }}
+                      className="form-input text-sm sm:text-base font-bold text-navy-dark flex-1 py-1.5"
+                      placeholder="Masukkan judul / nama modul baru..."
+                      autoFocus
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleQuickSaveTitle}
+                        disabled={savingTitle || !editTitle.trim()}
+                        className="btn btn-primary btn-sm text-xs py-2 px-3.5 flex items-center gap-1.5"
+                      >
+                        {savingTitle ? (
+                          <span className="animate-spin h-3.5 w-3.5 border-2 border-white/20 border-t-white rounded-full" />
+                        ) : (
+                          <Icon name="check-circle-1" size={14} />
+                        )}
+                        Simpan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingTitle(false);
+                          setEditTitle(selectedContent.title);
+                        }}
+                        disabled={savingTitle}
+                        className="btn btn-secondary btn-sm text-xs py-2 px-3"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <h2 className="text-lg font-extrabold text-navy-dark">{selectedContent.title}</h2>
+                )}
               </div>
 
               {/* Content Tab */}
               {activeTab === 'content' && (
                 <div className="card flex flex-col gap-5">
-                  <h3 className="font-bold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />{t('btn_edit_content')}</h3>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 className="font-bold text-navy-dark flex items-center gap-1.5">
+                      <Icon name="pencil-1" size={16} />
+                      {t('btn_edit_content')}
+                    </h3>
+                  </div>
+
+                  {/* Input Edit Judul Modul di Form */}
+                  <div className="flex flex-col gap-1.5 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+                    <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+                      <span><Icon name="document" size={14} /></span>
+                      Nama / Judul Modul <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Contoh: Modul 1: Konsep Fundamental & Kerangka Operasional"
+                      className="form-input text-sm font-semibold text-navy-dark bg-white"
+                    />
+                    <p className="text-[11px] text-slate-400">
+                      Nama ini akan ditampilkan pada navigasi samping peserta dan laporan penilaian.
+                    </p>
+                  </div>
 
                   {/* Web-based Course Learning Material Editor (Materi Website Interaktif) */}
                   {selectedContent.content_type === 'pdf_module' && (
