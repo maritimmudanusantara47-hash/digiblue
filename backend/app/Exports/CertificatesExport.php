@@ -13,7 +13,7 @@ class CertificatesExport implements FromCollection, WithHeadings, WithMapping, W
 {
     public function __construct(private array $filters = []) {}
 
-    public function collection()
+    public function collection(): \Illuminate\Support\Enumerable
     {
         return Certificate::with(['user', 'enrollment.course.certificationLevel'])
             ->when($this->filters['level'] ?? null, fn($q) => $q->whereHas(
