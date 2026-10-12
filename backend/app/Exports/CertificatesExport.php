@@ -3,72 +3,78 @@
 namespace App\Exports;
 
 use App\Models\Certificate;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use App\Models\Course;
+use Maatwebsite\Excel\Concerns\Export;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class CertificatesExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class CertificatesExport implements WithMultipleSheets, Export
 {
     public function __construct(private array $filters = []) {}
 
-    public function collection(): \Illuminate\Support\Enumerable
+    public function sheets(): array
     {
-        return Certificate::with(['user', 'enrollment.course.certificationLevel'])
-            ->when($this->filters['level'] ?? null, fn($q) => $q->whereHas(
-                'enrollment.course.certificationLevel', fn($l) => $l->where('code', $this->filters['level'])
-            ))
-            ->orderByDesc('date_of_issue')
-            ->get();
+        $coursesQuery = Course::with('certificationLevel');
+
+        if (!empty($this->filters['level'])) {
+            $coursesQuery->whereHas('certificationLevel', fn($l) => $l->where('code', $this->filters['level']));
+        }
+
+        // Urutkan sheet sesuai standar database sertifikat (Foundation pertama, diikuti spesialisasi)
+        $courses = $coursesQuery->get()->sortBy(function ($course) {
+            $title = strtolower($course->title);
+            if (str_contains($title, 'foundation')) return 1;
+            if (str_contains($title, 'carbon')) return 2;
+            if (str_contains($title, 'business') || str_contains($title, 'bizdev')) return 3;
+            if (str_contains($title, 'data')) return 4;
+            if (str_contains($title, 'circular')) return 5;
+            if (str_contains($title, 'community')) return 6;
+            if (str_contains($title, 'farming')) return 7;
+            if (str_contains($title, 'tourism')) return 8;
+            if (str_contains($title, 'shipping')) return 9;
+            if (str_contains($title, 'finance')) return 10;
+            if (str_contains($title, 'energy')) return 11;
+            if (str_contains($title, 'food')) return 12;
+            if (str_contains($title, 'port')) return 13;
+            return 99;
+        });
+
+        $sheets = [];
+
+        foreach ($courses as $course) {
+            $sheetTitle = self::getSheetTitle($course->title);
+            $sheets[] = new CourseCertificatesExportSheet($course->id, $sheetTitle, $this->filters);
+        }
+
+        // Sertifikat tanpa kursus tertentu (jika ada)
+        $orphanCertsCount = Certificate::whereDoesntHave('enrollment.course')->count();
+        if ($orphanCertsCount > 0) {
+            $sheets[] = new CourseCertificatesExportSheet(null, 'Lainnya', $this->filters);
+        }
+
+        if (empty($sheets)) {
+            $sheets[] = new CourseCertificatesExportSheet(null, 'CBeC Foundation', $this->filters);
+        }
+
+        return $sheets;
     }
 
-    /** Kolom header identik dengan format spreadsheet lama */
-    public function headings(): array
+    public static function getSheetTitle(string $title): string
     {
-        return [
-            'No.',
-            'Nama',
-            'Certificate Serial No. (Sertifikat)',
-            'Certificate Serial No. (URL)',
-            'Grade',
-            'Date of Issue',
-            'Place of Issue',
-            'Level',
-            'Specialization Track',
-            'Verification URL',
-            'Sync Status',
-        ];
-    }
+        $lower = strtolower($title);
+        if (str_contains($lower, 'foundation')) return 'CBeC Foundation';
+        if (str_contains($lower, 'carbon')) return 'CBeC Blue Carbon';
+        if (str_contains($lower, 'business') || str_contains($lower, 'bizdev')) return 'CBeC Bizdev';
+        if (str_contains($lower, 'data')) return 'CBeC Blue Data Intelligence';
+        if (str_contains($lower, 'circular')) return 'CBeC Circular eco';
+        if (str_contains($lower, 'community')) return 'CBeC CommDev';
+        if (str_contains($lower, 'farming')) return 'CBeC Farming';
+        if (str_contains($lower, 'tourism')) return 'CBeC Tourism';
+        if (str_contains($lower, 'shipping')) return 'CBeC Shipping';
+        if (str_contains($lower, 'finance')) return 'CBeC Finance';
+        if (str_contains($lower, 'energy')) return 'CBeC Energy';
+        if (str_contains($lower, 'food')) return 'CBeC Food';
+        if (str_contains($lower, 'port')) return 'CBeC Port';
 
-    public function map($cert): array
-    {
-        static $no = 0;
-        $no++;
-
-        return [
-            $no,
-            $cert->user->name,
-            $cert->serial_number,
-            $cert->serial_url_key,
-            $cert->grade,
-            $cert->date_of_issue,
-            $cert->place_of_issue,
-            $cert->enrollment->course->certificationLevel->name,
-            $cert->enrollment->course->title,
-            "https://theblueeconomist.org/certification/{$cert->serial_url_key}",
-            $cert->sync_status,
-        ];
-    }
-
-    public function styles(Worksheet $sheet): array
-    {
-        return [
-            1 => [ // Header row style
-                'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '1E3A5F']],
-                'alignment' => ['horizontal' => 'center'],
-            ],
-        ];
+        return substr('CBeC ' . preg_replace('/[^a-zA-Z0-9 ]/', '', $title), 0, 31);
     }
 }
