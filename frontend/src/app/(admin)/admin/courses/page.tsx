@@ -294,7 +294,7 @@ export default function AdminCoursesPage() {
   const uncategorizedCourses = courses.filter(c => !isInternational(c) && !isNational(c) && !isSingleModule(c));
 
   return (
-    <div className="animate-fadeup flex flex-col min-h-[calc(100vh-4rem)]">
+    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
       {/* Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
@@ -579,7 +579,7 @@ export default function AdminCoursesPage() {
 
       {/* ── Create / Edit Modal ────────────────────────────────────────────── */}
       {modal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
               <h2 className="text-lg font-extrabold text-navy-dark">
@@ -774,7 +774,7 @@ export default function AdminCoursesPage() {
 
       {/* ── Delete Confirm Modal ───────────────────────────────────────────── */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup p-6">
             <div className="text-center mb-6">
               <div className="text-5xl mb-3"><Icon name="info" size={48} /></div>
