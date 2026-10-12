@@ -131,6 +131,13 @@ export default function StudentCoursePage() {
   }, []);
 
   useEffect(() => {
+    // ── Proteksi Verifikasi Email: Langsung kunci jika email belum diverifikasi ──
+    if (user && !user.email_verified_at) {
+      setIsEmailUnverified(true);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError('');
     setIsEmailUnverified(false);

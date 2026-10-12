@@ -32,6 +32,13 @@ class EnrollmentController extends Controller
 
         $user = $request->user();
 
+        if (!$user->hasRole('admin') && !$user->hasVerifiedEmail()) {
+            return response()->json([
+                'message'          => 'Silakan verifikasi email Anda terlebih dahulu untuk mendaftar atau mengakses kursus.',
+                'email_unverified' => true,
+            ], 403);
+        }
+
         // ── Cek apakah user sudah punya enrollment di kursus ini ──────────────
         $existing = Enrollment::where('user_id', $user->id)
             ->where('course_id', $validated['course_id'])

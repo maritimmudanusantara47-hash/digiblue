@@ -202,4 +202,26 @@ class EnrollmentSecurityTest extends TestCase
                      'email_unverified' => true,
                  ]);
     }
+
+    public function test_unverified_student_cannot_enroll_in_course(): void
+    {
+        $unverifiedStudent = User::create([
+            'name'              => 'Unverified Student Enroll',
+            'email'             => 'unverified.enroll@example.com',
+            'password'          => Hash::make('password'),
+            'email_verified_at' => null,
+        ]);
+        $unverifiedStudent->assignRole('student');
+
+        Sanctum::actingAs($unverifiedStudent);
+
+        $response = $this->postJson('/api/v1/enrollments', [
+            'course_id' => $this->course->id,
+        ]);
+
+        $response->assertStatus(403)
+                 ->assertJson([
+                     'email_unverified' => true,
+                 ]);
+    }
 }

@@ -24,12 +24,36 @@ export default function CourseSyllabusDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const isEmailUnverified = Boolean(user && !user.email_verified_at);
 
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({});
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [resendStatus, setResendStatus]     = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
+
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+    setResendStatus(null);
+    try {
+      const res = await api.post('/auth/email/resend');
+      setResendStatus({
+        success: true,
+        message: res.data.message || 'Tautan verifikasi email baru telah berhasil dikirim.',
+        dev_url: res.data.dev_url || null,
+      });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setResendStatus({
+        success: false,
+        message: msg || 'Gagal mengirim email verifikasi. Silakan coba sesaat lagi.',
+      });
+    } finally {
+      setResendingEmail(false);
+    }
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -105,9 +129,15 @@ export default function CourseSyllabusDetailPage() {
 
     if (!isAuth) {
       router.push(`/login?redirect=${encodeURIComponent(`/student/catalog/${course.slug}`)}`);
-    } else {
-      router.push(`/student/dashboard?pay=${course.slug}`);
+      return;
     }
+
+    if (isEmailUnverified) {
+      alert('Silakan verifikasi email Anda terlebih dahulu sebelum mendaftar atau mengakses silabus kursus.');
+      return;
+    }
+
+    router.push(`/student/dashboard?pay=${course.slug}`);
   };
 
   if (loading) {
@@ -231,7 +261,59 @@ export default function CourseSyllabusDetailPage() {
             </span>
           </div>
 
-          {(!course.sections || course.sections.length === 0) ? (
+          {isEmailUnverified ? (
+            <div className="bg-white rounded-3xl p-8 border border-amber-200/90 shadow-xl shadow-amber-500/5 text-center animate-fadeup">
+              <div className="w-16 h-16 mx-auto bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-5 border border-amber-100">
+                <Icon name="locked-1" size={32} />
+              </div>
+              <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 mb-3">
+                Silabus Terkunci
+              </span>
+              <h3 className="text-xl font-bold text-navy-dark mb-2">Verifikasi Email Diperlukan</h3>
+              <p className="text-sm text-slate-500 max-w-md mx-auto mb-6 leading-relaxed">
+                Untuk membuka dan mengakses rincian silabus kurikulum kursus ini, Anda wajib memverifikasi alamat email akun Anda (<span className="font-semibold text-navy">{user?.email}</span>).
+              </p>
+
+              {resendStatus && (
+                <div className={`p-4 max-w-md mx-auto rounded-2xl text-xs mb-6 text-left leading-relaxed ${resendStatus.success ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                  <div className="font-semibold">{resendStatus.message}</div>
+                  {resendStatus.dev_url && (
+                    <div className="mt-3 pt-3 border-t border-emerald-200/80">
+                      <p className="text-[11px] text-slate-500 mb-2">
+                        🛠️ <span className="font-bold text-navy-dark">Local Dev Helper:</span> Karena project belum di-hosting (mail log aktif), gunakan tautan cepat di bawah ini untuk aktivasi:
+                      </p>
+                      <a
+                        href={resendStatus.dev_url}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition shadow-sm"
+                      >
+                        <span>Verifikasi Akun Sekarang (Dev Mode)</span>
+                        <Icon name="arrow-right" size={13} />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendingEmail}
+                className="btn btn-primary bg-navy hover:bg-navy-dark text-white text-xs py-2.5 px-6 rounded-xl inline-flex items-center gap-2 disabled:opacity-60 shadow-md shadow-navy/10"
+              >
+                {resendingEmail ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Mengirim Email...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="envelope-1" size={15} />
+                    <span>Kirim Ulang Email Verifikasi</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (!course.sections || course.sections.length === 0) ? (
             <div className="p-10 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400">
               <Icon name="book-1" size={28} className="mx-auto mb-2 text-slate-300" />
               <p className="font-semibold text-navy-dark">{t('empty_syllabus_title')}</p>
@@ -387,14 +469,26 @@ export default function CourseSyllabusDetailPage() {
             </div>
 
             {/* CTA Button */}
-            <button
-              type="button"
-              onClick={handleEnrollClick}
-              className="btn btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition-all"
-            >
-              <Icon name="rocket-5" size={16} />
-              <span>{t('btn_enroll_now')}</span>
-            </button>
+            {isEmailUnverified ? (
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendingEmail}
+                className="btn w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md cursor-pointer transition-all disabled:opacity-60"
+              >
+                <Icon name="locked-1" size={16} />
+                <span>Verifikasi Email untuk Mendaftar</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleEnrollClick}
+                className="btn btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition-all"
+              >
+                <Icon name="rocket-5" size={16} />
+                <span>{t('btn_enroll_now')}</span>
+              </button>
+            )}
 
             <p className="text-center text-[11px] text-slate-400 mt-4">
               {t('desc_payment_methods')}

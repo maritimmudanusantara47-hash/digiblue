@@ -52,8 +52,8 @@ function StudentCatalogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const autoEnrollSlug = searchParams?.get("enroll");
-
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const isEmailUnverified = Boolean(user && !user.email_verified_at);
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [certLevels, setCertLevels] = useState<CertLevel[]>([]);
@@ -232,6 +232,12 @@ function StudentCatalogContent() {
         router.push(
           `/register?redirect=${encodeURIComponent("/student/dashboard?pay=" + courseSlug)}`,
         );
+        return;
+      }
+
+      if (isEmailUnverified) {
+        alert("Silakan verifikasi email Anda terlebih dahulu sebelum mendaftar atau mengakses materi kursus.");
+        router.push("/student/dashboard");
         return;
       }
 
@@ -430,6 +436,32 @@ function StudentCatalogContent() {
           />
         </div>
       </div>
+
+      {/* Peringatan Belum Verifikasi */}
+      {isEmailUnverified && (
+        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fadeup">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Icon name="locked-1" size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm text-navy-dark">Verifikasi Email Diperlukan untuk Mengakses Silabus</h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900 uppercase tracking-wider">Perhatian</span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Akun Anda belum terverifikasi (<span className="font-semibold text-navy">{user?.email}</span>). Silakan verifikasi email Anda terlebih dahulu untuk membuka akses silabus lengkap dan pendaftaran kursus.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/student/dashboard"
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 shadow-sm transition-all whitespace-nowrap self-end md:self-center"
+          >
+            Verifikasi di Dashboard
+          </Link>
+        </div>
+      )}
 
       {/* Category Filter Tabs — dinamis dari API */}
       <div className="flex flex-wrap items-center gap-3 mb-8">

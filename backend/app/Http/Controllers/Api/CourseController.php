@@ -39,7 +39,7 @@ class CourseController extends Controller
     }
 
     /** Public: Detail kursus & silabus */
-    public function show(string $slug): JsonResponse
+    public function show(Request $request, string $slug): JsonResponse
     {
         $course = Course::with(['certificationLevel', 'sections.contents'])
             ->where('slug', $slug)
@@ -50,6 +50,14 @@ class CourseController extends Controller
         $course->sections->each(function ($section) {
             $section->contents->makeHidden(['file_path', 'attachments', 'embed_url', 'content_body', 'instruction_text']);
         });
+
+        // Jika user login tapi belum verifikasi email, proteksi silabus
+        $user = $request->user('sanctum');
+        if ($user && method_exists($user, 'hasRole') && !$user->hasRole('admin') && !$user->hasVerifiedEmail()) {
+            $course->sections->each(function ($section) {
+                $section->setRelation('contents', collect());
+            });
+        }
 
         return response()->json(['data' => $course]);
     }
