@@ -13,6 +13,7 @@ const navItems = [
   { href: '/student/dashboard', label: 'nav_dashboard', icon: 'home-2' },
   { href: '/student/catalog', label: 'nav_catalog', icon: 'books-2' },
   { href: '/student/certificates', label: 'nav_certificates', icon: 'certificate-badge-1' },
+  { href: '/student/profile', label: 'nav_profile', icon: 'user-4' },
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
@@ -55,7 +56,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
         {/* User info */}
         <div className="px-5 py-4 border-b border-white/10 flex-shrink-0">
-          <div className="flex items-center gap-3">
+          <Link href="/student/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">
               {user?.name?.[0]?.toUpperCase() ?? 'U'}
             </div>
@@ -63,7 +64,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               <p className="text-white text-sm font-semibold truncate">{user?.name ?? t('default_user')}</p>
               <p className="text-white/40 text-[11px] truncate">{user?.country ?? user?.institution ?? ''}</p>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Nav */}

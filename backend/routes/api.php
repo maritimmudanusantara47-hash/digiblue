@@ -44,6 +44,8 @@ Route::prefix('v1')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('logout',       [AuthController::class, 'logout']);
             Route::get('me',            [AuthController::class, 'me']);
+            Route::put('profile',       [AuthController::class, 'updateProfile']);
+            Route::put('password',      [AuthController::class, 'updatePassword']);
             Route::post('email/resend', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1');
         });
 

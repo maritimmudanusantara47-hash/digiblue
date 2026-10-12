@@ -260,6 +260,7 @@
     "nav_catalog": "Course Catalog",
     "nav_scholarship": "Scholarships",
     "nav_certificates": "My Certificates",
+    "nav_profile": "Profile & Account",
     "default_user": "Participant",
     "lbl_language": "Language",
     "btn_logout": "Logout"

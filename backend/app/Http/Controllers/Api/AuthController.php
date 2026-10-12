@@ -92,4 +92,50 @@ class AuthController extends Controller
             'data' => $request->user()->load('roles'),
         ]);
     }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name'         => 'required|string|max:255',
+            'phone_number' => 'nullable|string|max:20',
+            'institution'  => 'nullable|string|max:255',
+        ]);
+
+        $user->update([
+            'name'         => $validated['name'],
+            'phone_number' => $validated['phone_number'] ?? null,
+            'institution'  => $validated['institution'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui.',
+            'data'    => $user->fresh()->load('roles'),
+        ]);
+    }
+
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:8|confirmed',
+        ]);
+
+        if (! Hash::check($validated['current_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Password saat ini tidak sesuai.'],
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return response()->json([
+            'message' => 'Password berhasil diubah.',
+        ]);
+    }
 }
