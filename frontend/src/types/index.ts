@@ -63,10 +63,27 @@ export type EnrollmentStatus =
   | 'completed'
   | 'rejected';
 
+export interface CourseBatch {
+  id: number;
+  course_id: number;
+  batch_name: string;
+  batch_code?: string | null;
+  registration_start_date?: string | null;
+  registration_end_date?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  field_trip_date?: string | null;
+  is_active: boolean;
+  enrollments_count?: number;
+  course?: { id: number; title: string };
+}
+
 export interface Enrollment {
   id: number;
   user: User;
   course: Course;
+  batch_id?: number | null;
+  batch?: CourseBatch | null;
   enrollment_type: EnrollmentType;
   status: EnrollmentStatus;
   attended_field_trip: boolean;

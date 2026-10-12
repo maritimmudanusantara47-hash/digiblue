@@ -252,7 +252,19 @@ function StudentDashboardContent() {
                   }`}
                 >
                   <div className="min-w-0">
-                    <p className="font-bold text-sm text-navy-dark truncate">{e.course.title}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-sm text-navy-dark truncate">{e.course.title}</p>
+                      {e.batch ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <Icon name="flag-1" size={10} />
+                          {e.batch.batch_name}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                          Jalur Mandiri (Self-Paced)
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-400 mt-0.5">{e.course.certification_level.name}</p>
                   </div>
 

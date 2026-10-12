@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\AdminCertificateController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminCourseController;
 use App\Http\Controllers\Api\AdminQuizController;
+use App\Http\Controllers\Api\AdminBatchController;
 use App\Http\Controllers\Api\PaymentController;
 
 // ─── Public Routes ───────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ Route::prefix('v1')->group(function () {
     // Public: Katalog & Verifikasi Sertifikat
     Route::get('courses',              [CourseController::class, 'index']);
     Route::get('courses/{slug}',       [CourseController::class, 'show']);
+    Route::get('courses/{courseId}/batches', [AdminBatchController::class, 'index']);
     Route::get('certification-levels', function () {
         return response()->json(['data' => \App\Models\CertificationLevel::where('is_active', true)->orderBy('order_index')->get()]);
     });
@@ -96,6 +98,12 @@ Route::prefix('v1')->group(function () {
             Route::post('enrollments',                      [EnrollmentController::class, 'adminStore']);   // Manual enroll user
             Route::patch('enrollments/{id}/status',         [EnrollmentController::class, 'updateStatus']); // Ubah status
             Route::delete('enrollments/{id}',               [EnrollmentController::class, 'destroy']);      // Hapus enrollment
+
+            // Batch Angkatan Management (Admin)
+            Route::get('batches',                           [AdminBatchController::class, 'index']);
+            Route::post('courses/{courseId}/batches',       [AdminBatchController::class, 'store']);
+            Route::patch('batches/{id}',                    [AdminBatchController::class, 'update']);
+            Route::delete('batches/{id}',                   [AdminBatchController::class, 'destroy']);
 
             // Course Management (CRUD Dinamis)
             Route::apiResource('courses',  AdminCourseController::class);

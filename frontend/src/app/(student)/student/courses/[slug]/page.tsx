@@ -50,7 +50,14 @@ interface Content {
 }
 interface Section { id: number; title: string; order_index: number; contents: Content[] }
 interface CourseData { id: number; title: string; slug: string }
-interface EnrollInfo { id: number; status: string; enrollment_type: string; attended_field_trip: boolean }
+interface EnrollInfo {
+  id: number;
+  status: string;
+  enrollment_type: string;
+  attended_field_trip: boolean;
+  batch_id?: number | null;
+  batch?: { id: number; batch_name: string; batch_code?: string | null } | null;
+}
 interface CertificateInfo { id: number; serial_number: string; serial_url_key: string; grade: string }
 interface PageData { enrollment: EnrollInfo; course: CourseData; sections: Section[]; certificate?: CertificateInfo | null }
 interface Submission {
@@ -183,6 +190,18 @@ export default function StudentCoursePage() {
       <aside className="w-72 flex-shrink-0 self-start border-r border-slate-200 bg-slate-50 rounded-l-2xl overflow-y-auto max-h-[calc(100vh-48px)] sticky top-6">
         {/* Course Info */}
         <div className="p-5 border-b border-slate-200">
+          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+            {enrollment?.batch ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <Icon name="flag-1" size={10} />
+                {enrollment.batch.batch_name}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                Jalur Mandiri (Self-Paced)
+              </span>
+            )}
+          </div>
           <h2 className="font-extrabold text-navy-dark text-sm leading-snug line-clamp-2">{data.course.title}</h2>
           <div className="mt-3">
             <div className="flex justify-between text-xs text-slate-400 mb-1">

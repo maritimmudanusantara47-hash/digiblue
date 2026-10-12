@@ -8,12 +8,21 @@ import { useTranslations, useLocale } from 'next-intl';
 
 interface User { id: number; name: string; email: string; institution?: string }
 interface Course { id: number; title: string; certification_level: { code: string; name: string } }
+interface BatchItem {
+  id: number;
+  course_id: number;
+  batch_name: string;
+  batch_code?: string | null;
+  course?: { id: number; title: string };
+}
 interface Enrollment {
   id: number;
   user: User;
   course: Course;
   status: string;
   enrollment_type: string | null;
+  batch_id?: number | null;
+  batch?: { id: number; batch_name: string; batch_code?: string | null } | null;
   attended_field_trip: boolean;
   final_payment_amount: number | null;
   created_at: string;
@@ -45,6 +54,8 @@ export default function AdminEnrollmentsPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatus] = useState('');
+  const [batchFilter, setBatchFilter] = useState('');
+  const [batches, setBatches] = useState<BatchItem[]>([]);
   const [search, setSearch] = useState('');
   const perPage = 20;
 
@@ -52,7 +63,7 @@ export default function AdminEnrollmentsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [addForm, setAddForm] = useState({ user_id: '', course_id: '', enrollment_type: 'self_paid', status: 'active' });
+  const [addForm, setAddForm] = useState({ user_id: '', course_id: '', batch_id: '', enrollment_type: 'self_paid', status: 'active' });
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState('');
 
@@ -60,6 +71,7 @@ export default function AdminEnrollmentsPage() {
   const [statusTarget, setStatusTarget] = useState<Enrollment | null>(null);
   const [newStatus, setNewStatus] = useState('');
   const [newType, setNewType] = useState('');
+  const [newBatchId, setNewBatchId] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   // Delete confirm
@@ -69,12 +81,27 @@ export default function AdminEnrollmentsPage() {
   // Field trip toggle
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
+  // Load batches
+  const fetchBatches = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/batches');
+      setBatches(res.data.data ?? []);
+    } catch {
+      setBatches([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBatches();
+  }, [fetchBatches]);
+
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchEnrollments = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
       if (statusFilter) params.set('status', statusFilter);
+      if (batchFilter) params.set('batch_id', batchFilter);
       if (search) params.set('search', search);
       const res = await api.get(`/admin/enrollments?${params}`);
       const d = res.data.data;
@@ -85,14 +112,14 @@ export default function AdminEnrollmentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, search]);
+  }, [page, statusFilter, batchFilter, search]);
 
   useEffect(() => { fetchEnrollments(); }, [fetchEnrollments]);
 
   // Fetch users & courses for add modal
   const openAdd = async () => {
     setAddError('');
-    setAddForm({ user_id: '', course_id: '', enrollment_type: 'self_paid', status: 'active' });
+    setAddForm({ user_id: '', course_id: '', batch_id: '', enrollment_type: 'self_paid', status: 'active' });
     setShowAdd(true);
     try {
       const [u, c] = await Promise.all([api.get('/admin/users?per_page=200'), api.get('/courses')]);
@@ -113,6 +140,7 @@ export default function AdminEnrollmentsPage() {
       await api.post('/admin/enrollments', {
         user_id: Number(addForm.user_id),
         course_id: Number(addForm.course_id),
+        batch_id: addForm.batch_id ? Number(addForm.batch_id) : null,
         enrollment_type: addForm.enrollment_type,
         status: addForm.status,
       });
@@ -130,6 +158,7 @@ export default function AdminEnrollmentsPage() {
     setStatusTarget(en);
     setNewStatus(en.status);
     setNewType(en.enrollment_type ?? 'self_paid');
+    setNewBatchId(en.batch_id ? String(en.batch_id) : '');
   };
 
   const handleStatusUpdate = async () => {
@@ -139,6 +168,7 @@ export default function AdminEnrollmentsPage() {
       await api.patch(`/admin/enrollments/${statusTarget.id}/status`, {
         status: newStatus,
         enrollment_type: newType,
+        batch_id: newBatchId ? Number(newBatchId) : null,
       });
       setStatusTarget(null);
       fetchEnrollments();
@@ -217,6 +247,22 @@ export default function AdminEnrollmentsPage() {
             <option value="">{t('opt_all_status')}</option>
             {STATUS_OPTS(t).map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
+
+          {/* Batch / Angkatan filter */}
+          <select
+            id="enrollment-batch"
+            value={batchFilter}
+            onChange={e => { setBatchFilter(e.target.value); setPage(1); }}
+            className="form-input py-2 text-sm"
+          >
+            <option value="">Semua Angkatan / Jalur</option>
+            <option value="none">Khusus Reguler (Tanpa Batch)</option>
+            {batches.map(b => (
+              <option key={b.id} value={b.id}>
+                {b.batch_name} {b.course?.title ? `— ${b.course.title.slice(0, 20)}...` : ''}
+              </option>
+            ))}
+          </select>
         </div>
         <span className="text-slate-400 text-sm">{total} {t('lbl_enrollment_count')}</span>
       </div>
@@ -230,6 +276,7 @@ export default function AdminEnrollmentsPage() {
                 <th className="px-4 py-3 text-left font-semibold">#</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_participant')}</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_course')}</th>
+                <th className="px-4 py-3 text-left font-semibold">Batch / Angkatan</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_status')}</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_ft')}</th>
                 <th className="px-4 py-3 text-left font-semibold">{t('col_register')}</th>
@@ -239,7 +286,7 @@ export default function AdminEnrollmentsPage() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-5 w-5 text-navy" viewBox="0 0 24 24" fill="none">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -251,7 +298,7 @@ export default function AdminEnrollmentsPage() {
                 </tr>
               ) : enrollments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
                     <div className="text-4xl mb-3"><Icon name="clipboard" size={36} /></div>
                     <p>{t('empty')}</p>
                   </td>
@@ -268,6 +315,18 @@ export default function AdminEnrollmentsPage() {
                       {en.course?.title ?? '—'}
                     </p>
                     <span className="text-[10px] text-slate-400">{en.course?.certification_level?.code}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {en.batch ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        <Icon name="flag-1" size={11} />
+                        {en.batch.batch_name}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                        Reguler (Mandiri)
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusStyle(en.status, t)}`}>
@@ -357,12 +416,34 @@ export default function AdminEnrollmentsPage() {
                 <div className="flex flex-col gap-1.5">
                   <label className="form-label">{t('col_course')} <span className="text-red-500">*</span></label>
                   <select required value={addForm.course_id}
-                    onChange={e => setAddForm(f => ({ ...f, course_id: e.target.value }))}
+                    onChange={e => setAddForm(f => ({ ...f, course_id: e.target.value, batch_id: '' }))}
                     className="form-input">
                     <option value="">-- Pilih {t('col_course')} --</option>
                     {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
                   </select>
                 </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="form-label">Angkatan / Batch (Opsional)</label>
+                  <select
+                    value={addForm.batch_id}
+                    onChange={e => setAddForm(f => ({ ...f, batch_id: e.target.value }))}
+                    className="form-input text-sm"
+                  >
+                    <option value="">— Belajar Mandiri / Tanpa Batch —</option>
+                    {batches
+                      .filter(b => !addForm.course_id || String(b.course_id) === String(addForm.course_id))
+                      .map(b => (
+                        <option key={b.id} value={b.id}>
+                          {b.batch_name} {b.batch_code ? `(${b.batch_code})` : ''}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-[11px] text-slate-400">
+                    Kosongkan jika peserta mendaftar jalur mandiri on-demand.
+                  </p>
+                </div>
+
                 <div className="flex flex-col gap-1.5">
                   <label className="form-label">{t('col_status')} Awal</label>
                   <select value={addForm.status}
@@ -392,7 +473,7 @@ export default function AdminEnrollmentsPage() {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup">
               <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <h2 className="text-lg font-extrabold text-navy-dark">Ubah {t('col_status')} Enrollment</h2>
+                <h2 className="text-lg font-extrabold text-navy-dark">Ubah Status & Batch</h2>
                 <button onClick={() => setStatusTarget(null)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
               </div>
               <div className="px-6 py-5 flex flex-col gap-4">
@@ -400,6 +481,25 @@ export default function AdminEnrollmentsPage() {
                   <p className="font-semibold text-navy-dark">{statusTarget.user?.name}</p>
                   <p className="text-slate-400 text-xs mt-0.5">{statusTarget.course?.title}</p>
                 </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="form-label">Angkatan / Batch</label>
+                  <select
+                    value={newBatchId}
+                    onChange={e => setNewBatchId(e.target.value)}
+                    className="form-input text-sm"
+                  >
+                    <option value="">— Belajar Mandiri / Tanpa Batch —</option>
+                    {batches
+                      .filter(b => !statusTarget.course?.id || String(b.course_id) === String(statusTarget.course.id))
+                      .map(b => (
+                        <option key={b.id} value={b.id}>
+                          {b.batch_name} {b.batch_code ? `(${b.batch_code})` : ''}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
                 <div className="flex flex-col gap-1.5">
                   <label className="form-label">{t('col_status')} Baru</label>
                   <select value={newStatus} onChange={e => setNewStatus(e.target.value)} className="form-input">

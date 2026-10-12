@@ -14,7 +14,7 @@ class EnrollmentController extends Controller
     /** Student: List semua enrollment milik user sendiri */
     public function index(Request $request): JsonResponse
     {
-        $enrollments = Enrollment::with(['course.certificationLevel'])
+        $enrollments = Enrollment::with(['course.certificationLevel', 'batch'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
@@ -27,6 +27,7 @@ class EnrollmentController extends Controller
     {
         $validated = $request->validate([
             'course_id' => 'required|exists:courses,id',
+            'batch_id'  => 'nullable|exists:course_batches,id',
         ]);
 
         $user = $request->user();
@@ -37,18 +38,22 @@ class EnrollmentController extends Controller
             ->first();
 
         if ($existing) {
+            // Update batch jika dipilih saat re-checkout
+            if (!empty($validated['batch_id'])) {
+                $existing->update(['batch_id' => $validated['batch_id']]);
+            }
             // Jika sebelumnya aktif tanpa paid_at (auto-activated 0 price) dan user mau checkout:
             if ($existing->status === 'active' && !$existing->paid_at) {
                 $existing->update(['status' => 'payment_pending']);
             } elseif ($existing->status === 'active' && $existing->paid_at) {
                 return response()->json([
                     'message' => 'Kamu sudah terdaftar dan kursus ini sudah aktif di akun kamu.',
-                    'data'    => $existing->load('course'),
+                    'data'    => $existing->load(['course', 'batch']),
                 ], 200);
             }
             return response()->json([
                 'message' => 'Melanjutkan proses pembayaran kursus kamu.',
-                'data'    => $existing->load('course'),
+                'data'    => $existing->load(['course', 'batch']),
             ], 200);
         }
 
@@ -57,6 +62,7 @@ class EnrollmentController extends Controller
         $enrollment = Enrollment::create([
             'user_id'         => $user->id,
             'course_id'       => $validated['course_id'],
+            'batch_id'        => $validated['batch_id'] ?? null,
             'enrollment_type' => 'self_paid',
             'status'          => 'payment_pending',
             'paid_at'         => null,
@@ -64,7 +70,7 @@ class EnrollmentController extends Controller
 
         return response()->json([
             'message' => 'Pendaftaran berhasil. Silakan selesaikan pembayaran.',
-            'data'    => $enrollment->load('course'),
+            'data'    => $enrollment->load(['course', 'batch']),
         ], 201);
     }
 
@@ -78,6 +84,7 @@ class EnrollmentController extends Controller
             'course.certificationLevel',
             'course.sections.contents',
             'certificate',
+            'batch',
         ]);
 
         if (!$user->hasRole('admin')) {
@@ -94,7 +101,7 @@ class EnrollmentController extends Controller
     /** Admin: List semua enrollment dengan filter & pagination */
     public function adminIndex(Request $request): JsonResponse
     {
-        $query = Enrollment::with(['user', 'course.certificationLevel'])
+        $query = Enrollment::with(['user', 'course.certificationLevel', 'batch'])
             ->latest();
 
         if ($request->filled('status')) {
@@ -111,6 +118,14 @@ class EnrollmentController extends Controller
             $query->where('course_id', $request->course_id);
         }
 
+        if ($request->filled('batch_id')) {
+            if ($request->batch_id === 'none') {
+                $query->whereNull('batch_id');
+            } else {
+                $query->where('batch_id', $request->batch_id);
+            }
+        }
+
         $perPage     = min((int) $request->input('per_page', 20), 100);
         $enrollments = $query->paginate($perPage);
 
@@ -123,6 +138,7 @@ class EnrollmentController extends Controller
         $validated = $request->validate([
             'user_id'         => 'required|exists:users,id',
             'course_id'       => 'required|exists:courses,id',
+            'batch_id'        => 'nullable|exists:course_batches,id',
             'enrollment_type' => 'nullable|in:self_paid',
             'status'          => 'nullable|in:payment_pending,active,completed,rejected',
         ]);
@@ -135,13 +151,14 @@ class EnrollmentController extends Controller
         $enrollment = Enrollment::create([
             'user_id'         => $validated['user_id'],
             'course_id'       => $validated['course_id'],
+            'batch_id'        => $validated['batch_id'] ?? null,
             'enrollment_type' => $validated['enrollment_type'] ?? 'self_paid',
             'status'          => $validated['status'] ?? 'active',
         ]);
 
         return response()->json([
             'message' => 'Enrollment manual berhasil dibuat.',
-            'data'    => $enrollment->load(['user', 'course.certificationLevel']),
+            'data'    => $enrollment->load(['user', 'course.certificationLevel', 'batch']),
         ], 201);
     }
 
@@ -151,14 +168,28 @@ class EnrollmentController extends Controller
         $validated = $request->validate([
             'status'          => 'required|in:payment_pending,active,completed,rejected',
             'enrollment_type' => 'nullable|in:self_paid',
+            'batch_id'        => 'nullable',
         ]);
 
         $enrollment = Enrollment::findOrFail($id);
-        $enrollment->update($validated);
+
+        $payload = [
+            'status' => $validated['status'],
+        ];
+
+        if (isset($validated['enrollment_type'])) {
+            $payload['enrollment_type'] = $validated['enrollment_type'];
+        }
+
+        if ($request->has('batch_id')) {
+            $payload['batch_id'] = $request->batch_id ?: null;
+        }
+
+        $enrollment->update($payload);
 
         return response()->json([
             'message' => 'Status enrollment berhasil diperbarui.',
-            'data'    => $enrollment->load(['user', 'course.certificationLevel']),
+            'data'    => $enrollment->load(['user', 'course.certificationLevel', 'batch']),
         ]);
     }
 

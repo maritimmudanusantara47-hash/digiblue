@@ -28,6 +28,7 @@ class Enrollment extends Model
     protected $fillable = [
         'user_id',
         'course_id',
+        'batch_id',
         'enrollment_type',
         'status',
         'attended_field_trip',
@@ -52,6 +53,11 @@ class Enrollment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(CourseBatch::class, 'batch_id');
     }
 
 
