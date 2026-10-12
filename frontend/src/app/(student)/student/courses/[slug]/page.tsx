@@ -1218,7 +1218,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
   const hasAttachments = !!(content.attachments && content.attachments.length > 0);
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Instructions / Case Study Markdown Prompt */}
       {content.instruction_text && (
         <div className={`${bgClass} border rounded-3xl p-6 sm:p-8 shadow-sm`}>
@@ -1452,7 +1452,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       )}
 
       {/* Form Pengumpulan Jawaban */}
-      <div className="card flex flex-col gap-5 border border-slate-200 shadow-sm">
+      <form onSubmit={handleSubmit} className="card flex flex-col gap-5 border border-slate-200 shadow-sm">
         <div>
           <h4 className="font-bold text-navy-dark text-base"><Icon name="upload-1" size={16} className="mr-1.5" />Formulir Pengumpulan Jawaban</h4>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -1529,8 +1529,8 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
             <><Icon name="upload-1" size={16} className="mr-1.5" />Kumpulkan Jawaban Studi Kasus</>
           )}
         </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }
 

@@ -199,8 +199,8 @@ export default function AestheticPdfReader({
     setPageInput(String(target));
   };
 
-  const handlePageInputSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePageInputSubmit = (e?: React.FormEvent | React.KeyboardEvent | React.FocusEvent) => {
+    if (e && 'preventDefault' in e) e.preventDefault();
     const val = parseInt(pageInput, 10);
     if (!isNaN(val)) {
       goToPage(val);
@@ -345,16 +345,22 @@ export default function AestheticPdfReader({
               </svg>
             </button>
 
-            <form onSubmit={handlePageInputSubmit} className="flex items-center gap-1 text-xs">
+            <div className="flex items-center gap-1 text-xs">
               <input
                 type="text"
                 value={pageInput}
                 onChange={e => setPageInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handlePageInputSubmit(e);
+                  }
+                }}
                 onBlur={handlePageInputSubmit}
                 className="w-10 sm:w-12 text-center py-1 px-1 bg-slate-900 border border-slate-700 rounded-lg text-xs font-bold text-sky-400 focus:outline-none focus:border-sky-500"
               />
               <span className="text-slate-400 text-xs font-medium">/ {numPages}</span>
-            </form>
+            </div>
 
             <button
               onClick={() => goToPage(currentPage + 1)}
