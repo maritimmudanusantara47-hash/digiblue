@@ -21,11 +21,25 @@ const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface QuizOption  { id: number; option_text: string }
 interface QuizQuestion { id: number; question_text: string; weight_score: number; options: QuizOption[] }
+interface ContentAttachment {
+  id: string;
+  category: 'case_study_brief' | 'template' | 'example_guide' | 'additional';
+  title: string;
+  file_name: string;
+  file_path: string;
+  url: string;
+  file_size?: number;
+  file_size_formatted?: string;
+  extension?: string;
+  created_at?: string;
+}
+
 interface Content {
   id: number;
   content_type: 'pdf_module' | 'video_embed' | 'mcq_quiz' | 'essay_task' | 'oral_video_task' | 'critical_thinking' | 'field_study';
   title: string;
   file_path: string | null;
+  attachments?: ContentAttachment[] | null;
   embed_url: string | null;
   instruction_text: string | null;
   content_body?: string | null;
@@ -1120,6 +1134,9 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
   const bgClass    = isCriticalThinking ? 'bg-indigo-50 border-indigo-200' : 'bg-teal-50 border-teal-200';
   const textClass  = isCriticalThinking ? 'text-indigo-700' : 'text-teal-700';
 
+  const [viewingPdfUrl, setViewingPdfUrl]     = useState<string | null>(null);
+  const [viewingPdfTitle, setViewingPdfTitle] = useState('');
+
   // Show soal PDF if admin uploaded one
   const soalPdfUrl = content.file_path
     ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}/storage/${content.file_path}`
@@ -1198,6 +1215,8 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
     }
   };
 
+  const hasAttachments = !!(content.attachments && content.attachments.length > 0);
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {/* Instructions / Case Study Markdown Prompt */}
@@ -1213,8 +1232,185 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
         </div>
       )}
 
-      {/* Soal & Template PDF from Admin if available (Bahan Belajar: Bisa Dibaca & Diunduh) */}
-      {soalPdfUrl && (
+      {/* ─── Case Study Support Materials & Multi-Attachment Downloads ─── */}
+      {hasAttachments && (
+        <div className="bg-gradient-to-br from-white via-slate-50 to-teal-50/20 border-2 border-teal-200/80 rounded-3xl p-6 sm:p-7 shadow-sm flex flex-col gap-5 animate-fadeup">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center text-sm shadow-sm">
+                <Icon name="folder-open" size={18} />
+              </span>
+              <h3 className="font-extrabold text-navy-dark text-base sm:text-lg">
+                Berkas & Dokumen Pendukung Studi Kasus
+              </h3>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+              Unduh template lembar kerja dan berkas acuan di bawah ini untuk memulai pengerjaan tugas studi kasus Anda. Kerjakan sesuai format template yang telah disediakan.
+            </p>
+          </div>
+
+          {/* Grid 3 Berkas Utama (Soal, Template, Contoh) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 1. Naskah Soal */}
+            {(() => {
+              const att = content.attachments?.find(a => a.category === 'case_study_brief');
+              if (!att) return null;
+              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+              const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+              const isPdf = att.extension?.toLowerCase() === 'pdf' || att.file_name.toLowerCase().endsWith('.pdf');
+              return (
+                <div className="bg-white border-2 border-teal-100 hover:border-teal-300 rounded-2xl p-4 flex flex-col justify-between transition-all shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800 bg-teal-100 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                      Naskah Soal
+                    </span>
+                    <h4 className="font-bold text-navy-dark text-sm line-clamp-1">{att.title}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={att.file_name}
+                      className="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-teal-600/20"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>Unduh Soal</span>
+                    </a>
+                    {isPdf && (
+                      <button
+                        type="button"
+                        onClick={() => { setViewingPdfUrl(downloadUrl); setViewingPdfTitle(att.title); }}
+                        className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs transition-colors"
+                        title="Baca langsung di layar"
+                      >
+                        <Icon name="eye" size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 2. Template Lembar Jawaban */}
+            {(() => {
+              const att = content.attachments?.find(a => a.category === 'template');
+              if (!att) return null;
+              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+              const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+              const isWord = att.extension?.toLowerCase().includes('doc');
+              return (
+                <div className="bg-white border-2 border-blue-100 hover:border-blue-300 rounded-2xl p-4 flex flex-col justify-between transition-all shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-800 bg-blue-100 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                      Template Lembar Kerja
+                    </span>
+                    <h4 className="font-bold text-navy-dark text-sm line-clamp-1">{att.title}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100">
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={att.file_name}
+                      className="w-full py-2 bg-navy hover:bg-navy-dark text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>Unduh Template {isWord ? '(.docx)' : ''}</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 3. Contoh Pengisian / Rubrik */}
+            {(() => {
+              const att = content.attachments?.find(a => a.category === 'example_guide');
+              if (!att) return null;
+              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+              const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+              const isPdf = att.extension?.toLowerCase() === 'pdf' || att.file_name.toLowerCase().endsWith('.pdf');
+              return (
+                <div className="bg-white border-2 border-amber-100 hover:border-amber-300 rounded-2xl p-4 flex flex-col justify-between transition-all shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                      Contoh Acuan Pengerjaan
+                    </span>
+                    <h4 className="font-bold text-navy-dark text-sm line-clamp-1">{att.title}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={att.file_name}
+                      className="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-amber-600/20"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>Unduh Contoh</span>
+                    </a>
+                    {isPdf && (
+                      <button
+                        type="button"
+                        onClick={() => { setViewingPdfUrl(downloadUrl); setViewingPdfTitle(att.title); }}
+                        className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs transition-colors"
+                        title="Baca langsung di layar"
+                      >
+                        <Icon name="eye" size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Dokumen Pendukung Tambahan (Dataset, UU, dsb jika ada) */}
+          {(content.attachments?.filter(a => a.category === 'additional').length ?? 0) > 0 && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-3">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Icon name="paperclip-1" size={14} />
+                Dokumen Pendukung Tambahan ({content.attachments?.filter(a => a.category === 'additional').length})
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {content.attachments?.filter(a => a.category === 'additional').map(att => {
+                  const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+                  const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+                  return (
+                    <div key={att.id} className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100/70 transition-colors">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="w-7 h-7 rounded-lg bg-teal-100 text-teal-800 font-extrabold text-[10px] flex items-center justify-center uppercase flex-shrink-0">
+                          {att.extension || 'file'}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-navy-dark truncate">{att.title}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                        </div>
+                      </div>
+                      <a
+                        href={downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download={att.file_name}
+                        className="px-3 py-1.5 bg-white hover:bg-navy hover:text-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1 transition-colors flex-shrink-0"
+                      >
+                        <Icon name="download" size={13} />
+                        <span>Unduh</span>
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Fallback Legacy: Soal & Template PDF from Admin if available and no attachments array */}
+      {!hasAttachments && soalPdfUrl && (
         <div className="flex flex-col gap-3">
           <AestheticPdfReader
             url={soalPdfUrl}
@@ -1223,6 +1419,35 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
             downloadFilename={`template-${content.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
             height="58vh"
           />
+        </div>
+      )}
+
+      {/* ─── PDF Preview Modal if student opens direct preview ─── */}
+      {viewingPdfUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadein">
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-xl"><Icon name="book-1" size={20} /></span>
+                <span className="font-bold text-sm truncate">{viewingPdfTitle}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingPdfUrl(null)}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold flex items-center gap-1.5"
+              >
+                <Icon name="xmark" size={16} /> Tutup
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden p-2">
+              <AestheticPdfReader
+                url={viewingPdfUrl}
+                title={viewingPdfTitle}
+                allowDownload={true}
+                height="100%"
+              />
+            </div>
+          </div>
         </div>
       )}
 

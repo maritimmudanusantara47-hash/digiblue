@@ -83,12 +83,28 @@ export type ContentType =
   | 'oral_video_task'
   | 'critical_thinking';
 
+export type AttachmentCategory = 'case_study_brief' | 'template' | 'example_guide' | 'additional';
+
+export interface ContentAttachment {
+  id: string;
+  category: AttachmentCategory;
+  title: string;
+  file_name: string;
+  file_path: string;
+  url: string;
+  file_size?: number;
+  file_size_formatted?: string;
+  extension?: string;
+  created_at?: string;
+}
+
 export interface CourseContent {
   id: number;
   section_id: number;
   content_type: ContentType;
   title: string;
   file_path: string | null;
+  attachments?: ContentAttachment[] | null;
   embed_url: string | null;
   instruction_text: string | null;
   content_body?: string | null;

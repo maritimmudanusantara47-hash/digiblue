@@ -13,6 +13,7 @@ class CourseContent extends Model
         'content_type',
         'title',
         'file_path',
+        'attachments',
         'embed_url',
         'instruction_text',
         'content_body',
@@ -23,6 +24,7 @@ class CourseContent extends Model
 
     protected $casts = [
         'is_prerequisite' => 'boolean',
+        'attachments'     => 'array',
     ];
 
     public function section(): BelongsTo

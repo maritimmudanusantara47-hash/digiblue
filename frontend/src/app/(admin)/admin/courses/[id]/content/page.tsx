@@ -24,11 +24,25 @@ const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface QuizOption { id: number; option_text: string; is_correct: boolean }
 interface QuizQuestion { id: number; question_text: string; weight_score: number; options: QuizOption[] }
+interface ContentAttachment {
+  id: string;
+  category: 'case_study_brief' | 'template' | 'example_guide' | 'additional';
+  title: string;
+  file_name: string;
+  file_path: string;
+  url: string;
+  file_size?: number;
+  file_size_formatted?: string;
+  extension?: string;
+  created_at?: string;
+}
+
 interface Content {
   id: number;
   content_type: string;
   title: string;
   file_path: string | null;
+  attachments?: ContentAttachment[] | null;
   embed_url: string | null;
   instruction_text: string | null;
   content_body?: string | null;
@@ -70,6 +84,12 @@ export default function AdminCourseContentPage() {
   const [uploading, setUploading] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [previewPdfTitle, setPreviewPdfTitle] = useState('');
+
+  // Multi-attachment state for case study
+  const [uploadingAttachmentCat, setUploadingAttachmentCat] = useState<string | null>(null);
+  const [newAdditionalTitle, setNewAdditionalTitle] = useState('');
+  const [showAddAdditionalForm, setShowAddAdditionalForm] = useState(false);
+  const additionalFileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit instruction text
   const [editInstruction, setEditInstruction] = useState('');
@@ -283,6 +303,66 @@ export default function AdminCourseContentPage() {
       alert(msg ?? t('err_upload_pdf'));
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleUploadAttachment = async (file: File, category: 'case_study_brief' | 'template' | 'example_guide' | 'additional', title?: string) => {
+    if (!selectedContent) return;
+    setUploadingAttachmentCat(category);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', category);
+    if (title && title.trim()) {
+      formData.append('title', title.trim());
+    }
+    try {
+      const res = await api.post(`/admin/contents/${selectedContent.id}/attachments`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const updatedContent = res.data.data;
+      setSelectedContent(updatedContent);
+      setCourse(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sections: prev.sections.map(sec => ({
+            ...sec,
+            contents: sec.contents.map(c => c.id === updatedContent.id ? updatedContent : c)
+          }))
+        };
+      });
+      setNewAdditionalTitle('');
+      setShowAddAdditionalForm(false);
+      alert('Berkas lampiran berhasil diunggah.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Gagal mengunggah berkas.');
+    } finally {
+      setUploadingAttachmentCat(null);
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    if (!selectedContent) return;
+    if (!confirm('Apakah Anda yakin ingin menghapus berkas lampiran ini?')) return;
+    try {
+      const res = await api.delete(`/admin/contents/${selectedContent.id}/attachments/${attachmentId}`);
+      const updatedContent = res.data.data;
+      setSelectedContent(updatedContent);
+      setCourse(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sections: prev.sections.map(sec => ({
+            ...sec,
+            contents: sec.contents.map(c => c.id === updatedContent.id ? updatedContent : c)
+          }))
+        };
+      });
+      alert('Berkas lampiran berhasil dihapus.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Gagal menghapus berkas.');
     }
   };
 
@@ -581,70 +661,235 @@ export default function AdminCourseContentPage() {
                     </div>
                   )}
 
-                  {/* PDF Upload (Opsional / Dokumen Pelengkap atau untuk Tugas Esai) */}
-                  {(selectedContent.content_type === 'pdf_module' ||
-                    selectedContent.content_type === 'essay_task' ||
-                    selectedContent.content_type === 'critical_thinking') && (
-                      <details className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm group" open={!selectedContent.content_body && !!selectedContent.file_path}>
-                        <summary className="font-semibold text-slate-700 cursor-pointer flex items-center justify-between list-none">
-                          <span className="flex items-center gap-2">
-                            <Icon name="file-multiple" size={16} className="text-navy" />
-                            <span>
-                              {selectedContent.content_type === 'pdf_module'
-                                ? t('lbl_pdf_attachment_optional')
-                                : t('lbl_upload_case_study')}
-                            </span>
-                            {selectedContent.file_path && (
-                              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                                {t('lbl_has_pdf')}
-                              </span>
-                            )}
-                          </span>
-                          <Icon name="chevron-down" size={14} className="text-slate-400 transition-transform group-open:rotate-180" />
-                        </summary>
-
-                        <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-slate-200/60">
-                          {selectedContent.content_type === 'pdf_module' && (
-                            <p className="text-xs text-slate-500">
-                              {t('desc_pdf_attachment')}
-                            </p>
-                          )}
+                  {/* PDF Upload (Khusus PDF Module) */}
+                  {selectedContent.content_type === 'pdf_module' && (
+                    <details className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm group" open={!selectedContent.content_body && !!selectedContent.file_path}>
+                      <summary className="font-semibold text-slate-700 cursor-pointer flex items-center justify-between list-none">
+                        <span className="flex items-center gap-2">
+                          <Icon name="file-multiple" size={16} className="text-navy" />
+                          <span>{t('lbl_pdf_attachment_optional')}</span>
                           {selectedContent.file_path && (
-                            <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-200">
-                              <span><Icon name="check-circle-1" size={18} className="text-emerald-500" /></span>
-                              <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
-                                    .replace(/\/api\/v1\/?$/, '')
-                                    .replace(/\/api\/?$/, '');
-                                  const rawUrl = `${backendBase}/storage/${selectedContent.file_path}`;
-                                  setPreviewPdfUrl(rawUrl);
-                                  setPreviewPdfTitle(selectedContent.title);
-                                }}
-                                className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
-                              >
-                                <Icon name="eye" size={16} className="mr-1.5" />{t('btn_preview_reader')}
-                              </button>
-                            </div>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                              {t('lbl_has_pdf')}
+                            </span>
                           )}
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                            <input type="file" accept=".pdf"
-                              onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
-                              className="text-sm text-slate-600 flex-1" />
-                            <button onClick={handleUploadPDF}
-                              disabled={!uploadFile || uploading}
-                              className="btn btn-primary btn-sm">
-                              {uploading ? t('btn_uploading') : <><Icon name="upload-1" size={16} className="mr-1.5" />{t('btn_upload_pdf')}</>}
+                        </span>
+                        <Icon name="chevron-down" size={14} className="text-slate-400 transition-transform group-open:rotate-180" />
+                      </summary>
+
+                      <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-slate-200/60">
+                        <p className="text-xs text-slate-500">
+                          {t('desc_pdf_attachment')}
+                        </p>
+                        {selectedContent.file_path && (
+                          <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-200">
+                            <span><Icon name="check-circle-1" size={18} className="text-emerald-500" /></span>
+                            <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
+                                  .replace(/\/api\/v1\/?$/, '')
+                                  .replace(/\/api\/?$/, '');
+                                const rawUrl = `${backendBase}/storage/${selectedContent.file_path}`;
+                                setPreviewPdfUrl(rawUrl);
+                                setPreviewPdfTitle(selectedContent.title);
+                              }}
+                              className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
+                            >
+                              <Icon name="eye" size={16} className="mr-1.5" />{t('btn_preview_reader')}
                             </button>
                           </div>
-                          {uploadFile && (
-                            <p className="text-xs text-slate-500">{t('lbl_file_selected')} {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)</p>
-                          )}
+                        )}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                          <input type="file" accept=".pdf"
+                            onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
+                            className="text-sm text-slate-600 flex-1" />
+                          <button onClick={handleUploadPDF}
+                            disabled={!uploadFile || uploading}
+                            className="btn btn-primary btn-sm">
+                            {uploading ? t('btn_uploading') : <><Icon name="upload-1" size={16} className="mr-1.5" />{t('btn_upload_pdf')}</>}
+                          </button>
                         </div>
-                      </details>
-                    )}
+                        {uploadFile && (
+                          <p className="text-xs text-slate-500">{t('lbl_file_selected')} {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)</p>
+                        )}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* ─── Case Study & Essay Multi-Attachment Manager ─── */}
+                  {(selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking') && (
+                    <div className="bg-gradient-to-br from-slate-50 via-teal-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs shadow-sm">
+                              <Icon name="folder-open" size={16} />
+                            </span>
+                            <h4 className="font-extrabold text-navy-dark text-base">
+                              Berkas & Panduan Tugas Studi Kasus
+                            </h4>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
+                            Kelola naskah soal, template lembar kerja (.docx), contoh acuan, serta berkas pendukung tambahan yang dapat diunduh peserta.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowAddAdditionalForm(prev => !prev)}
+                          className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5 self-start sm:self-auto bg-white hover:bg-slate-50 border-slate-300 shadow-sm"
+                        >
+                          <Icon name="plus" size={14} />
+                          <span>+ Tambah Dokumen Lain</span>
+                        </button>
+                      </div>
+
+                      {/* Form Tambah Dokumen Pendukung Lain (Jika tombol diklik) */}
+                      {showAddAdditionalForm && (
+                        <div className="bg-white border-2 border-dashed border-teal-300 rounded-2xl p-4 flex flex-col gap-3 animate-fadein">
+                          <div className="flex items-center justify-between">
+                            <h5 className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+                              <Icon name="plus" size={14} className="text-teal-600" />
+                              Unggah Dokumen Pendukung Tambahan (Dataset Excel, Peraturan, Jurnal, dll.)
+                            </h5>
+                            <button
+                              type="button"
+                              onClick={() => setShowAddAdditionalForm(false)}
+                              className="text-xs text-slate-400 hover:text-slate-600"
+                            >
+                              Batal
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-600">Judul / Label Dokumen (Opsional)</label>
+                              <input
+                                type="text"
+                                value={newAdditionalTitle}
+                                onChange={e => setNewAdditionalTitle(e.target.value)}
+                                placeholder="Contoh: Dataset Statistik Perikanan 2026"
+                                className="form-input text-xs mt-1"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-slate-600">Pilih Berkas (.pdf, .docx, .xlsx, .csv, .zip)</label>
+                              <input
+                                type="file"
+                                ref={additionalFileInputRef}
+                                accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.zip"
+                                className="text-xs text-slate-600 mt-1 block w-full file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleUploadAttachment(file, 'additional', newAdditionalTitle);
+                                    if (additionalFileInputRef.current) additionalFileInputRef.current.value = '';
+                                  }
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3 Slot Preset Dokumen Utama */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* 1. Naskah Soal */}
+                        <AttachmentCardSlot
+                          category="case_study_brief"
+                          label="Naskah Soal Kasus"
+                          description="Dokumen naskah soal skenario kasus (.pdf / .docx)"
+                          icon="clipboard"
+                          badgeText="Soal Kasus"
+                          badgeBg="bg-teal-100"
+                          badgeColor="text-teal-800"
+                          attachment={selectedContent.attachments?.find(a => a.category === 'case_study_brief')}
+                          uploading={uploadingAttachmentCat === 'case_study_brief'}
+                          onUpload={(file) => handleUploadAttachment(file, 'case_study_brief')}
+                          onDelete={(id) => handleDeleteAttachment(id)}
+                          onPreviewPdf={(url, title) => { setPreviewPdfUrl(url); setPreviewPdfTitle(title); }}
+                        />
+
+                        {/* 2. Template Lembar Jawaban */}
+                        <AttachmentCardSlot
+                          category="template"
+                          label="Template Lembar Jawaban"
+                          description="Format lembar kerja untuk diisi peserta (.docx / .pdf)"
+                          icon="pencil-1"
+                          badgeText="Template Jawaban"
+                          badgeBg="bg-blue-100"
+                          badgeColor="text-blue-800"
+                          attachment={selectedContent.attachments?.find(a => a.category === 'template')}
+                          uploading={uploadingAttachmentCat === 'template'}
+                          onUpload={(file) => handleUploadAttachment(file, 'template')}
+                          onDelete={(id) => handleDeleteAttachment(id)}
+                          onPreviewPdf={(url, title) => { setPreviewPdfUrl(url); setPreviewPdfTitle(title); }}
+                        />
+
+                        {/* 3. Contoh Pengisian / Rubrik */}
+                        <AttachmentCardSlot
+                          category="example_guide"
+                          label="Contoh Pengisian / Acuan"
+                          description="Contoh acuan pengisian atau rubrik pedoman (.pdf / .docx)"
+                          icon="bulb-2"
+                          badgeText="Contoh Acuan"
+                          badgeBg="bg-amber-100"
+                          badgeColor="text-amber-800"
+                          attachment={selectedContent.attachments?.find(a => a.category === 'example_guide')}
+                          uploading={uploadingAttachmentCat === 'example_guide'}
+                          onUpload={(file) => handleUploadAttachment(file, 'example_guide')}
+                          onDelete={(id) => handleDeleteAttachment(id)}
+                          onPreviewPdf={(url, title) => { setPreviewPdfUrl(url); setPreviewPdfTitle(title); }}
+                        />
+                      </div>
+
+                      {/* Berkas Pendukung Tambahan (Jika ada yang diunggah) */}
+                      {(selectedContent.attachments?.filter(a => a.category === 'additional').length ?? 0) > 0 && (
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-3">
+                          <h5 className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
+                            <Icon name="paperclip-1" size={14} />
+                            Dokumen Pendukung Tambahan ({selectedContent.attachments?.filter(a => a.category === 'additional').length})
+                          </h5>
+                          <div className="flex flex-col gap-2">
+                            {selectedContent.attachments?.filter(a => a.category === 'additional').map(att => (
+                              <div key={att.id} className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <span className="w-8 h-8 rounded-lg bg-teal-100 text-teal-800 font-bold text-[10px] flex items-center justify-center uppercase flex-shrink-0">
+                                    {att.extension || 'file'}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-navy-dark truncate">{att.title}</p>
+                                    <p className="text-[11px] text-slate-400 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <a
+                                    href={`${(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '')}/storage/${att.file_path}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    download={att.file_name}
+                                    className="px-2.5 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1 transition-colors"
+                                  >
+                                    <Icon name="download" size={13} />
+                                    <span>Unduh</span>
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteAttachment(att.id)}
+                                    className="px-2 py-1.5 hover:bg-rose-50 border border-transparent hover:border-rose-200 text-rose-500 rounded-lg text-xs transition-colors"
+                                    title="Hapus berkas ini"
+                                  >
+                                    <Icon name="trash-1" size={13} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Field Study: admin note */}
                   {selectedContent.content_type === 'field_study' && (
@@ -995,6 +1240,175 @@ export default function AdminCourseContentPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Attachment Card Slot (Preset Categories) ─────────────────────────────────
+function AttachmentCardSlot({
+  category,
+  label,
+  description,
+  icon,
+  badgeText,
+  badgeBg,
+  badgeColor,
+  attachment,
+  uploading,
+  onUpload,
+  onDelete,
+  onPreviewPdf,
+}: {
+  category: string;
+  label: string;
+  description: string;
+  icon: string;
+  badgeText: string;
+  badgeBg: string;
+  badgeColor: string;
+  attachment?: ContentAttachment;
+  uploading: boolean;
+  onUpload: (file: File) => void;
+  onDelete: (id: string) => void;
+  onPreviewPdf: (url: string, title: string) => void;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isPdf = attachment?.extension?.toLowerCase() === 'pdf' || attachment?.file_name.toLowerCase().endsWith('.pdf');
+  const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1')
+    .replace(/\/api\/v1\/?$/, '')
+    .replace(/\/api\/?$/, '');
+  const downloadUrl = attachment ? `${backendBase}/storage/${attachment.file_path}` : '#';
+
+  return (
+    <div className={`rounded-2xl border p-4 flex flex-col justify-between transition-all ${
+      attachment ? 'bg-white border-slate-200 shadow-sm' : 'bg-white/70 border-dashed border-slate-300 hover:border-slate-400'
+    }`}>
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${badgeBg} ${badgeColor}`}>
+            {badgeText}
+          </span>
+          {attachment && (
+            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+              <Icon name="check-circle-1" size={11} /> Tersedia
+            </span>
+          )}
+        </div>
+
+        <h5 className="font-extrabold text-navy-dark text-sm flex items-center gap-1.5">
+          <Icon name={icon} size={15} />
+          {label}
+        </h5>
+        <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+          {description}
+        </p>
+
+        {attachment ? (
+          <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-6 h-6 rounded-lg bg-navy text-white text-[9px] font-bold flex items-center justify-center uppercase flex-shrink-0">
+                {attachment.extension || 'file'}
+              </span>
+              <p className="text-xs font-bold text-navy-dark truncate" title={attachment.file_name}>
+                {attachment.file_name}
+              </p>
+            </div>
+            <p className="text-[11px] text-slate-400 pl-8">
+              Ukuran: {attachment.file_size_formatted || '-'}
+            </p>
+          </div>
+        ) : (
+          <div className="mt-3 py-4 border border-dashed border-slate-200 rounded-xl bg-slate-50/50 flex flex-col items-center justify-center text-center px-3">
+            <span className="text-slate-300 text-lg mb-1"><Icon name="cloud-upload" size={20} /></span>
+            <p className="text-[11px] text-slate-400 font-medium">Belum ada berkas diunggah</p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".pdf,.doc,.docx"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              onUpload(file);
+              if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+          }}
+        />
+
+        {attachment ? (
+          <>
+            <div className="flex items-center gap-1.5">
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+                download={attachment.file_name}
+                className="px-2.5 py-1.5 bg-slate-100 hover:bg-navy hover:text-white rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1 transition-colors"
+                title="Unduh berkas"
+              >
+                <Icon name="download" size={13} />
+                <span>Unduh</span>
+              </a>
+              {isPdf && (
+                <button
+                  type="button"
+                  onClick={() => onPreviewPdf(downloadUrl, attachment.title)}
+                  className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold text-slate-600 transition-colors"
+                  title="Lihat Pratinjau PDF"
+                >
+                  <Icon name="eye" size={13} />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="px-2 py-1.5 hover:bg-slate-100 rounded-lg text-xs font-semibold text-navy transition-colors"
+                title="Ganti berkas ini"
+              >
+                {uploading ? '...' : 'Ganti'}
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(attachment.id)}
+                disabled={uploading}
+                className="px-2 py-1.5 hover:bg-rose-50 rounded-lg text-xs text-rose-500 transition-colors"
+                title="Hapus berkas"
+              >
+                <Icon name="trash-1" size={13} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full py-2 bg-white hover:bg-navy hover:text-white border border-slate-300 hover:border-navy text-navy rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+          >
+            {uploading ? (
+              <span className="flex items-center gap-1.5">
+                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                Mengunggah...
+              </span>
+            ) : (
+              <>
+                <Icon name="upload-1" size={13} />
+                <span>Pilih Berkas</span>
+              </>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

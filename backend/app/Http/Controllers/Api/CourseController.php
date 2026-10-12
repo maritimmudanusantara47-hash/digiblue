@@ -48,7 +48,7 @@ class CourseController extends Controller
 
         // Keamanan guest access: Sembunyikan URL/path file internal serta isi modul di katalog publik
         $course->sections->each(function ($section) {
-            $section->contents->makeHidden(['file_path', 'embed_url', 'content_body', 'instruction_text']);
+            $section->contents->makeHidden(['file_path', 'attachments', 'embed_url', 'content_body', 'instruction_text']);
         });
 
         return response()->json(['data' => $course]);

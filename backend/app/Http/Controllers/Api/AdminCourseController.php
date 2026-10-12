@@ -167,17 +167,121 @@ class AdminCourseController extends Controller
     {
         $content = CourseContent::findOrFail($contentId);
 
-        $request->validate(['file' => 'required|file|mimes:pdf|max:20480']); // max 20MB
+        $request->validate(['file' => 'required|file|mimes:pdf,doc,docx|max:51200']); // max 50MB
 
         $path = $request->file('file')->store("course-contents/{$contentId}", 'public');
 
         $content->update(['file_path' => $path]);
 
         return response()->json([
-            'message' => __('api.file_berhasil_diupload'),
+            'message'   => __('api.file_berhasil_diupload'),
             'file_path' => $path,
             'url'       => url("storage/{$path}"),
         ]);
+    }
+
+    public function uploadAttachment(Request $request, int $contentId): JsonResponse
+    {
+        $content = CourseContent::findOrFail($contentId);
+
+        $request->validate([
+            'file'     => 'required|file|mimes:pdf,doc,docx,xls,xlsx,csv,zip|max:51200', // max 50MB
+            'category' => 'required|in:case_study_brief,template,example_guide,additional',
+            'title'    => 'nullable|string|max:255',
+        ]);
+
+        $file         = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $extension    = strtolower($file->getClientOriginalExtension());
+        $sizeBytes    = $file->getSize();
+
+        $path = $file->store("course-contents/{$contentId}/attachments", 'public');
+
+        $defaultTitles = [
+            'case_study_brief' => 'Naskah Soal Studi Kasus',
+            'template'         => 'Template Lembar Jawaban',
+            'example_guide'    => 'Contoh Pengisian / Panduan',
+            'additional'       => pathinfo($originalName, PATHINFO_FILENAME),
+        ];
+
+        $title = $request->input('title') ?: ($defaultTitles[$request->category] ?? pathinfo($originalName, PATHINFO_FILENAME));
+
+        $newAttachment = [
+            'id'                  => (string) Str::uuid(),
+            'category'            => $request->category,
+            'title'               => $title,
+            'file_name'           => $originalName,
+            'file_path'           => $path,
+            'url'                 => url("storage/{$path}"),
+            'file_size'           => $sizeBytes,
+            'file_size_formatted' => $this->formatBytes($sizeBytes),
+            'extension'           => $extension,
+            'created_at'          => now()->toISOString(),
+        ];
+
+        $current = $content->attachments ?? [];
+        $updated = [];
+
+        foreach ($current as $item) {
+            // For standard single-slot categories, replace the previous attachment
+            if (in_array($request->category, ['case_study_brief', 'template', 'example_guide']) && ($item['category'] ?? '') === $request->category) {
+                if (!empty($item['file_path'])) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($item['file_path']);
+                }
+                continue;
+            }
+            $updated[] = $item;
+        }
+
+        $updated[] = $newAttachment;
+        $content->update(['attachments' => $updated]);
+
+        return response()->json([
+            'message'    => 'Berkas lampiran berhasil diunggah.',
+            'attachment' => $newAttachment,
+            'data'       => $content->fresh(),
+        ]);
+    }
+
+    public function deleteAttachment(int $contentId, string $attachmentId): JsonResponse
+    {
+        $content = CourseContent::findOrFail($contentId);
+        $current = $content->attachments ?? [];
+        $updated = [];
+        $found   = false;
+
+        foreach ($current as $item) {
+            if (($item['id'] ?? '') === $attachmentId) {
+                $found = true;
+                if (!empty($item['file_path'])) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($item['file_path']);
+                }
+                continue;
+            }
+            $updated[] = $item;
+        }
+
+        if (!$found) {
+            return response()->json(['message' => 'Berkas tidak ditemukan.'], 404);
+        }
+
+        $content->update(['attachments' => array_values($updated)]);
+
+        return response()->json([
+            'message' => 'Berkas lampiran berhasil dihapus.',
+            'data'    => $content->fresh(),
+        ]);
+    }
+
+    private function formatBytes(int $bytes, int $precision = 1): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $bytes = max($bytes, 0);
+        $pow   = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow   = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
     public function uploadImage(Request $request): JsonResponse
