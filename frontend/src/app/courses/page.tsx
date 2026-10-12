@@ -301,10 +301,15 @@ function CoursesContent() {
                   ? t('free')
                   : `Rp${Number(c.price).toLocaleString('id-ID')}`;
 
+              const targetUrl = isLoggedIn
+                ? `/student/catalog/${c.slug}`
+                : `/courses/${c.slug}`;
+
               return (
-                <div
+                <Link
                   key={c.id}
-                  className="card transition-all duration-200 flex flex-col gap-4 hover:shadow-lg hover:-translate-y-0.5"
+                  href={targetUrl}
+                  className="card transition-all duration-200 flex flex-col gap-4 hover:shadow-lg hover:-translate-y-1 group cursor-pointer block"
                 >
                   {/* 1. Gradient accent line di atas card */}
                   <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card}`} />
@@ -321,25 +326,16 @@ function CoursesContent() {
 
                   {/* 3. Judul dan Deskripsi */}
                   <div className="flex-1">
-                    <h3 className="font-bold text-navy-dark text-base leading-snug">{c.title}</h3>
+                    <h3 className="font-bold text-navy-dark text-base leading-snug group-hover:text-sky-700 transition-colors">
+                      {c.title}
+                    </h3>
                     {c.description && (
-                      <p className="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">{c.description}</p>
+                      <p className="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">
+                        {c.description}
+                      </p>
                     )}
                   </div>
-
-                  {/* 4. Tombol CTA Enroll Now (Direct ke Silabus) */}
-                  <Link
-                    href={
-                      isLoggedIn
-                        ? `/student/catalog/${c.slug}`
-                        : `/courses/${c.slug}`
-                    }
-                    className="btn btn-primary w-full text-sm font-semibold flex items-center justify-center gap-1.5"
-                  >
-                    <Icon name="rocket-5" size={16} />
-                    <span>{t.has?.('btn_enroll_now') ? t('btn_enroll_now') : (locale === 'en' ? 'Enroll Now' : 'Daftar Sekarang')}</span>
-                  </Link>
-                </div>
+                </Link>
               );
             })}
           </div>
