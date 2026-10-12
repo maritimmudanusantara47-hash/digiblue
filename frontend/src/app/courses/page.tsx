@@ -327,20 +327,13 @@ function CoursesContent() {
                     )}
                   </div>
 
-                  {/* 4. Tombol CTA Enroll Now (Direct ke Silabus jika login, direct ke Login jika belum) */}
+                  {/* 4. Tombol CTA Enroll Now (Direct ke Silabus) */}
                   <Link
                     href={
                       isLoggedIn
                         ? `/student/catalog/${c.slug}`
-                        : `/login?redirect=${encodeURIComponent('/student/catalog/' + c.slug)}`
+                        : `/courses/${c.slug}`
                     }
-                    onClick={(e) => {
-                      const token = Cookies.get('auth_token');
-                      if (isAuthenticated || !!token) {
-                        e.preventDefault();
-                        router.push(`/student/catalog/${c.slug}`);
-                      }
-                    }}
                     className="btn btn-primary w-full text-sm font-semibold flex items-center justify-center gap-1.5"
                   >
                     <Icon name="rocket-5" size={16} />

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
 import { useTranslations, useLocale } from 'next-intl';
 import { translateText } from '@/lib/translator';
 import Icon from '@/components/Icon';
@@ -79,11 +80,13 @@ export default function PublicCourseDetailPage() {
 
   const handleEnrollClick = () => {
     if (!course) return;
-    const targetUrl = `/student/dashboard?pay=${course.slug}`;
-    if (!isAuthenticated) {
-      router.push(`/register?redirect=${encodeURIComponent(targetUrl)}`);
+    const token = Cookies.get('auth_token');
+    const isAuth = isAuthenticated || !!token;
+
+    if (!isAuth) {
+      router.push(`/login?redirect=${encodeURIComponent(`/student/catalog/${course.slug}`)}`);
     } else {
-      router.push(targetUrl);
+      router.push(`/student/catalog/${course.slug}`);
     }
   };
 

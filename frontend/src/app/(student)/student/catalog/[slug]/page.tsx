@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -60,11 +61,13 @@ export default function CourseSyllabusDetailPage() {
 
   const handleEnrollClick = () => {
     if (!course) return;
-    const targetUrl = `/student/dashboard?pay=${course.slug}`;
-    if (!isAuthenticated) {
-      router.push(`/register?redirect=${encodeURIComponent(targetUrl)}`);
+    const token = Cookies.get('auth_token');
+    const isAuth = isAuthenticated || !!token;
+
+    if (!isAuth) {
+      router.push(`/login?redirect=${encodeURIComponent(`/student/catalog/${course.slug}`)}`);
     } else {
-      router.push(targetUrl);
+      router.push(`/student/dashboard?pay=${course.slug}`);
     }
   };
 
