@@ -19,7 +19,8 @@ class AdminCertificateController extends Controller
     public function __construct(
         private CertificateService $certService,
         private TheBlueEconomistService $tbeService,
-    ) {}
+    ) {
+    }
 
     /** List semua sertifikat dengan filter */
     public function index(Request $request): JsonResponse
@@ -28,8 +29,10 @@ class AdminCertificateController extends Controller
             ->when($request->search, fn($q) => $q->where('serial_number', 'like', "%{$request->search}%")
                 ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$request->search}%")))
             ->when($request->sync_status, fn($q) => $q->where('sync_status', $request->sync_status))
-            ->when($request->level, fn($q) => $q->whereHas('enrollment.course.certificationLevel',
-                fn($l) => $l->where('code', $request->level)))
+            ->when($request->level, fn($q) => $q->whereHas(
+                'enrollment.course.certificationLevel',
+                fn($l) => $l->where('code', $request->level)
+            ))
             ->orderByDesc('date_of_issue')
             ->paginate(20);
 
@@ -41,9 +44,9 @@ class AdminCertificateController extends Controller
     {
         $validated = $request->validate([
             'enrollment_id' => 'required|exists:enrollments,id',
-            'grade'         => 'required|string|in:Standard,Good,Excellent',
+            'grade' => 'required|string|in:Standard,Good,Excellent',
             'date_of_issue' => 'required|date',
-            'place_of_issue'=> 'required|string|max:100',
+            'place_of_issue' => 'required|string|max:100',
             'serial_number' => 'nullable|string|unique:certificates,serial_number', // Admin override
         ]);
 
@@ -51,7 +54,7 @@ class AdminCertificateController extends Controller
 
         // Cek kelayakan sertifikat
         $eligibility = $this->certService->isEligibleForCertificate($enrollment);
-        if (! $eligibility['eligible']) {
+        if (!$eligibility['eligible']) {
             return response()->json(['message' => $eligibility['reason']], 422);
         }
 
@@ -62,28 +65,28 @@ class AdminCertificateController extends Controller
 
         // Generate serial number (atau pakai override dari admin)
         if (empty($validated['serial_number'])) {
-            $dateObj  = new \DateTime($validated['date_of_issue']);
-            $year     = (int)$dateObj->format('Y');
+            $dateObj = new \DateTime($validated['date_of_issue']);
+            $year = (int) $dateObj->format('Y');
             $sequence = $this->certService->getNextSequence($year);
-            $serials  = $this->certService->generateSerialNumbers($sequence, $dateObj);
+            $serials = $this->certService->generateSerialNumbers($sequence, $dateObj);
         } else {
             // Admin menginput nomor seri manual
-            $baseKey  = preg_replace('/[^A-Z0-9]/', '', strtoupper($validated['serial_number']));
-            $serials  = [
-                'serial_number'  => $validated['serial_number'],
+            $baseKey = preg_replace('/[^A-Z0-9]/', '', strtoupper($validated['serial_number']));
+            $serials = [
+                'serial_number' => $validated['serial_number'],
                 'serial_url_key' => $baseKey . strtoupper(\Illuminate\Support\Str::random(3)),
             ];
         }
 
         $certificate = Certificate::create([
-            'enrollment_id'  => $enrollment->id,
-            'user_id'        => $enrollment->user_id,
-            'serial_number'  => $serials['serial_number'],
+            'enrollment_id' => $enrollment->id,
+            'user_id' => $enrollment->user_id,
+            'serial_number' => $serials['serial_number'],
             'serial_url_key' => $serials['serial_url_key'],
-            'grade'          => $validated['grade'],
-            'date_of_issue'  => $validated['date_of_issue'],
+            'grade' => $validated['grade'],
+            'date_of_issue' => $validated['date_of_issue'],
             'place_of_issue' => $validated['place_of_issue'],
-            'sync_status'    => 'pending',
+            'sync_status' => 'pending',
         ]);
 
         // Update enrollment status ke completed
@@ -93,8 +96,8 @@ class AdminCertificateController extends Controller
         $syncResult = $this->tbeService->syncCertificate($certificate);
 
         return response()->json([
-            'message'     => __('api.sertifikat_berhasil_diterbitkan') . ($syncResult ? ' Data terkirim ke The Blue Economist.' : ' Gagal sinkronisasi ke TBE, silakan re-sync.'),
-            'data'        => $certificate->load(['user', 'enrollment.course']),
+            'message' => __('api.sertifikat_berhasil_diterbitkan') . ($syncResult ? ' Data terkirim ke The Blue Economist.' : ' Gagal sinkronisasi ke TBE, silakan re-sync.'),
+            'data' => $certificate->load(['user', 'enrollment.course']),
             'sync_status' => $syncResult ? 'synced' : 'failed',
         ], 201);
     }
@@ -105,10 +108,10 @@ class AdminCertificateController extends Controller
         $cert = Certificate::findOrFail($id);
 
         $validated = $request->validate([
-            'serial_number'  => "nullable|string|unique:certificates,serial_number,{$id}",
+            'serial_number' => "nullable|string|unique:certificates,serial_number,{$id}",
             'serial_url_key' => "nullable|string|unique:certificates,serial_url_key,{$id}",
-            'grade'          => 'sometimes|string|in:Standard,Good,Excellent',
-            'date_of_issue'  => 'nullable|date',
+            'grade' => 'sometimes|string|in:Standard,Good,Excellent',
+            'date_of_issue' => 'nullable|date',
             'place_of_issue' => 'nullable|string|max:100',
         ]);
 
@@ -120,12 +123,12 @@ class AdminCertificateController extends Controller
     /** Sinkronisasi satu sertifikat ke The Blue Economist */
     public function syncToTBE(int $id): JsonResponse
     {
-        $cert   = Certificate::with(['user', 'enrollment.course.certificationLevel'])->findOrFail($id);
+        $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])->findOrFail($id);
         $result = $this->tbeService->syncCertificate($cert);
 
         return response()->json([
             'message' => $result ? 'Berhasil disinkronkan ke The Blue Economist.' : 'Gagal sinkronisasi. Cek log untuk detail.',
-            'data'    => $cert->fresh(),
+            'data' => $cert->fresh(),
         ]);
     }
 
@@ -136,7 +139,7 @@ class AdminCertificateController extends Controller
 
         return response()->json([
             'message' => "Re-sync selesai. Berhasil: {$results['success']}, Gagal: {$results['failed']}.",
-            'data'    => $results,
+            'data' => $results,
         ]);
     }
 
@@ -162,8 +165,8 @@ class AdminCertificateController extends Controller
         $qrImageBase64 = base64_encode($qrSvg);
 
         $courseTitle = $cert->enrollment->course->title ?? '';
-        $levelName   = $cert->enrollment->course->certificationLevel->name ?? '';
-        $levelCode   = $cert->enrollment->course->certificationLevel->code ?? '';
+        $levelName = $cert->enrollment->course->certificationLevel->name ?? '';
+        $levelCode = $cert->enrollment->course->certificationLevel->code ?? '';
 
         $isFoundation = str_contains(strtolower($courseTitle), 'foundation')
             || str_contains(strtolower($levelName), 'foundation')
@@ -186,12 +189,12 @@ class AdminCertificateController extends Controller
             : null;
 
         $pdf = Pdf::loadView('certificates.template', [
-            'certificate'        => $cert,
-            'user'               => $cert->user,
-            'course'             => $cert->enrollment->course,
-            'level'              => $cert->enrollment->course->certificationLevel,
-            'qrImageBase64'      => $qrImageBase64,
-            'templateBase64'     => $templateBase64,
+            'certificate' => $cert,
+            'user' => $cert->user,
+            'course' => $cert->enrollment->course,
+            'level' => $cert->enrollment->course->certificationLevel,
+            'qrImageBase64' => $qrImageBase64,
+            'templateBase64' => $templateBase64,
             'templateBackBase64' => $templateBackBase64,
         ])->setPaper('a4', 'landscape');
 
@@ -228,13 +231,13 @@ class AdminCertificateController extends Controller
         $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
 
         $pdf = Pdf::loadView('certificates.template_field_study', [
-            'certificate'         => $cert,
-            'user'                => $cert->user,
-            'course'              => $cert->enrollment->course,
-            'regNo'               => $regNo,
+            'certificate' => $cert,
+            'user' => $cert->user,
+            'course' => $cert->enrollment->course,
+            'regNo' => $regNo,
             'templateFrontBase64' => $frontBase64,
-            'templateBackBase64'  => $backBase64,
-            'layout'              => $layout,
+            'templateBackBase64' => $backBase64,
+            'layout' => $layout,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
@@ -251,22 +254,22 @@ class AdminCertificateController extends Controller
     private function defaultLayout(): array
     {
         return [
-            'serial_no'             => ['top' => 13.0, 'right' => 16.5, 'width' => 105, 'font_size' => 11.0, 'label' => 'Nomor Seri'],
-            'recipient_name'        => ['top' => 69.5, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
-            'ribbon_text'           => ['top' => 100.5, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
-            'level_value'           => ['top' => 124.5, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
-            'meta_block'            => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
-            'qr_left'               => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
-            'qr_right'              => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
-            'back_title'            => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
+            'serial_no' => ['top' => 13.0, 'right' => 16.5, 'width' => 105, 'font_size' => 11.0, 'label' => 'Nomor Seri'],
+            'recipient_name' => ['top' => 69.5, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
+            'ribbon_text' => ['top' => 100.5, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
+            'level_value' => ['top' => 124.5, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
+            'meta_block' => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
+            'qr_left' => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
+            'qr_right' => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
+            'back_title' => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
 
             // Field Study / Completion template fields
-            'fs_recipient_name'     => ['top' => 70.0, 'font_size' => 32.0, 'label' => 'FS: Nama Peserta'],
-            'fs_course_title'       => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'FS: Judul Pelatihan'],
+            'fs_recipient_name' => ['top' => 70.0, 'font_size' => 32.0, 'label' => 'FS: Nama Peserta'],
+            'fs_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'FS: Judul Pelatihan'],
             'fs_date_participation' => ['top' => 129.5, 'font_size' => 13.0, 'label' => 'FS: Tanggal Partisipasi'],
-            'fs_date_issue'         => ['top' => 141.0, 'font_size' => 12.0, 'label' => 'FS: Tempat & Tanggal Terbit'],
-            'fs_back_name'          => ['top' => 25.5, 'left' => 45.0, 'font_size' => 13.0, 'label' => 'FS Belakang: Nama Peserta'],
-            'fs_back_reg_no'        => ['top' => 30.2, 'left' => 62.0, 'font_size' => 13.0, 'label' => 'FS Belakang: No. Registrasi'],
+            'fs_date_issue' => ['top' => 141.0, 'font_size' => 12.0, 'label' => 'FS: Tempat & Tanggal Terbit'],
+            'fs_back_name' => ['top' => 25.0, 'left' => 32.0, 'font_size' => 13.0, 'label' => 'FS Belakang: Nama Peserta'],
+            'fs_back_reg_no' => ['top' => 29.5, 'left' => 57.0, 'font_size' => 13.0, 'label' => 'FS Belakang: No. Registrasi'],
         ];
     }
 
@@ -291,7 +294,7 @@ class AdminCertificateController extends Controller
 
         return response()->json([
             'message' => __('api.layout_template_berhasil_disimpan'),
-            'data'    => $validated['fields'],
+            'data' => $validated['fields'],
         ]);
     }
 
@@ -304,12 +307,12 @@ class AdminCertificateController extends Controller
                 ? resource_path('images/cbectemplate.jpg')
                 : null);
 
-        if (! $templatePath || ! file_exists($templatePath)) {
+        if (!$templatePath || !file_exists($templatePath)) {
             return response()->json(['message' => __('api.template_image_tidak_ditemukan')], 404);
         }
 
         $extension = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));
-        $mimeType  = ($extension === 'jpg' || $extension === 'jpeg') ? 'image/jpeg' : 'image/png';
+        $mimeType = ($extension === 'jpg' || $extension === 'jpeg') ? 'image/jpeg' : 'image/png';
 
         $foundPath = file_exists(resource_path('images/template_foundation.png'))
             ? resource_path('images/template_foundation.png')
@@ -339,15 +342,15 @@ class AdminCertificateController extends Controller
 
         return response()->json([
             'data' => [
-                'base64'                   => base64_encode(file_get_contents($templatePath)),
-                'mime_type'                => $mimeType,
-                'foundation_base64'        => $foundBase64,
-                'back_base64'              => $backBase64,
-                'back_mime_type'           => 'image/png',
+                'base64' => base64_encode(file_get_contents($templatePath)),
+                'mime_type' => $mimeType,
+                'foundation_base64' => $foundBase64,
+                'back_base64' => $backBase64,
+                'back_mime_type' => 'image/png',
                 'field_study_front_base64' => $fsFrontBase64,
-                'field_study_back_base64'  => $fsBackBase64,
-                'width_mm'                 => 297,
-                'height_mm'                => 210,
+                'field_study_back_base64' => $fsBackBase64,
+                'width_mm' => 297,
+                'height_mm' => 210,
             ],
         ]);
     }
@@ -355,15 +358,15 @@ class AdminCertificateController extends Controller
     /** Ambil nomor seri berikutnya yang diestimasi */
     public function getNextSerial(Request $request): JsonResponse
     {
-        $dateObj  = $request->query('date') ? new \DateTime($request->query('date')) : now();
-        $year     = (int)$dateObj->format('Y');
+        $dateObj = $request->query('date') ? new \DateTime($request->query('date')) : now();
+        $year = (int) $dateObj->format('Y');
         $sequence = $this->certService->getNextSequence($year);
-        $serials  = $this->certService->generateSerialNumbers($sequence, $dateObj);
+        $serials = $this->certService->generateSerialNumbers($sequence, $dateObj);
 
         return response()->json([
             'data' => [
-                'next_sequence'       => $sequence,
-                'next_serial_number'  => $serials['serial_number'],
+                'next_sequence' => $sequence,
+                'next_serial_number' => $serials['serial_number'],
                 'next_serial_url_key' => $serials['serial_url_key'],
             ],
         ]);

@@ -5,9 +5,25 @@ import ScrollReveal from '@/components/common/ScrollReveal';
 import { useTranslations } from 'next-intl';
 
 export const metadata: Metadata = {
-  title: 'DigiBlueCamp — Kursus & Sertifikasi Blue Economy Online',
+  title: 'DigiBlueCamp — Kursus & Sertifikasi Blue Economy Online Resmi',
   description:
-    'Kursus online Blue Economy dengan sertifikat yang bisa diverifikasi. Foundation Level & Specialization bersama The Blue Economist International Association.',
+    'Platform kursus online dan sertifikasi resmi Blue Economy berstandar internasional. Program Foundation Level & 10 Jalur Specialization bersama The Blue Economist dan Maritim Muda Nusantara.',
+  keywords: [
+    'kursus blue economy online',
+    'sertifikasi blue economy',
+    'certified blue economist',
+    'pelatihan maritim indonesia',
+    'kursus ekonomi biru bersertifikat',
+  ],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'DigiBlueCamp — Kursus & Sertifikasi Blue Economy Online Resmi',
+    description:
+      'Platform kursus online dan sertifikasi resmi Blue Economy berstandar internasional. Sertifikat digital terakreditasi dengan QR verifikasi publik.',
+    url: '/',
+  },
 };
 
 const certPoints = (t: any) => [
@@ -35,8 +51,26 @@ const faqs = (t: any) => [
 export default function LandingPage() {
   const t = useTranslations('LandingPage');
 
+  const faqItems = faqs(t);
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <main className="overflow-hidden bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* =========================================================
           SECTION 1: HERO (Stitch Screenshot 113418)
       ========================================================= */}

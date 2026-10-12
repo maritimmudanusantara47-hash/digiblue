@@ -16,11 +16,11 @@ const Ico = {
   QR: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3" /><path d="M21 21v.01" /><path d="M12 7v3a2 2 0 0 1-2 2H7" /><path d="M3 12h.01" /><path d="M12 3h.01" /><path d="M12 16v.01" /><path d="M16 12h1" /><path d="M21 12v.01" /><path d="M12 21v-1" /></svg>,
   Info: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>,
   ChevronDown: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>,
-  ZoomIn: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
-  ZoomOut: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
-  Fit: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>,
-  Sliders: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
-  Close: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  ZoomIn: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="11" y1="8" x2="11" y2="14" /><line x1="8" y1="11" x2="14" y2="11" /></svg>,
+  ZoomOut: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="8" y1="11" x2="14" y2="11" /></svg>,
+  Fit: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>,
+  Sliders: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" /><line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" /><line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" /><line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" /></svg>,
+  Close: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
 };
 
 /* ─── Types ──────────────────────────────────────────────────────── */
@@ -51,8 +51,8 @@ const DEFAULT_LAYOUT: LayoutState = {
   fs_course_title: { top: 108.5, font_size: 19.0, label: 'Judul Pelatihan (Depan)' },
   fs_date_participation: { top: 129.5, font_size: 13.0, label: 'Tanggal Partisipasi (Depan)' },
   fs_date_issue: { top: 141.0, font_size: 12.0, label: 'Tempat & Tanggal Terbit (Depan)' },
-  fs_back_name: { top: 25.5, left: 45.0, font_size: 13.0, label: 'Nama Peserta (Belakang)' },
-  fs_back_reg_no: { top: 30.2, left: 62.0, font_size: 13.0, label: 'Nomor Registrasi (Belakang)' },
+  fs_back_name: { top: 25.0, left: 32.0, font_size: 13.0, label: 'Nama Peserta (Belakang)' },
+  fs_back_reg_no: { top: 29.5, left: 57.0, font_size: 13.0, label: 'Nomor Registrasi (Belakang)' },
 };
 
 const PRESETS = {
@@ -447,7 +447,7 @@ export default function CertificateTemplateAdminPage() {
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_participation' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                         style={{ top: mmToPx(layout.fs_date_participation?.top ?? 129.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_participation?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
-                        <span className="bg-white px-2">on {sample.dateParticipation || '20 May – 11 June 2026'}</span>
+                        <span className="px-2" style={{ backgroundColor: '#F8F8F8' }}>on {sample.dateParticipation || '20 May – 11 June 2026'}</span>
                       </div>
 
                       {/* Place & Issue Date */}
@@ -456,7 +456,7 @@ export default function CertificateTemplateAdminPage() {
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_issue' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                         style={{ top: mmToPx(layout.fs_date_issue?.top ?? 141.0), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_issue?.font_size ?? 12.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
-                        <span className="bg-white px-2">{sample.dateIssue || 'Jakarta, 11 June 2026'}</span>
+                        <span className="px-2" style={{ backgroundColor: '#F8F8F8' }}>{sample.dateIssue || 'Jakarta, 11 June 2026'}</span>
                       </div>
                     </>
                   ) : (
@@ -554,7 +554,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_back_name'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_back_name?.top ?? 25.5), left: mmToPx(layout.fs_back_name?.left ?? 45.0), fontSize: `${(layout.fs_back_name?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_back_name?.top ?? 25.0), left: mmToPx(layout.fs_back_name?.left ?? 32.0), fontSize: `${(layout.fs_back_name?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
                       >
                         {sample.name}
                       </div>
@@ -563,7 +563,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_back_reg_no'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_reg_no' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_back_reg_no?.top ?? 30.2), left: mmToPx(layout.fs_back_reg_no?.left ?? 62.0), fontSize: `${(layout.fs_back_reg_no?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_back_reg_no?.top ?? 29.5), left: mmToPx(layout.fs_back_reg_no?.left ?? 57.0), fontSize: `${(layout.fs_back_reg_no?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
                       >
                         {sample.regNo || 'CBETC144062026'}
                       </div>
@@ -672,9 +672,8 @@ export default function CertificateTemplateAdminPage() {
 
         {/* Sidebar Controls (Responsif: Docked di desktop, Slide-over di laptop kecil/tablet/HP) */}
         <aside
-          className={`fixed lg:static inset-y-0 right-0 z-40 w-80 max-w-[85vw] bg-slate-900 border-l border-slate-800 flex flex-col overflow-hidden transition-transform duration-200 ease-in-out ${
-            mobilePanelOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'
-          }`}
+          className={`fixed lg:static inset-y-0 right-0 z-40 w-80 max-w-[85vw] bg-slate-900 border-l border-slate-800 flex flex-col overflow-hidden transition-transform duration-200 ease-in-out ${mobilePanelOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'
+            }`}
         >
           {/* Mobile drawer header */}
           <div className="lg:hidden px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900">

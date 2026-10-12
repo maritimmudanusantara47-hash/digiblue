@@ -742,7 +742,7 @@ export default function AdminCourseContentPage() {
                           className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5 self-start sm:self-auto bg-white hover:bg-slate-50 border-slate-300 shadow-sm"
                         >
                           <Icon name="plus" size={14} />
-                          <span>+ Tambah Dokumen Lain</span>
+                          <span>Tambah Dokumen Lain</span>
                         </button>
                       </div>
 
@@ -1281,9 +1281,8 @@ function AttachmentCardSlot({
   const downloadUrl = attachment ? `${backendBase}/storage/${attachment.file_path}` : '#';
 
   return (
-    <div className={`rounded-2xl border p-4 flex flex-col justify-between transition-all ${
-      attachment ? 'bg-white border-slate-200 shadow-sm' : 'bg-white/70 border-dashed border-slate-300 hover:border-slate-400'
-    }`}>
+    <div className={`rounded-2xl border p-4 flex flex-col justify-between transition-all ${attachment ? 'bg-white border-slate-200 shadow-sm' : 'bg-white/70 border-dashed border-slate-300 hover:border-slate-400'
+      }`}>
       <div>
         <div className="flex items-center justify-between gap-2 mb-2">
           <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${badgeBg} ${badgeColor}`}>
@@ -1397,7 +1396,7 @@ function AttachmentCardSlot({
           >
             {uploading ? (
               <span className="flex items-center gap-1.5">
-                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
                 Mengunggah...
               </span>
             ) : (

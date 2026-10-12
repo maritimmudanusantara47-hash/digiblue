@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Certificate of Completion – {{ $user->name }}</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        @page { margin: 0; size: A4 landscape; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @page {
+            margin: 0;
+            size: A4 landscape;
+        }
 
         body {
             margin: 0;
             padding: 0;
             font-family: Arial, Helvetica, sans-serif;
-            background: #ffffff;
+            background: #F8F8F8;
         }
 
         .cert-page {
@@ -19,6 +28,7 @@
             height: 209.5mm;
             position: relative;
             overflow: hidden;
+            background: #F8F8F8;
             page-break-after: always;
         }
 
@@ -28,7 +38,8 @@
 
         .bg-template {
             position: absolute;
-            top: 0; left: 0;
+            top: 0;
+            left: 0;
             width: 297mm;
             height: 210mm;
             z-index: 1;
@@ -36,7 +47,8 @@
 
         .overlay {
             position: absolute;
-            top: 0; left: 0;
+            top: 0;
+            left: 0;
             width: 297mm;
             height: 210mm;
             z-index: 2;
@@ -45,7 +57,8 @@
         /* ── FRONT FIELDS ── */
         .fs-name {
             position: absolute;
-            left: 0; right: 0;
+            left: 0;
+            right: 0;
             text-align: center;
             font-weight: bold;
             color: #000000;
@@ -54,7 +67,8 @@
 
         .fs-title {
             position: absolute;
-            left: 20mm; right: 20mm;
+            left: 20mm;
+            right: 20mm;
             text-align: center;
             font-weight: bold;
             color: #133e7c;
@@ -63,7 +77,8 @@
 
         .fs-part-date {
             position: absolute;
-            left: 0; right: 0;
+            left: 0;
+            right: 0;
             text-align: center;
             font-weight: bold;
             color: #000000;
@@ -71,7 +86,8 @@
 
         .fs-issue-date {
             position: absolute;
-            left: 0; right: 0;
+            left: 0;
+            right: 0;
             text-align: center;
             color: #000000;
         }
@@ -85,29 +101,30 @@
         }
     </style>
 </head>
+
 <body>
     @php
         $L = $layout ?? [];
 
         $nTop = $L['fs_recipient_name']['top'] ?? 70.0;
-        $nFs  = $L['fs_recipient_name']['font_size'] ?? 32.0;
+        $nFs = $L['fs_recipient_name']['font_size'] ?? 32.0;
 
         $tTop = $L['fs_course_title']['top'] ?? 108.5;
-        $tFs  = $L['fs_course_title']['font_size'] ?? 19.0;
+        $tFs = $L['fs_course_title']['font_size'] ?? 19.0;
 
         $pTop = $L['fs_date_participation']['top'] ?? 129.5;
-        $pFs  = $L['fs_date_participation']['font_size'] ?? 13.0;
+        $pFs = $L['fs_date_participation']['font_size'] ?? 13.0;
 
         $iTop = $L['fs_date_issue']['top'] ?? 141.0;
-        $iFs  = $L['fs_date_issue']['font_size'] ?? 12.0;
+        $iFs = $L['fs_date_issue']['font_size'] ?? 12.0;
 
-        $bnTop  = $L['fs_back_name']['top'] ?? 25.5;
-        $bnLeft = $L['fs_back_name']['left'] ?? 45.0;
-        $bnFs   = $L['fs_back_name']['font_size'] ?? 13.0;
+        $bnTop = $L['fs_back_name']['top'] ?? 25.0;
+        $bnLeft = $L['fs_back_name']['left'] ?? 32.0;
+        $bnFs = $L['fs_back_name']['font_size'] ?? 13.0;
 
-        $brTop  = $L['fs_back_reg_no']['top'] ?? 30.2;
-        $brLeft = $L['fs_back_reg_no']['left'] ?? 62.0;
-        $brFs   = $L['fs_back_reg_no']['font_size'] ?? 13.0;
+        $brTop = $L['fs_back_reg_no']['top'] ?? 29.5;
+        $brLeft = $L['fs_back_reg_no']['left'] ?? 57.0;
+        $brFs = $L['fs_back_reg_no']['font_size'] ?? 13.0;
 
         $issueCarbon = \Carbon\Carbon::parse($certificate->date_of_issue);
         $issueDateFormatted = $issueCarbon->format('j F Y');
@@ -121,7 +138,8 @@
     {{-- ==================== PAGE 1: FRONT ==================== --}}
     <div class="cert-page cert-page-front">
         @if($templateFrontBase64 ?? false)
-            <img class="bg-template" src="data:image/png;base64,{{ $templateFrontBase64 }}" alt="Field Study Certificate Front">
+            <img class="bg-template" src="data:image/png;base64,{{ $templateFrontBase64 }}"
+                alt="Field Study Certificate Front">
         @endif
 
         <div class="overlay">
@@ -135,35 +153,37 @@
                 INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE
             </div>
 
-            {{-- Date of Participation (with clean white background to cover template "on") --}}
+            {{-- Date of Participation (with clean background matching template to blend seamlessly) --}}
             <div class="fs-part-date" style="top: {{ $pTop }}mm; font-size: {{ $pFs }}pt;">
-                <span style="background: #ffffff; padding: 0 4mm;">on {{ $partDate }}</span>
+                <span style="background: #F8F8F8; padding: 0 4mm;">on {{ $partDate }}</span>
             </div>
 
-            {{-- Place & Issue Date (with clean white background to cover template "Jakarta,") --}}
+            {{-- Place & Issue Date (with clean background matching template to blend seamlessly) --}}
             <div class="fs-issue-date" style="top: {{ $iTop }}mm; font-size: {{ $iFs }}pt;">
-                <span style="background: #ffffff; padding: 0 4mm;">{{ $placeShort }}, {{ $issueDateFormatted }}</span>
+                <span style="background: #F8F8F8; padding: 0 4mm;">{{ $placeShort }}, {{ $issueDateFormatted }}</span>
             </div>
         </div>
     </div>
 
     {{-- ==================== PAGE 2: BACK ==================== --}}
     @if($templateBackBase64 ?? false)
-    <div class="cert-page cert-page-back">
-        <img class="bg-template" src="data:image/png;base64,{{ $templateBackBase64 }}" alt="Field Study Curriculum Structure Back">
+        <div class="cert-page cert-page-back">
+            <img class="bg-template" src="data:image/png;base64,{{ $templateBackBase64 }}"
+                alt="Field Study Curriculum Structure Back">
 
-        <div class="overlay">
-            {{-- Name after "Name : " --}}
-            <div class="fs-back-text" style="top: {{ $bnTop }}mm; left: {{ $bnLeft }}mm; font-size: {{ $bnFs }}pt;">
-                {{ $user->name }}
-            </div>
+            <div class="overlay">
+                {{-- Name after "Name : " --}}
+                <div class="fs-back-text" style="top: {{ $bnTop }}mm; left: {{ $bnLeft }}mm; font-size: {{ $bnFs }}pt;">
+                    {{ $user->name }}
+                </div>
 
-            {{-- Registration Number after "Registration Number : " --}}
-            <div class="fs-back-text" style="top: {{ $brTop }}mm; left: {{ $brLeft }}mm; font-size: {{ $brFs }}pt;">
-                {{ $regNo }}
+                {{-- Registration Number after "Registration Number : " --}}
+                <div class="fs-back-text" style="top: {{ $brTop }}mm; left: {{ $brLeft }}mm; font-size: {{ $brFs }}pt;">
+                    {{ $regNo }}
+                </div>
             </div>
         </div>
-    </div>
     @endif
 </body>
+
 </html>
