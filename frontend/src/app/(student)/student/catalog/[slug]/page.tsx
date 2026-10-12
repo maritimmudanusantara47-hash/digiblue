@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
+import { useTranslations, useLocale } from 'next-intl';
+import { translateText } from '@/lib/translator';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -17,6 +19,8 @@ const LEVEL_STYLE: Record<string, { badge: string; border: string; bg: string }>
 };
 
 export default function CourseSyllabusDetailPage() {
+  const t = useTranslations('StudentCatalogDetail');
+  const locale = useLocale();
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
@@ -29,10 +33,40 @@ export default function CourseSyllabusDetailPage() {
 
   useEffect(() => {
     if (!slug) return;
+    let mounted = true;
     setLoading(true);
     api.get(`/courses/${slug}`)
-      .then((res) => {
-        const data = res.data.data as Course;
+      .then(async (res) => {
+        if (!mounted) return;
+        let data = res.data.data as Course;
+
+        if (locale === 'en') {
+          const translatedSections = data.sections ? await Promise.all(data.sections.map(async (sec) => {
+            const translatedContents = sec.contents ? await Promise.all(sec.contents.map(async (item) => ({
+              ...item,
+              title: await translateText(item.title, 'en')
+            }))) : sec.contents;
+
+            return {
+              ...sec,
+              title: await translateText(sec.title, 'en'),
+              contents: translatedContents
+            };
+          })) : data.sections;
+
+          data = {
+            ...data,
+            title: await translateText(data.title, 'en'),
+            description: await translateText(data.description, 'en'),
+            certification_level: data.certification_level ? {
+              ...data.certification_level,
+              name: await translateText(data.certification_level.name, 'en')
+            } : data.certification_level,
+            sections: translatedSections
+          };
+        }
+
+        if (!mounted) return;
         setCourse(data);
         // Default buka semua modul silabus
         if (data.sections) {
@@ -44,13 +78,18 @@ export default function CourseSyllabusDetailPage() {
         }
       })
       .catch((err) => {
+        if (!mounted) return;
         console.error('Failed to load course details:', err);
-        setError('Kursus tidak ditemukan atau sedang tidak aktif.');
+        setError(t('err_not_found'));
       })
       .finally(() => {
-        setLoading(false);
+        if (mounted) setLoading(false);
       });
-  }, [slug]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [slug, locale, t]);
 
   const toggleSection = (id: number) => {
     setOpenSections((prev) => ({
@@ -94,11 +133,11 @@ export default function CourseSyllabusDetailPage() {
         <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 mx-auto flex items-center justify-center mb-4">
           <Icon name="warning" size={28} />
         </div>
-        <h2 className="text-xl font-bold text-navy-dark mb-2">Kursus Tidak Ditemukan</h2>
-        <p className="text-slate-500 text-sm mb-6">{error ?? 'Materi kursus tidak dapat dimuat.'}</p>
-        <Link href="/courses" className="btn btn-primary inline-flex items-center gap-2">
+        <h2 className="text-xl font-bold text-navy-dark mb-2">{t('title_not_found')}</h2>
+        <p className="text-slate-500 text-sm mb-6">{error ?? t('desc_not_found')}</p>
+        <Link href="/student/catalog" className="btn btn-primary inline-flex items-center gap-2">
           <Icon name="arrow-left" size={16} />
-          <span>Kembali ke Katalog Kursus</span>
+          <span>{t('btn_back_catalog')}</span>
         </Link>
       </div>
     );
@@ -108,7 +147,7 @@ export default function CourseSyllabusDetailPage() {
   const style = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
   const isFree = Number(course.price) <= 0;
   const formattedPrice = isFree
-    ? 'Gratis'
+    ? t('lbl_free')
     : `Rp${Number(course.price).toLocaleString('id-ID')}`;
 
   const totalSections = course.sections?.length ?? 0;
@@ -123,11 +162,11 @@ export default function CourseSyllabusDetailPage() {
       <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-6 flex-wrap">
         <Link href="/" className="hover:text-navy transition-colors flex items-center gap-1">
           <Icon name="home-2" size={14} />
-          <span>Beranda</span>
+          <span>{t('nav_home')}</span>
         </Link>
         <span>/</span>
-        <Link href="/courses" className="hover:text-navy transition-colors">
-          Katalog Kursus
+        <Link href="/student/catalog" className="hover:text-navy transition-colors">
+          {t('nav_catalog')}
         </Link>
         <span>/</span>
         <span className="text-navy-dark truncate max-w-xs">{course.title}</span>
@@ -143,11 +182,11 @@ export default function CourseSyllabusDetailPage() {
             </span>
             <span className="text-xs text-white/70 flex items-center gap-1">
               <Icon name="layers-1" size={14} className="text-gold" />
-              {totalSections} Modul Silabus
+              {totalSections} {t('lbl_syllabus_modules')}
             </span>
             <span className="text-xs text-white/70 flex items-center gap-1">
               <Icon name="book-1" size={14} className="text-gold" />
-              {totalContents} Materi & Asesmen
+              {totalContents} {t('lbl_materials_assessments')}
             </span>
           </div>
 
@@ -164,11 +203,11 @@ export default function CourseSyllabusDetailPage() {
           <div className="flex items-center gap-4 text-xs sm:text-sm text-white/70 pt-4 border-t border-white/10">
             <span className="flex items-center gap-1.5">
               <Icon name="shield-2-check" size={16} className="text-emerald-400" />
-              Sertifikat Terverifikasi
+              {t('badge_verified_cert')}
             </span>
             <span className="flex items-center gap-1.5">
               <Icon name="stopwatch" size={16} className="text-gold" />
-              Akses Pembelajaran Fleksibel
+              {t('badge_flexible_learning')}
             </span>
           </div>
         </div>
@@ -181,22 +220,22 @@ export default function CourseSyllabusDetailPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-navy-dark">
-                Silabus Kurikulum Kursus
+                {t('title_curriculum_syllabus')}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Struktur modul dan pokok bahasan yang akan kamu pelajari secara komprehensif.
+                {t('desc_curriculum_syllabus')}
               </p>
             </div>
             <span className="text-xs font-bold text-navy bg-sky-50 px-3 py-1.5 rounded-full border border-sky-100 shrink-0">
-              {totalSections} Modul
+              {totalSections} {t('lbl_modules')}
             </span>
           </div>
 
           {(!course.sections || course.sections.length === 0) ? (
             <div className="p-10 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400">
               <Icon name="book-1" size={28} className="mx-auto mb-2 text-slate-300" />
-              <p className="font-semibold text-navy-dark">Silabus sedang disiapkan</p>
-              <p className="text-xs text-slate-400 mt-1">Modul silabus akan segera diperbarui oleh instruktur.</p>
+              <p className="font-semibold text-navy-dark">{t('empty_syllabus_title')}</p>
+              <p className="text-xs text-slate-400 mt-1">{t('empty_syllabus_desc')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -221,7 +260,7 @@ export default function CourseSyllabusDetailPage() {
                         </span>
                         <div>
                           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                            Modul {idx + 1}
+                            {t('lbl_module_prefix')} {idx + 1}
                           </span>
                           <h3 className="font-bold text-navy-dark text-sm sm:text-base leading-snug">
                             {section.title}
@@ -231,7 +270,7 @@ export default function CourseSyllabusDetailPage() {
 
                       <div className="flex items-center gap-3 shrink-0">
                         <span className="text-xs font-medium text-slate-400 hidden sm:inline">
-                          {contents.length} materi
+                          {contents.length} {t('lbl_materials')}
                         </span>
                         <div className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
                           <Icon name="chevron-down" size={16} />
@@ -244,7 +283,7 @@ export default function CourseSyllabusDetailPage() {
                       <div className="px-5 pb-4 pt-1 border-t border-slate-100 bg-slate-50/50">
                         {contents.length === 0 ? (
                           <p className="text-xs text-slate-400 italic py-2">
-                            Materi topik pada modul ini sedang disusun.
+                            {t('empty_module_materials')}
                           </p>
                         ) : (
                           <ul className="divide-y divide-slate-100">
@@ -253,12 +292,12 @@ export default function CourseSyllabusDetailPage() {
                               const isVideo = item.content_type === 'video_embed' || item.content_type === 'oral_video_task';
                               const iconName = isPdf ? 'file-multiple' : isVideo ? 'play' : 'clipboard';
                               const labelText = isPdf
-                                ? 'Dokumen PDF'
+                                ? t('type_pdf')
                                 : isVideo
-                                ? 'Video'
+                                ? t('type_video')
                                 : item.content_type === 'mcq_quiz'
-                                ? 'Kuis MCQ'
-                                : 'Tugas';
+                                ? t('type_quiz')
+                                : t('type_task');
 
                               return (
                                 <li
@@ -300,9 +339,9 @@ export default function CourseSyllabusDetailPage() {
             </span>
             <div className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               <strong className="text-navy-dark block mb-1">
-                Akses Materi Lengkap & Ujian Kelulusan
+                {t('info_access_title')}
               </strong>
-              Setelah mendaftar, semua modul pembelajaran interaktif, materi PDF, ujian pilihan ganda, dan tugas akan aktif di dashboard portal belajarmu.
+              {t('info_access_desc')}
             </div>
           </div>
         </div>
@@ -312,7 +351,7 @@ export default function CourseSyllabusDetailPage() {
           <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-lg">
             <div className="pb-6 border-b border-slate-100 mb-6">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Biaya Pendaftaran Kursus
+                {t('lbl_reg_fee')}
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-extrabold text-navy-dark">
@@ -320,7 +359,7 @@ export default function CourseSyllabusDetailPage() {
                 </span>
                 {!isFree && (
                   <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
-                    Sertifikasi Resmi
+                    {t('lbl_official_cert')}
                   </span>
                 )}
               </div>
@@ -329,14 +368,14 @@ export default function CourseSyllabusDetailPage() {
             {/* Benefit List */}
             <div className="space-y-3 mb-8">
               <p className="text-xs font-bold text-navy-dark uppercase tracking-wider">
-                Fasilitas yang didapatkan:
+                {t('lbl_facilities_included')}
               </p>
               {[
-                'Akses lengkap semua modul silabus',
-                'Ujian online MCQ & evaluasi studi kasus',
-                'Sertifikat PDF resmi ber-ID unik & QR Code',
-                'Dapat diverifikasi langsung oleh pemberi kerja',
-                'Dukungan pembelajaran online 24/7',
+                t('facility_1'),
+                t('facility_2'),
+                t('facility_3'),
+                t('facility_4'),
+                t('facility_5'),
               ].map((b) => (
                 <div key={b} className="flex items-start gap-2.5 text-xs text-slate-600">
                   <span className="text-emerald-500 mt-0.5 shrink-0">
@@ -354,11 +393,11 @@ export default function CourseSyllabusDetailPage() {
               className="btn btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition-all"
             >
               <Icon name="rocket-5" size={16} />
-              <span>Daftar Kursus Ini Sekarang</span>
+              <span>{t('btn_enroll_now')}</span>
             </button>
 
             <p className="text-center text-[11px] text-slate-400 mt-4">
-              Pembayaran aman & instan via QRIS, Virtual Account, GoPay & Midtrans Snap.
+              {t('desc_payment_methods')}
             </p>
           </div>
         </div>

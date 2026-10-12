@@ -3,7 +3,8 @@
 import Cookies from "js-cookie";
 import Icon from "@/components/Icon";
 import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { translateText } from "@/lib/translator";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
@@ -47,6 +48,7 @@ interface CertLevel {
 
 function StudentCatalogContent() {
   const t = useTranslations("StudentCatalog");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const autoEnrollSlug = searchParams?.get("enroll");
@@ -67,6 +69,7 @@ function StudentCatalogContent() {
   const perPage = 9;
 
   const loadData = useCallback(() => {
+    let mounted = true;
     setLoading(true);
     const token = Cookies.get("auth_token");
     const enrollPromise = token
@@ -78,9 +81,37 @@ function StudentCatalogContent() {
       enrollPromise,
       api.get("/certification-levels"),
     ])
-      .then(([courseRes, enrollRes, levelRes]) => {
-        setCourses(courseRes.data.data ?? []);
-        setCertLevels(levelRes.data.data ?? []);
+      .then(async ([courseRes, enrollRes, levelRes]) => {
+        if (!mounted) return;
+        let coursesData: Course[] = courseRes.data.data ?? [];
+        let levelsData: CertLevel[] = levelRes.data.data ?? [];
+
+        if (locale === "en") {
+          levelsData = await Promise.all(
+            levelsData.map(async (l: CertLevel) => ({
+              ...l,
+              name: await translateText(l.name, "en"),
+            })),
+          );
+
+          coursesData = await Promise.all(
+            coursesData.map(async (c: Course) => ({
+              ...c,
+              title: await translateText(c.title, "en"),
+              description: await translateText(c.description, "en"),
+              certification_level: c.certification_level
+                ? {
+                    ...c.certification_level,
+                    name: await translateText(c.certification_level.name, "en"),
+                  }
+                : c.certification_level,
+            })),
+          );
+        }
+
+        if (!mounted) return;
+        setCourses(coursesData);
+        setCertLevels(levelsData);
         const myEnroll: {
           id: number;
           status: string;
@@ -103,8 +134,14 @@ function StudentCatalogContent() {
       .catch((err) => {
         console.error("Failed to load catalog data:", err);
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [locale]);
 
   useEffect(() => {
     loadData();
@@ -120,7 +157,7 @@ function StudentCatalogContent() {
         });
 
         if (res.data.data?.is_paid) {
-          alert("Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.");
+          alert(t("msg_pay_verified"));
           await loadData();
           return;
         }
@@ -137,25 +174,21 @@ function StudentCatalogContent() {
                     enrollment_id: enrollmentId,
                   })
                   .catch(() => {});
-                alert("Pembayaran berhasil! Kursus kamu sudah aktif.");
+                alert(t("msg_pay_success"));
                 loadData();
               },
               onPending: () => {
-                alert(
-                  "Menunggu pembayaran selesai. Silakan selesaikan instruksi pembayaran.",
-                );
+                alert(t("msg_pay_pending"));
                 loadData();
               },
-              onError: () => alert("Pembayaran gagal atau dibatalkan."),
+              onError: () => alert(t("msg_pay_fail")),
               onClose: async () => {
                 try {
                   const v = await api.post("/payments/verify-status", {
                     enrollment_id: enrollmentId,
                   });
                   if (v.data?.data?.is_active)
-                    alert(
-                      "Pembayaran berhasil diverifikasi! Kursus kamu sudah aktif.",
-                    );
+                    alert(t("msg_pay_verified"));
                 } catch {
                   /* ignore */
                 }
@@ -173,7 +206,7 @@ function StudentCatalogContent() {
                 triggerSnap();
               } else if (attempts > 12) {
                 clearInterval(interval);
-                alert("Gagal memuat pop-up pembayaran.");
+                alert(t("msg_pay_popup_fail"));
               }
             }, 200);
           }
@@ -183,12 +216,12 @@ function StudentCatalogContent() {
       } catch (err: unknown) {
         const msg = (err as { response?: { data?: { message?: string } } })
           ?.response?.data?.message;
-        alert(msg ?? "Gagal memproses pembayaran Midtrans.");
+        alert(msg ?? t("msg_pay_error"));
       } finally {
         setPaying(null);
       }
     },
-    [loadData],
+    [loadData, t],
   );
 
   // ── Enroll ──────────────────────────────────────────────────────────────────
@@ -227,12 +260,12 @@ function StudentCatalogContent() {
       } catch (err: unknown) {
         const msg = (err as { response?: { data?: { message?: string } } })
           ?.response?.data?.message;
-        alert(msg ?? "Gagal mendaftar. Silakan coba lagi.");
+        alert(msg ?? t("msg_enroll_fail"));
       } finally {
         setEnrolling(null);
       }
     },
-    [isAuthenticated, router, handlePay],
+    [isAuthenticated, router, handlePay, t],
   );
 
   // ── Auto-enroll & Pop-up Pembayaran Otomatis Setelah Login/Registrasi ───────
@@ -659,10 +692,13 @@ function StudentCatalogContent() {
 }
 
 export default function StudentCatalogPage() {
+  const t = useTranslations("StudentCatalog");
   return (
     <Suspense
       fallback={
-        <div className="p-8 text-center text-slate-400">Memuat katalog...</div>
+        <div className="p-8 text-center text-slate-400">
+          {t("desc_catalog")}...
+        </div>
       }
     >
       <StudentCatalogContent />
@@ -706,7 +742,7 @@ function CourseCard({
         </span>
         <span className="text-sm font-bold text-navy-dark">
           {course.price === 0
-            ? "Gratis"
+            ? t("lbl_free")
             : `Rp${Number(course.price).toLocaleString("id-ID")}`}
         </span>
       </div>
@@ -777,7 +813,7 @@ function CourseCard({
           className="btn w-full text-sm font-semibold text-center bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           <Icon name="check-circle-1" size={16} className="mr-1.5" />
-          Kursus Selesai
+          {t("btn_completed")}
         </Link>
       ) : enrollment.status === "active" && accessBlocked ? (
         <button
@@ -785,7 +821,7 @@ function CourseCard({
           className="btn w-full text-sm font-semibold text-center bg-amber-50 text-amber-700 border border-amber-300 cursor-not-allowed"
         >
           <Icon name="locked-1" size={16} className="mr-1.5" />
-          Selesaikan Foundation Dulu
+          {t("btn_finish_fnd")}
         </button>
       ) : enrollment.status === "active" ? (
         <Link
@@ -800,12 +836,12 @@ function CourseCard({
       ) : enrollment.status === "pending_review" ? (
         <div className="btn w-full text-sm font-semibold text-center bg-amber-50 text-amber-700 border border-amber-200 cursor-default">
           <Icon name="hourglass" size={16} className="mr-1.5" />
-          Menunggu Kurasi Admin
+          {t("btn_pending_review")}
         </div>
       ) : (
         <div className="btn w-full text-sm font-semibold text-center bg-red-50 text-red-600 border border-red-200 cursor-default">
           <Icon name="xmark-circle" size={16} className="mr-1.5" />
-          Pendaftaran Ditolak
+          {t("btn_rejected")}
         </div>
       )}
     </div>
