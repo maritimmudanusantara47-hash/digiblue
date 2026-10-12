@@ -565,8 +565,8 @@ function PDFModule({
     <div className="flex flex-col gap-6">
       {/* Instructions */}
       {content.instruction_text && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-          <p className="text-sm text-blue-800 leading-relaxed whitespace-pre-line">{content.instruction_text}</p>
+        <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 sm:p-6">
+          <MarkdownViewer content={content.instruction_text} />
         </div>
       )}
 
@@ -794,8 +794,8 @@ function VideoEmbed({
   return (
     <div className="flex flex-col gap-6">
       {content.instruction_text && (
-        <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5">
-          <p className="text-sm text-purple-800 leading-relaxed">{content.instruction_text}</p>
+        <div className="bg-purple-50/70 border border-purple-200 rounded-2xl p-5 sm:p-6">
+          <MarkdownViewer content={content.instruction_text} />
         </div>
       )}
       <div className="card p-0 overflow-hidden">
@@ -1026,8 +1026,8 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
     <div className="flex flex-col gap-6">
       {/* Instructions */}
       {content.instruction_text && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <p className="text-sm text-amber-800 leading-relaxed whitespace-pre-line">{content.instruction_text}</p>
+        <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 sm:p-6">
+          <MarkdownViewer content={content.instruction_text} />
         </div>
       )}
 
@@ -1362,8 +1362,8 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
     return (
       <div className="flex flex-col gap-5">
         {content.instruction_text && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-            <p className="text-sm text-emerald-800 leading-relaxed whitespace-pre-line">{content.instruction_text}</p>
+          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 sm:p-6">
+            <MarkdownViewer content={content.instruction_text} />
           </div>
         )}
         <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-8 text-center flex flex-col items-center gap-4">
@@ -1386,8 +1386,8 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
     return (
       <div className="flex flex-col gap-5">
         {content.instruction_text && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-            <p className="text-sm text-emerald-800 leading-relaxed whitespace-pre-line">{content.instruction_text}</p>
+          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 sm:p-6">
+            <MarkdownViewer content={content.instruction_text} />
           </div>
         )}
         <div className={`rounded-2xl border-2 p-6 flex flex-col items-center gap-4 text-center ${attending ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -1417,8 +1417,8 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
     <div className="flex flex-col gap-5">
       {/* Instructions */}
       {content.instruction_text && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-          <p className="text-sm text-emerald-800 leading-relaxed whitespace-pre-line">{content.instruction_text}</p>
+        <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 sm:p-6">
+          <MarkdownViewer content={content.instruction_text} />
         </div>
       )}
 
@@ -1490,26 +1490,86 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
   submission: Submission | null;
   onDone: (sub: Submission) => void;
 }) {
-  const [videoUrl, setVideoUrl]   = useState('');
-  const [notes, setNotes]         = useState('');
+  const [videoUrl, setVideoUrl]     = useState('');
+  const [notes, setNotes]           = useState('');
   const [submitting, setSubmitting] = useState(false);
   const alreadySubmitted = submission !== null;
 
+  const getEmbedUrl = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&modestbranding=1`;
+    const gdMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+    if (gdMatch) return `https://drive.google.com/file/d/${gdMatch[1]}/preview`;
+    return null;
+  };
+
+  const previewEmbed = getEmbedUrl(videoUrl);
+
   if (alreadySubmitted) {
+    const submittedEmbed = getEmbedUrl(submission.video_url);
+
     return (
       <div className="flex flex-col gap-4">
+        {content.instruction_text && (
+          <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-5 sm:p-6">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-rose-200/60">
+              <Icon name="camera-movie-1" size={18} className="text-rose-600" />
+              <span className="text-xs font-extrabold uppercase tracking-wider text-rose-700">
+                Petunjuk Oral Video Exam
+              </span>
+            </div>
+            <MarkdownViewer content={content.instruction_text} />
+          </div>
+        )}
+
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5">
-          <p className="font-bold text-rose-700 mb-2"><Icon name="camera-movie-1" size={16} className="mr-1.5" />Video Sudah Dikumpulkan</p>
+          <p className="font-bold text-rose-700 mb-2 flex items-center">
+            <Icon name="camera-movie-1" size={18} className="mr-2" />
+            Video Sudah Dikumpulkan
+          </p>
+
+          {submittedEmbed && (
+            <div className="mt-3 rounded-2xl overflow-hidden border border-rose-200 aspect-video bg-black/5 shadow-sm max-w-2xl">
+              <iframe
+                src={submittedEmbed}
+                title="Oral Exam Submission Video"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
+
           {submission.video_url && (
-            <div className="mt-2">
+            <div className="mt-3">
               <a href={submission.video_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-navy font-medium hover:underline bg-white rounded-xl px-4 py-2 border border-rose-200">
-                ▶️ Tonton Video Submission <Icon name="arrow-right" size={14} className="ml-1.5" />
+                className="inline-flex items-center gap-2 text-sm text-navy font-semibold hover:underline bg-white rounded-xl px-4 py-2 border border-rose-200 shadow-sm">
+                <Icon name="camera-movie-1" size={16} className="text-rose-600" />
+                Buka Link Video Asli
+                <Icon name="arrow-right" size={14} className="ml-1" />
               </a>
             </div>
           )}
+
+          {submission.essay_text && (
+            <div className="mt-3 bg-white/90 rounded-xl p-3.5 border border-rose-100 text-xs text-slate-700 leading-relaxed">
+              <span className="font-bold text-navy-dark">Catatan untuk Assessor:</span> {submission.essay_text}
+            </div>
+          )}
+
+          {submission.assessor_feedback && (
+            <div className="mt-3 bg-emerald-50 rounded-xl p-3.5 border border-emerald-200 text-xs text-emerald-800 leading-relaxed">
+              <span className="font-bold flex items-center gap-1.5 mb-1">
+                <Icon name="check-circle-1" size={14} />
+                Feedback dari Assessor:
+              </span>
+              {submission.assessor_feedback}
+            </div>
+          )}
+
           {submission.score === null && (
-            <p className="text-sm text-rose-600 mt-3 flex items-center gap-2">
+            <p className="text-sm text-rose-600 mt-3 flex items-center gap-2 font-medium">
               <span className="animate-pulse"><Icon name="hourglass" size={18} /></span> Menunggu penilaian assessor...
             </p>
           )}
@@ -1549,27 +1609,67 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {content.instruction_text && (
-        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5">
-          <p className="text-sm font-semibold text-rose-700 mb-2"><Icon name="camera-movie-1" size={16} className="mr-1.5" />Petunjuk Oral Video Exam</p>
-          <p className="text-sm text-rose-800 leading-relaxed whitespace-pre-line">{content.instruction_text}</p>
+        <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-rose-200/60">
+            <Icon name="camera-movie-1" size={18} className="text-rose-600" />
+            <span className="text-xs font-extrabold uppercase tracking-wider text-rose-700">
+              Petunjuk Oral Video Exam
+            </span>
+          </div>
+          <MarkdownViewer content={content.instruction_text} />
         </div>
       )}
+
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-navy-dark"><Icon name="link-2-angular-right" size={16} className="mr-1.5" />Link Video <span className="text-rose-500">*</span></label>
-        <input type="url" required value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
-          placeholder="https://youtu.be/... atau https://drive.google.com/..."
-          className="form-input" />
-      </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-navy-dark">
-          <Icon name="pen-to-square" size={16} className="mr-1.5" />Catatan untuk Assessor <span className="text-slate-400 font-normal">(opsional)</span>
+        <label className="text-sm font-bold text-navy-dark flex items-center">
+          <Icon name="link-2-angular-right" size={16} className="mr-1.5" />
+          Link Video Oral Exam <span className="text-rose-500 ml-1">*</span>
         </label>
-        <textarea rows={4} value={notes} onChange={e => setNotes(e.target.value)}
-          placeholder="Tambahkan catatan tambahan untuk assessor..."
-          className="form-input resize-none" />
+        <input
+          type="url"
+          required
+          value={videoUrl}
+          onChange={e => setVideoUrl(e.target.value)}
+          placeholder="https://youtu.be/... atau https://drive.google.com/..."
+          className="form-input"
+        />
+        <p className="text-xs text-slate-500">
+          Mendukung tautan video <strong>Google Drive</strong> (pastikan akses disetel &quot;Anyone with the link can view&quot;) atau <strong>YouTube</strong> (bisa Unlisted maupun Public).
+        </p>
+
+        {previewEmbed && (
+          <div className="mt-2 rounded-xl overflow-hidden border border-rose-200 aspect-video bg-black/5 shadow-inner max-w-md">
+            <iframe
+              src={previewEmbed}
+              title="Preview Video Oral Exam"
+              className="w-full h-full border-0"
+              allowFullScreen
+            />
+          </div>
+        )}
       </div>
-      <button type="submit" disabled={submitting} className="btn btn-primary btn-lg">
-        {submitting ? 'Mengumpulkan...' : <><Icon name="camera-movie-1" size={16} className="mr-1.5" />Submit Video Oral Exam</>}
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-bold text-navy-dark flex items-center">
+          <Icon name="pen-to-square" size={16} className="mr-1.5" />
+          Catatan untuk Assessor <span className="text-slate-400 font-normal ml-1">(opsional)</span>
+        </label>
+        <textarea
+          rows={4}
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder="Cantumkan ringkasan pokok presentasi atau keterangan tambahan untuk tim asesor..."
+          className="form-input resize-none"
+        />
+      </div>
+
+      <button type="submit" disabled={submitting} className="btn btn-primary btn-lg shadow-md shadow-navy/20">
+        {submitting ? 'Mengumpulkan...' : (
+          <>
+            <Icon name="camera-movie-1" size={18} className="mr-2" />
+            Submit Video Oral Exam
+          </>
+        )}
       </button>
     </form>
   );

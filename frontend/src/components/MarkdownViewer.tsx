@@ -13,31 +13,31 @@ export default function MarkdownViewer({ content, className = '', fontSize = 'no
 
   const size = {
     normal: {
-      h1: 'text-xl font-extrabold text-navy-dark mt-6 mb-3',
-      h2: 'text-lg font-extrabold text-navy-dark mt-6 mb-2',
-      h3: 'text-base font-extrabold text-navy-dark mt-5 mb-2 pb-1 border-b border-slate-100',
-      h4: 'text-sm font-bold text-navy-dark mt-4 mb-1',
-      p: 'text-sm text-slate-700 leading-relaxed my-2',
+      h1: 'text-xl font-extrabold text-navy-dark mt-5 first:mt-0 mb-3',
+      h2: 'text-lg font-extrabold text-navy-dark mt-4 first:mt-0 mb-2',
+      h3: 'text-base font-extrabold text-navy-dark mt-3.5 first:mt-0 mb-1.5 pb-1 border-b border-slate-100',
+      h4: 'text-sm font-bold text-navy-dark mt-3 first:mt-0 mb-1',
+      p: 'text-sm text-slate-700 leading-relaxed my-2 first:mt-0',
       list: 'text-sm text-slate-700 leading-relaxed my-2',
       quote: 'text-sm text-slate-700 italic my-2.5',
       code: 'text-xs',
     },
     large: {
-      h1: 'text-2xl font-extrabold text-navy-dark mt-7 mb-3',
-      h2: 'text-xl font-extrabold text-navy-dark mt-6 mb-2.5',
-      h3: 'text-lg font-extrabold text-navy-dark mt-5 mb-2.5 pb-1 border-b border-slate-100',
-      h4: 'text-base font-bold text-navy-dark mt-4 mb-1.5',
-      p: 'text-base text-slate-700 leading-relaxed my-2.5',
+      h1: 'text-2xl font-extrabold text-navy-dark mt-6 first:mt-0 mb-3',
+      h2: 'text-xl font-extrabold text-navy-dark mt-5 first:mt-0 mb-2.5',
+      h3: 'text-lg font-extrabold text-navy-dark mt-4.5 first:mt-0 mb-2 pb-1 border-b border-slate-100',
+      h4: 'text-base font-bold text-navy-dark mt-3.5 first:mt-0 mb-1.5',
+      p: 'text-base text-slate-700 leading-relaxed my-2.5 first:mt-0',
       list: 'text-base text-slate-700 leading-relaxed my-2.5',
       quote: 'text-base text-slate-700 italic my-3',
       code: 'text-sm',
     },
     xlarge: {
-      h1: 'text-3xl font-extrabold text-navy-dark mt-8 mb-4',
-      h2: 'text-2xl font-extrabold text-navy-dark mt-7 mb-3',
-      h3: 'text-xl font-extrabold text-navy-dark mt-6 mb-3 pb-1 border-b border-slate-100',
-      h4: 'text-lg font-bold text-navy-dark mt-5 mb-2',
-      p: 'text-lg text-slate-700 leading-relaxed my-3',
+      h1: 'text-3xl font-extrabold text-navy-dark mt-7 first:mt-0 mb-4',
+      h2: 'text-2xl font-extrabold text-navy-dark mt-6 first:mt-0 mb-3',
+      h3: 'text-xl font-extrabold text-navy-dark mt-5 first:mt-0 mb-2.5 pb-1 border-b border-slate-100',
+      h4: 'text-lg font-bold text-navy-dark mt-4 first:mt-0 mb-2',
+      p: 'text-lg text-slate-700 leading-relaxed my-3 first:mt-0',
       list: 'text-lg text-slate-700 leading-relaxed my-3',
       quote: 'text-lg text-slate-700 italic my-3.5',
       code: 'text-base',
@@ -176,12 +176,13 @@ export default function MarkdownViewer({ content, className = '', fontSize = 'no
     }
 
     // Unordered List
-    if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+    const bulletMatch = trimmed.match(/^[-*•+]\s+(.+)$/);
+    if (bulletMatch) {
       if (isNumberedList) flushList();
       isNumberedList = false;
       listItems.push(
         <li key={`li-${index}`}>
-          {renderFormattedText(trimmed.slice(2))}
+          {renderFormattedText(bulletMatch[1])}
         </li>
       );
       return;

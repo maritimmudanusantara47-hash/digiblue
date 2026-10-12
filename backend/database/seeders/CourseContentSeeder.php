@@ -178,7 +178,32 @@ Sebagai seorang kandidat *Certified Blue Economist (CBEc)*, Anda diminta menyusu
             'order_index' => 5,
         ]);
 
-        // 6. Training Course (Field Study)
+        // 6. Oral Video Examination
+        CourseContent::create([
+            'section_id' => $section->id,
+            'content_type' => 'oral_video_task',
+            'title' => 'Oral Video Examination — Foundation Level',
+            'instruction_text' => "### Ujian Lisan Berbasis Video (Oral Video Examination) — Foundation Level
+
+Sebagai bagian dari evaluasi kompetensi Certified Blue Economist (CBEc), Anda diminta menyusun dan merekam video presentasi lisan berdurasi 5 hingga 10 menit.
+
+#### Pilihan Topik Presentasi (Pilih Salah Satu):
+1. Strategi Transformasi Ekonomi Biru di Indonesia: Uraikan visi, pilar keberlanjutan, dan tantangan transisi dari brown economy menuju blue economy.
+2. Valuasi & Monetisasi Karbon Biru (Blue Carbon): Jelaskan potensi mangrove dan padang lamun Indonesia serta peranan mekanisme pembiayaan inovatif (seperti Sovereign Blue Bond atau pasar karbon sukarela).
+3. Harmonisasi Konservasi Maritim & Kesejahteraan Nelayan: Paparkan analisis kritis Anda mengenai kebijakan Penangkapan Ikan Terukur (PIT) vs perlindungan hak nelayan skala kecil dan masyarakat adat laut.
+
+#### Ketentuan Perekaman & Pengumpulan Video:
+• Durasi Video: 5 – 10 menit (wajah dan suara peserta wajib terdengar dan terlihat jelas).
+• Format Pengumpulan: Unggah video Anda ke platform Google Drive atau YouTube (dapat disetel sebagai Unlisted atau Public).
+• Izin Akses Tautan: Jika menggunakan Google Drive, pastikan izin akses tautan diatur ke 'Anyone with the link can view' (Siapa saja yang memiliki tautan dapat melihat) agar tim asesor dapat mengakses dan memutar video.
+• Pengumpulan Tugas: Cantumkan tautan URL video pada kolom input formulir di bawah ini. Anda juga dapat menambahkan ringkasan poin presentasi pada kolom catatan untuk asesor.
+• Standar Penilaian: Dinilai secara komprehensif oleh Tim Asesor DigiBlueCamp berdasarkan penguasaan materi (40%), ketajaman analisis & argumen kritis (30%), serta kejelasan artikulasi presentasi (30%). Nilai kelulusan minimum: 70 / 100.",
+            'max_score' => 100,
+            'is_prerequisite' => false,
+            'order_index' => 6,
+        ]);
+
+        // 7. Training Course (Field Study)
         CourseContent::create([
             'section_id' => $section->id,
             'content_type' => 'field_study',
@@ -186,10 +211,10 @@ Sebagai seorang kandidat *Certified Blue Economist (CBEc)*, Anda diminta menyusu
             'instruction_text' => "Field Study adalah komponen praktikum lapangan terpadu program Foundation Level DigiBlueCamp.\n\nAktivitas Lapangan:\n🌊 Observasi habitat pesisir dan verifikasi baseline ekosistem mangrove/lamun\n🤝 Dialog interaktif dengan kelompok nelayan dan pengelola kawasan konservasi laut\n📊 Pengambilan data primer sosial-ekonomi pesisir\n🎯 Diskusi kelompok terarah (FGD) dan perumusan rekomendasi praktis\n\nSilakan konfirmasikan keikutsertaan Anda di bawah ini. Peserta yang mengikuti Field Study secara otomatis dibebaskan dari modul Critical Thinking Exam.",
             'max_score' => 0,
             'is_prerequisite' => false,
-            'order_index' => 6,
+            'order_index' => 7,
         ]);
 
-        // 7. Case-Study Essay Examination — Critical Thinking
+        // 8. Case-Study Essay Examination — Critical Thinking
         CourseContent::create([
             'section_id' => $section->id,
             'content_type' => 'critical_thinking',
@@ -208,7 +233,7 @@ Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
 3. **Rekomendasi Kebijakan**: Rekomendasikan 3 langkah konkret berbasis sains (*evidence-based policy*) untuk meningkatkan efektivitas pengawasan laut terhadap IUU Fishing di perairan kepulauan terluar Indonesia.",
             'max_score' => 100,
             'is_prerequisite' => false,
-            'order_index' => 7,
+            'order_index' => 8,
         ]);
     }
 

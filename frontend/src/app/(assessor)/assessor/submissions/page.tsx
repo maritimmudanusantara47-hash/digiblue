@@ -214,9 +214,24 @@ export default function AssessorSubmissionsPage() {
               {grading.video_url && (
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-slate-500 mb-2">{t('lbl_oral_video')}</p>
+                  {(() => {
+                    const ytMatch = grading.video_url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                    const gdMatch = grading.video_url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+                    const embedUrl = ytMatch ? `https://www.youtube.com/embed/${ytMatch[1]}?rel=0` : (gdMatch ? `https://drive.google.com/file/d/${gdMatch[1]}/preview` : null);
+                    return embedUrl ? (
+                      <div className="rounded-xl overflow-hidden border border-slate-200 aspect-video bg-black/5 mb-3 shadow-sm">
+                        <iframe
+                          src={embedUrl}
+                          title="Oral Video Preview"
+                          className="w-full h-full border-0"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : null;
+                  })()}
                   <a href={grading.video_url} target="_blank" rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline">
-                    <Icon name="camera-movie-1" size={16} className="mr-1.5" />{t('btn_open_video')} <Icon name="arrow-right" size={14} className="ml-1.5" />
+                    className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
+                    <Icon name="camera-movie-1" size={16} className="text-rose-600" />{t('btn_open_video')} <Icon name="arrow-right" size={14} className="ml-1" />
                   </a>
                 </div>
               )}

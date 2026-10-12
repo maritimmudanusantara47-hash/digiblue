@@ -282,4 +282,58 @@ class CertificateAutoIssueTest extends TestCase
 
         $this->assertEquals('completed', $specEnrollment->fresh()->status);
     }
+
+    public function test_oral_exam_submission_and_assessor_grading_flow(): void
+    {
+        $oralContent = CourseContent::create([
+            'section_id'   => $this->course->sections->first()->id,
+            'content_type' => 'oral_video_task',
+            'title'        => 'Oral Video Examination',
+            'max_score'    => 100,
+            'order_index'  => 6,
+        ]);
+
+        // Student submits oral video link (Google Drive / YouTube)
+        Sanctum::actingAs($this->student);
+        $submitRes = $this->postJson('/api/v1/submissions', [
+            'content_id'    => $oralContent->id,
+            'enrollment_id' => $this->enrollment->id,
+            'video_url'     => 'https://drive.google.com/file/d/1234567890/view',
+            'essay_text'    => 'Catatan presentasi mengenai Blue Economy',
+        ]);
+
+        $submitRes->assertStatus(201);
+        $submissionId = $submitRes->json('data.id');
+
+        $this->assertDatabaseHas('student_submissions', [
+            'id'        => $submissionId,
+            'user_id'   => $this->student->id,
+            'video_url' => 'https://drive.google.com/file/d/1234567890/view',
+            'status'    => 'submitted',
+            'score'     => null,
+        ]);
+
+        // Assessor grades the oral exam
+        $assessor = User::create([
+            'name'     => 'Assessor Maritim',
+            'email'    => 'assessor@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        Role::firstOrCreate(['name' => 'assessor', 'guard_name' => 'web']);
+        $assessor->assignRole('assessor');
+
+        Sanctum::actingAs($assessor);
+        $gradeRes = $this->patchJson("/api/v1/submissions/{$submissionId}/grade", [
+            'score'             => 88,
+            'assessor_feedback' => 'Artikulasi sangat baik dan penguasaan konsep komprehensif.',
+        ]);
+
+        $gradeRes->assertStatus(200);
+        $this->assertDatabaseHas('student_submissions', [
+            'id'                => $submissionId,
+            'score'             => 88,
+            'status'            => 'graded',
+            'assessor_feedback' => 'Artikulasi sangat baik dan penguasaan konsep komprehensif.',
+        ]);
+    }
 }
