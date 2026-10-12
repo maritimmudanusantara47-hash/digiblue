@@ -837,7 +837,7 @@ function CourseCard({
   const badge = LEVEL_STYLE[code] ?? LEVEL_STYLE['SPEC'];
 
   return (
-    <div className={`card flex flex-col gap-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${!course.is_active ? 'opacity-60' : ''}`}>
+    <div className={`card p-5 sm:p-6 flex flex-col gap-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${!course.is_active ? 'opacity-60' : ''}`}>
       {/* Level & status */}
       <div className="flex items-center justify-between gap-2">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badge}`}>
@@ -872,25 +872,28 @@ function CourseCard({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 pt-1">
+      <div className="flex items-center gap-2 pt-1">
         <button
           id={`content-course-${course.id}`}
           onClick={() => router.push(`/admin/courses/${course.id}/content`)}
-          className="btn btn-sm text-xs bg-navy/10 text-navy border border-navy/20 hover:bg-navy hover:text-white transition-colors flex-1"
+          className="btn btn-sm text-xs bg-navy/10 text-navy border border-navy/20 hover:bg-navy hover:text-white transition-colors flex-1 min-w-0 px-2.5 truncate"
         >
-          <Icon name="books-2" size={16} className="mr-1.5" />{t('btn_manage_content')}
+          <Icon name="books-2" size={15} className="mr-1.5 shrink-0" />
+          <span className="truncate">{t('btn_manage_content')}</span>
         </button>
         <button
           id={`edit-course-${course.id}`}
           onClick={() => onEdit(course)}
-          className="btn btn-secondary btn-sm text-xs"
-        ><Icon name="pencil-1" size={16} />
+          className="btn btn-secondary btn-sm text-xs px-2.5 shrink-0"
+        >
+          <Icon name="pencil-1" size={15} />
         </button>
         <button
           id={`delete-course-${course.id}`}
           onClick={() => onDelete(course)}
-          className="btn btn-sm text-xs bg-red-50 text-red-500 border border-red-200 hover:bg-red-500 hover:text-white transition-colors"
-        ><Icon name="trash-3" size={16} />
+          className="btn btn-sm text-xs px-2.5 bg-red-50 text-red-500 border border-red-200 hover:bg-red-500 hover:text-white transition-colors shrink-0"
+        >
+          <Icon name="trash-3" size={15} />
         </button>
       </div>
     </div>
