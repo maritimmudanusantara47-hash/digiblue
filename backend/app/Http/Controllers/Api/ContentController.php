@@ -16,10 +16,17 @@ class ContentController extends Controller
      */
     public function index(Request $request, int $enrollmentId): JsonResponse
     {
-        $enrollment = Enrollment::with([
+        $user = $request->user();
+        $query = Enrollment::with([
             'course.sections.contents.quizQuestions.options',
-        ])->where('user_id', $request->user()->id)
-          ->findOrFail($enrollmentId);
+        ]);
+
+        if (!method_exists($user, 'hasRole') || !$user->hasRole('admin')) {
+            $query->where('user_id', $user->id)
+                  ->whereIn('status', ['active', 'completed']);
+        }
+
+        $enrollment = $query->findOrFail($enrollmentId);
 
         // Untuk MCQ, sembunyikan is_correct dari student
         $sections = $enrollment->course->sections->map(function ($section) {
@@ -35,15 +42,23 @@ class ContentController extends Controller
             return $section;
         });
 
+        // Cek kelayakan dan auto-issue sertifikat jika semua materi telah tuntas 100%
+        $certService = app(\App\Services\CertificateService::class);
+        $certificate = $certService->autoIssueCertificateIfEligible($enrollment);
+        if (!$certificate) {
+            $certificate = $enrollment->certificate()->first();
+        }
+
         return response()->json([
             'data' => [
-                'enrollment' => $enrollment->only(['id', 'status', 'attended_field_trip', 'enrollment_type']),
-                'course'     => [
+                'enrollment'  => $enrollment->only(['id', 'status', 'attended_field_trip', 'enrollment_type']),
+                'certificate' => $certificate,
+                'course'      => [
                     'id'    => $enrollment->course->id,
                     'title' => $enrollment->course->title,
                     'slug'  => $enrollment->course->slug,
                 ],
-                'sections'   => $sections,
+                'sections'    => $sections,
             ],
         ]);
     }

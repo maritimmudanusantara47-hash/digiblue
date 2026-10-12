@@ -21,12 +21,16 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (user, token) => {
         const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
         Cookies.set('auth_token', token, { expires: 7, secure: isSecure, sameSite: 'Lax' });
+        const primaryRole = user.roles?.[0]?.name || 'student';
+        Cookies.set('user_role', primaryRole, { expires: 7, secure: isSecure, sameSite: 'Lax' });
         set({ user, token, isAuthenticated: true });
       },
 
       clearAuth: () => {
         Cookies.remove('auth_token', { path: '/' });
         Cookies.remove('auth_token');
+        Cookies.remove('user_role', { path: '/' });
+        Cookies.remove('user_role');
         if (typeof window !== 'undefined') {
           try {
             sessionStorage.removeItem('digibluecamp-auth');

@@ -46,9 +46,9 @@ class CourseController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        // Keamanan guest access: Sembunyikan URL/path file internal di katalog publik
+        // Keamanan guest access: Sembunyikan URL/path file internal serta isi modul di katalog publik
         $course->sections->each(function ($section) {
-            $section->contents->makeHidden(['file_path', 'embed_url']);
+            $section->contents->makeHidden(['file_path', 'embed_url', 'content_body', 'instruction_text']);
         });
 
         return response()->json(['data' => $course]);

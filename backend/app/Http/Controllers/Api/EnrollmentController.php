@@ -68,15 +68,23 @@ class EnrollmentController extends Controller
         ], 201);
     }
 
-    /** Student/Admin: Detail enrollment */
-    public function show(int $id): JsonResponse
+    /** Student/Admin: Detail enrollment (dengan proteksi otorisasi kepemilikan) */
+    public function show(Request $request, int $id): JsonResponse
     {
-        $enrollment = Enrollment::with([
+        $user = $request->user();
+
+        $query = Enrollment::with([
             'user',
             'course.certificationLevel',
             'course.sections.contents',
             'certificate',
-        ])->findOrFail($id);
+        ]);
+
+        if (!$user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        $enrollment = $query->findOrFail($id);
 
         return response()->json(['data' => $enrollment]);
     }
@@ -165,6 +173,10 @@ class EnrollmentController extends Controller
 
         $status = $enrollment->fresh()->attended_field_trip ? 'Hadir' : 'Tidak Hadir';
 
+        if ($enrollment->attended_field_trip) {
+            app(\App\Services\CertificateService::class)->autoIssueCertificateIfEligible($enrollment);
+        }
+
         return response()->json([
             'message'             => "Status Field Trip berhasil diubah menjadi: {$status}.",
             'attended_field_trip' => $enrollment->attended_field_trip,
@@ -188,6 +200,9 @@ class EnrollmentController extends Controller
             $enrollment->update([
                 'attended_field_trip' => $validated['attending'],
             ]);
+            if ($validated['attending']) {
+                app(\App\Services\CertificateService::class)->autoIssueCertificateIfEligible($enrollment);
+            }
         }
 
         return response()->json([

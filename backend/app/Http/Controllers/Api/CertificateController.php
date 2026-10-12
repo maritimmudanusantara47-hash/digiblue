@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
+use App\Models\Enrollment;
+use App\Services\CertificateService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,11 +13,28 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CertificateController extends Controller
 {
-    /** Student: List sertifikat milik user yang login */
+    public function __construct(
+        private CertificateService $certService
+    ) {}
+
+    /** Student: List sertifikat milik user yang login (dengan auto-issue jika sudah eligible) */
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+
+        // Periksa apakah user memiliki enrollment yang sudah 100% tuntas tapi belum terbit sertifikat
+        $enrollments = Enrollment::with(['course.certificationLevel', 'user'])
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->get();
+
+        foreach ($enrollments as $enrollment) {
+            /** @var Enrollment $enrollment */
+            $this->certService->autoIssueCertificateIfEligible($enrollment);
+        }
+
         $certs = Certificate::with(['enrollment.course.certificationLevel'])
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $user->id)
             ->orderByDesc('date_of_issue')
             ->get();
 

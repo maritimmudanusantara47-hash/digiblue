@@ -37,7 +37,8 @@ interface Content {
 interface Section { id: number; title: string; order_index: number; contents: Content[] }
 interface CourseData { id: number; title: string; slug: string }
 interface EnrollInfo { id: number; status: string; enrollment_type: string; attended_field_trip: boolean }
-interface PageData { enrollment: EnrollInfo; course: CourseData; sections: Section[] }
+interface CertificateInfo { id: number; serial_number: string; serial_url_key: string; grade: string }
+interface PageData { enrollment: EnrollInfo; course: CourseData; sections: Section[]; certificate?: CertificateInfo | null }
 interface Submission {
   id?: number;
   content_id: number;
@@ -118,15 +119,25 @@ export default function StudentCoursePage() {
   }, [params.slug, refreshSubmissions]);
 
 
-  const totalContents  = data?.sections.reduce((acc, s) => acc + s.contents.filter(c => c.content_type !== 'field_study').length, 0) ?? 0;
-  
-  const currentCourseContentIds = new Set(
-    data?.sections.flatMap(s => s.contents.map(c => c.id)) ?? []
-  );
+  const enrollment = data?.enrollment;
+  const isFieldTrip = enrollment?.attended_field_trip ?? false;
 
-  const completedCount = [...submissions.values()].filter(
-    s => currentCourseContentIds.has(s.content_id) && s.score !== null
-  ).length;
+  // Filter modul wajib sesuai jalur siswa:
+  // - Jika siswa ikut Field Study (isFieldTrip === true): critical_thinking dibebaskan, field_study wajib (selesai jika hadir)
+  // - Jika siswa TIDAK ikut Field Study: critical_thinking wajib, field_study tidak wajib
+  const requiredContents = (data?.sections.flatMap(s => s.contents) ?? []).filter(c => {
+    if (c.content_type === 'critical_thinking' && isFieldTrip) return false;
+    if (c.content_type === 'field_study' && !isFieldTrip) return false;
+    return true;
+  });
+
+  const totalContents = requiredContents.length;
+
+  const completedCount = requiredContents.filter(c => {
+    if (c.content_type === 'field_study' && isFieldTrip) return true;
+    const sub = submissions.get(c.id);
+    return sub?.score !== null && sub?.score !== undefined;
+  }).length;
 
   const progressPct = totalContents > 0 ? Math.min(100, Math.round((completedCount / totalContents) * 100)) : 0;
 
@@ -150,10 +161,7 @@ export default function StudentCoursePage() {
     </div>
   );
 
-  if (!data) return null;
-
-  const enrollment = data.enrollment;
-  const isFieldTrip = enrollment.attended_field_trip;
+  if (!data || !enrollment) return null;
 
   return (
     <div className="animate-fadeup flex gap-0 min-h-[80vh]">
@@ -172,6 +180,27 @@ export default function StudentCoursePage() {
                 style={{ width: `${progressPct}%` }} />
             </div>
             <p className="text-xs text-slate-400 mt-1">{completedCount}/{totalContents} selesai</p>
+
+            {/* Banner Sertifikat Siap di Sidebar */}
+            {progressPct === 100 && (
+              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col gap-2">
+                <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold">
+                  <Icon name="check-circle-1" size={14} className="text-emerald-600" />
+                  <span>Kursus Tuntas 100%!</span>
+                </div>
+                <p className="text-[11px] text-emerald-700 leading-tight">
+                  Selamat! Sertifikat kamu telah diterbitkan secara otomatis.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push('/student/certificates')}
+                  className="w-full py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                >
+                  <Icon name="certificate-badge-1" size={14} />
+                  <span>Lihat Sertifikat</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -184,7 +213,8 @@ export default function StudentCoursePage() {
               </div>
               {section.contents.map(content => {
                 const sub    = submissions.get(content.id);
-                const isDone = sub?.score !== null && sub?.score !== undefined;
+                const isFieldStudyDone = content.content_type === 'field_study' && isFieldTrip;
+                const isDone = (sub?.score !== null && sub?.score !== undefined) || isFieldStudyDone;
                 const isPending = sub && !isDone; // submitted but not graded
                 const isSelected = activeContent?.id === content.id;
 
@@ -215,6 +245,40 @@ export default function StudentCoursePage() {
 
       {/* ── Main Content Area ──────────────────────────────────────────────── */}
       <main className="flex-1 min-w-0 p-6 md:p-8">
+        {/* Banner Selamat & Sertifikat Terbit Otomatis */}
+        {progressPct === 100 && (
+          <div className="mb-6 p-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeup border border-emerald-400/30">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                <Icon name="certificate-badge-1" size={26} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider bg-white/25 px-2.5 py-0.5 rounded-full">
+                    Selesai 100%
+                  </span>
+                  <span className="text-xs text-emerald-100 font-medium">
+                    Semua Syarat Kelulusan Terpenuhi
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-base sm:text-lg mt-0.5">
+                  Selamat! Sertifikat Resmi Kamu Telah Terbit Otomatis
+                </h3>
+                <p className="text-xs sm:text-sm text-emerald-100 mt-0.5">
+                  Kamu telah menuntaskan seluruh materi kursus. Sertifikat digital siap diunduh dan diverifikasi.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push('/student/certificates')}
+              className="py-2.5 px-5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md flex-shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Icon name="certificate-badge-1" size={16} />
+              <span>Buka Sertifikat Saya</span>
+            </button>
+          </div>
+        )}
         {activeContent ? (
           <ContentViewer
             content={activeContent}

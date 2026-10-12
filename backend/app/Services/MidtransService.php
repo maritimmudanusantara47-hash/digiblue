@@ -161,7 +161,8 @@ class MidtransService
         $fraudStatus       = $payload['fraud_status'] ?? '';
 
         // Validasi Signature Key
-        $mySignature = hash('sha512', $orderId . $statusCode . $grossAmount . config('midtrans.server_key'));
+        $serverKey   = config('midtrans.server_key') ?: env('MIDTRANS_SERVER_KEY');
+        $mySignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
         if ($signatureKey !== $mySignature) {
             Log::warning('Midtrans Invalid Signature for order: ' . $orderId);
             return ['status' => 'invalid_signature'];
@@ -180,12 +181,21 @@ class MidtransService
             return ['status' => 'enrollment_not_found'];
         }
 
+        // Verifikasi kesesuaian nominal: gross_amount tidak boleh lebih kecil dari nominal tagihan
+        if ($enrollment->final_payment_amount !== null && (float) $grossAmount < (float) $enrollment->final_payment_amount) {
+            Log::warning("Midtrans Gross Amount Mismatch for order {$orderId}: expected {$enrollment->final_payment_amount}, received {$grossAmount}");
+            return ['status' => 'amount_mismatch'];
+        }
+
+        // Idempotensi: jika enrollment sudah tercatat lunas/aktif, jangan turunkan statusnya karena notifikasi yang terlambat
+        $isAlreadyPaid = $enrollment->payment_status === 'paid' || in_array($enrollment->status, ['active', 'completed']);
+
         if ($transactionStatus === 'capture') {
             if ($fraudStatus === 'accept') {
                 $enrollment->update([
                     'status'         => 'active',
                     'payment_status' => 'paid',
-                    'paid_at'        => now(),
+                    'paid_at'        => $enrollment->paid_at ?? now(),
                 ]);
             }
         } elseif ($transactionStatus === 'settlement') {
@@ -193,18 +203,22 @@ class MidtransService
             $enrollment->update([
                 'status'         => 'active',
                 'payment_status' => 'paid',
-                'paid_at'        => now(),
+                'paid_at'        => $enrollment->paid_at ?? now(),
             ]);
         } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-            $enrollment->update([
-                'payment_status' => 'failed',
-                'status'         => 'payment_pending',
-            ]);
+            if (!$isAlreadyPaid) {
+                $enrollment->update([
+                    'payment_status' => 'failed',
+                    'status'         => 'payment_pending',
+                ]);
+            }
         } elseif ($transactionStatus === 'pending') {
-            $enrollment->update([
-                'payment_status' => 'pending',
-                'status'         => 'payment_pending',
-            ]);
+            if (!$isAlreadyPaid) {
+                $enrollment->update([
+                    'payment_status' => 'pending',
+                    'status'         => 'payment_pending',
+                ]);
+            }
         }
 
         return [

@@ -14,7 +14,7 @@ class CertificateService
      * - Display: CBEC/ID/IX/20260001
      * - URL Key:  CBECIDIX20260001HBB
      */
-    public function generateSerialNumbers(int $sequence, \DateTime $date = null): array
+    public function generateSerialNumbers(int $sequence, ?\DateTimeInterface $date = null): array
     {
         $date      = $date ?? now();
         $year      = $date->format('Y');
@@ -101,45 +101,147 @@ class CertificateService
     }
 
     /**
-     * Check apakah peserta memenuhi syarat untuk terbit sertifikat
+     * Check apakah peserta memenuhi syarat untuk terbit sertifikat (100% tuntas)
      */
     public function isEligibleForCertificate(Enrollment $enrollment): array
     {
         $course = $enrollment->course;
-        $level  = $course->certificationLevel;
+        $level  = $course?->certificationLevel;
 
-        // Cek apakah semua submission sudah dinilai
-        $ungradedSubmissions = $enrollment->user
-            ->submissions()
-            ->whereHas('content', fn($q) => $q->where('section_id', function ($q2) use ($course) {
-                $q2->select('id')->from('course_sections')->where('course_id', $course->id);
-            }))
-            ->where('status', 'submitted')
-            ->whereNull('score')
-            ->count();
-
-        if ($ungradedSubmissions > 0) {
-            return ['eligible' => false, 'reason' => "Masih ada {$ungradedSubmissions} tugas yang belum dinilai."];
+        if (!$course) {
+            return ['eligible' => false, 'reason' => 'Kursus tidak ditemukan.'];
         }
 
-        // Cek prasyarat Field Trip / Critical Thinking (hanya Foundation)
-        if ($level->is_field_trip_required && ! $enrollment->attended_field_trip) {
-            // Cek apakah Critical Thinking sudah dikerjakan & dinilai
-            $critThinkingPassed = $enrollment->user
-                ->submissions()
-                ->whereHas('content', fn($q) => $q->where('content_type', 'critical_thinking'))
-                ->where('status', 'graded')
-                ->whereNotNull('score')
-                ->exists();
+        // Ambil semua konten wajib dalam kursus ini
+        $allSections = $course->sections()->with('contents')->get();
+        $allContents = $allSections->flatMap->contents;
 
-            if (! $critThinkingPassed) {
+        if ($allContents->isEmpty()) {
+            return ['eligible' => false, 'reason' => 'Kursus belum memiliki konten materi.'];
+        }
+
+        $user = $enrollment->user;
+        $submissions = $user->submissions()
+            ->whereIn('content_id', $allContents->pluck('id'))
+            ->get()
+            ->keyBy('content_id');
+
+        $isFieldTripAttended = (bool) $enrollment->attended_field_trip;
+
+        foreach ($allContents as $content) {
+            // Jika konten ini adalah field_study:
+            if ($content->content_type === 'field_study') {
+                if ($isFieldTripAttended) {
+                    continue; // Kehadiran field study sudah terkonfirmasi
+                }
+                // Jika tidak hadir field trip, cek apakah level mewajibkan field trip
+                if ($level && $level->is_field_trip_required) {
+                    // Harus mengerjakan critical thinking sebagai gantinya
+                    continue;
+                }
+            }
+
+            // Jika konten ini adalah critical_thinking:
+            if ($content->content_type === 'critical_thinking') {
+                if ($isFieldTripAttended) {
+                    continue; // Peserta ikut field study, dibebaskan dari modul critical thinking
+                }
+                // Jika tidak ikut field study, critical thinking WAJIB dikerjakan & dinilai
+                $sub = $submissions->get($content->id);
+                if (!$sub || $sub->score === null) {
+                    return [
+                        'eligible' => false,
+                        'reason'   => 'Modul Critical Thinking belum diselesaikan atau belum dinilai.',
+                    ];
+                }
+                continue;
+            }
+
+            // Untuk semua tipe konten lainnya (pdf_module, video_embed, mcq_quiz, essay_task, oral_video_task):
+            $sub = $submissions->get($content->id);
+            if (!$sub) {
                 return [
                     'eligible' => false,
-                    'reason'   => 'Peserta belum hadir Field Trip dan belum menyelesaikan modul Critical Thinking.',
+                    'reason'   => "Materi '{$content->title}' belum diselesaikan.",
+                ];
+            }
+
+            if ($sub->score === null) {
+                return [
+                    'eligible' => false,
+                    'reason'   => "Tugas '{$content->title}' masih menunggu penilaian assessor.",
+                ];
+            }
+
+            // Untuk MCQ, pastikan lulus (skor >= 70)
+            if ($content->content_type === 'mcq_quiz' && (float)$sub->score < 70) {
+                return [
+                    'eligible' => false,
+                    'reason'   => "Kuis '{$content->title}' belum mencapai nilai kelulusan minimal (70).",
                 ];
             }
         }
 
         return ['eligible' => true, 'reason' => null];
+    }
+
+    /**
+     * Otomatis terbitkan sertifikat jika enrollment sudah eligible (100% selesai)
+     */
+    public function autoIssueCertificateIfEligible(Enrollment $enrollment): ?Certificate
+    {
+        // Jika sudah punya sertifikat, kembalikan sertifikat existing
+        $existing = Certificate::where('enrollment_id', $enrollment->id)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        $eligibility = $this->isEligibleForCertificate($enrollment);
+        if (!$eligibility['eligible']) {
+            return null;
+        }
+
+        // Hitung rata-rata nilai submission untuk menentukan grade
+        $course = $enrollment->course;
+        $avgScore = (float) ($enrollment->user->submissions()
+            ->whereHas('content', function ($q) use ($course) {
+                $q->whereHas('section', fn($s) => $s->where('course_id', $course->id));
+            })
+            ->whereNotNull('score')
+            ->avg('score') ?? 85);
+
+        $grade = 'Standard';
+        if ($avgScore >= 90) {
+            $grade = 'Excellent';
+        } elseif ($avgScore >= 75) {
+            $grade = 'Good';
+        }
+
+        $dateObj  = now();
+        $year     = (int)$dateObj->format('Y');
+        $sequence = $this->getNextSequence($year);
+        $serials  = $this->generateSerialNumbers($sequence, $dateObj);
+
+        $certificate = Certificate::create([
+            'enrollment_id'  => $enrollment->id,
+            'user_id'        => $enrollment->user_id,
+            'serial_number'  => $serials['serial_number'],
+            'serial_url_key' => $serials['serial_url_key'],
+            'grade'          => $grade,
+            'date_of_issue'  => $dateObj->toDateString(),
+            'place_of_issue' => 'Jakarta, Indonesia',
+            'sync_status'    => 'pending',
+        ]);
+
+        $enrollment->update(['status' => 'completed']);
+
+        // Sinkronisasi otomatis ke The Blue Economist jika konfigurasi aktif
+        try {
+            app(TheBlueEconomistService::class)->syncCertificate($certificate);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Auto-sync certificate {$certificate->id} ke TBE gagal: " . $e->getMessage());
+        }
+
+        return $certificate;
     }
 }

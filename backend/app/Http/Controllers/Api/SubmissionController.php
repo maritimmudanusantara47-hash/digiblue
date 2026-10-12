@@ -64,8 +64,26 @@ class SubmissionController extends Controller
             'mcq_answers'    => 'nullable|array',
         ]);
 
-        $content = CourseContent::findOrFail($validated['content_id']);
+        $content = CourseContent::with('section.course')->findOrFail($validated['content_id']);
         $user    = $request->user();
+
+        // Verifikasi kepemilikan kursus: User wajib terdaftar dan aktif di kursus yang memiliki konten ini
+        $courseId = $content->section->course_id ?? null;
+        if ($courseId) {
+            $isStaff = in_array($user->role ?? '', ['admin', 'assessor']) || (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'assessor']));
+            if (!$isStaff) {
+                $isEnrolled = \App\Models\Enrollment::where('user_id', $user->id)
+                    ->where('course_id', $courseId)
+                    ->whereIn('status', ['active', 'completed'])
+                    ->exists();
+
+                if (!$isEnrolled) {
+                    return response()->json([
+                        'message' => __('api.belum_terdaftar_kursus', ['default' => 'Kamu belum terdaftar atau kursus ini belum aktif pada akun kamu.']),
+                    ], 403);
+                }
+            }
+        }
 
         // Cek sudah pernah submit — untuk MCQ boleh retry jika belum lulus
         $existing = StudentSubmission::where('user_id', $user->id)
@@ -170,6 +188,14 @@ class SubmissionController extends Controller
             default       => 'Tugas berhasil dikumpulkan. Tunggu penilaian dari asesor.',
         };
 
+        // Cek apakah dengan submission ini kursus sudah 100% selesai untuk auto-issue sertifikat
+        $enrollment = \App\Models\Enrollment::where('user_id', $user->id)
+            ->where('course_id', $content->section->course_id ?? 0)
+            ->first();
+        if ($enrollment) {
+            app(\App\Services\CertificateService::class)->autoIssueCertificateIfEligible($enrollment);
+        }
+
         return response()->json([
             'message' => $message,
             'data'    => $responseData,
@@ -196,9 +222,20 @@ class SubmissionController extends Controller
         ]);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $submission = StudentSubmission::with(['user', 'content', 'gradedBy'])->findOrFail($id);
+        $user = $request->user();
+
+        $submission = StudentSubmission::with(['user', 'content', 'gradedBy'])
+            ->where('id', $id)
+            ->where(function ($q) use ($user) {
+                $isStaff = in_array($user->role ?? '', ['admin', 'assessor']) || (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'assessor']));
+                if (!$isStaff) {
+                    $q->where('user_id', $user->id);
+                }
+            })
+            ->firstOrFail();
+
         return response()->json(['data' => $submission]);
     }
 
@@ -219,6 +256,14 @@ class SubmissionController extends Controller
             'graded_at'         => now(),
             'status'            => 'graded',
         ]);
+
+        // Auto-issue sertifikat jika semua tugas peserta kini sudah dinilai dan eligible
+        $enrollment = \App\Models\Enrollment::where('user_id', $submission->user_id)
+            ->where('course_id', $submission->content->section->course_id ?? 0)
+            ->first();
+        if ($enrollment) {
+            app(\App\Services\CertificateService::class)->autoIssueCertificateIfEligible($enrollment);
+        }
 
         return response()->json([
             'message' => __('api.penilaian_berhasil_disimpan'),
