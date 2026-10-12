@@ -32,16 +32,18 @@ class EnrollmentSecurityTest extends TestCase
         Role::create(['name' => 'admin',   'guard_name' => 'web']);
 
         $this->studentA = User::create([
-            'name'     => 'Student A',
-            'email'    => 'student.a@example.com',
-            'password' => Hash::make('password'),
+            'name'              => 'Student A',
+            'email'             => 'student.a@example.com',
+            'password'          => Hash::make('password'),
+            'email_verified_at' => now(),
         ]);
         $this->studentA->assignRole('student');
 
         $this->studentB = User::create([
-            'name'     => 'Student B',
-            'email'    => 'student.b@example.com',
-            'password' => Hash::make('password'),
+            'name'              => 'Student B',
+            'email'             => 'student.b@example.com',
+            'password'          => Hash::make('password'),
+            'email_verified_at' => now(),
         ]);
         $this->studentB->assignRole('student');
 
@@ -171,5 +173,33 @@ class EnrollmentSecurityTest extends TestCase
 
         // Ditolak dengan 403 Forbidden
         $response->assertStatus(403);
+    }
+
+    public function test_unverified_student_blocked_from_course_contents(): void
+    {
+        $unverifiedStudent = User::create([
+            'name'              => 'Unverified Student',
+            'email'             => 'unverified@example.com',
+            'password'          => Hash::make('password'),
+            'email_verified_at' => null,
+        ]);
+        $unverifiedStudent->assignRole('student');
+
+        $enrollment = Enrollment::create([
+            'user_id'         => $unverifiedStudent->id,
+            'course_id'       => $this->course->id,
+            'status'          => 'active',
+            'payment_status'  => 'paid',
+            'paid_at'         => now(),
+            'enrollment_type' => 'self_paid',
+        ]);
+
+        Sanctum::actingAs($unverifiedStudent);
+
+        $response = $this->getJson("/api/v1/enrollments/{$enrollment->id}/contents");
+        $response->assertStatus(403)
+                 ->assertJson([
+                     'email_unverified' => true,
+                 ]);
     }
 }

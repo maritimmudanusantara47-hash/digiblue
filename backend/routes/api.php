@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\AdminCourseController;
 use App\Http\Controllers\Api\AdminQuizController;
 use App\Http\Controllers\Api\AdminBatchController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\EmailVerificationController;
 
 // ─── Public Routes ───────────────────────────────────────────────────────────
 Route::prefix('v1')->group(function () {
@@ -22,6 +23,9 @@ Route::prefix('v1')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login',    [AuthController::class, 'login']);
     });
+
+    // Verifikasi Email (signed URL dari email notifikasi)
+    Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify');
 
     // Public: Katalog & Verifikasi Sertifikat
     Route::get('courses',              [CourseController::class, 'index']);
@@ -38,8 +42,9 @@ Route::prefix('v1')->group(function () {
 
         // Auth
         Route::prefix('auth')->group(function () {
-            Route::post('logout', [AuthController::class, 'logout']);
-            Route::get('me',      [AuthController::class, 'me']);
+            Route::post('logout',       [AuthController::class, 'logout']);
+            Route::get('me',            [AuthController::class, 'me']);
+            Route::post('email/resend', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1');
         });
 
         // Enrollment & Kursus Peserta
@@ -89,9 +94,10 @@ Route::prefix('v1')->group(function () {
             });
 
             // User Management
-            Route::get('users',         [AdminUserController::class, 'index']);
-            Route::get('users/{id}',    [AdminUserController::class, 'show']);
-            Route::patch('users/{id}',  [AdminUserController::class, 'update']);
+            Route::get('users',              [AdminUserController::class, 'index']);
+            Route::get('users/{id}',         [AdminUserController::class, 'show']);
+            Route::patch('users/{id}',       [AdminUserController::class, 'update']);
+            Route::post('users/{id}/verify', [EmailVerificationController::class, 'adminVerify']);
 
             // Enrollment Management (Admin)
             Route::get('enrollments',                       [EnrollmentController::class, 'adminIndex']);   // List semua enrollment

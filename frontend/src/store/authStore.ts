@@ -8,6 +8,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   setAuth: (user: User, token: string) => void;
+  updateUser: (data: Partial<User>) => void;
   clearAuth: () => void;
 }
 
@@ -24,6 +25,12 @@ export const useAuthStore = create<AuthState>()(
         const primaryRole = user.roles?.[0]?.name || 'student';
         Cookies.set('user_role', primaryRole, { expires: 7, secure: isSecure, sameSite: 'Lax' });
         set({ user, token, isAuthenticated: true });
+      },
+
+      updateUser: (data) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...data } : null,
+        }));
       },
 
       clearAuth: () => {

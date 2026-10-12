@@ -36,9 +36,10 @@ class CertificateAutoIssueTest extends TestCase
         Role::create(['name' => 'student', 'guard_name' => 'web']);
 
         $this->student = User::create([
-            'name'     => 'Ahmad Ramadhan',
-            'email'    => 'ahmad@example.com',
-            'password' => Hash::make('password'),
+            'name'              => 'Ahmad Ramadhan',
+            'email'             => 'ahmad@example.com',
+            'password'          => Hash::make('password'),
+            'email_verified_at' => now(),
         ]);
         $this->student->assignRole('student');
 
@@ -335,5 +336,43 @@ class CertificateAutoIssueTest extends TestCase
             'status'            => 'graded',
             'assessor_feedback' => 'Artikulasi sangat baik dan penguasaan konsep komprehensif.',
         ]);
+    }
+
+    public function test_unverified_student_is_blocked_from_course_and_can_be_verified(): void
+    {
+        $unverifiedStudent = User::create([
+            'name'              => 'Unverified User',
+            'email'             => 'unverified@example.com',
+            'password'          => Hash::make('password'),
+            'email_verified_at' => null,
+        ]);
+        $unverifiedStudent->assignRole('student');
+
+        $enrollment = Enrollment::create([
+            'user_id'              => $unverifiedStudent->id,
+            'course_id'            => $this->enrollment->course_id,
+            'status'               => 'active',
+            'payment_status'       => 'paid',
+            'paid_at'              => now(),
+            'attended_field_trip'  => false,
+            'enrollment_type'      => 'self_paid',
+        ]);
+
+        // Student tries to access course contents -> should receive 403 Forbidden
+        Sanctum::actingAs($unverifiedStudent);
+        $res = $this->getJson("/api/v1/enrollments/{$enrollment->id}/contents");
+        $res->assertStatus(403);
+        $res->assertJsonFragment(['email_unverified' => true]);
+
+        // Resend email verification
+        $resend = $this->postJson('/api/v1/auth/email/resend');
+        $resend->assertStatus(200);
+
+        // Verification link clicked
+        $unverifiedStudent->markEmailAsVerified();
+
+        // Now student can access course contents successfully
+        $resAfter = $this->getJson("/api/v1/enrollments/{$enrollment->id}/contents");
+        $resAfter->assertStatus(200);
     }
 }

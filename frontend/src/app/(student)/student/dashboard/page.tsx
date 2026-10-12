@@ -19,16 +19,52 @@ const statusLabel: Record<string, { label: string; class: string }> = {
 
 function StudentDashboardContent() {
   const t = useTranslations('StudentDashboard');
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const payParam = searchParams.get('pay');
+  const verifiedParam = searchParams.get('verified');
 
   const [enrollments, setEnrollments]   = useState<Enrollment[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading]           = useState(true);
   const [payingId, setPayingId]         = useState<number | null>(null);
+  const [justVerified, setJustVerified] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [resendStatus, setResendStatus] = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
   const hasAutoTriggeredRef             = useRef(false);
+
+  useEffect(() => {
+    if (verifiedParam === '1') {
+      setJustVerified(true);
+      api.get('/auth/me').then((res) => {
+        if (res.data?.data) {
+          updateUser(res.data.data);
+        }
+      }).catch(() => {});
+      window.history.replaceState({}, '', '/student/dashboard');
+    }
+  }, [verifiedParam, updateUser]);
+
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+    setResendStatus(null);
+    try {
+      const res = await api.post('/auth/email/resend');
+      setResendStatus({
+        success: true,
+        message: res.data.message || 'Tautan verifikasi email baru telah berhasil dikirim.',
+        dev_url: res.data.dev_url || null,
+      });
+    } catch (err: any) {
+      setResendStatus({
+        success: false,
+        message: err?.response?.data?.message || 'Gagal mengirim email verifikasi. Silakan coba sesaat lagi.',
+      });
+    } finally {
+      setResendingEmail(false);
+    }
+  };
 
   // Pastikan skrip Midtrans Snap sudah siap
   const ensureSnapLoaded = (): Promise<void> => {
@@ -193,6 +229,85 @@ function StudentDashboardContent() {
 
   return (
     <div className="animate-fadeup">
+      {/* Just Verified Success Alert */}
+      {justVerified && (
+        <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start justify-between gap-3 text-emerald-900 animate-fadeup shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Icon name="check-circle-1" size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-emerald-950">Email Berhasil Diverifikasi!</h3>
+              <p className="text-xs text-emerald-800 mt-0.5">
+                Akun Anda telah aktif secara penuh. Anda sekarang dapat mengakses seluruh materi, silabus, dan mengumpulkan tugas.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setJustVerified(false)}
+            className="text-emerald-700 hover:text-emerald-950 p-1"
+            aria-label="Tutup"
+          >
+            <Icon name="xmark" size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Unverified Email Warning Banner */}
+      {user && !user.email_verified_at && !justVerified && (
+        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fadeup">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Icon name="envelope-1" size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm text-navy-dark">Email Anda Belum Terverifikasi</h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900 uppercase tracking-wider">Perhatian</span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Silakan verifikasi email <span className="font-semibold text-navy">{user.email}</span> untuk membuka akses silabus kursus dan pengumpulan tugas.
+              </p>
+              {resendStatus && (
+                <div className={`mt-2 p-2.5 rounded-xl text-xs ${resendStatus.success ? 'bg-emerald-100/70 text-emerald-900 border border-emerald-300' : 'bg-rose-100/70 text-rose-900 border border-rose-300'}`}>
+                  <span>{resendStatus.message}</span>
+                  {resendStatus.dev_url && (
+                    <div className="mt-2 pt-2 border-t border-emerald-200">
+                      <span className="font-semibold mr-2">Dev Helper (Belum Hosting):</span>
+                      <a
+                        href={resendStatus.dev_url}
+                        className="inline-flex items-center gap-1 font-bold text-emerald-800 underline hover:text-emerald-950"
+                      >
+                        Klik Verifikasi Langsung
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+            <button
+              onClick={handleResendVerification}
+              disabled={resendingEmail}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-60"
+            >
+              {resendingEmail ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-amber-700/30 border-t-amber-700 rounded-full animate-spin" />
+                  <span>Mengirim...</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="envelope-1" size={14} />
+                  <span>Kirim Verifikasi</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold text-navy-dark">

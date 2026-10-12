@@ -33,6 +33,13 @@ class AuthController extends Controller
 
         $user->assignRole('student');
 
+        // Kirim email notifikasi verifikasi akun otomatis
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Gagal mengirim email verifikasi ke {$user->email}: " . $e->getMessage());
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

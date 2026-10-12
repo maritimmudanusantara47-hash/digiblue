@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import MarkdownViewer from '@/components/MarkdownViewer';
 import InteractiveModuleViewer from '@/components/InteractiveModuleViewer';
 
@@ -88,11 +89,35 @@ const CONTENT_META: Record<string, { icon: string; label: string; color: string;
 export default function StudentCoursePage() {
   const params  = useParams<{ slug: string }>();
   const router  = useRouter();
+  const { user } = useAuthStore();
   const [data, setData]               = useState<PageData | null>(null);
   const [submissions, setSubmissions] = useState<Map<number, Submission>>(new Map());
   const [activeContent, setActive]    = useState<Content | null>(null);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState('');
+  const [isEmailUnverified, setIsEmailUnverified] = useState(false);
+  const [resendingEmail, setResendingEmail]       = useState(false);
+  const [resendStatus, setResendStatus]           = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
+
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+    setResendStatus(null);
+    try {
+      const res = await api.post('/auth/email/resend');
+      setResendStatus({
+        success: true,
+        message: res.data.message || 'Tautan verifikasi email baru telah berhasil dikirim.',
+        dev_url: res.data.dev_url || null,
+      });
+    } catch (err: any) {
+      setResendStatus({
+        success: false,
+        message: err?.response?.data?.message || 'Gagal mengirim email verifikasi. Silakan coba sesaat lagi.',
+      });
+    } finally {
+      setResendingEmail(false);
+    }
+  };
 
   const refreshSubmissions = useCallback(async () => {
     try {
@@ -108,6 +133,7 @@ export default function StudentCoursePage() {
   useEffect(() => {
     setLoading(true);
     setError('');
+    setIsEmailUnverified(false);
 
     // Step 1: get all enrollments to find the one matching this course slug
     api.get('/enrollments').then(async (er) => {
@@ -135,9 +161,16 @@ export default function StudentCoursePage() {
 
       await refreshSubmissions();
     }).catch((err) => {
-      setError(err?.message ?? 'Gagal memuat konten kursus.');
+      const isUnverified = err?.response?.data?.email_unverified ||
+        (err?.response?.status === 403 && (err?.response?.data?.message?.toLowerCase().includes('verifikasi email') || (user && !user.email_verified_at)));
+
+      if (isUnverified) {
+        setIsEmailUnverified(true);
+      } else {
+        setError(err?.response?.data?.message ?? err?.message ?? 'Gagal memuat konten kursus.');
+      }
     }).finally(() => setLoading(false));
-  }, [params.slug, refreshSubmissions]);
+  }, [params.slug, refreshSubmissions, user]);
 
 
   const enrollment = data?.enrollment;
@@ -169,6 +202,69 @@ export default function StudentCoursePage() {
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
       </svg>
       <span className="text-sm font-medium">Memuat materi kursus...</span>
+    </div>
+  );
+
+  if (isEmailUnverified) return (
+    <div className="flex flex-col items-center justify-center py-20 px-4 animate-fadeup">
+      <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-amber-200/90 shadow-xl shadow-amber-500/5 text-center">
+        <div className="w-16 h-16 mx-auto bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-5 border border-amber-100">
+          <Icon name="envelope-1" size={32} />
+        </div>
+        <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 mb-3">
+          Verifikasi Email Diperlukan
+        </span>
+        <h2 className="text-xl font-bold text-navy-dark mb-2">Akses Silabus Terkunci</h2>
+        <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+          Untuk mulai mengakses silabus dan seluruh materi kursus ini, Anda perlu memverifikasi alamat email akun Anda (<span className="font-semibold text-navy">{user?.email}</span>).
+        </p>
+
+        {resendStatus && (
+          <div className={`p-4 rounded-2xl text-xs mb-6 text-left leading-relaxed ${resendStatus.success ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+            <div className="font-semibold">{resendStatus.message}</div>
+            {resendStatus.dev_url && (
+              <div className="mt-3 pt-3 border-t border-emerald-200/80">
+                <p className="text-[11px] text-slate-500 mb-2">
+                  🛠️ <span className="font-bold text-navy-dark">Local Dev Helper:</span> Karena project belum di-hosting (mail log aktif), gunakan tautan cepat di bawah ini untuk aktivasi:
+                </p>
+                <a
+                  href={resendStatus.dev_url}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition shadow-sm"
+                >
+                  <span>Verifikasi Akun Sekarang (Dev Mode)</span>
+                  <Icon name="arrow-right" size={13} />
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            onClick={handleResendVerification}
+            disabled={resendingEmail}
+            className="btn btn-primary bg-navy hover:bg-navy-dark text-white text-xs py-2.5 px-5 flex items-center justify-center gap-2 rounded-xl disabled:opacity-60 shadow-md shadow-navy/10"
+          >
+            {resendingEmail ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Mengirim Email...</span>
+              </>
+            ) : (
+              <>
+                <Icon name="envelope-1" size={15} />
+                <span>Kirim Ulang Email Verifikasi</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => router.push('/student/dashboard')}
+            className="btn btn-secondary text-xs py-2.5 px-5 rounded-xl text-slate-600 hover:bg-slate-100"
+          >
+            Kembali ke Dashboard
+          </button>
+        </div>
+      </div>
     </div>
   );
 

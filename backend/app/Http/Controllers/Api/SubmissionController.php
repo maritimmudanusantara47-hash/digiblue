@@ -72,6 +72,13 @@ class SubmissionController extends Controller
         if ($courseId) {
             $isStaff = in_array($user->role ?? '', ['admin', 'assessor']) || (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['admin', 'assessor']));
             if (!$isStaff) {
+                if (!$user->hasVerifiedEmail()) {
+                    return response()->json([
+                        'message'          => 'Email Anda belum diverifikasi. Silakan lakukan verifikasi email Anda terlebih dahulu untuk mengumpulkan tugas.',
+                        'email_unverified' => true,
+                    ], 403);
+                }
+
                 $isEnrolled = \App\Models\Enrollment::where('user_id', $user->id)
                     ->where('course_id', $courseId)
                     ->whereIn('status', ['active', 'completed'])

@@ -22,6 +22,12 @@ class ContentController extends Controller
         ]);
 
         if (!method_exists($user, 'hasRole') || !$user->hasRole('admin')) {
+            if (!$user->hasVerifiedEmail()) {
+                return response()->json([
+                    'message'          => 'Email Anda belum diverifikasi. Silakan lakukan verifikasi email Anda untuk mengakses modul & materi pembelajaran.',
+                    'email_unverified' => true,
+                ], 403);
+            }
             $query->where('user_id', $user->id)
                   ->whereIn('status', ['active', 'completed']);
         }

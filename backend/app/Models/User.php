@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
@@ -20,6 +21,7 @@ class User extends Authenticatable
         'country',
         'region',
         'institution',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -38,5 +40,10 @@ class User extends Authenticatable
     public function submissions()
     {
         return $this->hasMany(StudentSubmission::class);
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new \App\Notifications\CustomVerifyEmailNotification());
     }
 }

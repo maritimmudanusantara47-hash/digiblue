@@ -31,7 +31,23 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal]     = useState(0);
   const [page, setPage]       = useState(1);
+  const [verifyingId, setVerifyingId] = useState<number | null>(null);
   const perPage = 15;
+
+  const handleManualVerify = async (userId: number) => {
+    if (!confirm('Verifikasi email user ini secara manual?')) return;
+    setVerifyingId(userId);
+    try {
+      const res = await api.post(`/admin/users/${userId}/verify`);
+      alert(res.data.message || 'User berhasil diverifikasi!');
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, email_verified_at: new Date().toISOString() } : u));
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg || 'Gagal memverifikasi user.');
+    } finally {
+      setVerifyingId(null);
+    }
+  };
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -143,9 +159,28 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {u.email_verified_at
-                        ? <span className="text-emerald-600 text-xs font-semibold"><Icon name="check" size={16} className="mr-1.5" />{t('lbl_verified')}</span>
-                        : <span className="text-amber-500 text-xs font-semibold"><Icon name="hourglass" size={16} className="mr-1.5" />{t('lbl_unverified')}</span>}
+                      {u.email_verified_at ? (
+                        <span className="inline-flex items-center text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                          <Icon name="check" size={14} className="mr-1" />
+                          {t('lbl_verified')}
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center text-amber-600 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
+                            <Icon name="hourglass" size={14} className="mr-1" />
+                            {t('lbl_unverified')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleManualVerify(u.id)}
+                            disabled={verifyingId === u.id}
+                            className="px-2 py-1 text-[11px] font-bold bg-navy text-white rounded-lg hover:bg-navy-dark transition shadow-xs disabled:opacity-50 whitespace-nowrap"
+                            title="Verifikasi email user ini langsung tanpa harus klik email"
+                          >
+                            {verifyingId === u.id ? '...' : 'Verifikasi'}
+                          </button>
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-400 text-xs">
                       {new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}

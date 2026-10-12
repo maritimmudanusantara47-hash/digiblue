@@ -217,6 +217,13 @@ class EnrollmentController extends Controller
     /** Student: Konfirmasi kehadiran Field Study (self-report) */
     public function studentConfirmFieldStudy(Request $request, int $id): JsonResponse
     {
+        if (!$request->user()->hasRole('admin') && !$request->user()->hasVerifiedEmail()) {
+            return response()->json([
+                'message'          => 'Email Anda belum diverifikasi. Silakan lakukan verifikasi email Anda terlebih dahulu.',
+                'email_unverified' => true,
+            ], 403);
+        }
+
         $enrollment = Enrollment::where('id', $id)
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
