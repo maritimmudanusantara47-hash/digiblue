@@ -426,21 +426,30 @@ export default function AdminEnrollmentsPage() {
                 <div className="flex flex-col gap-1.5">
                   <label className="form-label">Angkatan / Batch (Opsional)</label>
                   <select
+                    disabled={!addForm.course_id}
                     value={addForm.batch_id}
                     onChange={e => setAddForm(f => ({ ...f, batch_id: e.target.value }))}
-                    className="form-input text-sm"
+                    className="form-input text-sm disabled:bg-slate-50 disabled:text-slate-400"
                   >
-                    <option value="">— Belajar Mandiri / Tanpa Batch —</option>
-                    {batches
-                      .filter(b => !addForm.course_id || String(b.course_id) === String(addForm.course_id))
-                      .map(b => (
-                        <option key={b.id} value={b.id}>
-                          {b.batch_name} {b.batch_code ? `(${b.batch_code})` : ''}
-                        </option>
-                      ))}
+                    {!addForm.course_id ? (
+                      <option value="">— Pilih kursus terlebih dahulu —</option>
+                    ) : (
+                      <>
+                        <option value="">— Belajar Mandiri / Tanpa Batch —</option>
+                        {batches
+                          .filter(b => String(b.course_id) === String(addForm.course_id))
+                          .map(b => (
+                            <option key={b.id} value={b.id}>
+                              {b.batch_name} {b.batch_code ? `(${b.batch_code})` : ''}
+                            </option>
+                          ))}
+                      </>
+                    )}
                   </select>
                   <p className="text-[11px] text-slate-400">
-                    Kosongkan jika peserta mendaftar jalur mandiri on-demand.
+                    {!addForm.course_id
+                      ? 'Pilih kursus di atas terlebih dahulu untuk melihat batch yang tersedia.'
+                      : 'Pilih batch angkatan atau biarkan kosong untuk jalur mandiri.'}
                   </p>
                 </div>
 
@@ -491,7 +500,10 @@ export default function AdminEnrollmentsPage() {
                   >
                     <option value="">— Belajar Mandiri / Tanpa Batch —</option>
                     {batches
-                      .filter(b => !statusTarget.course?.id || String(b.course_id) === String(statusTarget.course.id))
+                      .filter(b => {
+                        const targetCourseId = statusTarget.course?.id;
+                        return targetCourseId ? String(b.course_id) === String(targetCourseId) : true;
+                      })
                       .map(b => (
                         <option key={b.id} value={b.id}>
                           {b.batch_name} {b.batch_code ? `(${b.batch_code})` : ''}

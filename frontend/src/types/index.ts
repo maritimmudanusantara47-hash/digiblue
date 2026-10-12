@@ -81,7 +81,9 @@ export interface CourseBatch {
 
 export interface Enrollment {
   id: number;
+  user_id?: number;
   user: User;
+  course_id?: number;
   course: Course;
   batch_id?: number | null;
   batch?: CourseBatch | null;
