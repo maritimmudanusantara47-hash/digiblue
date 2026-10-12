@@ -377,28 +377,10 @@ export default function AdminCourseContentPage() {
             <div className="flex flex-col gap-5">
               {/* Content Header */}
               <div className="card">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                      <Icon name={TYPE_META[selectedContent.content_type]?.icon ?? "flag-1"} size={16} className="mr-1.5" />{TYPE_META[selectedContent.content_type]?.label ?? selectedContent.content_type}
-                    </span>
-                    <h2 className="text-lg font-extrabold text-navy-dark mt-2">{selectedContent.title}</h2>
-                  </div>
-                  <div className="flex gap-2">
-                    {selectedContent.content_type !== 'mcq_quiz' && (
-                      <button onClick={() => setActiveTab('content')}
-                        className={`btn btn-sm ${activeTab === 'content' ? 'btn-primary' : 'btn-secondary'}`}>
-                        <Icon name="pencil-1" size={16} className="mr-1.5" />{t('btn_edit_content')}
-                      </button>
-                    )}
-                    {selectedContent.content_type === 'mcq_quiz' && (
-                      <button onClick={() => setActiveTab('quiz')}
-                        className={`btn btn-sm ${activeTab === 'quiz' ? 'btn-primary' : 'btn-secondary'}`}>
-                        <Icon name="pen-to-square" size={16} className="mr-1.5" />{t('btn_manage_quiz')}
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+                  <Icon name={TYPE_META[selectedContent.content_type]?.icon ?? "flag-1"} size={16} className="mr-1.5" />{TYPE_META[selectedContent.content_type]?.label ?? selectedContent.content_type}
+                </span>
+                <h2 className="text-lg font-extrabold text-navy-dark mt-2">{selectedContent.title}</h2>
               </div>
 
               {/* Content Tab */}
