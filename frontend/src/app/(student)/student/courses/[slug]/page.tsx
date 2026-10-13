@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import MarkdownViewer from '@/components/MarkdownViewer';
 import InteractiveModuleViewer from '@/components/InteractiveModuleViewer';
+import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
 
 const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader'), {
   ssr: false,
@@ -671,7 +672,7 @@ function PDFModule({
       onDone(newSub);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal menandai modul selesai.');
+      showError('Gagal!', msg ?? 'Gagal menandai modul selesai.');
     } finally {
       setSubmitting(false);
     }
@@ -682,16 +683,23 @@ function PDFModule({
       onUnmark();
       return;
     }
-    if (!confirm('Apakah kamu ingin membatalkan tanda selesai untuk modul ini? Bar progres belajar akan diperbarui kembali.')) {
+    const isConfirmed = await showConfirm(
+      'Batalkan Tanda Selesai?',
+      'Apakah kamu ingin membatalkan tanda selesai untuk modul ini? Bar progres belajar akan diperbarui kembali.',
+      'Ya, Batalkan',
+      true
+    );
+    if (!isConfirmed) {
       return;
     }
     setSubmitting(true);
     try {
       await api.delete(`/submissions/${submission.id}`);
+      showSuccess('Berhasil!', 'Tanda selesai berhasil dibatalkan.');
       onUnmark();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal membatalkan tanda selesai.');
+      showError('Gagal!', msg ?? 'Gagal membatalkan tanda selesai.');
     } finally {
       setSubmitting(false);
     }
@@ -901,7 +909,7 @@ function VideoEmbed({
       onDone(newSub);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal menandai video selesai.');
+      showError('Gagal!', msg ?? 'Gagal menandai video selesai.');
     } finally {
       setSubmitting(false);
     }
@@ -912,16 +920,23 @@ function VideoEmbed({
       onUnmark();
       return;
     }
-    if (!confirm('Apakah kamu ingin membatalkan tanda selesai untuk video ini? Bar progres belajar akan diperbarui kembali.')) {
+    const isConfirmed = await showConfirm(
+      'Batalkan Tanda Selesai?',
+      'Apakah kamu ingin membatalkan tanda selesai untuk video ini? Bar progres belajar akan diperbarui kembali.',
+      'Ya, Batalkan',
+      true
+    );
+    if (!isConfirmed) {
       return;
     }
     setSubmitting(true);
     try {
       await api.delete(`/submissions/${submission.id}`);
+      showSuccess('Berhasil!', 'Tanda selesai berhasil dibatalkan.');
       onUnmark();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal membatalkan tanda selesai.');
+      showError('Gagal!', msg ?? 'Gagal membatalkan tanda selesai.');
     } finally {
       setSubmitting(false);
     }
@@ -1120,8 +1135,15 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
 
   const handleSubmit = async () => {
     if (Object.keys(answers).length < questions.length) {
-      alert('Jawab semua soal terlebih dahulu.'); return;
+      showWarning('Jawaban Belum Lengkap', 'Jawab semua soal terlebih dahulu sebelum mengumpulkan kuis.');
+      return;
     }
+    const isConfirmed = await showConfirm(
+      'Kumpulkan Jawaban Kuis?',
+      'Apakah kamu yakin ingin mengumpulkan jawaban kuis ini?',
+      'Ya, Kumpulkan'
+    );
+    if (!isConfirmed) return;
     setSubmitting(true);
     try {
       const res = await api.post('/submissions', {
@@ -1143,13 +1165,14 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
         status: 'graded',
       };
       setResult({ score: sub.score, correct: sub.correct_count ?? 0, total: questions.length });
+      showSuccess('Kuis Selesai', `Jawaban berhasil dikumpulkan dengan skor: ${sub.score}`);
       onDone(newSub);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       if (msg?.includes('sudah lulus')) {
-        alert('Kamu sudah lulus kuis ini!');
+        showSuccess('Informasi Kuis', 'Kamu sudah lulus kuis ini!');
       } else {
-        alert(msg ?? 'Gagal mengumpulkan jawaban.');
+        showError('Gagal!', msg ?? 'Gagal mengumpulkan jawaban.');
       }
     } finally {
       setSubmitting(false);
@@ -1302,9 +1325,19 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!essay.trim() && !fileShareUrl.trim() && !selectedFile) {
-      alert('Mohon unggah file jawaban (PDF/DOCX), cantumkan link dokumen, atau ketikkan esai jawaban Anda.');
+      showWarning(
+        'Form Belum Lengkap',
+        'Mohon unggah file jawaban (PDF/DOCX), cantumkan link dokumen, atau ketikkan esai jawaban Anda.'
+      );
       return;
     }
+
+    const isConfirmed = await showConfirm(
+      'Kumpulkan Tugas Studi Kasus?',
+      'Apakah kamu yakin ingin mengumpulkan tugas studi kasus ini? Asesor akan meninjau jawabanmu.',
+      'Ya, Kumpulkan'
+    );
+    if (!isConfirmed) return;
 
     setSubmitting(true);
     try {
@@ -1320,6 +1353,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       });
 
       const savedSub = res.data.data;
+      showSuccess('Berhasil!', 'Tugas studi kasus berhasil dikumpulkan.');
       onDone({
         content_id: content.id,
         score: null,
@@ -1331,7 +1365,7 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal mengumpulkan tugas studi kasus.');
+      showError('Gagal!', msg ?? 'Gagal mengumpulkan tugas studi kasus.');
     } finally {
       setSubmitting(false);
     }
@@ -1697,7 +1731,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       if (!msg?.includes('sudah pernah')) {
-        alert(msg ?? 'Gagal menyimpan konfirmasi.');
+        showError('Gagal!', msg ?? 'Gagal menyimpan konfirmasi.');
       }
     } finally {
       setSaving(false);
@@ -1927,7 +1961,17 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!videoUrl.trim()) { alert('Link video wajib diisi.'); return; }
+    if (!videoUrl.trim()) {
+      showWarning('Link Kosong', 'Link video wajib diisi.');
+      return;
+    }
+    const isConfirmed = await showConfirm(
+      'Kumpulkan Rekaman Video?',
+      'Apakah kamu yakin ingin mengumpulkan rekaman video ini? Asesor akan menilai tugasmu.',
+      'Ya, Kumpulkan'
+    );
+    if (!isConfirmed) return;
+
     setSubmitting(true);
     try {
       await api.post('/submissions', {
@@ -1936,6 +1980,7 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
         video_url: videoUrl,
         essay_text: notes || null,
       });
+      showSuccess('Berhasil!', 'Rekaman video berhasil dikumpulkan.');
       onDone({
         content_id: content.id,
         score: null,
@@ -1947,7 +1992,7 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
       });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal mengumpulkan tugas.');
+      showError('Gagal!', msg ?? 'Gagal mengumpulkan tugas.');
     } finally {
       setSubmitting(false);
     }

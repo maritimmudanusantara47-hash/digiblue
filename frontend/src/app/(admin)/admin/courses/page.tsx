@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import { useTranslations, useLocale } from 'next-intl';
 import { translateText } from '@/lib/translator';
+import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
 
 interface CertLevel { id: number; code: string; name: string }
 interface Course {
@@ -211,19 +212,20 @@ export default function AdminCoursesPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) {
-      setFormError(t('msg_title_required'));
+      const msg = t('msg_title_required') || 'Nama kursus wajib diisi.';
+      showWarning('Validasi Gagal', msg);
       return;
     }
     if (!selectedCategory) {
-      setFormError(t('msg_category_required'));
+      const msg = t('msg_category_required') || 'Kategori kursus wajib dipilih.';
+      showWarning('Validasi Gagal', msg);
       return;
     }
     if (!form.certification_level_id) {
-      setFormError(
-        selectedCategory === 'INTERNATIONAL'
-          ? t('msg_cert_type_required')
-          : t('msg_level_not_found')
-      );
+      const msg = selectedCategory === 'INTERNATIONAL'
+        ? t('msg_cert_type_required')
+        : t('msg_level_not_found');
+      showWarning('Validasi Gagal', msg || 'Pilihan track atau level sertifikasi wajib dipilih.');
       return;
     }
     setSaving(true);
@@ -243,21 +245,32 @@ export default function AdminCoursesPage() {
         await api.patch(`/admin/courses/${editTarget.id}`, payload);
       }
       setModal(null);
+      showSuccess('Berhasil!', modal === 'create' ? 'Kursus baru berhasil ditambahkan.' : 'Data kursus berhasil diperbarui.');
       fetchCourses();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setFormError(msg ?? t('msg_save_fail'));
+      showError('Gagal Menyimpan', msg ?? t('msg_save_fail'));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
+  const handleDelete = async (course?: Course) => {
+    const target = course ?? deleteTarget;
+    if (!target) return;
+    const isConfirmed = await showConfirm(
+      t('title_delete') || 'Hapus Kursus?',
+      t('desc_delete', { title: target.title, count: target.enrollments_count ?? 0 }) || `Apakah Anda yakin ingin menghapus kursus "${target.title}"?`,
+      t('btn_delete') || 'Ya, Hapus',
+      true
+    );
+    if (!isConfirmed) return;
     setDeleting(true);
     try {
-      await api.delete(`/admin/courses/${deleteTarget.id}`);
+      await api.delete(`/admin/courses/${target.id}`);
       setDeleteTarget(null);
+      showSuccess('Berhasil!', 'Kursus berhasil dihapus.');
       if (courses.length === 1 && currentPage > 1) {
         setCurrentPage(p => p - 1);
       } else {
@@ -265,7 +278,7 @@ export default function AdminCoursesPage() {
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? t('msg_delete_fail'));
+      showError('Gagal!', msg ?? t('msg_delete_fail'));
     } finally {
       setDeleting(false);
     }
@@ -274,9 +287,13 @@ export default function AdminCoursesPage() {
   const toggleActive = async (course: Course) => {
     try {
       await api.patch(`/admin/courses/${course.id}`, { is_active: !course.is_active });
+      showSuccess(
+        'Berhasil!',
+        course.is_active ? 'Kursus dinonaktifkan.' : 'Kursus berhasil diaktifkan.'
+      );
       fetchCourses();
     } catch {
-      alert(t('msg_toggle_fail'));
+      showError('Gagal!', t('msg_toggle_fail'));
     }
   };
 
@@ -436,7 +453,7 @@ export default function AdminCoursesPage() {
                         <span className="text-slate-400 text-xs">{foundationCourses.length} {t('lbl_program')}</span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                        {foundationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
+                        {foundationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} t={t} />)}
                       </div>
                     </div>
                   )}
@@ -451,7 +468,7 @@ export default function AdminCoursesPage() {
                         <span className="text-slate-400 text-xs">{specializationCourses.length} {t('lbl_track')}</span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                        {specializationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
+                        {specializationCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} t={t} />)}
                       </div>
                     </div>
                   )}
@@ -459,7 +476,7 @@ export default function AdminCoursesPage() {
                   {/* Other International */}
                   {otherIntCourses.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                      {otherIntCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
+                      {otherIntCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} t={t} />)}
                     </div>
                   )}
                 </div>
@@ -476,7 +493,7 @@ export default function AdminCoursesPage() {
                   <span className="text-slate-400 text-sm font-medium">{nationalCourses.length} {t('lbl_courses')}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {nationalCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
+                  {nationalCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} t={t} />)}
                 </div>
               </section>
             )}
@@ -491,7 +508,7 @@ export default function AdminCoursesPage() {
                   <span className="text-slate-400 text-sm font-medium">{singleModuleCourses.length} {t('lbl_courses')}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {singleModuleCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
+                  {singleModuleCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} t={t} />)}
                 </div>
               </section>
             )}
@@ -506,7 +523,7 @@ export default function AdminCoursesPage() {
                   <span className="text-slate-400 text-sm">{uncategorizedCourses.length} {t('lbl_courses')}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {uncategorizedCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={setDeleteTarget} onToggle={toggleActive} t={t} />)}
+                  {uncategorizedCourses.map(c => <CourseCard key={c.id} course={c} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} t={t} />)}
                 </div>
               </section>
             )}
@@ -603,7 +620,7 @@ export default function AdminCoursesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="flex flex-col gap-4">
+            <form noValidate onSubmit={handleSave} className="flex flex-col gap-4">
               {/* Kategori Kursus */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-navy-dark">{t('lbl_category')} <span className="text-red-500">*</span></label>
@@ -827,7 +844,7 @@ export default function AdminCoursesPage() {
                 <button
                   id="confirm-delete-btn"
                   type="button"
-                  onClick={handleDelete}
+                  onClick={() => handleDelete()}
                   disabled={deleting}
                   className="flex-1 py-2 text-sm font-semibold rounded-full bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                 >

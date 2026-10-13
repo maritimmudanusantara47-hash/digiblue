@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
 import MarkdownViewer from '@/components/MarkdownViewer';
+import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
 
 const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader'), {
   ssr: false,
@@ -187,7 +188,7 @@ export default function AdminCourseContentPage() {
   const handleInsertImage = async () => {
     if (imageTab === 'upload') {
       if (!localImageFile) {
-        alert(t('err_select_image'));
+        showWarning('Pilih Gambar', t('err_select_image'));
         return;
       }
       setUploadingImage(true);
@@ -206,13 +207,13 @@ export default function AdminCourseContentPage() {
         setImageModalOpen(false);
       } catch (err: unknown) {
         const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-        alert(msg ?? t('err_upload_image'));
+        showError('Gagal Mengunggah', msg ?? t('err_upload_image'));
       } finally {
         setUploadingImage(false);
       }
     } else {
       if (!webImageUrl.trim()) {
-        alert(t('err_no_image_url'));
+        showWarning('URL Gambar Kosong', t('err_no_image_url'));
         return;
       }
       const alt = imageAltText.trim() || t('alt_module_illustration');
@@ -238,7 +239,7 @@ export default function AdminCourseContentPage() {
       insertMarkdown(target, `\n![${alt}](${fullImgUrl})\n`, '', '');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? t('err_upload_image'));
+      showError('Gagal Mengunggah', msg ?? t('err_upload_image'));
     } finally {
       e.target.value = '';
     }
@@ -256,7 +257,7 @@ export default function AdminCourseContentPage() {
       const res = await api.get(`/admin/courses/${courseId}`);
       setCourse(res.data.data);
     } catch {
-      alert(t('err_load_course'));
+      showError('Gagal Memuat Kursus', t('err_load_course'));
     } finally {
       setLoading(false);
     }
@@ -303,12 +304,12 @@ export default function AdminCourseContentPage() {
       await api.post(`/admin/contents/${selectedContent.id}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert(t('succ_upload_pdf'));
+      showSuccess('Berhasil!', t('succ_upload_pdf'));
       setUploadFile(null);
       fetchCourse();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? t('err_upload_pdf'));
+      showError('Gagal Mengunggah', msg ?? t('err_upload_pdf'));
     } finally {
       setUploading(false);
     }
@@ -341,10 +342,10 @@ export default function AdminCourseContentPage() {
       });
       setNewAdditionalTitle('');
       setShowAddAdditionalForm(false);
-      alert('Berkas lampiran berhasil diunggah.');
+      showSuccess('Berhasil!', 'Berkas lampiran berhasil diunggah.');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal mengunggah berkas.');
+      showError('Gagal Mengunggah', msg ?? 'Gagal mengunggah berkas.');
     } finally {
       setUploadingAttachmentCat(null);
     }
@@ -352,7 +353,13 @@ export default function AdminCourseContentPage() {
 
   const handleDeleteAttachment = async (attachmentId: string) => {
     if (!selectedContent) return;
-    if (!confirm('Apakah Anda yakin ingin menghapus berkas lampiran ini?')) return;
+    const confirmed = await showConfirm(
+      'Hapus Berkas?',
+      'Apakah Anda yakin ingin menghapus berkas lampiran ini?',
+      'Ya, Hapus',
+      true
+    );
+    if (!confirmed) return;
     try {
       const res = await api.delete(`/admin/contents/${selectedContent.id}/attachments/${attachmentId}`);
       const updatedContent = res.data.data;
@@ -367,17 +374,17 @@ export default function AdminCourseContentPage() {
           }))
         };
       });
-      alert('Berkas lampiran berhasil dihapus.');
+      showSuccess('Berhasil!', 'Berkas lampiran berhasil dihapus.');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal menghapus berkas.');
+      showError('Gagal Menghapus', msg ?? 'Gagal menghapus berkas.');
     }
   };
 
   const handleQuickSaveTitle = async () => {
     if (!selectedContent) return;
     if (!editTitle.trim()) {
-      alert('Judul modul tidak boleh kosong.');
+      showWarning('Perhatian', 'Judul modul tidak boleh kosong.');
       return;
     }
     setSavingTitle(true);
@@ -398,10 +405,10 @@ export default function AdminCourseContentPage() {
         };
       });
       setIsEditingTitle(false);
-      alert('Nama modul berhasil diperbarui.');
+      showSuccess('Berhasil!', 'Nama modul berhasil diperbarui.');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal memperbarui nama modul.');
+      showError('Gagal Memperbarui', msg ?? 'Gagal memperbarui nama modul.');
     } finally {
       setSavingTitle(false);
     }
@@ -410,7 +417,7 @@ export default function AdminCourseContentPage() {
   const handleSaveContent = async () => {
     if (!selectedContent) return;
     if (!editTitle.trim()) {
-      alert('Judul modul tidak boleh kosong.');
+      showWarning('Perhatian', 'Judul modul tidak boleh kosong.');
       return;
     }
     setSavingContent(true);
@@ -433,11 +440,11 @@ export default function AdminCourseContentPage() {
           }))
         };
       });
-      alert(t('succ_save_content'));
+      showSuccess('Berhasil!', t('succ_save_content'));
       fetchCourse();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? t('err_save_content'));
+      showError('Gagal Menyimpan', msg ?? t('err_save_content'));
     } finally {
       setSavingContent(false);
     }
@@ -1647,13 +1654,20 @@ function QuizManager({
               index={qi}
               onEdit={() => { setEditingQ(q); setShowAdd(false); }}
               onDelete={async () => {
-                if (!confirm(`t('confirm_delete_question') "${q.question_text.slice(0, 50)}..."?`)) return;
+                const confirmed = await showConfirm(
+                  'Hapus Pertanyaan?',
+                  `${t('confirm_delete_question')} "${q.question_text.slice(0, 50)}..."?`,
+                  'Ya, Hapus',
+                  true
+                );
+                if (!confirmed) return;
                 try {
                   await api.delete(`/admin/questions/${q.id}`);
+                  showSuccess('Berhasil!', 'Pertanyaan kuis berhasil dihapus.');
                   onRefresh();
                 } catch (err: unknown) {
                   const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-                  alert(msg ?? t('err_delete_quiz'));
+                  showError('Gagal!', msg ?? t('err_delete_quiz'));
                 }
               }}
             />
@@ -1751,10 +1765,25 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!questionText.trim()) { setError(t('err_question_empty')); return; }
-    if (options.some(o => !o.option_text.trim())) { setError(t('err_options_empty')); return; }
+    if (!questionText.trim()) {
+      const msg = t('err_question_empty');
+      setError(msg);
+      showWarning('Validasi Gagal', msg);
+      return;
+    }
+    if (options.some(o => !o.option_text.trim())) {
+      const msg = t('err_options_empty');
+      setError(msg);
+      showWarning('Validasi Gagal', msg);
+      return;
+    }
     const correctCount = options.filter(o => o.is_correct).length;
-    if (correctCount !== 1) { setError(t('err_select_one_correct')); return; }
+    if (correctCount !== 1) {
+      const msg = t('err_select_one_correct');
+      setError(msg);
+      showWarning('Validasi Gagal', msg);
+      return;
+    }
 
     setSaving(true);
     const payload = {
@@ -1778,7 +1807,7 @@ function QuestionForm({ contentId, question, onSave, onCancel }: {
   };
 
   return (
-    <form onSubmit={handleSave} className="card border-2 border-navy/20 flex flex-col gap-5">
+    <form noValidate onSubmit={handleSave} className="card border-2 border-navy/20 flex flex-col gap-5">
       <h3 className="font-bold text-navy-dark">{question ? <><Icon name="pencil-1" size={16} className="mr-1.5" />{t('title_edit_question')}</> : <><Icon name="plus" size={16} className="mr-1.5" />{t('title_add_question')}</>}</h3>
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-xl">{error}</div>}
@@ -1860,7 +1889,9 @@ function ImportQuestionsModal({
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file && !rawText.trim()) {
-      setError(t('err_no_quiz_file'));
+      const msg = t('err_no_quiz_file');
+      setError(msg);
+      showWarning('Validasi Gagal', msg);
       return;
     }
 
@@ -1880,7 +1911,7 @@ function ImportQuestionsModal({
       const res = await api.post(`/admin/contents/${contentId}/questions/import`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert(`${res.data.message ?? t('succ_import_quiz')}`);
+      showSuccess('Berhasil!', `${res.data.message ?? t('succ_import_quiz')}`);
       onSuccess();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -1921,7 +1952,7 @@ function ImportQuestionsModal({
           </div>
         )}
 
-        <form onSubmit={handleImport} className="flex flex-col gap-4">
+        <form noValidate onSubmit={handleImport} className="flex flex-col gap-4">
           {/* Format Guide */}
           <div className="bg-blue-50/80 border border-blue-200/80 rounded-2xl p-4 text-xs text-blue-900 leading-relaxed">
             <p className="font-bold flex items-center gap-1.5 mb-1.5 text-blue-800">

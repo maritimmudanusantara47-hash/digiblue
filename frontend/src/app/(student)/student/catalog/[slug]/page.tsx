@@ -9,6 +9,7 @@ import { translateText } from '@/lib/translator';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import { showWarning } from '@/lib/swal';
 import type { Course, CourseSection } from '@/types';
 
 const LEVEL_STYLE: Record<string, { badge: string; border: string; bg: string }> = {
@@ -133,7 +134,7 @@ export default function CourseSyllabusDetailPage() {
     }
 
     if (isEmailUnverified) {
-      alert('Silakan verifikasi email Anda terlebih dahulu sebelum mendaftar atau mengakses silabus kursus.');
+      showWarning('Perhatian', 'Silakan verifikasi email Anda terlebih dahulu sebelum mendaftar atau mengakses silabus kursus.');
       return;
     }
 

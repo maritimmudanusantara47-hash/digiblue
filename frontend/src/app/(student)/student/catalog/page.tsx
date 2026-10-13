@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import type { Course } from "@/types";
+import { showSuccess, showError, showWarning } from "@/lib/swal";
 
 interface EnrollmentInfo {
   id: number;
@@ -157,7 +158,7 @@ function StudentCatalogContent() {
         });
 
         if (res.data.data?.is_paid) {
-          alert(t("msg_pay_verified"));
+          showSuccess("Pembayaran Terverifikasi", t("msg_pay_verified"));
           await loadData();
           return;
         }
@@ -174,21 +175,21 @@ function StudentCatalogContent() {
                     enrollment_id: enrollmentId,
                   })
                   .catch(() => {});
-                alert(t("msg_pay_success"));
+                showSuccess("Pembayaran Berhasil!", t("msg_pay_success"));
                 loadData();
               },
               onPending: () => {
-                alert(t("msg_pay_pending"));
+                showWarning("Menunggu Pembayaran", t("msg_pay_pending"));
                 loadData();
               },
-              onError: () => alert(t("msg_pay_fail")),
+              onError: () => showError("Pembayaran Gagal", t("msg_pay_fail")),
               onClose: async () => {
                 try {
                   const v = await api.post("/payments/verify-status", {
                     enrollment_id: enrollmentId,
                   });
                   if (v.data?.data?.is_active)
-                    alert(t("msg_pay_verified"));
+                    showSuccess("Pembayaran Terverifikasi", t("msg_pay_verified"));
                 } catch {
                   /* ignore */
                 }
@@ -206,7 +207,7 @@ function StudentCatalogContent() {
                 triggerSnap();
               } else if (attempts > 12) {
                 clearInterval(interval);
-                alert(t("msg_pay_popup_fail"));
+                showError("Gagal Memuat Pembayaran", t("msg_pay_popup_fail"));
               }
             }, 200);
           }
@@ -216,7 +217,7 @@ function StudentCatalogContent() {
       } catch (err: unknown) {
         const msg = (err as { response?: { data?: { message?: string } } })
           ?.response?.data?.message;
-        alert(msg ?? t("msg_pay_error"));
+        showError("Gagal Memproses Pembayaran", msg ?? t("msg_pay_error"));
       } finally {
         setPaying(null);
       }
@@ -236,7 +237,7 @@ function StudentCatalogContent() {
       }
 
       if (isEmailUnverified) {
-        alert("Silakan verifikasi email Anda terlebih dahulu sebelum mendaftar atau mengakses materi kursus.");
+        showWarning("Verifikasi Email", "Silakan verifikasi email Anda terlebih dahulu sebelum mendaftar atau mengakses materi kursus.");
         router.push("/student/dashboard");
         return;
       }
@@ -266,12 +267,12 @@ function StudentCatalogContent() {
       } catch (err: unknown) {
         const msg = (err as { response?: { data?: { message?: string } } })
           ?.response?.data?.message;
-        alert(msg ?? t("msg_enroll_fail"));
+        showError("Pendaftaran Gagal", msg ?? t("msg_enroll_fail"));
       } finally {
         setEnrolling(null);
       }
     },
-    [isAuthenticated, router, handlePay, t],
+    [isAuthenticated, router, handlePay, t, isEmailUnverified],
   );
 
   // ── Auto-enroll & Pop-up Pembayaran Otomatis Setelah Login/Registrasi ───────
