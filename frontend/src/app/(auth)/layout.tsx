@@ -57,10 +57,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
           {/* DigiBlue Brand Crest */}
           <Link href="/" className="inline-flex items-center gap-3.5 group mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 via-sky-600 to-blue-700 p-0.5 shadow-lg shadow-sky-900/40 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full rounded-[14px] bg-[#07192C] flex items-center justify-center">
-                <Icon name="certificate-badge-1" size={24} className="text-amber-400" />
-              </div>
+            <div className="w-12 h-12 rounded-2xl bg-[#07192C] border border-sky-400/40 shadow-lg shadow-sky-900/40 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <Icon name="certificate-badge-1" size={24} className="text-amber-400" />
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-white text-lg tracking-tight leading-tight uppercase font-heading">

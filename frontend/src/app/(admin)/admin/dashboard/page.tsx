@@ -42,9 +42,9 @@ export default function AdminDashboard() {
           api.get('/admin/certificates?sync_status=failed&per_page=1'),
         ]).then(([users, enrollments, certs, failedSync]) => {
           setStats({
-            total_users:               extractTotal(users),
-            active_enrollments:        extractTotal(enrollments),
-            certificates_issued:       extractTotal(certs),
+            total_users: extractTotal(users),
+            active_enrollments: extractTotal(enrollments),
+            certificates_issued: extractTotal(certs),
             certificates_pending_sync: extractTotal(failedSync),
           });
         }).catch(err => {
@@ -55,56 +55,166 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { label: t('stat_users'),      value: stats?.total_users,               icon: 'user-multiple-4', href: '/admin/users',        color: 'from-navy to-navy-light' },
-    { label: t('stat_enroll'),    value: stats?.active_enrollments,        icon: 'book-1', href: '/admin/enrollments',  color: 'from-emerald-600 to-emerald-400' },
-    { label: t('stat_certs'),   value: stats?.certificates_issued,       icon: 'certificate-badge-1', href: '/admin/certificates', color: 'from-gold-dark to-gold' },
-    { label: t('stat_sync'),  value: stats?.certificates_pending_sync, icon: 'info', href: '/admin/certificates', color: 'from-red-600 to-red-400' },
+    {
+      label: t('stat_users'),
+      value: stats?.total_users,
+      icon: 'user-multiple-4',
+      href: '/admin/users',
+      desc: 'Pengguna terdaftar di platform',
+      colorBadge: 'bg-sky-50 text-sky-700 border-sky-100',
+      iconColor: 'text-sky-600',
+    },
+    {
+      label: t('stat_enroll'),
+      value: stats?.active_enrollments,
+      icon: 'book-1',
+      href: '/admin/enrollments',
+      desc: 'Peserta dalam kursus berjalan',
+      colorBadge: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+      iconColor: 'text-emerald-600',
+    },
+    {
+      label: t('stat_certs'),
+      value: stats?.certificates_issued,
+      icon: 'certificate-badge-1',
+      href: '/admin/certificates',
+      desc: 'Sertifikat resmi terbit & terverifikasi',
+      colorBadge: 'bg-amber-50 text-amber-700 border-amber-100',
+      iconColor: 'text-amber-600',
+    },
+    {
+      label: t('stat_sync'),
+      value: stats?.certificates_pending_sync,
+      icon: 'refresh-circle-1-clockwise',
+      href: '/admin/certificates',
+      desc: 'Menunggu sinkronisasi ulang',
+      colorBadge: 'bg-rose-50 text-rose-700 border-rose-100',
+      iconColor: 'text-rose-600',
+    },
   ];
 
-  const quickActions = [
-    { label: t('action_cert'),       href: '/admin/certificates', icon: 'certificate-badge-1', desc: t('desc_cert') },
-    { label: t('action_sync'), href: '/admin/certificates', icon: 'refresh-circle-1-clockwise', desc: t('desc_sync') },
-    { label: t('action_export'), href: '/admin/certificates', icon: 'dashboard-square-1', desc: t('desc_export') },
-  ];
 
   return (
-    <div className="animate-fadeup">
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
+    <div className="space-y-8 animate-fadeup pb-8">
+      {/* Executive Welcome Header */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-sky-800 text-xs font-semibold mb-2.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Sistem Operasional Aktif</span>
+            <span className="text-slate-300">•</span>
+            <span>The Blue Economist Global Hub</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#07192C] font-heading tracking-tight">
+            {t('title')}
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 leading-relaxed max-w-xl">
+            {t('subtitle')}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/certificates"
+            className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#07192C] hover:bg-[#0284c7] transition-all shadow-xs flex items-center gap-2 font-heading"
+          >
+            <Icon name="certificate-badge-1" size={16} className="text-amber-400" />
+            <span>Kelola Sertifikat</span>
+          </Link>
+          <Link
+            href="/verify"
+            target="_blank"
+            className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-2 font-heading"
+          >
+            <Icon name="scan" size={15} className="text-slate-500" />
+            <span>Portal Verifikasi</span>
+          </Link>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {statCards.map(s => (
-          <Link key={s.label} href={s.href}
-            className={`rounded-2xl p-5 bg-gradient-to-br ${s.color} text-white shadow-md
-                        hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer`}>
-            <div className="mb-3"><Icon name={s.icon} size={28} /></div>
-            <div className="text-3xl font-extrabold">
-              {loading ? '—' : (s.value ?? 0)}
+      {/* KPI Stats Grid: Balanced 4 Columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((s) => (
+          <Link
+            key={s.label}
+            href={s.href}
+            className="group bg-white rounded-2xl p-6 border border-slate-200/80 hover:border-sky-300/80 hover:shadow-[0_12px_30px_-10px_rgba(7,25,44,0.08)] hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center border ${s.colorBadge} transition-transform group-hover:scale-105`}>
+                  <Icon name={s.icon} size={22} className={s.iconColor} />
+                </div>
+                <span className="text-slate-300 group-hover:text-sky-600 transition-colors">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+              <div className="text-3xl sm:text-4xl font-black text-[#07192C] font-heading tracking-tight">
+                {loading ? (
+                  <span className="inline-block w-16 h-8 bg-slate-100 rounded-md animate-pulse" />
+                ) : (
+                  s.value ?? 0
+                )}
+              </div>
+              <p className="font-bold text-sm text-slate-800 mt-1">
+                {s.label}
+              </p>
             </div>
-            <div className="text-white/70 text-xs mt-1 font-medium">{s.label}</div>
+            <p className="text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100">
+              {s.desc}
+            </p>
           </Link>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="card">
-        <h2 className="text-lg font-bold text-navy-dark mb-5">{t('quick_actions')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickActions.map(action => (
-            <Link key={action.label} href={action.href}
-              className="flex flex-col gap-2 p-4 rounded-xl border border-slate-200
-                         hover:border-navy/30 hover:shadow-md transition-all duration-200 group">
-              <Icon name={action.icon} size={26} />
-              <p className="font-semibold text-sm text-navy-dark group-hover:text-navy transition-colors">
-                {action.label}
-              </p>
-              <p className="text-xs text-slate-400">{action.desc}</p>
-            </Link>
-          ))}
+      {/* Akses Cepat Pengaturan */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b border-slate-100">
+          <div>
+            <h2 className="text-lg font-bold text-[#07192C] font-heading">
+              Akses Cepat Pengaturan
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Konfigurasi langsung untuk modul pendukung yang tidak tercantum di navigasi utama
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full w-fit">
+            Template & Desain
+          </span>
         </div>
+
+        <Link
+          href="/admin/certificates/template"
+          className="p-6 rounded-2xl border border-slate-200/80 hover:border-amber-300/80 hover:bg-slate-50/50 hover:shadow-xs transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-5"
+        >
+          <div className="flex items-start sm:items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 group-hover:bg-[#07192C] text-amber-600 group-hover:text-amber-400 flex items-center justify-center shrink-0 transition-colors border border-amber-100/80">
+              <Icon name="pen-to-square" size={22} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-base text-[#07192C] group-hover:text-amber-700 transition-colors font-heading">
+                  Editor Desain Template Sertifikat
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 hidden sm:inline-block">
+                  Kustomisasi Visual
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+                Kelola tata letak grafis, tipografi nama, tanda tangan digital assessor, dan kode QR verifikasi sertifikat kelulusan.
+              </p>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#07192C] group-hover:bg-amber-500 text-white group-hover:text-slate-950 font-bold text-xs tracking-wide transition-colors shrink-0 shadow-xs">
+            <span>Buka Editor</span>
+            <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
       </div>
     </div>
   );

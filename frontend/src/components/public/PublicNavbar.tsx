@@ -119,7 +119,7 @@ export default function PublicNavbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-5 py-2 rounded-full text-xs font-bold tracking-wider uppercase border-2 border-sky-500 text-sky-600 hover:bg-sky-50 hover:border-sky-600 transition-all shadow-xs shrink-0"
+                className="px-5 py-2.5 rounded-xl text-xs font-extrabold tracking-wider uppercase border border-sky-300 bg-sky-50/80 hover:bg-sky-100 text-sky-700 transition-colors shadow-xs shrink-0"
               >
                 {t('nav_login_reg')}
               </Link>

@@ -2,7 +2,7 @@
 
 import Icon from '@/components/Icon';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import Cookies from 'js-cookie';
@@ -17,7 +17,6 @@ const assessorNav = [
 export default function AssessorLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('AssessorPortal');
   const pathname = usePathname();
-  const router = useRouter();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
 
   const handleLogout = async () => {
@@ -45,53 +44,85 @@ export default function AssessorLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="flex min-h-screen bg-slate-50">
+      {/* Redesigned Assessor Sidebar */}
       <aside className="sidebar">
-        {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/10 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center font-extrabold text-navy-dark">D</div>
-            <div>
-              <p className="text-white font-extrabold text-sm leading-none">DigiBlueCamp</p>
-              <p className="text-white/40 text-[10px] mt-0.5">Assessor Panel</p>
+        {/* Brand Crest Header */}
+        <div className="px-5 py-5 border-b border-white/10 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-[#00162d] border border-sky-400/30 flex items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <Icon name="certificate-badge-1" size={20} className="text-amber-400" />
             </div>
-          </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-extrabold text-white text-[15px] tracking-tight leading-tight uppercase font-heading">
+                DigiBlue
+              </span>
+              <span className="font-medium text-sky-300/80 text-[10px] tracking-wider uppercase leading-none mt-0.5 truncate">
+                Assessor Panel
+              </span>
+            </div>
+          </Link>
         </div>
 
-        {/* User info */}
-        <div className="px-5 py-4 border-b border-white/10 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-300 font-bold text-sm">
+        {/* Assessor Identity Card */}
+        <div className="p-3 flex-shrink-0">
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs">
               {user?.name?.[0]?.toUpperCase() ?? 'A'}
             </div>
-            <div>
-              <p className="text-white text-sm font-semibold">{user?.name ?? 'Assessor'}</p>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30 mt-0.5">
-                Assessor
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-xs font-bold truncate leading-tight">
+                {user?.name ?? 'Assessor'}
+              </p>
+              <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mt-1 bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                Penilai Resmi
               </span>
             </div>
           </div>
         </div>
 
-        {/* Nav */}
+        {/* Section Label */}
+        <div className="px-4 pt-2 pb-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+            Menu Utama
+          </span>
+        </div>
+
+        {/* Navigation Menu (Strict: No items added or removed) */}
         <nav className="sidebar-nav">
           {assessorNav.map(item => (
-            <Link key={item.href} href={item.href}
-              className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}
+            >
               <Icon name={item.icon} size={18} />
               <span>{t(item.label as any)}</span>
             </Link>
           ))}
         </nav>
 
-        <div className="px-3 pb-6 flex-shrink-0 mt-auto">
-          <button onClick={handleLogout}
-            className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
-            <span><Icon name="exit" size={18} /></span><span>{t('btn_logout')}</span>
+        {/* Bottom Actions: Public Home, Logout, and Compliance Footnote */}
+        <div className="p-3 border-t border-white/10 flex-shrink-0 mt-auto space-y-1">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+          >
+            <Icon name="home-2" size={16} className="text-slate-400" />
+            <span>Beranda Publik</span>
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
+          >
+            <Icon name="exit" size={16} />
+            <span>{t('btn_logout')}</span>
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 p-8 max-w-[calc(100vw-256px)]">
+      {/* Main Content Viewport */}
+      <main className="flex-1 min-w-0 p-6 sm:p-8 lg:p-10 max-w-[calc(100vw-256px)] xl:max-w-[calc(100vw-288px)]">
         {children}
       </main>
     </div>

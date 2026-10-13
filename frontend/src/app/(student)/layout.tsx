@@ -43,31 +43,53 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      {/* Sidebar */}
+      {/* Redesigned Student Portal Sidebar */}
       <aside className="sidebar">
-        {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/10 flex items-center gap-3 flex-shrink-0">
-          <div className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center font-extrabold text-navy-dark">D</div>
-          <div>
-            <p className="text-white font-extrabold text-sm leading-none">DigiBlueCamp</p>
-            <p className="text-white/40 text-[10px] mt-0.5">Student Portal</p>
-          </div>
-        </div>
-
-        {/* User info */}
-        <div className="px-5 py-4 border-b border-white/10 flex-shrink-0">
-          <Link href="/student/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">
-              {user?.name?.[0]?.toUpperCase() ?? 'U'}
+        {/* Brand Crest Header */}
+        <div className="px-5 py-5 border-b border-white/10 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-[#00162d] border border-sky-400/30 flex items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <Icon name="certificate-badge-1" size={20} className="text-amber-400" />
             </div>
-            <div className="min-w-0">
-              <p className="text-white text-sm font-semibold truncate">{user?.name ?? t('default_user')}</p>
-              <p className="text-white/40 text-[11px] truncate">{user?.country ?? user?.institution ?? ''}</p>
+            <div className="flex flex-col min-w-0">
+              <span className="font-extrabold text-white text-[15px] tracking-tight leading-tight uppercase font-heading">
+                DigiBlue
+              </span>
+              <span className="font-medium text-sky-300/80 text-[10px] tracking-wider uppercase leading-none mt-0.5 truncate">
+                Student Portal
+              </span>
             </div>
           </Link>
         </div>
 
-        {/* Nav */}
+        {/* Student Identity Card */}
+        <div className="p-3 flex-shrink-0">
+          <Link
+            href="/student/profile"
+            className="p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 backdrop-blur-sm flex items-center gap-3 transition-colors group block"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-700 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              {user?.name?.[0]?.toUpperCase() ?? 'U'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-xs font-bold truncate leading-tight group-hover:text-sky-300 transition-colors">
+                {user?.name ?? t('default_user')}
+              </p>
+              <span className="inline-block text-[10px] font-semibold text-slate-400 truncate mt-0.5 max-w-full">
+                {user?.country ?? user?.institution ?? 'Peserta Pelatihan'}
+              </span>
+            </div>
+          </Link>
+        </div>
+
+        {/* Section Label */}
+        <div className="px-4 pt-2 pb-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+            Menu Utama
+          </span>
+        </div>
+
+        {/* Navigation Menu (Strict: No items added or removed) */}
         <nav className="sidebar-nav">
           {navItems.map(item => (
             <Link
@@ -81,17 +103,28 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="px-3 pb-6 flex-shrink-0 mt-auto">
-          <button onClick={handleLogout}
-            className="sidebar-link w-full text-left text-red-400 hover:bg-red-500/10 hover:text-red-300">
-            <span><Icon name="exit" size={18} /></span><span>{t('btn_logout')}</span>
+        {/* Bottom Actions: Public Home, Logout, and Compliance Footnote */}
+        <div className="p-3 border-t border-white/10 flex-shrink-0 mt-auto space-y-1">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+          >
+            <Icon name="home-2" size={16} className="text-slate-400" />
+            <span>Beranda Publik</span>
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
+          >
+            <Icon name="exit" size={16} />
+            <span>{t('btn_logout')}</span>
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 min-w-0 p-8 max-w-[calc(100vw-256px)]">
+      {/* Main Content Viewport */}
+      <main className="flex-1 min-w-0 p-6 sm:p-8 lg:p-10 max-w-[calc(100vw-256px)] xl:max-w-[calc(100vw-288px)]">
         {children}
       </main>
     </div>
