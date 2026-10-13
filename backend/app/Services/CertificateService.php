@@ -131,14 +131,10 @@ class CertificateService
         foreach ($allContents as $content) {
             // Jika konten ini adalah field_study:
             if ($content->content_type === 'field_study') {
-                if ($isFieldTripAttended) {
-                    continue; // Kehadiran field study sudah terkonfirmasi
-                }
-                // Jika tidak hadir field trip, cek apakah level mewajibkan field trip
-                if ($level && $level->is_field_trip_required) {
-                    // Harus mengerjakan critical thinking sebagai gantinya
-                    continue;
-                }
+                // Kehadiran bersifat opsional.
+                // Jika hadir (attended_field_trip = true), peserta berhak atas sertifikat field study tambahan dan modul critical thinking dibebaskan.
+                // Jika tidak hadir, modul critical thinking wajib dikerjakan dan peserta tidak mendapatkan sertifikat field study.
+                continue;
             }
 
             // Jika konten ini adalah critical_thinking:

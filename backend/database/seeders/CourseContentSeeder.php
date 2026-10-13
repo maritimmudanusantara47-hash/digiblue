@@ -576,6 +576,17 @@ Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
             'is_prerequisite' => false,
             'order_index' => 4,
         ]);
+
+        // 5. Training Course (Field Study)
+        CourseContent::create([
+            'section_id' => $section->id,
+            'content_type' => 'field_study',
+            'title' => "Training Course (Field Study) — {$trackTitle}",
+            'instruction_text' => "Field Study adalah komponen praktikum lapangan terpadu program Spesialisasi DigiBlueCamp ({$trackTitle}).\n\n🎯 Fokus Praktikum Lapangan:\n🌊 Observasi dan validasi langsung implementasi peminatan {$trackTitle} di kawasan pesisir/maritim.\n🤝 Dialog interaktif dan pendalaman studi kasus bersama praktisi, industri, serta masyarakat pesisir.\n📊 Pengumpulan data primer lapangan dan verifikasi instrumen teknis peminatan.\n💡 Perumusan rekomendasi strategis & presentasi hasil observasi lapangan.\n\n📌 **Ketentuan Keikutsertaan & Sertifikat:**\n• **Jika Anda mengikuti Field Study**: Anda akan memperoleh **2 Sertifikat Resmi** (Sertifikat CBEc Specialization + Sertifikat Field Study Specialization).\n• **Jika Anda TIDAK mengikuti Field Study**: Anda hanya akan memperoleh **1 Sertifikat Resmi** (Sertifikat CBEc Specialization) dan tidak mendapatkan sertifikat Field Study Specialization.\n\nSilakan konfirmasikan keikutsertaan Anda di bawah ini.",
+            'max_score' => 0,
+            'is_prerequisite' => false,
+            'order_index' => 5,
+        ]);
     }
 
     private function getSpecializationModules(string $track): array

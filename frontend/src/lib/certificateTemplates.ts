@@ -30,8 +30,8 @@ export interface CertificateTemplate {
 
 /**
  * Returns mapped certificate template(s) for a given course.
- * - Foundation courses return both Foundation CBEc and Field Study certificates.
- * - Specialization courses return both Specialization CBEc and Field Study Specialization certificates (with optional attendance condition).
+ * - Foundation courses return ONLY the main Foundation CBEc certificate.
+ * - Specialization courses return Specialization CBEc and Field Study Specialization certificates (with optional attendance condition).
  */
 export function getCertificateTemplatesForCourse(
   course: Course | null,
@@ -79,12 +79,9 @@ export function getCertificateTemplatesForCourse(
     return [getCriticalThinkingTemplate(isEn)];
   }
 
-  // Case 2: Foundation Level (Includes main Foundation CBEc + companion Critical Thinking Certificate)
+  // Case 2: Foundation Level (Only awards Foundation CBEc Certificate)
   if (isFoundation) {
-    return [
-      getFoundationTemplate(isEn),
-      getCriticalThinkingTemplate(isEn),
-    ];
+    return [getFoundationTemplate(isEn)];
   }
 
   // Case 3: National Training Course

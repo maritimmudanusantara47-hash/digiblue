@@ -21,7 +21,7 @@ const AestheticPdfReader = dynamic(() => import('@/components/AestheticPdfReader
 });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface QuizOption  { id: number; option_text: string }
+interface QuizOption { id: number; option_text: string }
 interface QuizQuestion { id: number; question_text: string; weight_score: number; options: QuizOption[] }
 interface ContentAttachment {
   id: string;
@@ -77,28 +77,28 @@ interface Submission {
 }
 
 const CONTENT_META: Record<string, { icon: string; label: string; color: string; badge: string }> = {
-  pdf_module:       { icon: 'file-multiple', label: 'Learning Module',            color: 'blue',   badge: 'bg-blue-100 text-blue-700' },
-  video_embed:      { icon: 'camera-movie-1', label: 'Video Lecture',              color: 'purple', badge: 'bg-purple-100 text-purple-700' },
-  mcq_quiz:         { icon: 'pen-to-square', label: 'Multiple-Choice Examination', color: 'amber',  badge: 'bg-amber-100 text-amber-700' },
-  essay_task:       { icon: 'pencil-1', label: 'Case-Study Essay Submission', color: 'teal',   badge: 'bg-teal-100 text-teal-700' },
-  oral_video_task:  { icon: 'camera-movie-1', label: 'Oral Video Exam',            color: 'rose',   badge: 'bg-rose-100 text-rose-700' },
-  critical_thinking:{ icon: 'bulb-2', label: 'Critical Thinking Exam',     color: 'indigo', badge: 'bg-indigo-100 text-indigo-700' },
-  field_study:      { icon: 'water-drop-1', label: 'Training Course (Field Study)', color: 'emerald', badge: 'bg-emerald-100 text-emerald-700' },
+  pdf_module: { icon: 'file-multiple', label: 'Learning Module', color: 'blue', badge: 'bg-blue-100 text-blue-700' },
+  video_embed: { icon: 'camera-movie-1', label: 'Video Lecture', color: 'purple', badge: 'bg-purple-100 text-purple-700' },
+  mcq_quiz: { icon: 'pen-to-square', label: 'Multiple-Choice Examination', color: 'amber', badge: 'bg-amber-100 text-amber-700' },
+  essay_task: { icon: 'pencil-1', label: 'Case-Study Essay Submission', color: 'teal', badge: 'bg-teal-100 text-teal-700' },
+  oral_video_task: { icon: 'camera-movie-1', label: 'Oral Video Exam', color: 'rose', badge: 'bg-rose-100 text-rose-700' },
+  critical_thinking: { icon: 'bulb-2', label: 'Critical Thinking Exam', color: 'indigo', badge: 'bg-indigo-100 text-indigo-700' },
+  field_study: { icon: 'water-drop-1', label: 'Training Course (Field Study)', color: 'emerald', badge: 'bg-emerald-100 text-emerald-700' },
 };
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function StudentCoursePage() {
-  const params  = useParams<{ slug: string }>();
-  const router  = useRouter();
+  const params = useParams<{ slug: string }>();
+  const router = useRouter();
   const { user } = useAuthStore();
-  const [data, setData]               = useState<PageData | null>(null);
+  const [data, setData] = useState<PageData | null>(null);
   const [submissions, setSubmissions] = useState<Map<number, Submission>>(new Map());
-  const [activeContent, setActive]    = useState<Content | null>(null);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState('');
+  const [activeContent, setActive] = useState<Content | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [isEmailUnverified, setIsEmailUnverified] = useState(false);
-  const [resendingEmail, setResendingEmail]       = useState(false);
-  const [resendStatus, setResendStatus]           = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [resendStatus, setResendStatus] = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
 
   const handleResendVerification = async () => {
     setResendingEmail(true);
@@ -206,8 +206,8 @@ export default function StudentCoursePage() {
   if (loading) return (
     <div className="flex items-center justify-center py-32 text-slate-400 gap-3">
       <svg className="animate-spin h-6 w-6 text-navy" viewBox="0 0 24 24" fill="none">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
       </svg>
       <span className="text-sm font-medium">Memuat materi kursus...</span>
     </div>
@@ -349,7 +349,7 @@ export default function StudentCoursePage() {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{section.title}</p>
               </div>
               {section.contents.map(content => {
-                const sub    = submissions.get(content.id);
+                const sub = submissions.get(content.id);
                 const isFieldStudyDone = content.content_type === 'field_study' && isFieldTrip;
                 const isDone = (sub?.score !== null && sub?.score !== undefined) || isFieldStudyDone;
                 const isPending = sub && !isDone; // submitted but not graded
@@ -419,6 +419,7 @@ export default function StudentCoursePage() {
         {activeContent ? (
           <ContentViewer
             content={activeContent}
+            course={data.course}
             enrollment={enrollment}
             enrollmentId={enrollment.id}
             submission={submissions.get(activeContent.id) ?? null}
@@ -469,6 +470,7 @@ export default function StudentCoursePage() {
 // ─── Content Viewer ───────────────────────────────────────────────────────────
 function ContentViewer({
   content,
+  course,
   enrollment,
   enrollmentId,
   submission,
@@ -478,6 +480,7 @@ function ContentViewer({
   onEnrollmentUpdate,
 }: {
   content: Content;
+  course?: CourseData;
   enrollment: EnrollInfo;
   enrollmentId: number;
   submission: Submission | null;
@@ -535,7 +538,7 @@ function ContentViewer({
       {/* Content by type */}
       {!isLocked && (
         <>
-          {type === 'pdf_module'        && (
+          {type === 'pdf_module' && (
             <PDFModule
               content={content}
               enrollmentId={enrollmentId}
@@ -545,7 +548,7 @@ function ContentViewer({
               onNext={onNextContent}
             />
           )}
-          {type === 'video_embed'       && (
+          {type === 'video_embed' && (
             <VideoEmbed
               content={content}
               enrollmentId={enrollmentId}
@@ -555,17 +558,17 @@ function ContentViewer({
               onNext={onNextContent}
             />
           )}
-          {type === 'mcq_quiz'          && (
+          {type === 'mcq_quiz' && (
             <MCQQuiz content={content} enrollmentId={enrollmentId}
               submission={submission}
               onDone={sub => onSubmitDone(content.id, sub)} />
           )}
-          {type === 'essay_task'        && (
+          {type === 'essay_task' && (
             <EssayTask content={content} enrollmentId={enrollmentId}
               submission={submission}
               onDone={sub => onSubmitDone(content.id, sub)} />
           )}
-          {type === 'oral_video_task'   && (
+          {type === 'oral_video_task' && (
             <OralVideoTask content={content} enrollmentId={enrollmentId}
               submission={submission}
               onDone={sub => onSubmitDone(content.id, sub)} />
@@ -578,6 +581,7 @@ function ContentViewer({
           {type === 'field_study' && (
             <FieldStudyTask
               content={content}
+              course={course}
               enrollment={enrollment}
               enrollmentId={enrollmentId}
               submission={submission}
@@ -593,10 +597,10 @@ function ContentViewer({
 
 // ─── Graded Banner ────────────────────────────────────────────────────────────
 function GradedBanner({ submission, content }: { submission: Submission; content: Content }) {
-  const score    = submission.score ?? 0;
+  const score = submission.score ?? 0;
   const maxScore = content.max_score || 100;
-  const pct      = Math.round((score / maxScore) * 100);
-  const passed   = score >= 70;
+  const pct = Math.round((score / maxScore) * 100);
+  const passed = score >= 70;
 
   return (
     <div className={`rounded-2xl border px-5 py-4 ${passed ? 'bg-emerald-50 border-emerald-200' : 'bg-orange-50 border-orange-200'}`}>
@@ -644,7 +648,7 @@ function PDFModule({
   onNext?: () => void;
 }) {
   const [submitting, setSubmitting] = useState(false);
-  const [confirmed, setConfirmed]   = useState(true);
+  const [confirmed, setConfirmed] = useState(true);
 
   const isCompleted = submission?.score !== null && submission?.score !== undefined;
 
@@ -833,17 +837,16 @@ function PDFModule({
                 type="button"
                 onClick={handleMarkDone}
                 disabled={submitting || !confirmed}
-                className={`w-full md:w-auto px-6 py-3.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md transition-all ${
-                  confirmed && !submitting
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                }`}
+                className={`w-full md:w-auto px-6 py-3.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md transition-all ${confirmed && !submitting
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                  }`}
               >
                 {submitting ? (
                   <>
                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
                     <span>Menyimpan Progres...</span>
                   </>
@@ -879,7 +882,7 @@ function VideoEmbed({
   onNext?: () => void;
 }) {
   const [submitting, setSubmitting] = useState(false);
-  const [confirmed, setConfirmed]   = useState(true);
+  const [confirmed, setConfirmed] = useState(true);
 
   const isCompleted = submission?.score !== null && submission?.score !== undefined;
 
@@ -1052,17 +1055,16 @@ function VideoEmbed({
                 type="button"
                 onClick={handleMarkDone}
                 disabled={submitting || !confirmed}
-                className={`w-full md:w-auto px-6 py-3.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md transition-all ${
-                  confirmed && !submitting
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                }`}
+                className={`w-full md:w-auto px-6 py-3.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md transition-all ${confirmed && !submitting
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                  }`}
               >
                 {submitting ? (
                   <>
                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
                     <span>Menyimpan Progres...</span>
                   </>
@@ -1088,11 +1090,11 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
   submission: Submission | null;
   onDone: (sub: Submission) => void;
 }) {
-  const questions    = content.quiz_questions ?? [];
-  const [answers, setAnswers]       = useState<Record<number, number>>({});
+  const questions = content.quiz_questions ?? [];
+  const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult]         = useState<{ score: number; correct: number; total: number } | null>(null);
-  const [showRetry, setShowRetry]   = useState(false);
+  const [result, setResult] = useState<{ score: number; correct: number; total: number } | null>(null);
+  const [showRetry, setShowRetry] = useState(false);
 
   const alreadyPassed = submission?.score != null && submission.score >= 70;
   const alreadyFailed = submission?.score != null && submission.score < 70;
@@ -1212,7 +1214,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
             </div>
             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div className="h-full bg-navy rounded-full transition-all duration-300"
-                style={{ width: `${questions.length > 0 ? (answeredCount/questions.length)*100 : 0}%` }} />
+                style={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }} />
             </div>
             <p className="text-xs text-slate-400 mt-1.5">Nilai minimum lulus: <strong>70/100</strong></p>
           </div>
@@ -1252,7 +1254,7 @@ function MCQQuiz({ content, enrollmentId, submission, onDone }: {
             disabled={submitting || answeredCount < questions.length || questions.length === 0}
             className="btn btn-primary btn-lg w-full">
             {submitting
-              ? <><svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Mengumpulkan...</>
+              ? <><svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>Mengumpulkan...</>
               : <><Icon name="upload-1" size={16} className="mr-1.5" />Kumpulkan Jawaban</>}
           </button>
         </>
@@ -1268,18 +1270,18 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
   submission: Submission | null;
   onDone: (sub: Submission) => void;
 }) {
-  const [essay, setEssay]             = useState('');
-  const [fileShareUrl, setFileUrl]    = useState('');
+  const [essay, setEssay] = useState('');
+  const [fileShareUrl, setFileUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [submitting, setSubmitting]   = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const alreadySubmitted = submission !== null;
 
   const isCriticalThinking = content.content_type === 'critical_thinking';
   const colorClass = isCriticalThinking ? 'indigo' : 'teal';
-  const bgClass    = isCriticalThinking ? 'bg-indigo-50 border-indigo-200' : 'bg-teal-50 border-teal-200';
-  const textClass  = isCriticalThinking ? 'text-indigo-700' : 'text-teal-700';
+  const bgClass = isCriticalThinking ? 'bg-indigo-50 border-indigo-200' : 'bg-teal-50 border-teal-200';
+  const textClass = isCriticalThinking ? 'text-indigo-700' : 'text-teal-700';
 
-  const [viewingPdfUrl, setViewingPdfUrl]     = useState<string | null>(null);
+  const [viewingPdfUrl, setViewingPdfUrl] = useState<string | null>(null);
   const [viewingPdfTitle, setViewingPdfTitle] = useState('');
 
   // Show soal PDF if admin uploaded one
@@ -1691,8 +1693,9 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
 }
 
 // ─── 5. Field Study Task ──────────────────────────────────────────────────────
-function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone, onEnrollmentUpdate }: {
+function FieldStudyTask({ content, course, enrollment, enrollmentId, submission, onDone, onEnrollmentUpdate }: {
   content: Content;
+  course?: CourseData;
   enrollment: EnrollInfo;
   enrollmentId: number;
   submission: Submission | null;
@@ -1702,6 +1705,13 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
   const [saving, setSaving] = useState(false);
   const isConfirmed = enrollment.attended_field_trip;
   const hasSubmission = submission !== null;
+
+  // Cek apakah kursus adalah Foundation Level
+  const isFoundation =
+    course?.title?.toLowerCase().includes('foundation') ||
+    course?.slug?.toLowerCase().includes('foundation') ||
+    (course as any)?.certification_level?.code === 'FND';
+  const isSpecialization = !isFoundation;
 
   const handleConfirm = async (attending: boolean) => {
     setSaving(true);
@@ -1752,27 +1762,33 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             <Icon name="water-drop-1" size={48} className="text-emerald-600" />
           </div>
           <div>
-            <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
-              Kehadiran Divalidasi
-            </span>
-            <h3 className="text-xl font-extrabold text-emerald-800 mt-2">
-              Kehadiran Field Study Terkonfirmasi!
-            </h3>
-            <p className="text-emerald-700 text-sm mt-1 max-w-lg">
-              Kehadiran Field Study kamu sudah dikonfirmasi resmi oleh admin. Modul Case-Study Critical Thinking otomatis dibebaskan.
-            </p>
+            {isSpecialization && (
+              <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider block w-fit mx-auto mb-2">
+                Kehadiran Divalidasi
+              </span>
+            )}
+            <h3 className="text-xl font-extrabold text-emerald-700">Kehadiran Terkonfirmasi!</h3>
+            <p className="text-emerald-600 text-sm mt-1">Kehadiran Field Study kamu sudah dikonfirmasi oleh admin.</p>
           </div>
-
-          <div className="bg-white/80 border border-emerald-200 rounded-2xl p-4 max-w-md w-full text-left shadow-2xs space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
-              <Icon name="certificate-badge-1" size={16} className="text-emerald-600" />
-              <span>Sertifikat yang Akan Diterbitkan:</span>
+          {isFoundation && (
+            <div className="bg-emerald-100 rounded-xl px-5 py-3 text-emerald-700 text-sm">
+              <Icon name="check-circle-1" size={16} className="mr-1.5" />Modul <strong>Case-Study Essay Examination — Critical Thinking</strong> telah terkunci secara otomatis
             </div>
-            <ul className="text-xs text-emerald-800 space-y-1.5 pl-6 list-disc">
-              <li><strong>Sertifikat CBEc Specialization</strong> (Sertifikasi Kompetensi Utama)</li>
-              <li><strong>Sertifikat Field Study Specialization</strong> (Praktikum Lapangan 1.5 ECTS)</li>
-            </ul>
-          </div>
+          )}
+
+          {/* Sertifikat 2 lembar HANYA untuk Specialization Level */}
+          {isSpecialization && (
+            <div className="bg-white/80 border border-emerald-200 rounded-2xl p-4 max-w-md w-full text-left shadow-2xs space-y-2 mt-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+                <Icon name="certificate-badge-1" size={16} className="text-emerald-600" />
+                <span>Sertifikat yang Akan Diterbitkan:</span>
+              </div>
+              <ul className="text-xs text-emerald-800 space-y-1.5 pl-6 list-disc">
+                <li><strong>Sertifikat CBEc Specialization</strong> (Sertifikasi Kompetensi Utama)</li>
+                <li><strong>Sertifikat Field Study Specialization</strong> (Praktikum Lapangan 1.5 ECTS)</li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1788,47 +1804,49 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             <MarkdownViewer content={content.instruction_text} />
           </div>
         )}
-        <div className={`rounded-2xl border-2 p-6 sm:p-8 flex flex-col items-center gap-4 text-center ${attending ? 'bg-emerald-50/80 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
+        <div className={`rounded-2xl border-2 p-6 flex flex-col items-center gap-4 text-center ${attending ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
           <div className="text-5xl">
-            <Icon name={attending ? "water-drop-1" : "pen-to-square"} size={48} className={attending ? 'text-emerald-600' : 'text-slate-500'} />
+            <Icon name={attending ? (isSpecialization ? "water-drop-1" : "hand-stop") : "pen-to-square"} size={48} className={attending ? 'text-emerald-600' : 'text-slate-500'} />
           </div>
           <div>
-            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${attending ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}`}>
-              {attending ? 'Mengikuti Field Study' : 'Tidak Mengikuti Field Study'}
-            </span>
-            <h3 className={`text-lg sm:text-xl font-extrabold mt-2 ${attending ? 'text-emerald-800' : 'text-slate-800'}`}>
+            <h3 className={`text-lg font-extrabold ${attending ? 'text-emerald-700' : 'text-slate-600'}`}>
               {attending
-                ? 'Kamu memilih: Mengikuti Field Study Specialization'
+                ? (isSpecialization ? 'Kamu memilih: Mengikuti Field Study Specialization' : 'Kamu memilih: Mengikuti Field Study')
                 : 'Kamu memilih: Tidak Mengikuti Field Study'}
             </h3>
-            <p className={`text-sm mt-1 max-w-lg ${attending ? 'text-emerald-700' : 'text-slate-600'}`}>
+            <p className={`text-sm mt-1 ${attending ? 'text-emerald-600' : 'text-slate-500'}`}>
               {attending
-                ? 'Menunggu verifikasi kehadiran oleh admin di lokasi. Jika tuntas, kamu berhak atas 2 Sertifikat: CBEc Specialization + Field Study Specialization.'
-                : 'Kamu hanya mendapatkan Sertifikat CBEc Specialization (tidak mendapatkan sertifikat Field Study). Kamu wajib menyelesaikan modul Critical Thinking untuk kelulusan.'}
+                ? (isSpecialization
+                  ? 'Menunggu verifikasi kehadiran oleh admin di lokasi. Jika tuntas, kamu berhak atas 2 Sertifikat: CBEc Specialization + Field Study Specialization.'
+                  : 'Menunggu konfirmasi kehadiran dari admin.')
+                : (isSpecialization
+                  ? 'Kamu memilih untuk tidak mengikuti Field Study Specialization (hanya mendapatkan Sertifikat CBEc Specialization).'
+                  : 'Kamu perlu mengerjakan modul Critical Thinking sebagai pengganti Field Study.')}
             </p>
           </div>
 
-          {/* Reward Certificate Information */}
-          <div className="bg-white/90 border border-slate-200 rounded-xl p-3.5 max-w-md w-full text-left text-xs space-y-1.5">
-            <div className="font-bold text-slate-800 flex items-center gap-2">
-              <Icon name="shield-2-check" size={15} className={attending ? 'text-emerald-600' : 'text-navy'} />
-              <span>Status Sertifikat Kelulusan:</span>
+          {/* Rincian Sertifikat khusus Specialization */}
+          {isSpecialization && (
+            <div className="bg-white/90 border border-slate-200 rounded-xl p-3.5 max-w-md w-full text-left text-xs space-y-1.5">
+              <div className="font-bold text-slate-800 flex items-center gap-2">
+                <Icon name="shield-2-check" size={15} className={attending ? 'text-emerald-600' : 'text-navy'} />
+                <span>Status Sertifikat Kelulusan:</span>
+              </div>
+              {attending ? (
+                <p className="text-emerald-800 pl-6 leading-relaxed">
+                  🎓 <strong>2 Sertifikat:</strong> Sertifikat CBEc Specialization + Sertifikat Field Study Specialization (setelah diverifikasi admin).
+                </p>
+              ) : (
+                <p className="text-slate-600 pl-6 leading-relaxed">
+                  📄 <strong>1 Sertifikat:</strong> Hanya Sertifikat CBEc Specialization (tanpa sertifikat Field Study).
+                </p>
+              )}
             </div>
-            {attending ? (
-              <p className="text-emerald-800 pl-6 leading-relaxed">
-                🎓 <strong>2 Sertifikat:</strong> Sertifikat CBEc Specialization + Sertifikat Field Study Specialization (setelah diverifikasi admin).
-              </p>
-            ) : (
-              <p className="text-slate-600 pl-6 leading-relaxed">
-                📄 <strong>1 Sertifikat:</strong> Hanya Sertifikat CBEc Specialization (tanpa sertifikat Field Study) setelah menyelesaikan modul Critical Thinking.
-              </p>
-            )}
-          </div>
+          )}
 
           {attending && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-amber-800 text-xs sm:text-sm flex items-center gap-2">
-              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span>
-              <span>Admin akan memverifikasi kehadiran kamu pada sesi pelaksanaan lapangan</span>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-amber-700 text-sm flex items-center gap-2">
+              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span> Admin akan memverifikasi kehadiran kamu
             </div>
           )}
         </div>
@@ -1837,16 +1855,83 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
   }
 
   // Default: show confirmation form
+  // Khusus Foundation: Tampilan Form Bersih Asli
+  if (isFoundation) {
+    return (
+      <div className="flex flex-col gap-5">
+        {content.instruction_text && (
+          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 sm:p-6">
+            <MarkdownViewer content={content.instruction_text} />
+          </div>
+        )}
+
+        <div className="card flex flex-col gap-6">
+          <div className="text-center">
+            <div className="text-5xl mb-3"><Icon name="water-drop-1" size={48} /></div>
+            <h3 className="text-xl font-extrabold text-navy-dark">Apakah kamu mengikuti Field Study?</h3>
+            <p className="text-slate-500 text-sm mt-2">
+              Konfirmasi kehadiranmu. Pilihanmu akan menentukan modul apa yang perlu dikerjakan selanjutnya.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => handleConfirm(true)}
+              disabled={saving}
+              className="group flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center cursor-pointer">
+              <div className="w-14 h-14 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center text-3xl transition-colors">
+                <Icon name="hand-stop" size={16} />
+              </div>
+              <div>
+                <p className="font-bold text-emerald-700">Ya, Saya Mengikuti</p>
+                <p className="text-xs text-slate-500 mt-1">Modul Critical Thinking akan terkunci</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleConfirm(false)}
+              disabled={saving}
+              className="group flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all text-center cursor-pointer">
+              <div className="w-14 h-14 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center text-3xl transition-colors">
+                <Icon name="pen-to-square" size={16} />
+              </div>
+              <div>
+                <p className="font-bold text-slate-700">Tidak, Saya Tidak Ikut</p>
+                <p className="text-xs text-slate-500 mt-1">Kamu perlu mengerjakan modul Critical Thinking</p>
+              </div>
+            </button>
+          </div>
+
+          {saving && (
+            <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
+              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              <span>Menyimpan konfirmasi...</span>
+            </div>
+          )}
+
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700 leading-relaxed">
+            <p className="font-semibold mb-1"><Icon name="info" size={16} className="mr-1.5" />Perhatian:</p>
+            <p>Pilihanmu dapat berubah jika admin mengkonfirmasi kehadiran secara langsung. Hubungi panitia jika ada perubahan status.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Khusus Specialization: Tampilan dengan Ketentuan 2 Sertifikat
   return (
     <div className="flex flex-col gap-5">
-      {/* Instructions */}
       {content.instruction_text && (
         <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5 sm:p-6">
           <MarkdownViewer content={content.instruction_text} />
         </div>
       )}
 
-      {/* Confirmation Card */}
       <div className="card flex flex-col gap-6 p-6 sm:p-8">
         <div className="text-center max-w-xl mx-auto">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto mb-3 shadow-xs">
@@ -1859,22 +1944,22 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             Apakah kamu mengikuti Field Study?
           </h3>
           <p className="text-slate-600 text-xs sm:text-sm mt-2 leading-relaxed">
-            Konfirmasikan keikutsertaanmu. Pilihan ini menentukan jumlah sertifikat resmi yang akan kamu peroleh serta modul evaluasi yang wajib diselesaikan.
+            Konfirmasikan keikutsertaanmu. Pilihan ini menentukan jumlah sertifikat resmi yang akan kamu peroleh setelah menyelesaikan kursus ini.
           </p>
         </div>
 
         {/* Comparison Callout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-900 space-y-1">
-            <strong className="block font-bold text-emerald-800">✅ Jika Mengikuti Field Study:</strong>
+            <strong className="block font-bold text-emerald-800">Jika Mengikuti Field Study:</strong>
             <p className="text-emerald-700 leading-relaxed">
-              Mendapatkan <strong>2 Sertifikat</strong> (CBEc Specialization + Field Study Specialization). Modul Critical Thinking otomatis dibebaskan.
+              Mendapatkan <strong>2 Sertifikat</strong> (CBEc Specialization + Field Study Specialization). Kehadiran akan divalidasi oleh panitia/asesor.
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 space-y-1">
-            <strong className="block font-bold text-slate-800">ℹ️ Jika Tidak Mengikuti:</strong>
+            <strong className="block font-bold text-slate-800">Jika Tidak Mengikuti:</strong>
             <p className="text-slate-600 leading-relaxed">
-              Hanya mendapatkan <strong>1 Sertifikat</strong> (CBEc Specialization). Kamu wajib menyelesaikan modul Critical Thinking untuk kelulusan.
+              Hanya mendapatkan <strong>1 Sertifikat</strong> (CBEc Specialization) dan tidak mendapatkan sertifikat Field Study Specialization.
             </p>
           </div>
         </div>
@@ -1896,7 +1981,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             <div>
               <p className="font-extrabold text-base text-emerald-800">Ya, Saya Mengikuti</p>
               <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
-                Mendapatkan Sertifikat CBEc + Field Study Specialization (1.5 ECTS). Modul Critical Thinking dibebaskan.
+                Mendapatkan Sertifikat CBEc + Field Study Specialization (1.5 ECTS) setelah diverifikasi admin.
               </p>
             </div>
           </button>
@@ -1917,7 +2002,7 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             <div>
               <p className="font-extrabold text-base text-slate-800">Tidak, Saya Tidak Ikut</p>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Hanya mendapatkan Sertifikat CBEc Specialization. Wajib menyelesaikan modul Critical Thinking untuk lulus.
+                Hanya mendapatkan Sertifikat CBEc Specialization (tanpa sertifikat Field Study Specialization).
               </p>
             </div>
           </button>
@@ -1926,8 +2011,8 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
         {saving && (
           <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
             <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
             Menyimpan konfirmasi...
           </div>
@@ -1949,8 +2034,8 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
   submission: Submission | null;
   onDone: (sub: Submission) => void;
 }) {
-  const [videoUrl, setVideoUrl]     = useState('');
-  const [notes, setNotes]           = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const alreadySubmitted = submission !== null;
 

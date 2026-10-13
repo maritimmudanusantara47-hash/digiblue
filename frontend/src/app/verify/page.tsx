@@ -13,6 +13,7 @@ interface CertVerificationData {
   level: string;
   specialization?: string;
   serial_number: string;
+  serial_url_key?: string;
   grade?: string;
   date_of_issue: string;
   place_of_issue?: string;
@@ -82,8 +83,9 @@ export default function VerifyPortalPage() {
   };
 
   const handleCopyValidationLink = () => {
-    if (typeof window !== 'undefined' && result.data?.serial_number) {
-      navigator.clipboard.writeText(`${window.location.origin}/verify/${encodeURIComponent(result.data.serial_number)}`);
+    if (typeof window !== 'undefined' && (result.data?.serial_url_key || result.data?.serial_number)) {
+      const code = result.data.serial_url_key || encodeURIComponent(result.data.serial_number);
+      navigator.clipboard.writeText(`${window.location.origin}/verify/${code}`);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     }

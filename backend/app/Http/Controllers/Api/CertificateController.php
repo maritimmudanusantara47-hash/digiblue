@@ -193,6 +193,7 @@ class CertificateController extends Controller
                 'level'             => $cert->enrollment->course->certificationLevel->name,
                 'specialization'    => $cert->enrollment->course->title,
                 'serial_number'     => $cert->serial_number,
+                'serial_url_key'    => $cert->serial_url_key,
                 'grade'             => $cert->grade,
                 'date_of_issue'     => $cert->date_of_issue,
                 'place_of_issue'    => $cert->place_of_issue,

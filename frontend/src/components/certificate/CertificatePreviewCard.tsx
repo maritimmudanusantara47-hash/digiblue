@@ -81,11 +81,10 @@ export default function CertificatePreviewCard({
                     setSelectedTemplateIndex(idx);
                     setActiveSide('front');
                   }}
-                  className={`text-[11px] py-1.5 px-2 rounded-lg font-semibold transition-all text-center truncate cursor-pointer ${
-                    isSelected
+                  className={`text-[11px] py-1.5 px-2 rounded-lg font-semibold transition-all text-center truncate cursor-pointer ${isSelected
                       ? 'bg-navy text-white shadow-xs'
                       : 'text-slate-600 hover:text-navy hover:bg-white'
-                  }`}
+                    }`}
                   title={tpl.title}
                 >
                   <span className="truncate block">{tpl.categoryLabel}</span>
@@ -94,22 +93,24 @@ export default function CertificatePreviewCard({
             })}
           </div>
 
-          {/* Callout Kebijakan Keikutsertaan Field Study */}
-          <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-[11px] leading-relaxed text-amber-950 flex items-start gap-2.5">
-            <span className="text-amber-600 shrink-0 mt-0.5">
-              <Icon name="info-circle" size={14} />
-            </span>
-            <div>
-              <strong className="text-amber-900 block font-bold mb-0.5">
-                {isEn ? 'Field Study Participation Note:' : 'Ketentuan Keikutsertaan Field Study:'}
-              </strong>
-              <span className="text-amber-800">
-                {isEn
-                  ? 'Kursus ini memiliki section konfirmasi Field Study. Jika mengikuti, kamu mendapatkan 2 Sertifikat (CBEc Specialization + Field Study Specialization). Jika tidak mengikuti, kamu hanya mendapatkan Sertifikat CBEc Specialization.'
-                  : 'Kursus ini memiliki section konfirmasi Field Study. Jika mengikuti, peserta mendapatkan 2 Sertifikat (CBEc Specialization + Field Study Specialization). Jika tidak mengikuti, peserta hanya mendapatkan Sertifikat CBEc Specialization.'}
+          {/* Callout Kebijakan Keikutsertaan Field Study (Khusus Specialization Level) */}
+          {templates.some((tpl) => tpl.isOptionalAttendance) && (
+            <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-[11px] leading-relaxed text-amber-950 flex items-start gap-2.5">
+              <span className="text-amber-600 shrink-0 mt-0.5">
+                <Icon name="info-circle" size={14} />
               </span>
+              <div>
+                <strong className="text-amber-900 block font-bold mb-0.5">
+                  {isEn ? 'Specialization Field Study Policy:' : 'Ketentuan Field Study Specialization:'}
+                </strong>
+                <span className="text-amber-800">
+                  {isEn
+                    ? 'This specialization course includes a Field Study confirmation section. Participants who complete it receive two certificates (CBEc Specialization and Field Study Specialization), whereas those who do not receive only the CBEc Specialization certificate.'
+                    : 'Kursus Specialization ini memiliki section konfirmasi Field Study. Jika mengikuti, peserta mendapatkan 2 Sertifikat (CBEc Specialization + Field Study Specialization). Jika tidak mengikuti, peserta hanya mendapatkan Sertifikat CBEc Specialization.'}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -170,11 +171,10 @@ export default function CertificatePreviewCard({
                   e.stopPropagation();
                   setActiveSide('front');
                 }}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${
-                  activeSide === 'front'
+                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${activeSide === 'front'
                     ? 'bg-white text-navy-dark shadow-2xs'
                     : 'text-slate-500 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 {isEn ? 'Front' : 'Depan'}
               </button>
@@ -184,11 +184,10 @@ export default function CertificatePreviewCard({
                   e.stopPropagation();
                   setActiveSide('back');
                 }}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${
-                  activeSide === 'back'
+                className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer text-[11px] ${activeSide === 'back'
                     ? 'bg-white text-navy-dark shadow-2xs'
                     : 'text-slate-500 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 {isEn ? 'Back' : 'Belakang'}
               </button>

@@ -567,7 +567,7 @@ function StudentDashboardContent() {
 
                 <div className="pt-4 border-t border-white/10 flex items-center justify-between">
                   <Link
-                    href={`/verify/${cert.serial_number}`}
+                    href={`/verify/${cert.serial_url_key || cert.serial_number}`}
                     target="_blank"
                     className="text-xs font-medium text-sky-300 hover:text-white transition-colors"
                   >

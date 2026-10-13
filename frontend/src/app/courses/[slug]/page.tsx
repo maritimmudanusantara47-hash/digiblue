@@ -292,12 +292,16 @@ export default function PublicCourseDetailPage() {
                                   : isFieldStudy
                                   ? 'water-drop-1'
                                   : 'clipboard';
+                                const isSpecialization =
+                                  !course?.title?.toLowerCase().includes('foundation') &&
+                                  !course?.slug?.toLowerCase().includes('foundation') &&
+                                  (course as any)?.certification_level?.code !== 'FND';
                                 const labelText = isPdf
                                   ? 'Dokumen PDF'
                                   : isVideo
                                   ? 'Video'
                                   : isFieldStudy
-                                  ? 'Field Study (Opsi 2 Sertifikat)'
+                                  ? (isSpecialization ? 'Field Study (Opsi 2 Sertifikat)' : 'Training Course (Field Study)')
                                   : isCriticalThinking
                                   ? 'Evaluasi Critical Thinking'
                                   : item.content_type === 'mcq_quiz'
@@ -323,7 +327,9 @@ export default function PublicCourseDetailPage() {
                                         </span>
                                         {isFieldStudy && (
                                           <span className="text-[10px] text-emerald-700 block mt-0.5">
-                                            Konfirmasi Keikutsertaan: Mendapatkan Sertifikat CBEc + Field Study jika ikut
+                                            {isSpecialization
+                                              ? 'Konfirmasi Keikutsertaan: Mendapatkan 2 Sertifikat (CBEc Specialization + Field Study) jika ikut'
+                                              : 'Praktikum Lapangan Terpadu (Membebaskan modul Critical Thinking jika hadir)'}
                                           </span>
                                         )}
                                       </div>
