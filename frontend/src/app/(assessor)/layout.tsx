@@ -101,16 +101,8 @@ export default function AssessorLayout({ children }: { children: React.ReactNode
           ))}
         </nav>
 
-        {/* Bottom Actions: Public Home, Logout, and Compliance Footnote */}
+        {/* Bottom Actions: Logout */}
         <div className="p-3 border-t border-white/10 flex-shrink-0 mt-auto space-y-1">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
-          >
-            <Icon name="home-2" size={16} className="text-slate-400" />
-            <span>Beranda Publik</span>
-          </Link>
-
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
