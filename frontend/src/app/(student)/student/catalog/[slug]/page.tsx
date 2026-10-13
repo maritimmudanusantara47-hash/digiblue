@@ -11,6 +11,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { showWarning } from '@/lib/swal';
 import type { Course, CourseSection } from '@/types';
+import { CertificatePreviewSection, triggerCertificatePreview } from '@/components/certificate';
 
 const LEVEL_STYLE: Record<string, { badge: string; border: string; bg: string }> = {
   FND:  { badge: 'bg-amber-100 text-amber-800 border-amber-300', border: 'border-amber-500', bg: 'bg-amber-500' },
@@ -232,10 +233,16 @@ export default function CourseSyllabusDetailPage() {
           )}
 
           <div className="flex items-center gap-4 text-xs sm:text-sm text-white/70 pt-4 border-t border-white/10">
-            <span className="flex items-center gap-1.5">
-              <Icon name="shield-2-check" size={16} className="text-emerald-400" />
-              {t('badge_verified_cert')}
-            </span>
+            <button
+              type="button"
+              onClick={() => triggerCertificatePreview()}
+              className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer group text-left"
+              title={t('badge_verified_cert')}
+            >
+              <Icon name="shield-2-check" size={16} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="underline decoration-dotted decoration-emerald-400/60 underline-offset-2">{t('badge_verified_cert')}</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-semibold ml-0.5">{t('btn_view_cert_sample')}</span>
+            </button>
             <span className="flex items-center gap-1.5">
               <Icon name="stopwatch" size={16} className="text-gold" />
               {t('badge_flexible_learning')}
@@ -429,8 +436,8 @@ export default function CourseSyllabusDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Sticky Checkout CTA Card */}
-        <div className="sticky top-24">
+        {/* Right Column: Sticky Checkout CTA Card & Certificate Preview */}
+        <div className="sticky top-20 space-y-6">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-lg">
             <div className="pb-6 border-b border-slate-100 mb-6">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -460,11 +467,22 @@ export default function CourseSyllabusDetailPage() {
                 t('facility_4'),
                 t('facility_5'),
               ].map((b) => (
-                <div key={b} className="flex items-start gap-2.5 text-xs text-slate-600">
-                  <span className="text-emerald-500 mt-0.5 shrink-0">
-                    <Icon name="check-circle-1" size={14} />
-                  </span>
-                  <span>{b}</span>
+                <div key={b} className="flex items-start justify-between gap-2 text-xs text-slate-600">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <span className="text-emerald-500 mt-0.5 shrink-0">
+                      <Icon name="check-circle-1" size={14} />
+                    </span>
+                    <span>{b}</span>
+                  </div>
+                  {b === t('facility_3') && (
+                    <button
+                      type="button"
+                      onClick={() => triggerCertificatePreview()}
+                      className="text-[11px] font-bold text-navy hover:text-navy-light underline hover:no-underline shrink-0 cursor-pointer ml-1"
+                    >
+                      {t('btn_view_cert_sample')}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -495,6 +513,9 @@ export default function CourseSyllabusDetailPage() {
               {t('desc_payment_methods')}
             </p>
           </div>
+
+          {/* Certificate Preview Card */}
+          <CertificatePreviewSection course={course} locale={locale} />
         </div>
       </div>
     </div>

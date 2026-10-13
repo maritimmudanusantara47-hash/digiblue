@@ -406,6 +406,7 @@
     "facility_3": "Official PDF certificate with unique ID & QR Code",
     "facility_4": "Verifiable directly by employers",
     "facility_5": "24/7 online learning support",
+    "btn_view_cert_sample": "View Sample",
     "btn_enroll_now": "Enroll in This Course Now",
     "desc_payment_methods": "Secure & instant payment via QRIS, Virtual Account, GoPay & Midtrans Snap.",
     "err_not_found": "Course not found or currently inactive.",
