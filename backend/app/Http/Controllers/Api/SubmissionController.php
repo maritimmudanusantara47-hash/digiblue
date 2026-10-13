@@ -15,6 +15,9 @@ class SubmissionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = StudentSubmission::with(['user', 'content.section.course', 'gradedBy'])
+            ->whereHas('content', function ($c) {
+                $c->whereIn('content_type', ['essay_task', 'oral_video_task', 'critical_thinking', 'mcq_quiz']);
+            })
             ->orderByDesc('created_at');
 
         // Filter by graded/pending status
@@ -249,10 +252,14 @@ class SubmissionController extends Controller
     /** Assessor/Admin: Beri nilai pada esai / video */
     public function grade(Request $request, int $id): JsonResponse
     {
-        $submission = StudentSubmission::findOrFail($id);
+        $submission = StudentSubmission::with(['content.section'])->findOrFail($id);
+
+        $maxScore = ($submission->content && $submission->content->max_score > 0)
+            ? (int) $submission->content->max_score
+            : 100;
 
         $validated = $request->validate([
-            'score'             => "required|numeric|min:0|max:{$submission->content->max_score}",
+            'score'             => "required|numeric|min:0|max:{$maxScore}",
             'assessor_feedback' => 'nullable|string|max:2000',
         ]);
 
@@ -265,8 +272,9 @@ class SubmissionController extends Controller
         ]);
 
         // Auto-issue sertifikat jika semua tugas peserta kini sudah dinilai dan eligible
+        $courseId = $submission->content->section->course_id ?? 0;
         $enrollment = \App\Models\Enrollment::where('user_id', $submission->user_id)
-            ->where('course_id', $submission->content->section->course_id ?? 0)
+            ->where('course_id', $courseId)
             ->first();
         if ($enrollment) {
             app(\App\Services\CertificateService::class)->autoIssueCertificateIfEligible($enrollment);

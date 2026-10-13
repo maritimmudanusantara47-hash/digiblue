@@ -67,6 +67,13 @@ export default function AssessorDashboard() {
             <span>{t('lbl_mcq')}</span>
           </span>
         );
+      case 'critical_thinking':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
+            <Icon name="bulb-2" size={13} className="text-indigo-600" />
+            <span>Critical Thinking</span>
+          </span>
+        );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
@@ -247,7 +254,7 @@ export default function AssessorDashboard() {
               {data.recent.map((sub) => (
                 <Link
                   key={sub.id}
-                  href={`/assessor/submissions/${sub.id}`}
+                  href={`/assessor/submissions?submissionId=${sub.id}`}
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-slate-200/70 hover:border-sky-300 hover:bg-slate-50/50 hover:shadow-xs transition-all group"
                 >
                   <div className="flex items-start gap-3.5 min-w-0">
