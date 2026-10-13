@@ -79,9 +79,12 @@ export function getCertificateTemplatesForCourse(
     return [getCriticalThinkingTemplate(isEn)];
   }
 
-  // Case 2: Foundation Level (Only awards Foundation CBEc Certificate)
+  // Case 2: Foundation Level (Includes main Foundation CBEc + companion Field Study Certificate)
   if (isFoundation) {
-    return [getFoundationTemplate(isEn)];
+    return [
+      getFoundationTemplate(isEn),
+      getFieldStudyTemplate(isEn),
+    ];
   }
 
   // Case 3: National Training Course
@@ -294,12 +297,12 @@ function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean)
     backHighlights: isEn
       ? [
           'Field study specialized curriculum structure (30 Hours / 1.5 ECTS)',
-          'Specialized modules: Coastal Industry Observation, Community Dialogue & Sectoral FGD',
+          'Modules: Integrated Ocean Governance, Blue Industry & ESG, Resources Valuation, Field Study',
           'Transcript of practical competencies and evaluation breakdown',
         ]
       : [
           'Struktur kurikulum Field Study terperinci (30 Jam, 1.5 ECTS)',
-          'Materi spesialisasi: Observasi Industri Pesisir, Dialog Komunitas, Riset Sektoral, dan FGD',
+          'Modul: Integrated Ocean Governance, Blue Industry & ESG, Resources Valuation, Field Study (30 Jam)',
           'Transkrip capaian kompetensi praktis peserta terverifikasi',
         ],
     credibilityPoints: [
@@ -328,7 +331,81 @@ function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean)
   };
 }
 
-const getFieldStudyTemplate = getCriticalThinkingTemplate;
+function getFieldStudyTemplate(isEn: boolean): CertificateTemplate {
+  return {
+    id: 'field_study',
+    levelCode: 'FIELD_STUDY',
+    badgeText: isEn ? 'Field Study Program' : 'Pelatihan Lapangan (Field Study)',
+    badgeStyle: {
+      badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      border: 'border-emerald-600',
+      bg: 'bg-emerald-600',
+      text: 'text-emerald-800',
+    },
+    title: isEn ? 'Training Course (Field Study) Certificate' : 'Sertifikat Training Course (Field Study)',
+    subtitle: isEn
+      ? 'Integrated Maritime Field Study Competency (30 Hours · 1.5 ECTS)'
+      : 'Praktikum Lapangan Terpadu Konsorsium (30 Jam · 1.5 ECTS)',
+    categoryLabel: isEn ? 'Practical Field Study Credential' : 'Sertifikat Praktikum Lapangan',
+    description: isEn
+      ? 'Specialized certificate for participants of the International Blue Economist Training Course / Field Study, including 30 hours of fieldwork and 1.5 ECTS credits.'
+      : 'Sertifikat khusus bagi peserta praktikum lapangan Training Course (Field Study) dengan beban 30 jam pembelajaran terpadu setara 1.5 ECTS credit transfer.',
+    imageFront: '/images/certificates/template_field_study_front.png',
+    imageBack: '/images/certificates/template_field_study_back.png',
+    hasBack: true,
+    isOptionalAttendance: true,
+    attendanceConditionNote: isEn
+      ? 'Awarded upon participating in the Field Study program.'
+      : 'Diterbitkan khusus bagi peserta yang mengikuti kegiatan Field Study.',
+    frontHighlights: isEn
+      ? [
+          'Participant identity and training course title',
+          'Period and verified date of field study participation',
+          'Consortium issue date & official registration number (CBETC)',
+          'Consortium presidential authorization seal',
+        ]
+      : [
+          'Identitas peserta dan nama program pelatihan lapangan',
+          'Periode & tanggal pelaksanaan praktikum observasi',
+          'Nomor registrasi konsorsium resmi (format CBETC unik)',
+          'Otorisasi & stempel kepemimpinan konsorsium maritim',
+        ],
+    backHighlights: isEn
+      ? [
+          'Field study curriculum structure (30 Hours / 1.5 ECTS)',
+          'Modules: Integrated Ocean Governance, Blue Industry & ESG, Resources Valuation, Field Study',
+          'Transcript of practical competencies and evaluation breakdown',
+        ]
+      : [
+          'Struktur kurikulum Field Study terperinci (30 Jam, 1.5 ECTS)',
+          'Modul: Integrated Ocean Governance, Blue Industry & ESG, Resources Valuation, Blue Economy Field Study',
+          'Transkrip capaian kompetensi praktis peserta terverifikasi',
+        ],
+    credibilityPoints: [
+      {
+        icon: 'water-drop-1',
+        title: isEn ? '1.5 ECTS Credit Transfer' : 'Setara 1.5 ECTS Credit',
+        desc: isEn
+          ? 'Standardized 30-hour workload recognized for university credits.'
+          : 'Beban 30 jam pembelajaran praktis berstandar akademik Eropa.',
+      },
+      {
+        icon: 'shield-2-check',
+        title: isEn ? 'Verified Fieldwork' : 'Verifikasi Kehadiran Nyata',
+        desc: isEn
+          ? 'Awarded only upon completion and verification of on-site fieldwork.'
+          : 'Diterbitkan khusus bagi peserta yang tervalidasi hadir di lokasi.',
+      },
+      {
+        icon: 'file-multiple',
+        title: isEn ? 'Two-sided Transcript' : 'Transkrip 2 Halaman Lengkap',
+        desc: isEn
+          ? 'Front certificate and detailed curriculum transcript on reverse side.'
+          : 'Tampak depan sertifikat dan tampak belakang transkrip kompetensi.',
+      },
+    ],
+  };
+}
 
 function getSpecializationTemplate(courseTitle: string, isEn: boolean): CertificateTemplate {
   let cleanTitle = courseTitle;

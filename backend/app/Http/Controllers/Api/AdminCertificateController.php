@@ -154,7 +154,11 @@ class AdminCertificateController extends Controller
     {
         $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])->findOrFail($id);
 
-        if ($request->query('type') === 'critical_thinking' || $request->query('type') === 'field_study') {
+        if ($request->query('type') === 'field_study') {
+            return $this->downloadFieldStudy($cert);
+        }
+
+        if ($request->query('type') === 'critical_thinking') {
             return $this->downloadCriticalThinking($cert);
         }
 
@@ -254,10 +258,50 @@ class AdminCertificateController extends Controller
         return $pdf->download($filename);
     }
 
-    /** Download PDF Field Study (Alias ke Completion / Critical Thinking) */
+    /** Download PDF Field Study */
     public function downloadFieldStudy(Certificate $cert)
     {
-        return $this->downloadCriticalThinking($cert);
+        $layoutPath = storage_path('app/cert_layout.json');
+        $layout = file_exists($layoutPath)
+            ? json_decode(file_get_contents($layoutPath), true)
+            : $this->defaultLayout();
+
+        $frontTemplatePath = file_exists(resource_path('images/template_field_study_front.png'))
+            ? resource_path('images/template_field_study_front.png')
+            : resource_path('images/Foundation.png');
+        $frontBase64 = file_exists($frontTemplatePath)
+            ? base64_encode(file_get_contents($frontTemplatePath))
+            : null;
+
+        $backTemplatePath = file_exists(resource_path('images/template_field_study_back.png'))
+            ? resource_path('images/template_field_study_back.png')
+            : resource_path('images/Foundation (2).png');
+        $backBase64 = file_exists($backTemplatePath)
+            ? base64_encode(file_get_contents($backTemplatePath))
+            : null;
+
+        $issueCarbon = \Carbon\Carbon::parse($cert->date_of_issue);
+        $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
+        $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
+
+        $viewName = view()->exists('certificates.template_field_study')
+            ? 'certificates.template_field_study'
+            : 'certificates.template_critical_thinking';
+
+        $pdf = Pdf::loadView($viewName, [
+            'certificate' => $cert,
+            'user' => $cert->user,
+            'course' => $cert->enrollment->course,
+            'regNo' => $regNo,
+            'templateFrontBase64' => $frontBase64,
+            'templateBackBase64' => $backBase64,
+            'layout' => $layout,
+        ])->setPaper('a4', 'landscape');
+
+        $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
+        $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+
+        return $pdf->download($filename);
     }
 
     /* ──────────────────────────────────────────────
@@ -366,6 +410,20 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($ctBackPath))
             : null;
 
+        $fsFrontPath = file_exists(resource_path('images/template_field_study_front.png'))
+            ? resource_path('images/template_field_study_front.png')
+            : $ctFrontPath;
+        $fsFrontBase64 = file_exists($fsFrontPath)
+            ? base64_encode(file_get_contents($fsFrontPath))
+            : null;
+
+        $fsBackPath = file_exists(resource_path('images/template_field_study_back.png'))
+            ? resource_path('images/template_field_study_back.png')
+            : $ctBackPath;
+        $fsBackBase64 = file_exists($fsBackPath)
+            ? base64_encode(file_get_contents($fsBackPath))
+            : null;
+
         return response()->json([
             'data' => [
                 'base64' => base64_encode(file_get_contents($templatePath)),
@@ -375,8 +433,8 @@ class AdminCertificateController extends Controller
                 'back_mime_type' => 'image/png',
                 'critical_thinking_front_base64' => $ctFrontBase64,
                 'critical_thinking_back_base64' => $ctBackBase64,
-                'field_study_front_base64' => $ctFrontBase64,
-                'field_study_back_base64' => $ctBackBase64,
+                'field_study_front_base64' => $fsFrontBase64,
+                'field_study_back_base64' => $fsBackBase64,
                 'width_mm' => 297,
                 'height_mm' => 210,
             ],

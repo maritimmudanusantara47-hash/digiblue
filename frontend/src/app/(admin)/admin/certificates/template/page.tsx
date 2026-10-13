@@ -100,11 +100,11 @@ const PRESETS = {
     regNo: 'CBETC144062026',
   },
   field_study: {
-    type: 'critical_thinking',
+    type: 'field_study',
     name: 'Diana Supriati',
     serial: 'CBEC/ID/IX/20260187',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
-    level: 'Critical Thinking / Training Course',
+    level: 'Field Study / Training Course',
     grade: 'Excellent',
     date: 'June 11, 2026',
     place: 'Jakarta',
@@ -155,6 +155,7 @@ export default function CertificateTemplateAdminPage() {
   const [templateBackImg, setTemplateBackImg] = useState<string | null>(null);
   const [templateImgFsFront, setTemplateImgFsFront] = useState<string | null>(null);
   const [templateImgFsBack, setTemplateImgFsBack] = useState<string | null>(null);
+  const [templateImgCtBack, setTemplateImgCtBack] = useState<string | null>(null);
   const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
   const [selectedKey, setSelectedKey] = useState('recipient_name');
   const [editMode, setEditMode] = useState(false);
@@ -189,10 +190,10 @@ export default function CertificateTemplateAdminPage() {
         setTemplateImgFound(`data:image/png;base64,${foundation_base64}`);
       }
       if (back_base64) setTemplateBackImg(`data:${back_mime_type || 'image/png'};base64,${back_base64}`);
-      const ctFront = critical_thinking_front_base64 || field_study_front_base64;
+      const ctFront = field_study_front_base64 || critical_thinking_front_base64;
       if (ctFront) setTemplateImgFsFront(`data:image/png;base64,${ctFront}`);
-      const ctBack = critical_thinking_back_base64 || field_study_back_base64;
-      if (ctBack) setTemplateImgFsBack(`data:image/png;base64,${ctBack}`);
+      if (field_study_back_base64) setTemplateImgFsBack(`data:image/png;base64,${field_study_back_base64}`);
+      if (critical_thinking_back_base64) setTemplateImgCtBack(`data:image/png;base64,${critical_thinking_back_base64}`);
     }).catch(() => { });
   }, []);
 
@@ -350,10 +351,19 @@ export default function CertificateTemplateAdminPage() {
             </button>
             <button
               onClick={() => {
+                setSample(PRESETS.field_study);
+                setSelectedKey(activeSide === 'front' ? 'fs_recipient_name' : 'fs_back_name');
+              }}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.type === 'field_study' ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
+            >
+              Field Study
+            </button>
+            <button
+              onClick={() => {
                 setSample(PRESETS.critical_thinking);
                 setSelectedKey(activeSide === 'front' ? 'fs_recipient_name' : 'fs_back_name');
               }}
-              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${(sample.type === 'critical_thinking' || sample.type === 'field_study') ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.type === 'critical_thinking' ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
             >
               Critical Thinking
             </button>
@@ -564,10 +574,14 @@ export default function CertificateTemplateAdminPage() {
                   {/* BACK TEMPLATE */}
                   {(sample.type === 'critical_thinking' || sample.type === 'field_study') ? (
                     <>
-                      {templateImgFsBack
-                        ? <img src={templateImgFsBack} alt="Template Critical Thinking Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template critical thinking belakang...</div>
-                      }
+                      {(() => {
+                        const activeBack = sample.type === 'field_study'
+                          ? (templateImgFsBack || templateImgCtBack)
+                          : (templateImgCtBack || templateImgFsBack);
+                        return activeBack
+                          ? <img src={activeBack} alt={sample.type === 'field_study' ? 'Template Field Study Belakang' : 'Template Critical Thinking Belakang'} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                          : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>;
+                      })()}
 
                       {/* Back Name */}
                       <div

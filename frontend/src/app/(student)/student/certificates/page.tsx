@@ -30,8 +30,8 @@ export default function StudentCertificatesPage() {
       setDownloading(cert.id);
     }
     try {
-      const urlPath = (type === 'critical_thinking' || type === 'field_study')
-        ? `/certificates/${cert.id}/download?type=critical_thinking`
+      const urlPath = type
+        ? `/certificates/${cert.id}/download?type=${type}`
         : `/certificates/${cert.id}/download`;
       const res = await api.get(urlPath, {
         responseType: 'blob',
@@ -40,7 +40,11 @@ export default function StudentCertificatesPage() {
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      const prefix = (type === 'critical_thinking' || type === 'field_study') ? 'Sertifikat-Critical-Thinking' : 'Sertifikat';
+      const prefix = type === 'field_study'
+        ? 'Sertifikat-Field-Study'
+        : type === 'critical_thinking'
+        ? 'Sertifikat-Critical-Thinking'
+        : 'Sertifikat';
       link.setAttribute('download', `${prefix}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
       document.body.appendChild(link);
       link.click();
@@ -157,7 +161,17 @@ export default function StudentCertificatesPage() {
                   </button>
                 </div>
 
-                {!cert.enrollment?.attended_field_trip && (
+                {cert.enrollment?.attended_field_trip ? (
+                  <button
+                    id={`download-fs-cert-${cert.id}`}
+                    onClick={() => handleDownload(cert, 'field_study')}
+                    disabled={downloadingCt === cert.id}
+                    className="btn btn-gold w-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 py-2 shadow-xs"
+                  >
+                    <Icon name="certificate-badge-1" size={16} />
+                    {downloadingCt === cert.id ? 'Mengunduh Field Study...' : 'Unduh Sertifikat Field Study (Completion)'}
+                  </button>
+                ) : (cert.enrollment?.course?.certification_level?.code === 'FND' || cert.enrollment?.course?.title?.toLowerCase().includes('foundation')) ? (
                   <button
                     id={`download-ct-cert-${cert.id}`}
                     onClick={() => handleDownload(cert, 'critical_thinking')}
@@ -167,7 +181,7 @@ export default function StudentCertificatesPage() {
                     <Icon name="certificate-badge-1" size={16} />
                     {downloadingCt === cert.id ? 'Mengunduh Critical Thinking...' : 'Unduh Sertifikat Critical Thinking (Completion)'}
                   </button>
-                )}
+                ) : null}
               </div>
 
               {/* Sync status indicator */}

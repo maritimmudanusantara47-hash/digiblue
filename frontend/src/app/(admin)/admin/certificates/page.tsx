@@ -177,8 +177,8 @@ export default function AdminCertificatesPage() {
       setDownloading(cert.id);
     }
     try {
-      const urlPath = (type === 'critical_thinking' || type === 'field_study')
-        ? `/admin/certificates/${cert.id}/download?type=critical_thinking`
+      const urlPath = type
+        ? `/admin/certificates/${cert.id}/download?type=${type}`
         : `/admin/certificates/${cert.id}/download`;
       const res = await api.get(urlPath, {
         responseType: 'blob',
@@ -187,7 +187,11 @@ export default function AdminCertificatesPage() {
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      const prefix = (type === 'critical_thinking' || type === 'field_study') ? 'Sertifikat-Critical-Thinking' : 'Sertifikat';
+      const prefix = type === 'field_study'
+        ? 'Sertifikat-Field-Study'
+        : type === 'critical_thinking'
+        ? 'Sertifikat-Critical-Thinking'
+        : 'Sertifikat';
       link.setAttribute('download', `${prefix}-${cert.user?.name ?? 'Peserta'}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
       document.body.appendChild(link);
       link.click();
@@ -392,8 +396,17 @@ export default function AdminCertificatesPage() {
                           {downloading === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_pdf')}</>}
                         </button>
 
-                        {/* Download Critical Thinking (Certificate of Completion) */}
-                        {!cert.enrollment?.attended_field_trip && (
+                        {/* Download Field Study / Critical Thinking */}
+                        {cert.enrollment?.attended_field_trip ? (
+                          <button
+                            onClick={() => handleDownload(cert, 'field_study')}
+                            disabled={downloadingCt === cert.id}
+                            className="btn btn-gold btn-sm text-xs px-2.5 py-1"
+                            title="Unduh Sertifikat Field Study (Completion)"
+                          >
+                            {downloadingCt === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="certificate-badge-1" size={16} className="mr-1.5" />Field Study</>}
+                          </button>
+                        ) : (cert.enrollment?.course?.certification_level?.code === 'FND' || cert.enrollment?.course?.title?.toLowerCase().includes('foundation')) ? (
                           <button
                             onClick={() => handleDownload(cert, 'critical_thinking')}
                             disabled={downloadingCt === cert.id}
@@ -402,7 +415,7 @@ export default function AdminCertificatesPage() {
                           >
                             {downloadingCt === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="certificate-badge-1" size={16} className="mr-1.5" />Critical Thinking</>}
                           </button>
-                        )}
+                        ) : null}
 
                         {/* Edit Override */}
                         <button
