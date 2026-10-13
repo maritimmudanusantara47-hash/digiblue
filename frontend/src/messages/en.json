@@ -249,11 +249,27 @@
     "reg_err_pwd": "Password must be at least 8 characters",
     "reg_err_country": "Please select your country",
     "reg_err_pwd_match": "Passwords do not match",
-    "reg_failed_fallback": "Registration failed. Try again.",
     "btn_register": "Create Account",
     "btn_registering": "Registering...",
     "has_account": "Already have an account?",
-    "login_here": "Login here"
+    "login_here": "Login here",
+    "forgot_password_link": "Forgot password?",
+    "forgot_title": "Reset Your Password",
+    "forgot_desc": "Enter your registered email address to receive password recovery instructions.",
+    "forgot_btn_submit": "Send Recovery Link",
+    "forgot_btn_submitting": "Sending...",
+    "forgot_back_to_login": "Back to Sign In",
+    "forgot_success_title": "Check Your Email",
+    "forgot_success_desc": "We have sent password recovery instructions to:",
+    "forgot_resend": "Resend email",
+    "forgot_resend_wait": "Resend in",
+    "forgot_contact_support": "Need immediate help? Contact Support",
+    "forgot_open_mail": "Open Email Client",
+    "back_to_home": "Back to Home",
+    "auth_terms_notice": "By continuing, you agree to DigiBlue's Terms of Service and Privacy Policy.",
+    "pwd_strength_weak": "Weak",
+    "pwd_strength_medium": "Medium",
+    "pwd_strength_strong": "Strong"
   },
   "StudentPortal": {
     "nav_dashboard": "Dashboard",
@@ -920,7 +936,10 @@
     "quote": "Be a part of a sustainable economy for the future.",
     "stat_trained": "Trained Participants",
     "stat_programs": "Certification Programs",
-    "stat_countries": "Countries"
+    "stat_countries": "Countries",
+    "hero_title": "The Global Gateway to Accredited Blue Economy Education & Certification",
+    "hero_desc": "Join thousands of maritime professionals accelerating sustainable ocean careers worldwide.",
+    "partner_title": "The Blue Economist International Association & Maritim Muda Nusantara"
   },
   "CoursesPage": {
     "badge": "Official Certification & Training Catalog",
