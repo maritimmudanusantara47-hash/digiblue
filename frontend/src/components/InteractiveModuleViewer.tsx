@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Icon from '@/components/Icon';
 import MarkdownViewer from '@/components/MarkdownViewer';
+import { showWarning } from '@/lib/swal';
 
 interface InteractiveModuleViewerProps {
   contentId: number;
@@ -169,7 +170,7 @@ export default function InteractiveModuleViewer({
 
   const toggleSpeech = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      alert('Browser Anda belum mendukung Web Speech API (Text-to-Speech).');
+      showWarning('Fitur Tidak Didukung', 'Browser Anda belum mendukung Web Speech API (Text-to-Speech).');
       return;
     }
 

@@ -8,6 +8,7 @@ import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Course } from '@/types';
+import { showSuccess, showError, showWarning } from '@/lib/swal';
 
 const LEVEL_STYLE: Record<string, { badge: string; card: string; tag: string }> = {
   FND:  { badge: 'bg-amber-100 text-amber-800 border border-amber-300', card: 'from-amber-500 to-amber-600', tag: 'FOUNDATION LEVEL' },
@@ -96,17 +97,17 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
           // [FE] Tangani callback onSuccess
           onSuccess: async () => {
             await api.post('/payments/verify-status', { enrollment_id: enrollmentId }).catch(() => {});
-            alert('Pembayaran berhasil! Mengarahkan ke materi kursus...');
+            await showSuccess('Pembayaran Berhasil!', 'Mengarahkan ke materi kursus...');
             router.replace(`/student/courses/${courseSlug}`);
           },
           // [FE] Tangani callback onPending
-          onPending: () => {
-            alert('Menunggu pembayaran selesai. Silakan ikuti instruksi pembayaran Midtrans.');
+          onPending: async () => {
+            await showWarning('Menunggu Pembayaran', 'Silakan selesaikan instruksi pembayaran Midtrans.');
             router.replace('/student/dashboard');
           },
           // [FE] Tangani callback onError
           onError: () => {
-            alert('Pembayaran gagal atau dibatalkan.');
+            showError('Pembayaran Gagal', 'Pembayaran gagal atau dibatalkan.');
             setProcessing(false);
           },
           // Pengguna menutup popup
@@ -114,7 +115,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
             try {
               const v = await api.post('/payments/verify-status', { enrollment_id: enrollmentId });
               if (v.data?.data?.is_active) {
-                alert('Pembayaran terverifikasi lunas!');
+                await showSuccess('Pembayaran Terverifikasi', 'Pembayaran terverifikasi lunas!');
                 router.replace(`/student/courses/${courseSlug}`);
                 return;
               }
@@ -131,7 +132,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
             trigger();
           } else if (attempts > 15) {
             clearInterval(interval);
-            alert('Gagal memuat pop-up pembayaran Midtrans. Silakan klik tombol "Lanjut ke Pembayaran" untuk mencoba lagi.');
+            showError('Gagal Memuat Pembayaran', 'Gagal memuat pop-up pembayaran Midtrans. Silakan klik tombol "Lanjut ke Pembayaran" untuk mencoba lagi.');
             setProcessing(false);
           }
         }, 200);
@@ -154,7 +155,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
 
       // Jika sudah terdaftar dan benar-benar lunas terbayar sebelumnya
       if ((enrollment.status === 'active' || enrollment.status === 'completed') && enrollment.paid_at) {
-        alert('Pendaftaran berhasil! Kursus kamu sudah aktif.');
+        await showSuccess('Pendaftaran Berhasil!', 'Kursus kamu sudah aktif.');
         router.replace(`/student/courses/${course.slug}`);
         return;
       }
@@ -164,7 +165,7 @@ function CheckoutContent({ params }: { params?: Promise<{ slug: string }> }) {
       const snapToken = snapRes.data.data?.snap_token;
 
       if (snapRes.data.data?.is_paid) {
-        alert('Pembayaran terverifikasi lunas!');
+        await showSuccess('Pembayaran Terverifikasi', 'Pembayaran terverifikasi lunas!');
         router.replace(`/student/courses/${course.slug}`);
         return;
       }

@@ -8,6 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Enrollment, Certificate, Course } from '@/types';
+import { showSuccess, showError, showWarning } from '@/lib/swal';
 
 const statusLabel: Record<string, { label: string; class: string }> = {
   active:         { label: 'status_active',              class: 'badge-success' },
@@ -124,7 +125,7 @@ function StudentDashboardContent() {
       const redirectUrl = res.data.data?.redirect_url;
 
       if (res.data.data?.is_paid) {
-        alert('Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
+        showSuccess('Pembayaran Terverifikasi', 'Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
         await loadData();
         setPayingId(null);
         return;
@@ -134,24 +135,24 @@ function StudentDashboardContent() {
         window.snap.pay(snapToken, {
           onSuccess: async () => {
             await api.post('/payments/verify-status', { enrollment_id: enrollmentId }).catch(() => {});
-            alert('Pembayaran berhasil! Kursus kamu sudah aktif.');
+            showSuccess('Pembayaran Berhasil!', 'Kursus kamu sudah aktif.');
             await loadData();
             if (courseSlug) {
               router.push(`/student/courses/${courseSlug}`);
             }
           },
           onPending: async () => {
-            alert('Menunggu pembayaran selesai. Silakan selesaikan instruksi pembayaran.');
+            showWarning('Menunggu Pembayaran', 'Silakan selesaikan instruksi pembayaran.');
             await loadData();
           },
           onError: () => {
-            alert('Pembayaran gagal atau dibatalkan.');
+            showError('Pembayaran Gagal', 'Pembayaran gagal atau dibatalkan.');
           },
           onClose: async () => {
             try {
               const v = await api.post('/payments/verify-status', { enrollment_id: enrollmentId });
               if (v.data?.data?.is_active) {
-                alert('Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
+                showSuccess('Pembayaran Terverifikasi', 'Pembayaran terverifikasi lunas! Kursus kamu sudah aktif.');
               }
             } catch { /* ignore */ }
             await loadData();
@@ -161,11 +162,11 @@ function StudentDashboardContent() {
       } else if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        alert('Gagal memuat pop-up pembayaran Midtrans. Silakan coba klik tombol "Bayar Sekarang".');
+        showError('Gagal Memuat Pembayaran', 'Gagal memuat pop-up pembayaran Midtrans. Silakan coba klik tombol "Bayar Sekarang".');
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal memproses pembayaran Midtrans.');
+      showError('Gagal Memproses Pembayaran', msg ?? 'Gagal memproses pembayaran Midtrans.');
     } finally {
       setPayingId(null);
     }
@@ -203,7 +204,7 @@ function StudentDashboardContent() {
           if (targetEnroll.status === 'payment_pending') {
             handlePay(targetEnroll.id, targetEnroll.course?.slug ?? payParam);
           } else if (targetEnroll.status === 'active') {
-            alert('Kursus pilihanmu sudah aktif di dashboard kamu.');
+            showSuccess('Kursus Aktif', 'Kursus pilihanmu sudah aktif di dashboard kamu.');
           }
         }
         return;

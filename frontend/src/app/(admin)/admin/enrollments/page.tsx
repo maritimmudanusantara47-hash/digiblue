@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useTranslations, useLocale } from 'next-intl';
+import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
 
 interface User { id: number; name: string; email: string; institution?: string }
 interface Course { id: number; title: string; certification_level: { code: string; name: string } }
@@ -134,7 +135,10 @@ export default function AdminEnrollmentsPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addForm.user_id || !addForm.course_id) { setAddError('User dan kursus wajib dipilih.'); return; }
+    if (!addForm.user_id || !addForm.course_id) {
+      showWarning('Validasi Gagal', 'Peserta dan kursus wajib dipilih.');
+      return;
+    }
     setAdding(true);
     setAddError('');
     try {
@@ -146,10 +150,12 @@ export default function AdminEnrollmentsPage() {
         status: addForm.status,
       });
       setShowAdd(false);
+      showSuccess('Berhasil!', 'Enrollment baru berhasil ditambahkan.');
       fetchEnrollments();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setAddError(msg ?? 'Gagal membuat enrollment.');
+      showError('Gagal!', msg ?? 'Gagal membuat enrollment.');
     } finally {
       setAdding(false);
     }
@@ -164,6 +170,14 @@ export default function AdminEnrollmentsPage() {
 
   const handleStatusUpdate = async () => {
     if (!statusTarget) return;
+    if (newStatus === 'completed' && statusTarget.status !== 'completed') {
+      const isConfirmed = await showConfirm(
+        'Konfirmasi Kelulusan',
+        `Apakah Anda yakin ingin menetapkan status kelulusan untuk peserta ${statusTarget.user?.name}?`,
+        'Ya, Luluskan'
+      );
+      if (!isConfirmed) return;
+    }
     setUpdatingStatus(true);
     try {
       await api.patch(`/admin/enrollments/${statusTarget.id}/status`, {
@@ -172,22 +186,30 @@ export default function AdminEnrollmentsPage() {
         batch_id: newBatchId ? Number(newBatchId) : null,
       });
       setStatusTarget(null);
+      showSuccess('Berhasil!', 'Status enrollment berhasil diperbarui.');
       fetchEnrollments();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal mengubah status.');
+      showError('Gagal!', msg ?? 'Gagal mengubah status.');
     } finally {
       setUpdatingStatus(false);
     }
   };
 
   const handleToggleFieldTrip = async (id: number) => {
+    const isConfirmed = await showConfirm(
+      'Ubah Status Field Study?',
+      'Apakah Anda yakin ingin mengubah status kehadiran field study untuk peserta ini?',
+      'Ya, Lanjutkan'
+    );
+    if (!isConfirmed) return;
     setTogglingId(id);
     try {
       await api.patch(`/admin/enrollments/${id}/field-trip`, {});
+      showSuccess('Berhasil!', 'Status field study berhasil diperbarui.');
       fetchEnrollments();
     } catch {
-      alert('Gagal mengubah status field trip.');
+      showError('Gagal!', 'Gagal mengubah status field trip.');
     } finally {
       setTogglingId(null);
     }
@@ -199,10 +221,11 @@ export default function AdminEnrollmentsPage() {
     try {
       await api.delete(`/admin/enrollments/${deleteTarget.id}`);
       setDeleteTarget(null);
+      showSuccess('Berhasil!', 'Enrollment berhasil dihapus.');
       fetchEnrollments();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal menghapus enrollment.');
+      showError('Gagal!', msg ?? 'Gagal menghapus enrollment.');
     } finally {
       setDeleting(false);
     }

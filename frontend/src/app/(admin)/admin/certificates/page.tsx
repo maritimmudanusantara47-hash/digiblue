@@ -7,6 +7,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import type { Certificate } from '@/types';
 import { useTranslations } from 'next-intl';
+import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
 
 interface EnrollmentOption {
   id: number;
@@ -103,9 +104,16 @@ export default function AdminCertificatesPage() {
   const handleIssueSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!issueForm.enrollment_id) {
-      setIssueError(t('msg_enrollment_required'));
+      const msg = t('msg_enrollment_required') || 'Peserta enrollment wajib dipilih.';
+      showWarning('Validasi Gagal', msg);
       return;
     }
+    const isConfirmed = await showConfirm(
+      'Terbitkan Sertifikat?',
+      'Apakah Anda yakin ingin menerbitkan sertifikat secara manual untuk peserta ini?',
+      'Ya, Terbitkan'
+    );
+    if (!isConfirmed) return;
     setIssuing(true);
     setIssueError('');
     try {
@@ -121,10 +129,12 @@ export default function AdminCertificatesPage() {
 
       await api.post('/admin/certificates', payload);
       setShowIssue(false);
+      showSuccess('Berhasil!', 'Sertifikat manual berhasil diterbitkan.');
       fetchData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setIssueError(msg ?? t('msg_issue_fail'));
+      showError('Gagal!', msg ?? t('msg_issue_fail'));
     } finally {
       setIssuing(false);
     }
@@ -149,10 +159,12 @@ export default function AdminCertificatesPage() {
     try {
       await api.patch(`/admin/certificates/${editingCert.id}`, editForm);
       setEditingCert(null);
+      showSuccess('Berhasil!', 'Data sertifikat berhasil diperbarui.');
       fetchData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setEditError(msg ?? t('msg_edit_fail'));
+      showError('Gagal!', msg ?? t('msg_edit_fail'));
     } finally {
       setSavingEdit(false);
     }
@@ -184,7 +196,7 @@ export default function AdminCertificatesPage() {
         URL.revokeObjectURL(url);
       }, 1000);
     } catch {
-      alert(t('msg_download_fail'));
+      showError('Gagal Mengunduh', t('msg_download_fail'));
     } finally {
       if (type === 'field_study') {
         setDownloadingFs(null);
@@ -198,22 +210,29 @@ export default function AdminCertificatesPage() {
     setSyncing(id);
     try {
       await api.post(`/admin/certificates/${id}/sync`);
+      showSuccess('Berhasil!', 'Status sertifikat berhasil disinkronkan.');
       fetchData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? t('msg_sync_fail'));
+      showError('Gagal!', msg ?? t('msg_sync_fail'));
     } finally {
       setSyncing(null);
     }
   };
 
   const handleResyncAll = async () => {
-    if (!confirm(t('msg_resync_confirm'))) return;
+    const isConfirmed = await showConfirm(
+      'Sinkronkan Semua?',
+      t('msg_resync_confirm') || 'Sinkronkan ulang semua sertifikat yang gagal?',
+      'Ya, Sinkronkan'
+    );
+    if (!isConfirmed) return;
     try {
       await api.post('/admin/certificates/resync-failed');
+      showSuccess('Berhasil!', 'Sinkronisasi ulang berhasil dimulai.');
       fetchData();
     } catch {
-      alert(t('msg_resync_fail'));
+      showError('Gagal!', t('msg_resync_fail'));
     }
   };
 
@@ -228,7 +247,7 @@ export default function AdminCertificatesPage() {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch {
-      alert(t('msg_export_fail'));
+      showError('Gagal Export', t('msg_export_fail'));
     } finally {
       setExporting(false);
     }

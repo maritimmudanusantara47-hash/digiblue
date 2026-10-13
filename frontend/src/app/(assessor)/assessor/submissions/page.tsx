@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useTranslations } from 'next-intl';
+import { showSuccess, showError } from '@/lib/swal';
 
 interface Submission {
   id: number;
@@ -78,10 +79,11 @@ export default function AssessorSubmissionsPage() {
       setGrading(null);
       setScore('');
       setFeedback('');
+      showSuccess('Berhasil Dinilai!', 'Penilaian tugas berhasil disimpan.');
       fetchSubmissions();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? t('msg_grade_fail'));
+      showError('Gagal Menilai', msg ?? t('msg_grade_fail'));
     } finally {
       setSaving(false);
     }

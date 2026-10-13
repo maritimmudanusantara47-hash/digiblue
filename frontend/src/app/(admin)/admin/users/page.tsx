@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import { useTranslations } from 'next-intl';
+import { showConfirm, showSuccess, showError } from '@/lib/swal';
 
 interface User {
   id: number;
@@ -35,15 +36,20 @@ export default function AdminUsersPage() {
   const perPage = 15;
 
   const handleManualVerify = async (userId: number) => {
-    if (!confirm('Verifikasi email user ini secara manual?')) return;
+    const isConfirmed = await showConfirm(
+      'Verifikasi Email User?',
+      'Apakah Anda yakin ingin memverifikasi email user ini secara manual?',
+      'Ya, Verifikasi'
+    );
+    if (!isConfirmed) return;
     setVerifyingId(userId);
     try {
       const res = await api.post(`/admin/users/${userId}/verify`);
-      alert(res.data.message || 'User berhasil diverifikasi!');
+      showSuccess('Berhasil!', res.data.message || 'User berhasil diverifikasi!');
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, email_verified_at: new Date().toISOString() } : u));
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg || 'Gagal memverifikasi user.');
+      showError('Gagal!', msg || 'Gagal memverifikasi user.');
     } finally {
       setVerifyingId(null);
     }

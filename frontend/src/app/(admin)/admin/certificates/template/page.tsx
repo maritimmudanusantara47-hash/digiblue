@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
+import { showSuccess, showError } from '@/lib/swal';
 
 /* ─── Icons ─────────────────────────────────────────────────────── */
 const Ico = {
@@ -226,7 +227,8 @@ export default function CertificateTemplateAdminPage() {
       await api.put('/admin/certificates/template/layout', { fields: layout });
       setSavedOk(true);
       setTimeout(() => setSavedOk(false), 2500);
-    } catch { alert('Gagal menyimpan.'); }
+      showSuccess('Tersimpan', 'Layout sertifikat berhasil disimpan.');
+    } catch { showError('Gagal!', 'Gagal menyimpan layout sertifikat.'); }
     finally { setSaving(false); }
   };
 
@@ -239,7 +241,8 @@ export default function CertificateTemplateAdminPage() {
       await api.put('/admin/certificates/template/layout', { fields: clean });
       setResetOk(true);
       setTimeout(() => setResetOk(false), 2500);
-    } catch { alert('Gagal reset.'); }
+      showSuccess('Berhasil!', 'Layout berhasil di-reset ke default.');
+    } catch { showError('Gagal!', 'Gagal reset layout sertifikat.'); }
     finally { setResetting(false); }
   };
 
@@ -263,7 +266,7 @@ export default function CertificateTemplateAdminPage() {
       a.download = isFs ? 'Contoh-Sertifikat-Field-Study.pdf' : 'Contoh-Sertifikat.pdf';
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
-    } catch { alert('Gagal mengunduh PDF.'); }
+    } catch { showError('Gagal!', 'Gagal mengunduh PDF contoh.'); }
     finally { setDownloading(false); }
   };
 

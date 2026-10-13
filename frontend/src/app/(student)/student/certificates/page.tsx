@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import type { Certificate } from '@/types';
 import { useTranslations } from 'next-intl';
+import { showError } from '@/lib/swal';
 
 export default function StudentCertificatesPage() {
   const [certs, setCerts]     = useState<Certificate[]>([]);
@@ -48,7 +49,7 @@ export default function StudentCertificatesPage() {
         URL.revokeObjectURL(url);
       }, 1000);
     } catch {
-      alert(t('msg_download_fail'));
+      showError('Gagal Mengunduh', t('msg_download_fail'));
     } finally {
       if (type === 'field_study') {
         setDownloadingFs(null);
