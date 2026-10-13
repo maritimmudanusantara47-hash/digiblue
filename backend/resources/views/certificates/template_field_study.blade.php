@@ -107,16 +107,16 @@
         $L = $layout ?? [];
 
         $nTop = $L['fs_recipient_name']['top'] ?? 70.0;
-        $nFs = $L['fs_recipient_name']['font_size'] ?? 32.0;
+        $nFs = $L['fs_recipient_name']['font_size'] ?? 33.0;
 
         $tTop = $L['fs_course_title']['top'] ?? 108.5;
         $tFs = $L['fs_course_title']['font_size'] ?? 19.0;
 
-        $pTop = $L['fs_date_participation']['top'] ?? 129.5;
-        $pFs = $L['fs_date_participation']['font_size'] ?? 13.0;
+        $pTop = $L['fs_date_participation']['top'] ?? 134.5;
+        $pFs = $L['fs_date_participation']['font_size'] ?? 14.0;
 
-        $iTop = $L['fs_date_issue']['top'] ?? 141.0;
-        $iFs = $L['fs_date_issue']['font_size'] ?? 12.0;
+        $iTop = $L['fs_date_issue']['top'] ?? 141.5;
+        $iFs = $L['fs_date_issue']['font_size'] ?? 14.0;
 
         $bnTop = $L['fs_back_name']['top'] ?? 25.0;
         $bnLeft = $L['fs_back_name']['left'] ?? 32.0;

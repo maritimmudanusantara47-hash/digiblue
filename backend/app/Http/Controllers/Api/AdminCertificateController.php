@@ -264,10 +264,10 @@ class AdminCertificateController extends Controller
             'back_title' => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
 
             // Field Study / Completion template fields
-            'fs_recipient_name' => ['top' => 70.0, 'font_size' => 32.0, 'label' => 'FS: Nama Peserta'],
+            'fs_recipient_name' => ['top' => 70.0, 'font_size' => 33.0, 'label' => 'FS: Nama Peserta'],
             'fs_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'FS: Judul Pelatihan'],
-            'fs_date_participation' => ['top' => 129.5, 'font_size' => 13.0, 'label' => 'FS: Tanggal Partisipasi'],
-            'fs_date_issue' => ['top' => 141.0, 'font_size' => 12.0, 'label' => 'FS: Tempat & Tanggal Terbit'],
+            'fs_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'FS: Tanggal Partisipasi'],
+            'fs_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'FS: Tempat & Tanggal Terbit'],
             'fs_back_name' => ['top' => 25.0, 'left' => 32.0, 'font_size' => 13.0, 'label' => 'FS Belakang: Nama Peserta'],
             'fs_back_reg_no' => ['top' => 29.5, 'left' => 57.0, 'font_size' => 13.0, 'label' => 'FS Belakang: No. Registrasi'],
         ];
