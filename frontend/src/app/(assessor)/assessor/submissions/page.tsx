@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -194,32 +195,57 @@ export default function AssessorSubmissionsPage() {
 
       {/* Grading Modal */}
       {grading && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-fadeup">
-            <div className="px-6 py-5 border-b border-slate-100">
-              <h2 className="text-lg font-extrabold text-navy-dark">{t('title_grade_modal')}</h2>
-              <p className="text-sm text-slate-400 mt-0.5">{grading.user?.name} — {grading.content?.title}</p>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+                  <Icon name="pen-to-square" size={18} />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">{t('title_grade_modal')}</h2>
+                  <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                    {grading.user?.name} &bull; {grading.content?.title}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGrading(null)}
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                aria-label="Tutup"
+              >
+                <Icon name="xmark" size={16} />
+              </button>
             </div>
 
-            <div className="px-6 py-5">
+            <div>
               {/* Preview jawaban */}
               {grading.essay_text && (
                 <div className="mb-5">
-                  <p className="text-xs font-semibold text-slate-500 mb-2">{t('lbl_essay_answer')}</p>
-                  <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-700 max-h-40 overflow-y-auto leading-relaxed">
+                  <p className="text-xs font-bold text-navy-dark mb-2 flex items-center gap-1.5">
+                    <Icon name="book-open" size={14} className="text-navy" />
+                    <span>{t('lbl_essay_answer')}</span>
+                  </p>
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-sm text-slate-700 max-h-44 overflow-y-auto leading-relaxed">
                     {grading.essay_text}
                   </div>
                 </div>
               )}
               {grading.video_url && (
                 <div className="mb-5">
-                  <p className="text-xs font-semibold text-slate-500 mb-2">{t('lbl_oral_video')}</p>
+                  <p className="text-xs font-bold text-navy-dark mb-2 flex items-center gap-1.5">
+                    <Icon name="camera-movie-1" size={14} className="text-rose-500" />
+                    <span>{t('lbl_oral_video')}</span>
+                  </p>
                   {(() => {
                     const ytMatch = grading.video_url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
                     const gdMatch = grading.video_url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
                     const embedUrl = ytMatch ? `https://www.youtube.com/embed/${ytMatch[1]}?rel=0` : (gdMatch ? `https://drive.google.com/file/d/${gdMatch[1]}/preview` : null);
                     return embedUrl ? (
-                      <div className="rounded-xl overflow-hidden border border-slate-200 aspect-video bg-black/5 mb-3 shadow-sm">
+                      <div className="rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-black/5 mb-3 shadow-sm">
                         <iframe
                           src={embedUrl}
                           title="Oral Video Preview"
@@ -229,17 +255,23 @@ export default function AssessorSubmissionsPage() {
                       </div>
                     ) : null;
                   })()}
-                  <a href={grading.video_url} target="_blank" rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
-                    <Icon name="camera-movie-1" size={16} className="text-rose-600" />{t('btn_open_video')} <Icon name="arrow-right" size={14} className="ml-1" />
+                  <a
+                    href={grading.video_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline bg-slate-50 px-4 py-2 rounded-full border border-slate-200 hover:border-slate-300 transition-colors"
+                  >
+                    <Icon name="camera-movie-1" size={16} className="text-rose-600" />
+                    <span>{t('btn_open_video')}</span>
+                    <Icon name="arrow-right" size={14} className="ml-0.5 text-slate-400" />
                   </a>
                 </div>
               )}
 
               <form onSubmit={handleGrade} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">
-                    {t('lbl_score')} <span className="text-slate-400 font-normal">{t('lbl_max')} {grading.content?.max_score ?? 100})</span>
+                  <label className="text-xs font-bold text-navy-dark">
+                    {t('lbl_score')} <span className="text-slate-400 font-normal">({t('lbl_max')} {grading.content?.max_score ?? 100})</span> <span className="text-rose-500">*</span>
                   </label>
                   <input
                     id="grade-score"
@@ -249,33 +281,44 @@ export default function AssessorSubmissionsPage() {
                     max={grading.content?.max_score ?? 100}
                     value={score}
                     onChange={e => setScore(e.target.value)}
-                    className="form-input"
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                     placeholder={t('placeholder_score')}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">{t('lbl_feedback')} <span className="text-slate-400 font-normal">{t('lbl_optional')}</span></label>
+                  <label className="text-xs font-bold text-navy-dark">
+                    {t('lbl_feedback')} <span className="text-slate-400 font-normal">({t('lbl_optional')})</span>
+                  </label>
                   <textarea
                     id="grade-feedback"
                     rows={4}
                     value={feedback}
                     onChange={e => setFeedback(e.target.value)}
-                    className="form-input resize-none"
+                    className="w-full px-4 py-3 text-sm border border-slate-200 rounded-2xl focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700 resize-none"
                     placeholder={t('placeholder_feedback')}
                   />
                 </div>
-                <div className="flex gap-3 pt-2">
-                  <button type="submit" disabled={saving} className="btn btn-primary flex-1">
-                    {saving ? t('btn_saving') : <><Icon name="check-circle-1" size={16} className="mr-1.5" />{t('btn_save_grade')}</>}
-                  </button>
-                  <button type="button" onClick={() => setGrading(null)} className="btn btn-secondary">
+                <div className="flex items-center justify-end gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setGrading(null)}
+                    className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
                     {t('btn_cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {saving ? t('btn_saving') : <><Icon name="check-circle-1" size={16} /><span>{t('btn_save_grade')}</span></>}
                   </button>
                 </div>
               </form>
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

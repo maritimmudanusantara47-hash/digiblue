@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import ModalPortal from '@/components/common/ModalPortal';
 import api from '@/lib/api';
 import { useTranslations } from 'next-intl';
 
@@ -597,49 +598,51 @@ export default function VerifyPortalPage() {
 
       {/* QR Scanner Guidance Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative">
-            <button
-              onClick={() => setShowQrModal(false)}
-              className="absolute right-5 top-5 text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
-              aria-label="Tutup modal"
-            >
-              <Icon name="xmark" size={18} />
-            </button>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 shadow-2xl relative my-auto animate-fadeup border border-slate-100">
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="absolute right-5 top-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                aria-label="Tutup modal"
+              >
+                <Icon name="xmark" size={16} />
+              </button>
 
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto mb-3 border border-sky-100">
-                <Icon name="scan" size={26} />
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto mb-3 border border-sky-100">
+                  <Icon name="scan" size={26} />
+                </div>
+                <h3 className="text-lg font-bold text-[#00162d] font-heading">{t('qr_modal_title')}</h3>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  {t('qr_modal_desc')}
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-[#00162d] font-heading">{t('qr_modal_title')}</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                {t('qr_modal_desc')}
-              </p>
+
+              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 text-xs text-slate-600 space-y-3 mb-6">
+                <div className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
+                  <span className="leading-relaxed">{t('qr_step1')}</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
+                  <span className="leading-relaxed">{t('qr_step2')}</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
+                  <span className="leading-relaxed">{t('qr_step3')}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="w-full py-2.5 bg-[#112a46] hover:bg-[#00162d] text-white font-semibold text-sm rounded-full transition-colors cursor-pointer shadow-sm"
+              >
+                {t('qr_close')}
+              </button>
             </div>
-
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 text-xs text-slate-600 space-y-3 mb-6">
-              <div className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
-                <span>{t('qr_step1')}</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
-                <span>{t('qr_step2')}</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
-                <span>{t('qr_step3')}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowQrModal(false)}
-              className="w-full py-3 bg-[#00162d] hover:bg-[#0f2b48] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer"
-            >
-              {t('qr_close')}
-            </button>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

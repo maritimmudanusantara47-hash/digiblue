@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -395,108 +396,168 @@ export default function AdminEnrollmentsPage() {
       </div>
 
       {/* ── Modal: Manual Enroll ─────────────────────────────────────────────── */}
-      {
-        showAdd && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fadeup">
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <h2 className="text-lg font-extrabold text-navy-dark">{t('btn_add')}</h2>
-                <button onClick={() => setShowAdd(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+      {showAdd && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+                  <Icon name="user-multiple-4" size={18} />
+                </div>
+                <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">{t('btn_add')}</h2>
               </div>
-              <form onSubmit={handleAdd} className="px-6 py-5 flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label">{t('col_participant')} <span className="text-red-500">*</span></label>
-                  <select required value={addForm.user_id}
-                    onChange={e => setAddForm(f => ({ ...f, user_id: e.target.value }))}
-                    className="form-input">
-                    <option value="">-- Pilih {t('col_participant')} --</option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label">{t('col_course')} <span className="text-red-500">*</span></label>
-                  <select required value={addForm.course_id}
-                    onChange={e => setAddForm(f => ({ ...f, course_id: e.target.value, batch_id: '' }))}
-                    className="form-input">
-                    <option value="">-- Pilih {t('col_course')} --</option>
-                    {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Angkatan / Batch (Opsional)</label>
-                  <select
-                    disabled={!addForm.course_id}
-                    value={addForm.batch_id}
-                    onChange={e => setAddForm(f => ({ ...f, batch_id: e.target.value }))}
-                    className="form-input text-sm disabled:bg-slate-50 disabled:text-slate-400"
-                  >
-                    {!addForm.course_id ? (
-                      <option value="">— Pilih kursus terlebih dahulu —</option>
-                    ) : (
-                      <>
-                        <option value="">— Belajar Mandiri / Tanpa Batch —</option>
-                        {batches
-                          .filter(b => String(b.course_id) === String(addForm.course_id))
-                          .map(b => (
-                            <option key={b.id} value={b.id}>
-                              {b.batch_name} {b.batch_code ? `(${b.batch_code})` : ''}
-                            </option>
-                          ))}
-                      </>
-                    )}
-                  </select>
-                  <p className="text-[11px] text-slate-400">
-                    {!addForm.course_id
-                      ? 'Pilih kursus di atas terlebih dahulu untuk melihat batch yang tersedia.'
-                      : 'Pilih batch angkatan atau biarkan kosong untuk jalur mandiri.'}
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label">{t('col_status')} Awal</label>
-                  <select value={addForm.status}
-                    onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))}
-                    className="form-input text-sm">
-                    {STATUS_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </div>
-                {addError && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">{addError}</div>
-                )}
-                <div className="flex gap-3 pt-1">
-                  <button type="submit" disabled={adding} id="save-enroll-btn" className="btn btn-primary flex-1">
-                    {adding ? t('btn_saving') : <><Icon name="check-circle-1" size={16} className="mr-1.5" />{t('btn_save_enrollment')}</>}
-                  </button>
-                  <button type="button" onClick={() => setShowAdd(false)} className="btn btn-secondary">{t('btn_cancel')}</button>
-                </div>
-              </form>
+              <button
+                type="button"
+                onClick={() => setShowAdd(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                aria-label="Tutup"
+              >
+                <Icon name="xmark" size={16} />
+              </button>
             </div>
-          </div>
-        )
-      }
 
-      {/* ── Modal: Ubah {t('col_status')} ───────────────────────────────────────────────── */}
-      {
-        statusTarget && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup">
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <h2 className="text-lg font-extrabold text-navy-dark">Ubah Status & Batch</h2>
-                <button onClick={() => setStatusTarget(null)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+            {/* Body */}
+            <form onSubmit={handleAdd} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-navy-dark">
+                  {t('col_participant')} <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  required
+                  value={addForm.user_id}
+                  onChange={e => setAddForm(f => ({ ...f, user_id: e.target.value }))}
+                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                >
+                  <option value="">-- Pilih {t('col_participant')} --</option>
+                  {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
+                </select>
               </div>
-              <div className="px-6 py-5 flex flex-col gap-4">
-                <div className="bg-slate-50 rounded-xl p-3 text-sm">
-                  <p className="font-semibold text-navy-dark">{statusTarget.user?.name}</p>
-                  <p className="text-slate-400 text-xs mt-0.5">{statusTarget.course?.title}</p>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-navy-dark">
+                  {t('col_course')} <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  required
+                  value={addForm.course_id}
+                  onChange={e => setAddForm(f => ({ ...f, course_id: e.target.value, batch_id: '' }))}
+                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                >
+                  <option value="">-- Pilih {t('col_course')} --</option>
+                  {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-navy-dark">Angkatan / Batch (Opsional)</label>
+                <select
+                  disabled={!addForm.course_id}
+                  value={addForm.batch_id}
+                  onChange={e => setAddForm(f => ({ ...f, batch_id: e.target.value }))}
+                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700 disabled:bg-slate-50 disabled:text-slate-400"
+                >
+                  {!addForm.course_id ? (
+                    <option value="">— Pilih kursus terlebih dahulu —</option>
+                  ) : (
+                    <>
+                      <option value="">— Belajar Mandiri / Tanpa Batch —</option>
+                      {batches
+                        .filter(b => String(b.course_id) === String(addForm.course_id))
+                        .map(b => (
+                          <option key={b.id} value={b.id}>
+                            {b.batch_name} {b.batch_code ? `(${b.batch_code})` : ''}
+                          </option>
+                        ))}
+                    </>
+                  )}
+                </select>
+                <p className="text-[11px] text-slate-400 leading-normal pl-2">
+                  {!addForm.course_id
+                    ? 'Pilih kursus di atas terlebih dahulu untuk melihat batch yang tersedia.'
+                    : 'Pilih batch angkatan atau biarkan kosong untuk jalur mandiri.'}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-navy-dark">{t('col_status')} Awal</label>
+                <select
+                  value={addForm.status}
+                  onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))}
+                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                >
+                  {STATUS_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+
+              {addError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs px-4 py-3 rounded-2xl flex items-start gap-2.5">
+                  <Icon name="info" size={16} className="shrink-0 mt-0.5 text-rose-500" />
+                  <span className="leading-relaxed">{addError}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAdd(false)}
+                  className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  {t('btn_cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={adding}
+                  id="save-enroll-btn"
+                  className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {adding ? t('btn_saving') : <><Icon name="check-circle-1" size={16} /><span>{t('btn_save_enrollment')}</span></>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        </ModalPortal>
+      )}
+
+      {/* ── Modal: Ubah Status & Batch ───────────────────────────────────────── */}
+      {statusTarget && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+                    <Icon name="pencil-1" size={18} />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">Ubah Status & Batch</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStatusTarget(null)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                  aria-label="Tutup"
+                >
+                  <Icon name="xmark" size={16} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex flex-col gap-4">
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-sm">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Peserta & Kursus</span>
+                  <p className="font-bold text-navy-dark leading-snug">{statusTarget.user?.name}</p>
+                  <p className="text-slate-500 text-xs mt-0.5">{statusTarget.course?.title}</p>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Angkatan / Batch</label>
+                  <label className="text-xs font-bold text-navy-dark">Angkatan / Batch</label>
                   <select
                     value={newBatchId}
                     onChange={e => setNewBatchId(e.target.value)}
-                    className="form-input text-sm"
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                   >
                     <option value="">— Belajar Mandiri / Tanpa Batch —</option>
                     {batches
@@ -513,48 +574,74 @@ export default function AdminEnrollmentsPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">{t('col_status')} Baru</label>
-                  <select value={newStatus} onChange={e => setNewStatus(e.target.value)} className="form-input">
+                  <label className="text-xs font-bold text-navy-dark">{t('col_status')} Baru</label>
+                  <select
+                    value={newStatus}
+                    onChange={e => setNewStatus(e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  >
                     {STATUS_OPTS(t).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
 
-                <div className="flex gap-3">
-                  <button id="save-status-btn" onClick={handleStatusUpdate} disabled={updatingStatus} className="btn btn-primary flex-1">
-                    {updatingStatus ? t('btn_saving') : <><Icon name="check-circle-1" size={16} className="mr-1.5" />Update {t('col_status')}</>}
+                <div className="flex items-center justify-end gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setStatusTarget(null)}
+                    className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    {t('btn_cancel')}
                   </button>
-                  <button onClick={() => setStatusTarget(null)} className="btn btn-secondary">{t('btn_cancel')}</button>
+                  <button
+                    id="save-status-btn"
+                    onClick={handleStatusUpdate}
+                    disabled={updatingStatus}
+                    className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {updatingStatus ? t('btn_saving') : <><Icon name="check-circle-1" size={16} /><span>Update {t('col_status')}</span></>}
+                  </button>
                 </div>
               </div>
             </div>
-          </div >
-        )
-      }
+          </div>
+        </ModalPortal>
+      )}
 
-      {/* ── Modal: {t('tooltip_delete')} Enrollment ──────────────────────────────────────────── */}
-      {
-        deleteTarget && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup p-6">
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-3"><Icon name="info" size={48} /></div>
-                <h2 className="text-lg font-extrabold text-navy-dark">{t('tooltip_delete')} Enrollment?</h2>
-                <p className="text-slate-500 text-sm mt-2">
-                  Enrollment <strong>{deleteTarget.user?.name}</strong> {t('desc_delete_2')}{' '}
-                  <strong>{deleteTarget.course?.title}</strong> {t('desc_delete_3')}
-                </p>
+      {/* ── Modal: Hapus Enrollment ──────────────────────────────────────────── */}
+      {deleteTarget && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-fadeup border border-slate-100 p-6 sm:p-7 text-center my-auto">
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-500 mx-auto flex items-center justify-center mb-4 shadow-xs">
+                <Icon name="trash-3" size={24} />
               </div>
-              <div className="flex gap-3">
-                <button id="confirm-delete-enroll" onClick={handleDelete} disabled={deleting}
-                  className="btn flex-1 bg-red-500 text-white hover:bg-red-600">
-                  {deleting ? t('btn_deleting') : <><Icon name="trash-3" size={16} className="mr-1.5" />{t('tooltip_delete')}</>}
+              <h2 className="text-lg font-extrabold text-navy-dark">{t('tooltip_delete')} Enrollment?</h2>
+              <p className="text-slate-500 text-sm mt-2 leading-relaxed">
+                Enrollment peserta <strong className="text-navy-dark">{deleteTarget.user?.name}</strong> {t('desc_delete_2')}{' '}
+                <strong className="text-navy-dark">{deleteTarget.course?.title}</strong> {t('desc_delete_3')}
+              </p>
+
+              <div className="flex items-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="flex-1 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  {t('btn_cancel')}
                 </button>
-                <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary flex-1">{t('btn_cancel')}</button>
+                <button
+                  id="confirm-delete-enroll"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 py-2 text-sm font-semibold rounded-full bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleting ? t('btn_deleting') : <><Icon name="trash-3" size={16} /><span>{t('tooltip_delete')}</span></>}
+                </button>
               </div>
             </div>
           </div>
-        )
-      }
-    </div >
+        </ModalPortal>
+      )}
+    </div>
   );
 }

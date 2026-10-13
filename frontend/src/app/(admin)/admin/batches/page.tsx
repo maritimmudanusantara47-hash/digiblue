@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 
@@ -291,27 +292,40 @@ export default function AdminBatchesPage() {
 
       {/* ── Modal: Create / Edit Batch ─────────────────────────────────────── */}
       {mode && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-fadeup max-h-[90vh] flex flex-col">
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
             {/* Header */}
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-              <h2 className="text-lg font-extrabold text-navy-dark">
-                {mode === 'create' ? 'Tambah Batch Baru' : 'Edit Batch'}
-              </h2>
-              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+                  <Icon name={mode === 'create' ? 'plus' : 'pencil-1'} size={18} />
+                </div>
+                <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">
+                  {mode === 'create' ? 'Tambah Batch Baru' : 'Edit Batch'}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                aria-label="Tutup"
+              >
+                <Icon name="xmark" size={16} />
+              </button>
             </div>
 
             {/* Body */}
-            <form onSubmit={handleSave} className="px-6 py-5 flex flex-col gap-4 overflow-y-auto flex-1">
+            <form onSubmit={handleSave} className="flex flex-col gap-4">
               {/* Kursus */}
               <div className="flex flex-col gap-1.5">
-                <label className="form-label">Kursus <span className="text-red-500">*</span></label>
+                <label className="text-xs font-bold text-navy-dark">Kursus <span className="text-rose-500">*</span></label>
                 <select
                   required
                   disabled={mode === 'edit'}
                   value={form.course_id}
                   onChange={e => setForm(f => ({ ...f, course_id: e.target.value }))}
-                  className="form-input disabled:bg-slate-50 disabled:text-slate-500"
+                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700 disabled:bg-slate-50 disabled:text-slate-400"
                 >
                   <option value="">— Pilih Kursus —</option>
                   {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
@@ -319,126 +333,177 @@ export default function AdminBatchesPage() {
               </div>
 
               {/* Nama & Kode */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Nama Batch <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-bold text-navy-dark">Nama Batch <span className="text-rose-500">*</span></label>
                   <input
                     required
                     type="text"
                     placeholder="Contoh: Batch 18"
                     value={form.batch_name}
                     onChange={e => setForm(f => ({ ...f, batch_name: e.target.value }))}
-                    className="form-input"
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Kode Batch</label>
+                  <label className="text-xs font-bold text-navy-dark">Kode Batch</label>
                   <input
                     type="text"
                     placeholder="B18"
                     value={form.batch_code}
                     onChange={e => setForm(f => ({ ...f, batch_code: e.target.value }))}
-                    className="form-input"
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700 font-mono"
                   />
                 </div>
               </div>
 
               {/* Periode Registrasi */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Registrasi Mulai</label>
-                  <input type="date" value={form.registration_start_date}
+                  <label className="text-xs font-bold text-navy-dark">Registrasi Mulai</label>
+                  <input
+                    type="date"
+                    value={form.registration_start_date}
                     onChange={e => setForm(f => ({ ...f, registration_start_date: e.target.value }))}
-                    className="form-input text-sm" />
+                    className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Registrasi Selesai</label>
-                  <input type="date" value={form.registration_end_date}
+                  <label className="text-xs font-bold text-navy-dark">Registrasi Selesai</label>
+                  <input
+                    type="date"
+                    value={form.registration_end_date}
                     onChange={e => setForm(f => ({ ...f, registration_end_date: e.target.value }))}
-                    className="form-input text-sm" />
+                    className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
                 </div>
               </div>
 
               {/* Periode Belajar */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Belajar Mulai</label>
-                  <input type="date" value={form.start_date}
+                  <label className="text-xs font-bold text-navy-dark">Belajar Mulai</label>
+                  <input
+                    type="date"
+                    value={form.start_date}
                     onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-                    className="form-input text-sm" />
+                    className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="form-label">Belajar Selesai</label>
-                  <input type="date" value={form.end_date}
+                  <label className="text-xs font-bold text-navy-dark">Belajar Selesai</label>
+                  <input
+                    type="date"
+                    value={form.end_date}
                     onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
-                    className="form-input text-sm" />
+                    className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
                 </div>
               </div>
 
               {/* Field Trip */}
               <div className="flex flex-col gap-1.5">
-                <label className="form-label">Tanggal Field Trip</label>
-                <input type="date" value={form.field_trip_date}
+                <label className="text-xs font-bold text-navy-dark">Tanggal Field Trip</label>
+                <input
+                  type="date"
+                  value={form.field_trip_date}
                   onChange={e => setForm(f => ({ ...f, field_trip_date: e.target.value }))}
-                  className="form-input text-sm" />
+                  className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                />
               </div>
 
               {/* Aktif */}
-              <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
+              <label className="flex items-center gap-3 cursor-pointer select-none pt-1">
+                <div className="relative">
                   <input
                     type="checkbox"
+                    className="sr-only"
                     checked={form.is_active}
                     onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))}
-                    className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:bg-emerald-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
-                </label>
-                <span className="text-sm text-slate-600">Batch Aktif</span>
-              </div>
+                  <div className={`w-11 h-6 rounded-full transition-colors ${form.is_active ? 'bg-[#112a46]' : 'bg-slate-300'}`} />
+                  <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.is_active ? 'translate-x-5' : ''}`} />
+                </div>
+                <span className="text-xs font-semibold text-slate-700">
+                  Batch Aktif (visible untuk pendaftaran)
+                </span>
+              </label>
 
               {/* Error */}
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">{error}</div>
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs px-4 py-3 rounded-2xl flex items-start gap-2.5">
+                  <Icon name="info" size={16} className="shrink-0 mt-0.5 text-rose-500" />
+                  <span className="leading-relaxed">{error}</span>
+                </div>
               )}
 
-              {/* Buttons */}
-              <div className="flex gap-3 pt-1">
-                <button type="submit" disabled={saving} id="save-batch-btn" className="btn btn-primary flex-1">
-                  {saving ? 'Menyimpan...' : <><Icon name="check-circle-1" size={16} className="mr-1.5" />{mode === 'create' ? 'Buat Batch' : 'Simpan Perubahan'}</>}
+              <div className="flex items-center justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Batal
                 </button>
-                <button type="button" onClick={closeModal} className="btn btn-secondary">Batal</button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  id="save-batch-btn"
+                  className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {saving ? 'Menyimpan...' : (
+                    <>
+                      <Icon name="check-circle-1" size={16} />
+                      <span>{mode === 'create' ? 'Buat Batch' : 'Simpan Perubahan'}</span>
+                    </>
+                  )}
+                </button>
               </div>
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {/* ── Modal: Delete Confirmation ─────────────────────────────────────── */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm animate-fadeup p-6">
-            <div className="text-center mb-6">
-              <div className="text-5xl mb-3"><Icon name="info" size={48} /></div>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-fadeup border border-slate-100 p-6 sm:p-7 text-center my-auto">
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-500 mx-auto flex items-center justify-center mb-4 shadow-xs">
+                <Icon name="trash-3" size={24} />
+              </div>
               <h2 className="text-lg font-extrabold text-navy-dark">Hapus Batch?</h2>
-              <p className="text-slate-500 text-sm mt-2">
-                Batch <strong>{deleteTarget.batch_name}</strong> dari kursus <strong>{deleteTarget.course?.title}</strong> akan dihapus.
-                {deleteTarget.enrollments_count > 0 && (
-                  <span className="block text-orange-600 mt-1">
-                    ⚠️ {deleteTarget.enrollments_count} peserta terdaftar di batch ini akan otomatis menjadi Jalur Mandiri.
-                  </span>
-                )}
+              <p className="text-slate-500 text-sm mt-2 leading-relaxed">
+                Batch <strong className="text-navy-dark">{deleteTarget.batch_name}</strong> dari kursus <strong className="text-navy-dark">{deleteTarget.course?.title}</strong> akan dihapus secara permanen.
               </p>
-            </div>
-            <div className="flex gap-3">
-              <button id="confirm-delete-batch" onClick={handleDelete} disabled={deleting}
-                className="btn flex-1 bg-red-500 text-white hover:bg-red-600">
-                {deleting ? 'Menghapus...' : <><Icon name="trash-3" size={16} className="mr-1.5" />Hapus</>}
-              </button>
-              <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary flex-1">Batal</button>
+              {deleteTarget.enrollments_count > 0 && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-4 py-3 rounded-2xl flex items-start gap-2.5 text-left mt-3.5">
+                  <span className="shrink-0 mt-0.5 text-amber-600"><Icon name="info" size={16} /></span>
+                  <span className="leading-relaxed"><strong>{deleteTarget.enrollments_count} peserta</strong> terdaftar di batch ini akan otomatis dialihkan ke status Jalur Mandiri.</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="flex-1 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  id="confirm-delete-batch"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 py-2 text-sm font-semibold rounded-full bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleting ? 'Menghapus...' : <><Icon name="trash-3" size={16} /><span>Hapus Batch</span></>}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

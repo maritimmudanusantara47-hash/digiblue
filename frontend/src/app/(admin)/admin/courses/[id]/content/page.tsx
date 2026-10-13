@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -1245,146 +1246,149 @@ export default function AdminCourseContentPage() {
       )}
       {/* ─── Image Insertion Modal (Upload Lokal & URL) ──────────────────── */}
       {imageModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadein">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-navy/10 text-navy flex items-center justify-center">
-                  <Icon name="camera-movie-1" size={18} />
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+                  <Icon name="image-1" size={18} />
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-navy-dark text-base">{t('title_insert_image')}</h3>
-                  <p className="text-xs text-slate-400">{t('desc_image_source')}</p>
-                </div>
+                <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">{t('title_insert_image')}</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setImageModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                aria-label="Tutup"
               >
-                <Icon name="xmark" size={18} />
+                <Icon name="xmark" size={16} />
               </button>
             </div>
 
-            {/* Source Tab Toggle */}
-            <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
-              <button
-                type="button"
-                onClick={() => setImageTab('upload')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${imageTab === 'upload' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
-                  }`}
-              >
-                <Icon name="upload-1" size={14} />
-                {t('tab_upload_computer')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setImageTab('url')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${imageTab === 'url' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
-                  }`}
-              >
-                <Icon name="link-2-angular-right" size={14} />
-                {t('tab_url_image')}
-              </button>
-            </div>
+            <div className="flex flex-col gap-4">
+              {/* Source Tab Toggle */}
+              <div className="flex bg-slate-100 p-1 rounded-full gap-1">
+                <button
+                  type="button"
+                  onClick={() => setImageTab('upload')}
+                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${imageTab === 'upload' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+                    }`}
+                >
+                  <Icon name="upload-1" size={14} />
+                  {t('tab_upload_computer')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageTab('url')}
+                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${imageTab === 'url' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-navy'
+                    }`}
+                >
+                  <Icon name="link-2-angular-right" size={14} />
+                  {t('tab_url_image')}
+                </button>
+              </div>
 
-            {/* Tab 1: Upload Lokal */}
-            {imageTab === 'upload' ? (
-              <div className="flex flex-col gap-3">
-                <label className="border-2 border-dashed border-slate-200 hover:border-navy/50 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              {/* Tab 1: Upload Lokal */}
+              {imageTab === 'upload' ? (
+                <div className="flex flex-col gap-3">
+                  <label className="border-2 border-dashed border-slate-200 hover:border-navy/40 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                      onChange={e => handleSelectLocalImage(e.target.files?.[0] ?? null)}
+                      className="hidden"
+                    />
+                    {localImagePreview ? (
+                      <div className="flex flex-col items-center gap-2 w-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={localImagePreview}
+                          alt={t("alt_preview")}
+                          className="max-h-44 rounded-xl border border-slate-200 object-contain shadow-sm"
+                        />
+                        <span className="text-[11px] font-semibold text-navy hover:underline">
+                          {t('btn_change_image')} ({localImageFile?.name})
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-navy flex items-center justify-center text-xl">
+                          <Icon name="cloud-upload" size={24} />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs font-bold text-navy-dark">{t('btn_click_image')}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{t('lbl_format')} {t('lbl_image_format_allowed')}</p>
+                        </div>
+                      </>
+                    )}
+                  </label>
+                </div>
+              ) : (
+                /* Tab 2: URL */
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-navy-dark">{t('lbl_internet_url')}</label>
                   <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-                    onChange={e => handleSelectLocalImage(e.target.files?.[0] ?? null)}
-                    className="hidden"
+                    type="url"
+                    value={webImageUrl}
+                    onChange={e => setWebImageUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/... atau https://example.com/foto.jpg"
+                    className="w-full px-4 py-2.5 text-xs border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                   />
-                  {localImagePreview ? (
-                    <div className="flex flex-col items-center gap-2 w-full">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={localImagePreview}
-                        alt={t("alt_preview")}
-                        className="max-h-44 rounded-xl border border-slate-200 object-contain shadow-sm"
-                      />
-                      <span className="text-[11px] font-semibold text-navy hover:underline">
-                        {t('btn_change_image')} ({localImageFile?.name})
-                      </span>
-                    </div>
+                  <p className="text-[10px] text-slate-400">{t('desc_internet_url')}</p>
+                </div>
+              )}
+
+              {/* Caption / Alt Text Input */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-navy-dark">
+                  {t('lbl_image_alt')} <span className="text-slate-400 font-normal">({t('desc_image_alt_help')})</span>
+                </label>
+                <input
+                  type="text"
+                  value={imageAltText}
+                  onChange={e => setImageAltText(e.target.value)}
+                  placeholder={t("ph_image_alt")}
+                  className="w-full px-4 py-2.5 text-xs border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setImageModalOpen(false)}
+                  className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  {t('btn_cancel')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleInsertImage}
+                  disabled={uploadingImage || (imageTab === 'upload' && !localImageFile) || (imageTab === 'url' && !webImageUrl.trim())}
+                  className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {uploadingImage ? (
+                    <>
+                      <svg className="animate-spin h-3.5 w-3.5 text-white mr-1.5" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                      </svg>
+                      {t('btn_uploading_image')}
+                    </>
                   ) : (
                     <>
-                      <div className="w-12 h-12 rounded-2xl bg-blue-50 text-navy flex items-center justify-center text-xl">
-                        <Icon name="cloud-upload" size={24} />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs font-bold text-navy-dark">{t('btn_click_image')}</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">{t('lbl_format')} {t('lbl_image_format_allowed')}</p>
-                      </div>
+                      <Icon name="check-circle-1" size={16} />
+                      <span>{t('btn_insert_editor')}</span>
                     </>
                   )}
-                </label>
+                </button>
               </div>
-            ) : (
-              /* Tab 2: URL */
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-navy-dark">{t('lbl_internet_url')}</label>
-                <input
-                  type="url"
-                  value={webImageUrl}
-                  onChange={e => setWebImageUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/... atau https://example.com/foto.jpg"
-                  className="form-input text-xs"
-                />
-                <p className="text-[10px] text-slate-400">{t('desc_internet_url')}</p>
-              </div>
-            )}
-
-            {/* Caption / Alt Text Input */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-navy-dark">
-                {t('lbl_image_alt')} <span className="text-slate-400 font-normal">({t('desc_image_alt_help')})</span>
-              </label>
-              <input
-                type="text"
-                value={imageAltText}
-                onChange={e => setImageAltText(e.target.value)}
-                placeholder={t("ph_image_alt")}
-                className="form-input text-xs"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setImageModalOpen(false)}
-                className="btn btn-secondary btn-sm text-xs"
-              >
-                {t('btn_cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={handleInsertImage}
-                disabled={uploadingImage || (imageTab === 'upload' && !localImageFile) || (imageTab === 'url' && !webImageUrl.trim())}
-                className="btn btn-primary btn-sm text-xs flex items-center gap-1.5"
-              >
-                {uploadingImage ? (
-                  <>
-                    <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                    </svg>
-                    {t('btn_uploading_image')}
-                  </>
-                ) : (
-                  <>
-                    <Icon name="check-circle-1" size={14} />
-                    {t('btn_insert_editor')}
-                  </>
-                )}
-              </button>
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );
@@ -1887,54 +1891,67 @@ function ImportQuestionsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 my-8">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-          <div>
-            <h3 className="text-xl font-extrabold text-navy-dark flex items-center gap-2">
-              <span><Icon name="download-1" size={18} /></span> {t('title_import_mcq')}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">{t('desc_upload_quiz')}</p>
+    <ModalPortal>
+      <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+              <Icon name="rocket-5" size={18} />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">{t('title_import_mcq')}</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Unggah dokumen atau salin format teks soal otomatis</p>
+            </div>
           </div>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+            aria-label="Tutup"
+          >
             <Icon name="xmark" size={16} />
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-3 rounded-xl mt-4 leading-relaxed">
-            {error}
+          <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs px-4 py-3 rounded-2xl leading-relaxed flex items-start gap-2.5">
+            <Icon name="info" size={16} className="shrink-0 mt-0.5 text-rose-500" />
+            <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleImport} className="flex flex-col gap-5 mt-5">
+        <form onSubmit={handleImport} className="flex flex-col gap-4">
           {/* Format Guide */}
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 leading-relaxed">
+          <div className="bg-blue-50/80 border border-blue-200/80 rounded-2xl p-4 text-xs text-blue-900 leading-relaxed">
             <p className="font-bold flex items-center gap-1.5 mb-1.5 text-blue-800">
-              <Icon name="bulb-2" size={16} className="mr-1.5" />{t('title_supported_format')}
+              <Icon name="bulb-2" size={16} className="text-blue-600" />
+              <span>{t('title_supported_format')}</span>
             </p>
-            <pre className="bg-white/80 p-2.5 rounded-xl font-mono text-[11px] text-slate-700 overflow-x-auto whitespace-pre">
+            <pre className="bg-white/90 p-3 rounded-xl font-mono text-[11px] text-slate-700 overflow-x-auto whitespace-pre border border-blue-100 shadow-xs">
               {t('fmt_example_quiz')}
             </pre>
-            <p className="text-[10px] text-blue-600 mt-2">
+            <p className="text-[10px] text-blue-600 mt-2 font-medium">
               {t('desc_auto_weight')}
             </p>
           </div>
 
           {/* Opsi 1: Upload File */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-navy-dark">
-              <Icon name="file-multiple" size={16} className="mr-1.5" />{t('opt1_upload')}
+            <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+              <Icon name="file-multiple" size={15} className="text-navy" />
+              <span>{t('opt1_upload')}</span>
             </label>
             <input
               type="file"
               accept=".pdf,.txt,.json"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-navy/10 file:text-navy hover:file:bg-navy/20 cursor-pointer border border-slate-200 rounded-xl p-2"
+              className="text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-navy/10 file:text-navy hover:file:bg-navy/20 cursor-pointer border border-slate-200 rounded-full p-2 w-full"
             />
             {file && (
-              <p className="text-[11px] text-emerald-600 font-medium">
-                <Icon name="check-circle-1" size={16} className="mr-1.5" />{t('lbl_quiz_file_selected')} {file.name} ({(file.size / 1024).toFixed(1)} KB)
+              <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1.5 mt-0.5">
+                <Icon name="check-circle-1" size={14} />
+                <span>{t('lbl_quiz_file_selected')} {file.name} ({(file.size / 1024).toFixed(1)} KB)</span>
               </p>
             )}
           </div>
@@ -1947,53 +1964,68 @@ function ImportQuestionsModal({
 
           {/* Opsi 2: Paste Raw Text */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-navy-dark">
-              <Icon name="pencil-1" size={16} className="mr-1.5" />{t('opt2_paste')}
+            <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+              <Icon name="pencil-1" size={15} className="text-navy" />
+              <span>{t('opt2_paste')}</span>
             </label>
             <textarea
-              rows={8}
+              rows={6}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
               placeholder={t("ph_paste_quiz")}
-              className="form-input font-mono text-xs leading-relaxed resize-y"
+              className="w-full px-4 py-3 font-mono text-xs leading-relaxed border border-slate-200 rounded-2xl focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700 resize-y"
             />
           </div>
 
           {/* Checkbox Replace Existing */}
-          <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs text-navy-dark">
+          <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50 cursor-pointer text-xs text-navy-dark transition-colors">
             <input
               type="checkbox"
               checked={replaceExisting}
               onChange={(e) => setReplaceExisting(e.target.checked)}
               className="rounded text-navy focus:ring-navy h-4 w-4"
             />
-            <span>
+            <span className="leading-snug">
               <strong>{t('opt_replace_existing')}</strong> ({t('desc_replace_existing')}).
             </span>
           </label>
 
           {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-            <button type="button" onClick={onClose} disabled={importing} className="btn btn-secondary btn-sm">
+          <div className="flex items-center justify-end gap-3 mt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={importing}
+              className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
               {t('btn_cancel')}
             </button>
-            <button type="submit" disabled={importing} className="btn btn-primary btn-sm flex items-center gap-2">
+            <button
+              type="submit"
+              disabled={importing}
+              className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+            >
               {importing ? (
                 <>
-                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-4 w-4 text-white mr-1.5" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  {t('btn_processing_import')}
+                  <span>{t('btn_processing_import')}</span>
                 </>
               ) : (
-                <span className="flex items-center justify-center gap-2"><Icon name="rocket-5" size={15} /><span>{t('btn_process_import')}</span></span>
+                <>
+                  <Icon name="rocket-5" size={16} />
+                  <span>{t('btn_process_import')}</span>
+                </>
               )}
             </button>
           </div>
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 }
+
 

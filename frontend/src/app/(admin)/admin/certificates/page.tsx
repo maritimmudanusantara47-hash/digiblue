@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -427,225 +428,239 @@ export default function AdminCertificatesPage() {
 
       {/* ── Modal: Terbitkan Sertifikat ───────────────────────────────────────── */}
       {showIssue && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-fadeup overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div>
-                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="graduation-cap-1" size={16} className="mr-1.5" />{t('title_issue_modal')}</h2>
-                <p className="text-xs text-slate-500 mt-0.5">{t('desc_issue_modal')}</p>
-              </div>
-              <button
-                onClick={() => setShowIssue(false)}
-                className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleIssueSubmit} className="p-6 flex flex-col gap-4">
-              {issueError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-start gap-2">
-                  <span><Icon name="info" size={18} /></span>
-                  <span>{issueError}</span>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+                    <Icon name="graduation-cap-1" size={18} />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">{t('title_issue_modal')}</h2>
                 </div>
-              )}
-
-              {/* Enrollment selection */}
-              <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">
-                  {t('lbl_select_participant')} <span className="text-red-500">*</span>
-                </label>
-                <select
-                  required
-                  value={issueForm.enrollment_id}
-                  onChange={e => setIssueForm(f => ({ ...f, enrollment_id: e.target.value }))}
-                  className="form-input text-sm"
-                >
-                  <option value="">{t('opt_select_enrollment')}</option>
-                  {enrollments.map(en => (
-                    <option key={en.id} value={en.id}>
-                      {en.user?.name} — {en.course?.title} ({t('lbl_status')}: {en.status} | {t('lbl_ft')}: {en.attended_field_trip ? t('lbl_attended') : t('lbl_not_attended')})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-slate-400">
-                  {t('desc_fnd_requirement')}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {/* Grade */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_grade')} <span className="text-red-500">*</span></label>
-                  <select
-                    value={issueForm.grade}
-                    onChange={e => setIssueForm(f => ({ ...f, grade: e.target.value }))}
-                    className="form-input text-sm"
-                  >
-                    <option value="Standard">Standard</option>
-                    <option value="Good">Good</option>
-                    <option value="Excellent">Excellent</option>
-                  </select>
-                </div>
-
-                {/* Date of Issue */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">{t('col_issue_date')} <span className="text-red-500">*</span></label>
-                  <input
-                    type="date"
-                    required
-                    value={issueForm.date_of_issue}
-                    onChange={e => setIssueForm(f => ({ ...f, date_of_issue: e.target.value }))}
-                    className="form-input text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Place of issue */}
-              <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_place_of_issue')} <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  required
-                  placeholder={t('placeholder_place')}
-                  value={issueForm.place_of_issue}
-                  onChange={e => setIssueForm(f => ({ ...f, place_of_issue: e.target.value }))}
-                  className="form-input text-sm"
-                />
-              </div>
-
-              {/* Custom serial override */}
-              <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">
-                  {t('lbl_custom_serial')} <span className="text-slate-400 font-normal">{t('lbl_optional_serial')}</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder={suggestedSerial || t('placeholder_serial')}
-                  value={issueForm.serial_number}
-                  onChange={e => setIssueForm(f => ({ ...f, serial_number: e.target.value }))}
-                  className="form-input text-sm font-mono"
-                />
-                {suggestedSerial && (
-                  <p className="text-[11px] text-slate-400">
-                    Nomor urut berikutnya otomatis: <strong className="font-mono text-blue-600">{suggestedSerial}</strong> (kosongkan kolom ini jika ingin menggunakan urutan otomatis).
-                  </p>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowIssue(false)}
-                  className="btn btn-secondary btn-sm"
+                  className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                  aria-label="Tutup"
                 >
-                  {t('btn_cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={issuing}
-                  className="btn btn-primary btn-sm flex items-center gap-1.5"
-                >
-                  {issuing ? t('btn_issuing') : <><Icon name="graduation-cap-1" size={16} className="mr-1.5" />{t('btn_issue_now')}</>}
+                  <Icon name="xmark" size={16} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleIssueSubmit} className="flex flex-col gap-4">
+                {issueError && (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-xs flex items-start gap-2.5">
+                    <span className="shrink-0 mt-0.5 text-rose-500"><Icon name="info" size={16} /></span>
+                    <span className="leading-relaxed">{issueError}</span>
+                  </div>
+                )}
+
+                {/* Enrollment selection */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-navy-dark">
+                    {t('lbl_select_participant')} <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={issueForm.enrollment_id}
+                    onChange={e => setIssueForm(f => ({ ...f, enrollment_id: e.target.value }))}
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  >
+                    <option value="">{t('opt_select_enrollment')}</option>
+                    {enrollments.map(en => (
+                      <option key={en.id} value={en.id}>
+                        {en.user?.name} — {en.course?.title} ({t('lbl_status')}: {en.status} | {t('lbl_ft')}: {en.attended_field_trip ? t('lbl_attended') : t('lbl_not_attended')})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-slate-400 leading-normal pl-2">
+                    {t('desc_fnd_requirement')}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Grade */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-navy-dark">{t('lbl_grade')} <span className="text-rose-500">*</span></label>
+                    <select
+                      value={issueForm.grade}
+                      onChange={e => setIssueForm(f => ({ ...f, grade: e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                    >
+                      <option value="Standard">Standard</option>
+                      <option value="Good">Good</option>
+                      <option value="Excellent">Excellent</option>
+                    </select>
+                  </div>
+
+                  {/* Date of issue */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-navy-dark">{t('lbl_issue_date')} <span className="text-rose-500">*</span></label>
+                    <input
+                      type="date"
+                      required
+                      value={issueForm.date_of_issue}
+                      onChange={e => setIssueForm(f => ({ ...f, date_of_issue: e.target.value }))}
+                      className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                    />
+                  </div>
+                </div>
+
+                {/* Place of issue */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-navy-dark">{t('lbl_place_of_issue')} <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={t('placeholder_place')}
+                    value={issueForm.place_of_issue}
+                    onChange={e => setIssueForm(f => ({ ...f, place_of_issue: e.target.value }))}
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
+                </div>
+
+                {/* Custom serial override */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-navy-dark">
+                    {t('lbl_custom_serial')} <span className="text-slate-400 font-normal">({t('lbl_optional_serial')})</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={suggestedSerial || t('placeholder_serial')}
+                    value={issueForm.serial_number}
+                    onChange={e => setIssueForm(f => ({ ...f, serial_number: e.target.value }))}
+                    className="w-full px-4 py-2.5 text-sm font-mono border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
+                  {suggestedSerial && (
+                    <p className="text-[11px] text-slate-400 leading-normal pl-2">
+                      Nomor urut berikutnya otomatis: <strong className="font-mono text-blue-600 font-semibold">{suggestedSerial}</strong> (kosongkan kolom ini jika ingin menggunakan urutan otomatis).
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowIssue(false)}
+                    className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    {t('btn_cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={issuing}
+                    className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {issuing ? t('btn_issuing') : <><Icon name="graduation-cap-1" size={16} /><span>{t('btn_issue_now')}</span></>}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ── Modal: Edit / Override Sertifikat ─────────────────────────────────── */}
       {editingCert && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fadeup overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div>
-                <h2 className="text-lg font-extrabold text-navy-dark"><Icon name="pencil-1" size={16} className="mr-1.5" />{t('title_edit_modal')}</h2>
-                <p className="text-xs text-slate-500 mt-0.5">{t('lbl_recipient')} {editingCert.user?.name}</p>
-              </div>
-              <button
-                onClick={() => setEditingCert(null)}
-                className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleEditSubmit} className="p-6 flex flex-col gap-4">
-              {editError && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-start gap-2">
-                  <span><Icon name="info" size={18} /></span>
-                  <span>{editError}</span>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl border border-slate-200/90 bg-slate-50 flex items-center justify-center text-slate-500 shrink-0">
+                    <Icon name="pencil-1" size={18} />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">{t('title_edit_modal')}</h2>
                 </div>
-              )}
-
-              <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_serial')}</label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.serial_number}
-                  onChange={e => setEditForm(f => ({ ...f, serial_number: e.target.value }))}
-                  className="form-input text-sm font-mono"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">{t('col_grade')}</label>
-                  <select
-                    required
-                    value={editForm.grade}
-                    onChange={e => setEditForm(f => ({ ...f, grade: e.target.value }))}
-                    className="form-input text-sm"
-                  >
-                    <option value="Standard">Standard</option>
-                    <option value="Good">Good</option>
-                    <option value="Excellent">Excellent</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="form-label text-xs font-bold text-navy-dark">{t('col_issue_date')}</label>
-                  <input
-                    type="date"
-                    required
-                    value={editForm.date_of_issue}
-                    onChange={e => setEditForm(f => ({ ...f, date_of_issue: e.target.value }))}
-                    className="form-input text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="form-label text-xs font-bold text-navy-dark">{t('lbl_place_of_issue')}</label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.place_of_issue}
-                  onChange={e => setEditForm(f => ({ ...f, place_of_issue: e.target.value }))}
-                  className="form-input text-sm"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditingCert(null)}
-                  className="btn btn-secondary btn-sm"
+                  className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                  aria-label="Tutup"
                 >
-                  {t('btn_cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingEdit}
-                  className="btn btn-primary btn-sm"
-                >
-                  {savingEdit ? t('btn_saving') : t('btn_save_changes')}
+                  <Icon name="xmark" size={16} />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
+                {editError && (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-xs flex items-start gap-2.5">
+                    <span className="shrink-0 mt-0.5 text-rose-500"><Icon name="info" size={16} /></span>
+                    <span className="leading-relaxed">{editError}</span>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-navy-dark">{t('lbl_serial')} <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.serial_number}
+                    onChange={e => setEditForm(f => ({ ...f, serial_number: e.target.value }))}
+                    className="w-full px-4 py-2.5 text-sm font-mono border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-navy-dark">{t('col_grade')} <span className="text-rose-500">*</span></label>
+                    <select
+                      required
+                      value={editForm.grade}
+                      onChange={e => setEditForm(f => ({ ...f, grade: e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                    >
+                      <option value="Standard">Standard</option>
+                      <option value="Good">Good</option>
+                      <option value="Excellent">Excellent</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-navy-dark">{t('col_issue_date')} <span className="text-rose-500">*</span></label>
+                    <input
+                      type="date"
+                      required
+                      value={editForm.date_of_issue}
+                      onChange={e => setEditForm(f => ({ ...f, date_of_issue: e.target.value }))}
+                      className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-navy-dark">{t('lbl_place_of_issue')} <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.place_of_issue}
+                    onChange={e => setEditForm(f => ({ ...f, place_of_issue: e.target.value }))}
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCert(null)}
+                    className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    {t('btn_cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingEdit}
+                    className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {savingEdit ? t('btn_saving') : <><Icon name="pencil-1" size={16} /><span>{t('btn_save_changes')}</span></>}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );
