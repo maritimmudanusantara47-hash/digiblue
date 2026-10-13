@@ -14,7 +14,7 @@ const adminNav = [
   { href: '/admin/users', label: 'nav_users', icon: 'user-multiple-4' },
   { href: '/admin/courses', label: 'nav_courses', icon: 'books-2' },
   { href: '/admin/enrollments', label: 'nav_enrollments', icon: 'clipboard' },
-  { href: '/admin/batches', label: 'nav_batches', icon: 'calendar-3' },
+  { href: '/admin/batches', label: 'nav_batches', icon: 'calendar-days' },
   { href: '/admin/certificates', label: 'nav_certificates', icon: 'certificate-badge-1' },
 ];
 
