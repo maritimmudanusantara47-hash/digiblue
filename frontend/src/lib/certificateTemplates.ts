@@ -74,16 +74,16 @@ export function getCertificateTemplatesForCourse(
     rawSlug.includes('modular') ||
     levelName.toLowerCase().includes('single module');
 
-  // Case 1: Standalone Field Study Program
+  // Case 1: Standalone Field Study / Critical Thinking Program
   if (isFieldStudyOnly) {
-    return [getFieldStudyTemplate(isEn)];
+    return [getCriticalThinkingTemplate(isEn)];
   }
 
-  // Case 2: Foundation Level (Includes main Foundation CBEc + companion Field Study Certificate)
+  // Case 2: Foundation Level (Includes main Foundation CBEc + companion Critical Thinking Certificate)
   if (isFoundation) {
     return [
       getFoundationTemplate(isEn),
-      getFieldStudyTemplate(isEn),
+      getCriticalThinkingTemplate(isEn),
     ];
   }
 
@@ -181,50 +181,50 @@ function getFoundationTemplate(isEn: boolean): CertificateTemplate {
   };
 }
 
-function getFieldStudyTemplate(isEn: boolean): CertificateTemplate {
+function getCriticalThinkingTemplate(isEn: boolean): CertificateTemplate {
   return {
-    id: 'field_study',
-    levelCode: 'FIELD_STUDY',
-    badgeText: isEn ? 'Field Study Program' : 'Pelatihan Lapangan (Field Study)',
+    id: 'critical_thinking',
+    levelCode: 'CRITICAL_THINKING',
+    badgeText: isEn ? 'Critical Thinking Program' : 'Program Critical Thinking (Completion)',
     badgeStyle: {
       badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
       border: 'border-emerald-600',
       bg: 'bg-emerald-600',
       text: 'text-emerald-800',
     },
-    title: 'Training Course (Field Study) Certificate',
+    title: isEn ? 'Training Course (Critical Thinking) Certificate' : 'Sertifikat Training Course (Critical Thinking)',
     subtitle: isEn
-      ? 'Integrated Maritime Field Study Competency (1.5 ECTS)'
-      : 'Praktikum Lapangan Terpadu Konsorsium (30 Jam · 1.5 ECTS)',
-    categoryLabel: isEn ? 'Practical Field Study Credential' : 'Sertifikat Praktikum Lapangan',
+      ? 'Integrated Maritime Critical Thinking Competency (1.5 ECTS)'
+      : 'Critical Thinking Terpadu Konsorsium (30 Jam · 1.5 ECTS)',
+    categoryLabel: isEn ? 'Practical Critical Thinking Credential' : 'Sertifikat Critical Thinking',
     description: isEn
-      ? 'Specialized certificate for participants of the International Blue Economist Training Course / Field Study, including 30 hours of fieldwork and 1.5 ECTS credits.'
-      : 'Sertifikat khusus bagi peserta praktikum lapangan Training Course (Field Study) dengan beban 30 jam pembelajaran terpadu setara 1.5 ECTS credit transfer.',
-    imageFront: '/images/certificates/template_field_study_front.png',
-    imageBack: '/images/certificates/template_field_study_back.png',
+      ? 'Specialized certificate for participants of the International Blue Economist Training Course / Critical Thinking, including 30 hours of intensive coursework and 1.5 ECTS credits.'
+      : 'Sertifikat khusus bagi peserta penyelesaian tugas Critical Thinking International Blue Economist Training Course dengan beban 30 jam pembelajaran terpadu setara 1.5 ECTS credit transfer.',
+    imageFront: '/images/certificates/template_critical_thinking_front.png',
+    imageBack: '/images/certificates/template_critical_thinking_back.png',
     hasBack: true,
     frontHighlights: isEn
       ? [
           'Participant identity and training course title',
-          'Period and verified date of field study participation',
+          'Period and verified date of critical thinking participation',
           'Consortium issue date & official registration number (CBETC)',
           'Consortium presidential authorization seal',
         ]
       : [
-          'Identitas peserta dan nama program pelatihan lapangan',
-          'Periode & tanggal pelaksanaan praktikum observasi',
+          'Identitas peserta dan nama program pelatihan',
+          'Periode & tanggal pelaksanaan tugas critical thinking',
           'Nomor registrasi konsorsium resmi (format CBETC unik)',
           'Otorisasi & stempel kepemimpinan konsorsium maritim',
         ],
     backHighlights: isEn
       ? [
-          'Field study curriculum structure (30 Hours / 1.5 ECTS)',
+          'Critical thinking curriculum structure (30 Hours / 1.5 ECTS)',
           'Modules: Coastal Observation, Community Dialogue, Field FGD & Recommendation',
           'Evaluation and competence breakdown',
         ]
       : [
-          'Struktur kurikulum Field Study terperinci (30 Jam, 1.5 ECTS)',
-          'Materi: Observasi Lapangan, Dialog Komunitas, Riset Data, dan FGD',
+          'Struktur kurikulum Critical Thinking terperinci (30 Jam, 1.5 ECTS)',
+          'Materi: Analisis Masalah, Dialog Kebijakan, Riset Data, dan Solusi Strategis',
           'Transkrip capaian kompetensi praktis peserta',
         ],
     credibilityPoints: [
@@ -330,6 +330,8 @@ function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean)
     ],
   };
 }
+
+const getFieldStudyTemplate = getCriticalThinkingTemplate;
 
 function getSpecializationTemplate(courseTitle: string, isEn: boolean): CertificateTemplate {
   let cleanTitle = courseTitle;

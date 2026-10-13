@@ -24,7 +24,7 @@ export default function AdminCertificatesPage() {
   const [search, setSearch]       = useState('');
   const [syncing, setSyncing]     = useState<number | null>(null);
   const [downloading, setDownloading] = useState<number | null>(null);
-  const [downloadingFs, setDownloadingFs] = useState<number | null>(null);
+  const [downloadingCt, setDownloadingCt] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
 
   // Issue modal
@@ -170,15 +170,15 @@ export default function AdminCertificatesPage() {
     }
   };
 
-  const handleDownload = async (cert: Certificate, type?: 'field_study') => {
-    if (type === 'field_study') {
-      setDownloadingFs(cert.id);
+  const handleDownload = async (cert: Certificate, type?: 'critical_thinking' | 'field_study') => {
+    if (type === 'critical_thinking' || type === 'field_study') {
+      setDownloadingCt(cert.id);
     } else {
       setDownloading(cert.id);
     }
     try {
-      const urlPath = type === 'field_study'
-        ? `/admin/certificates/${cert.id}/download?type=field_study`
+      const urlPath = (type === 'critical_thinking' || type === 'field_study')
+        ? `/admin/certificates/${cert.id}/download?type=critical_thinking`
         : `/admin/certificates/${cert.id}/download`;
       const res = await api.get(urlPath, {
         responseType: 'blob',
@@ -187,7 +187,7 @@ export default function AdminCertificatesPage() {
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      const prefix = type === 'field_study' ? 'Sertifikat-Field-Study' : 'Sertifikat';
+      const prefix = (type === 'critical_thinking' || type === 'field_study') ? 'Sertifikat-Critical-Thinking' : 'Sertifikat';
       link.setAttribute('download', `${prefix}-${cert.user?.name ?? 'Peserta'}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
       document.body.appendChild(link);
       link.click();
@@ -198,8 +198,8 @@ export default function AdminCertificatesPage() {
     } catch {
       showError('Gagal Mengunduh', t('msg_download_fail'));
     } finally {
-      if (type === 'field_study') {
-        setDownloadingFs(null);
+      if (type === 'critical_thinking' || type === 'field_study') {
+        setDownloadingCt(null);
       } else {
         setDownloading(null);
       }
@@ -392,15 +392,15 @@ export default function AdminCertificatesPage() {
                           {downloading === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_pdf')}</>}
                         </button>
 
-                        {/* Download Field Study (Certificate of Completion) */}
-                        {cert.enrollment?.attended_field_trip && (
+                        {/* Download Critical Thinking (Certificate of Completion) */}
+                        {!cert.enrollment?.attended_field_trip && (
                           <button
-                            onClick={() => handleDownload(cert, 'field_study')}
-                            disabled={downloadingFs === cert.id}
+                            onClick={() => handleDownload(cert, 'critical_thinking')}
+                            disabled={downloadingCt === cert.id}
                             className="btn btn-gold btn-sm text-xs px-2.5 py-1"
-                            title="Unduh Sertifikat Field Study (Certificate of Completion)"
+                            title="Unduh Sertifikat Critical Thinking (Certificate of Completion)"
                           >
-                            {downloadingFs === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="certificate-badge-1" size={16} className="mr-1.5" />Field Study</>}
+                            {downloadingCt === cert.id ? <Icon name="hourglass" size={16} /> : <><Icon name="certificate-badge-1" size={16} className="mr-1.5" />Critical Thinking</>}
                           </button>
                         )}
 

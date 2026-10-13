@@ -154,8 +154,8 @@ class AdminCertificateController extends Controller
     {
         $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])->findOrFail($id);
 
-        if ($request->query('type') === 'field_study') {
-            return $this->downloadFieldStudy($cert);
+        if ($request->query('type') === 'critical_thinking' || $request->query('type') === 'field_study') {
+            return $this->downloadCriticalThinking($cert);
         }
 
         $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
@@ -204,24 +204,28 @@ class AdminCertificateController extends Controller
         return $pdf->download($filename);
     }
 
-    /** Download PDF Field Study (Certificate of Completion) */
-    public function downloadFieldStudy(Certificate $cert)
+    /** Download PDF Critical Thinking (Certificate of Completion) */
+    public function downloadCriticalThinking(Certificate $cert)
     {
         $layoutPath = storage_path('app/cert_layout.json');
         $layout = file_exists($layoutPath)
             ? json_decode(file_get_contents($layoutPath), true)
             : $this->defaultLayout();
 
-        $frontTemplatePath = file_exists(resource_path('images/template_field_study_front.png'))
-            ? resource_path('images/template_field_study_front.png')
-            : resource_path('images/Foundation.png');
+        $frontTemplatePath = file_exists(resource_path('images/template_critical_thinking_front.png'))
+            ? resource_path('images/template_critical_thinking_front.png')
+            : (file_exists(resource_path('images/template_field_study_front.png'))
+                ? resource_path('images/template_field_study_front.png')
+                : resource_path('images/Foundation.png'));
         $frontBase64 = file_exists($frontTemplatePath)
             ? base64_encode(file_get_contents($frontTemplatePath))
             : null;
 
-        $backTemplatePath = file_exists(resource_path('images/template_field_study_back.png'))
-            ? resource_path('images/template_field_study_back.png')
-            : resource_path('images/Foundation (2).png');
+        $backTemplatePath = file_exists(resource_path('images/template_critical_thinking_back.png'))
+            ? resource_path('images/template_critical_thinking_back.png')
+            : (file_exists(resource_path('images/template_field_study_back.png'))
+                ? resource_path('images/template_field_study_back.png')
+                : resource_path('images/Foundation (2).png'));
         $backBase64 = file_exists($backTemplatePath)
             ? base64_encode(file_get_contents($backTemplatePath))
             : null;
@@ -230,7 +234,11 @@ class AdminCertificateController extends Controller
         $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
         $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
 
-        $pdf = Pdf::loadView('certificates.template_field_study', [
+        $viewName = view()->exists('certificates.template_critical_thinking')
+            ? 'certificates.template_critical_thinking'
+            : 'certificates.template_field_study';
+
+        $pdf = Pdf::loadView($viewName, [
             'certificate' => $cert,
             'user' => $cert->user,
             'course' => $cert->enrollment->course,
@@ -240,10 +248,16 @@ class AdminCertificateController extends Controller
             'layout' => $layout,
         ])->setPaper('a4', 'landscape');
 
-        $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
+        $filename = "Sertifikat_Critical_Thinking_{$cert->user->name}_{$cert->serial_number}.pdf";
         $filename = str_replace(['/', ' '], ['_', '_'], $filename);
 
         return $pdf->download($filename);
+    }
+
+    /** Download PDF Field Study (Alias ke Completion / Critical Thinking) */
+    public function downloadFieldStudy(Certificate $cert)
+    {
+        return $this->downloadCriticalThinking($cert);
     }
 
     /* ──────────────────────────────────────────────
@@ -263,13 +277,21 @@ class AdminCertificateController extends Controller
             'qr_right' => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
             'back_title' => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
 
-            // Field Study / Completion template fields
-            'fs_recipient_name' => ['top' => 70.0, 'font_size' => 33.0, 'label' => 'FS: Nama Peserta'],
-            'fs_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'FS: Judul Pelatihan'],
-            'fs_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'FS: Tanggal Partisipasi'],
-            'fs_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'FS: Tempat & Tanggal Terbit'],
-            'fs_back_name' => ['top' => 25.0, 'left' => 32.0, 'font_size' => 13.0, 'label' => 'FS Belakang: Nama Peserta'],
-            'fs_back_reg_no' => ['top' => 29.5, 'left' => 57.0, 'font_size' => 13.0, 'label' => 'FS Belakang: No. Registrasi'],
+            // Critical Thinking & Field Study / Completion template fields
+            'fs_recipient_name' => ['top' => 70.0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
+            'fs_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
+            'fs_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
+            'fs_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
+            'fs_back_name' => ['top' => 25.0, 'left' => 32.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: Nama'],
+            'fs_back_reg_no' => ['top' => 29.5, 'left' => 57.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: No. Reg'],
+
+            // Alias ct_
+            'ct_recipient_name' => ['top' => 70.0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
+            'ct_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
+            'ct_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
+            'ct_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
+            'ct_back_name' => ['top' => 25.0, 'left' => 32.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: Nama'],
+            'ct_back_reg_no' => ['top' => 29.5, 'left' => 57.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: No. Reg'],
         ];
     }
 
@@ -326,18 +348,22 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($templateBackPath))
             : null;
 
-        $fsFrontPath = file_exists(resource_path('images/template_field_study_front.png'))
-            ? resource_path('images/template_field_study_front.png')
-            : resource_path('images/Foundation.png');
-        $fsFrontBase64 = file_exists($fsFrontPath)
-            ? base64_encode(file_get_contents($fsFrontPath))
+        $ctFrontPath = file_exists(resource_path('images/template_critical_thinking_front.png'))
+            ? resource_path('images/template_critical_thinking_front.png')
+            : (file_exists(resource_path('images/template_field_study_front.png'))
+                ? resource_path('images/template_field_study_front.png')
+                : resource_path('images/Foundation.png'));
+        $ctFrontBase64 = file_exists($ctFrontPath)
+            ? base64_encode(file_get_contents($ctFrontPath))
             : null;
 
-        $fsBackPath = file_exists(resource_path('images/template_field_study_back.png'))
-            ? resource_path('images/template_field_study_back.png')
-            : resource_path('images/Foundation (2).png');
-        $fsBackBase64 = file_exists($fsBackPath)
-            ? base64_encode(file_get_contents($fsBackPath))
+        $ctBackPath = file_exists(resource_path('images/template_critical_thinking_back.png'))
+            ? resource_path('images/template_critical_thinking_back.png')
+            : (file_exists(resource_path('images/template_field_study_back.png'))
+                ? resource_path('images/template_field_study_back.png')
+                : resource_path('images/Foundation (2).png'));
+        $ctBackBase64 = file_exists($ctBackPath)
+            ? base64_encode(file_get_contents($ctBackPath))
             : null;
 
         return response()->json([
@@ -347,8 +373,10 @@ class AdminCertificateController extends Controller
                 'foundation_base64' => $foundBase64,
                 'back_base64' => $backBase64,
                 'back_mime_type' => 'image/png',
-                'field_study_front_base64' => $fsFrontBase64,
-                'field_study_back_base64' => $fsBackBase64,
+                'critical_thinking_front_base64' => $ctFrontBase64,
+                'critical_thinking_back_base64' => $ctBackBase64,
+                'field_study_front_base64' => $ctFrontBase64,
+                'field_study_back_base64' => $ctBackBase64,
                 'width_mm' => 297,
                 'height_mm' => 210,
             ],

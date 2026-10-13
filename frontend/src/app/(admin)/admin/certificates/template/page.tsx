@@ -85,12 +85,26 @@ const PRESETS = {
     dateIssue: 'Jakarta, 11 June 2026',
     regNo: 'CBETC144062026',
   },
-  field_study: {
-    type: 'field_study',
+  critical_thinking: {
+    type: 'critical_thinking',
     name: 'Diana Supriati',
     serial: 'CBEC/ID/IX/20260187',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
-    level: 'Field Study / Training Course',
+    level: 'Critical Thinking / Training Course',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  field_study: {
+    type: 'critical_thinking',
+    name: 'Diana Supriati',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Critical Thinking / Training Course',
     grade: 'Excellent',
     date: 'June 11, 2026',
     place: 'Jakarta',
@@ -165,7 +179,7 @@ export default function CertificateTemplateAdminPage() {
     }).catch(() => { });
 
     api.get('/admin/certificates/template/image').then(res => {
-      const { base64, mime_type, foundation_base64, back_base64, back_mime_type, field_study_front_base64, field_study_back_base64 } = res.data.data;
+      const { base64, mime_type, foundation_base64, back_base64, back_mime_type, field_study_front_base64, field_study_back_base64, critical_thinking_front_base64, critical_thinking_back_base64 } = res.data.data;
       if (base64) {
         const specUrl = `data:${mime_type || 'image/png'};base64,${base64}`;
         setTemplateImg(specUrl);
@@ -175,8 +189,10 @@ export default function CertificateTemplateAdminPage() {
         setTemplateImgFound(`data:image/png;base64,${foundation_base64}`);
       }
       if (back_base64) setTemplateBackImg(`data:${back_mime_type || 'image/png'};base64,${back_base64}`);
-      if (field_study_front_base64) setTemplateImgFsFront(`data:image/png;base64,${field_study_front_base64}`);
-      if (field_study_back_base64) setTemplateImgFsBack(`data:image/png;base64,${field_study_back_base64}`);
+      const ctFront = critical_thinking_front_base64 || field_study_front_base64;
+      if (ctFront) setTemplateImgFsFront(`data:image/png;base64,${ctFront}`);
+      const ctBack = critical_thinking_back_base64 || field_study_back_base64;
+      if (ctBack) setTemplateImgFsBack(`data:image/png;base64,${ctBack}`);
     }).catch(() => { });
   }, []);
 
@@ -257,13 +273,13 @@ export default function CertificateTemplateAdminPage() {
   const handleDownload = async () => {
     try {
       setDownloading(true);
-      const isFs = sample.type === 'field_study';
-      const endpoint = isFs ? '/admin/certificates/1/download?type=field_study' : '/admin/certificates/1/download';
+      const isCt = sample.type === 'critical_thinking' || sample.type === 'field_study';
+      const endpoint = isCt ? '/admin/certificates/1/download?type=critical_thinking' : '/admin/certificates/1/download';
       const res = await api.get(endpoint, { responseType: 'blob' });
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = isFs ? 'Contoh-Sertifikat-Field-Study.pdf' : 'Contoh-Sertifikat.pdf';
+      a.download = isCt ? 'Contoh-Sertifikat-Critical-Thinking.pdf' : 'Contoh-Sertifikat.pdf';
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     } catch { showError('Gagal!', 'Gagal mengunduh PDF contoh.'); }
@@ -294,7 +310,7 @@ export default function CertificateTemplateAdminPage() {
               type="button"
               onClick={() => {
                 setActiveSide('front');
-                setSelectedKey(sample.type === 'field_study' ? 'fs_recipient_name' : 'recipient_name');
+                setSelectedKey((sample.type === 'critical_thinking' || sample.type === 'field_study') ? 'fs_recipient_name' : 'recipient_name');
               }}
               className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${activeSide === 'front' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-slate-400 hover:text-white'}`}
             >
@@ -304,7 +320,7 @@ export default function CertificateTemplateAdminPage() {
               type="button"
               onClick={() => {
                 setActiveSide('back');
-                setSelectedKey(sample.type === 'field_study' ? 'fs_back_name' : 'back_title');
+                setSelectedKey((sample.type === 'critical_thinking' || sample.type === 'field_study') ? 'fs_back_name' : 'back_title');
               }}
               className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${activeSide === 'back' ? 'bg-indigo-600 text-white font-semibold shadow-xs' : 'text-slate-400 hover:text-white'}`}
             >
@@ -334,12 +350,12 @@ export default function CertificateTemplateAdminPage() {
             </button>
             <button
               onClick={() => {
-                setSample(PRESETS.field_study);
+                setSample(PRESETS.critical_thinking);
                 setSelectedKey(activeSide === 'front' ? 'fs_recipient_name' : 'fs_back_name');
               }}
-              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.type === 'field_study' ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
+              className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${(sample.type === 'critical_thinking' || sample.type === 'field_study') ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
             >
-              Field Study
+              Critical Thinking
             </button>
           </div>
 
@@ -419,18 +435,18 @@ export default function CertificateTemplateAdminPage() {
               {activeSide === 'front' ? (
                 <>
                   {/* FRONT TEMPLATE */}
-                  {sample.type === 'field_study' ? (
+                  {(sample.type === 'critical_thinking' || sample.type === 'field_study') ? (
                     <>
                       {templateImgFsFront
-                        ? <img src={templateImgFsFront} alt="Template Field Study Depan" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template field study depan...</div>
+                        ? <img src={templateImgFsFront} alt="Template Critical Thinking Depan" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template critical thinking depan...</div>
                       }
 
                       {/* Recipient Name */}
                       <div
                         onClick={() => { setSelectedKey('fs_recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_recipient_name?.top ?? 70.0), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.fs_recipient_name?.font_size ?? 32.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_recipient_name?.top ?? 70.0), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.fs_recipient_name?.font_size ?? 33.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         {sample.name}
                       </div>
@@ -448,7 +464,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_date_participation'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_participation' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_date_participation?.top ?? 129.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_participation?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_date_participation?.top ?? 134.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_participation?.font_size ?? 14.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         <span className="px-2" style={{ backgroundColor: '#F8F8F8' }}>on {sample.dateParticipation || '20 May – 11 June 2026'}</span>
                       </div>
@@ -457,7 +473,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_date_issue'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_issue' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_date_issue?.top ?? 141.0), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_issue?.font_size ?? 12.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_date_issue?.top ?? 141.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_issue?.font_size ?? 14.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         <span className="px-2" style={{ backgroundColor: '#F8F8F8' }}>{sample.dateIssue || 'Jakarta, 11 June 2026'}</span>
                       </div>
@@ -546,11 +562,11 @@ export default function CertificateTemplateAdminPage() {
               ) : (
                 <>
                   {/* BACK TEMPLATE */}
-                  {sample.type === 'field_study' ? (
+                  {(sample.type === 'critical_thinking' || sample.type === 'field_study') ? (
                     <>
                       {templateImgFsBack
-                        ? <img src={templateImgFsBack} alt="Template Field Study Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template field study belakang...</div>
+                        ? <img src={templateImgFsBack} alt="Template Critical Thinking Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template critical thinking belakang...</div>
                       }
 
                       {/* Back Name */}
@@ -698,8 +714,8 @@ export default function CertificateTemplateAdminPage() {
                 <div className="font-semibold text-indigo-300 flex items-center gap-1.5 mb-1">
                   <Ico.Info /> Desain Halaman Belakang
                 </div>
-                {sample.type === 'field_study'
-                  ? 'Struktur kurikulum Field Study / Training Course (30 Jam, 1.5 ECTS) resmi konsorsium.'
+                {(sample.type === 'critical_thinking' || sample.type === 'field_study')
+                  ? 'Struktur kurikulum Critical Thinking / Completion (30 Jam, 1.5 ECTS) resmi konsorsium.'
                   : 'Template background unit kompetensi resmi konsorsium. Judul di atas tabel dirender dinamis.'
                 }
               </div>
@@ -715,7 +731,7 @@ export default function CertificateTemplateAdminPage() {
 
               {openSection === 'fields' && (
                 <div className="px-3 pb-3 space-y-1">
-                  {(sample.type === 'field_study'
+                  {((sample.type === 'critical_thinking' || sample.type === 'field_study')
                     ? (activeSide === 'front' ? FIELD_LIST_FS_FRONT : FIELD_LIST_FS_BACK)
                     : (activeSide === 'front' ? FIELD_LIST_FRONT : FIELD_LIST_BACK)
                   ).map(({ key, label }) => (
@@ -825,7 +841,7 @@ export default function CertificateTemplateAdminPage() {
 
               {openSection === 'preview' && (
                 <div className="px-4 pb-4 space-y-3">
-                  {sample.type === 'field_study' ? (
+                  {(sample.type === 'critical_thinking' || sample.type === 'field_study') ? (
                     <>
                       {/* Nama Peserta */}
                       <div>

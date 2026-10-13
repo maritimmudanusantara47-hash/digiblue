@@ -58,10 +58,10 @@ class CertificateController extends Controller
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
-        if ($request->query('type') === 'field_study') {
-            if (! $cert->enrollment || ! $cert->enrollment->attended_field_trip) {
+        if ($request->query('type') === 'critical_thinking' || $request->query('type') === 'field_study') {
+            if (! $cert->enrollment || $cert->enrollment->attended_field_trip) {
                 return response()->json([
-                    'message' => 'Peserta tidak terdaftar atau belum menyelesaikan Field Study.',
+                    'message' => 'Peserta mengikuti Field Study (bukan jalur Critical Thinking).',
                 ], 403);
             }
 
@@ -70,16 +70,20 @@ class CertificateController extends Controller
                 ? json_decode(file_get_contents($layoutPath), true)
                 : [];
 
-            $frontTemplatePath = file_exists(resource_path('images/template_field_study_front.png'))
-                ? resource_path('images/template_field_study_front.png')
-                : resource_path('images/Foundation.png');
+            $frontTemplatePath = file_exists(resource_path('images/template_critical_thinking_front.png'))
+                ? resource_path('images/template_critical_thinking_front.png')
+                : (file_exists(resource_path('images/template_field_study_front.png'))
+                    ? resource_path('images/template_field_study_front.png')
+                    : resource_path('images/Foundation.png'));
             $frontBase64 = file_exists($frontTemplatePath)
                 ? base64_encode(file_get_contents($frontTemplatePath))
                 : null;
 
-            $backTemplatePath = file_exists(resource_path('images/template_field_study_back.png'))
-                ? resource_path('images/template_field_study_back.png')
-                : resource_path('images/Foundation (2).png');
+            $backTemplatePath = file_exists(resource_path('images/template_critical_thinking_back.png'))
+                ? resource_path('images/template_critical_thinking_back.png')
+                : (file_exists(resource_path('images/template_field_study_back.png'))
+                    ? resource_path('images/template_field_study_back.png')
+                    : resource_path('images/Foundation (2).png'));
             $backBase64 = file_exists($backTemplatePath)
                 ? base64_encode(file_get_contents($backTemplatePath))
                 : null;
@@ -88,7 +92,11 @@ class CertificateController extends Controller
             $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
             $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
 
-            $pdf = Pdf::loadView('certificates.template_field_study', [
+            $viewName = view()->exists('certificates.template_critical_thinking')
+                ? 'certificates.template_critical_thinking'
+                : 'certificates.template_field_study';
+
+            $pdf = Pdf::loadView($viewName, [
                 'certificate'         => $cert,
                 'user'                => $cert->user,
                 'course'              => $cert->enrollment->course,
@@ -98,7 +106,7 @@ class CertificateController extends Controller
                 'layout'              => $layout,
             ])->setPaper('a4', 'landscape');
 
-            $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
+            $filename = "Sertifikat_Critical_Thinking_{$cert->user->name}_{$cert->serial_number}.pdf";
             $filename = str_replace(['/', ' '], ['_', '_'], $filename);
 
             return $pdf->download($filename);
