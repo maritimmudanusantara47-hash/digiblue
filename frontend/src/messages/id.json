@@ -249,11 +249,27 @@
     "reg_err_pwd": "Password minimal 8 karakter",
     "reg_err_country": "Pilih Negara asal",
     "reg_err_pwd_match": "Konfirmasi password tidak cocok",
-    "reg_failed_fallback": "Registrasi gagal. Coba lagi.",
     "btn_register": "Buat Akun",
     "btn_registering": "Mendaftarkan...",
     "has_account": "Sudah punya akun?",
-    "login_here": "Masuk di sini"
+    "login_here": "Masuk di sini",
+    "forgot_password_link": "Lupa password?",
+    "forgot_title": "Atur Ulang Password",
+    "forgot_desc": "Masukkan alamat email Anda untuk menerima instruksi pemulihan akun.",
+    "forgot_btn_submit": "Kirim Tautan Pemulihan",
+    "forgot_btn_submitting": "Mengirim...",
+    "forgot_back_to_login": "Kembali ke Halaman Masuk",
+    "forgot_success_title": "Periksa Email Anda",
+    "forgot_success_desc": "Kami telah mengirimkan tautan pemulihan password ke alamat email:",
+    "forgot_resend": "Kirim ulang email",
+    "forgot_resend_wait": "Kirim ulang dalam",
+    "forgot_contact_support": "Butuh bantuan langsung? Hubungi Tim Dukungan",
+    "forgot_open_mail": "Buka Aplikasi Email",
+    "back_to_home": "Kembali ke Beranda",
+    "auth_terms_notice": "Dengan melanjutkan, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi DigiBlue.",
+    "pwd_strength_weak": "Lemah",
+    "pwd_strength_medium": "Sedang",
+    "pwd_strength_strong": "Kuat"
   },
   "StudentPortal": {
     "nav_dashboard": "Dashboard",
@@ -920,7 +936,10 @@
     "quote": "Jadilah bagian dari ekonomi yang berkelanjutan untuk masa depan.",
     "stat_trained": "Peserta Terlatih",
     "stat_programs": "Program Sertifikasi",
-    "stat_countries": "Negara"
+    "stat_countries": "Negara Terjangkau",
+    "hero_title": "Gerbang Pendidikan & Sertifikasi Ekonomi Biru Terakreditasi Dunia",
+    "hero_desc": "Bergabung bersama ribuan profesional maritim dalam mempercepat karier berkelanjutan laut masa depan.",
+    "partner_title": "The Blue Economist International Association & Maritim Muda Nusantara"
   },
   "CoursesPage": {
     "badge": "Katalog Sertifikasi & Pelatihan Resmi",
