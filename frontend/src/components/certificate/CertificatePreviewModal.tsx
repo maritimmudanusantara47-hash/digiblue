@@ -256,6 +256,12 @@ export default function CertificatePreviewModal({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               {/* Left: What is shown on this side */}
               <div className="md:col-span-2 space-y-2">
+                {currentTemplate.attendanceConditionNote && (
+                  <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[11px] text-amber-200 flex items-start gap-2 mb-2">
+                    <Icon name="info-circle" size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                    <span>{currentTemplate.attendanceConditionNote}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500" />
                   <h4 className="font-bold text-white text-xs uppercase tracking-wider">

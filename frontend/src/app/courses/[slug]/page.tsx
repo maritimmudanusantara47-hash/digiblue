@@ -283,11 +283,23 @@ export default function PublicCourseDetailPage() {
                               {contents.map((item, itemIdx) => {
                                 const isPdf = item.content_type === 'pdf_module';
                                 const isVideo = item.content_type === 'video_embed' || item.content_type === 'oral_video_task';
-                                const iconName = isPdf ? 'file-multiple' : isVideo ? 'play' : 'clipboard';
+                                const isFieldStudy = item.content_type === 'field_study';
+                                const isCriticalThinking = item.content_type === 'critical_thinking';
+                                const iconName = isPdf
+                                  ? 'file-multiple'
+                                  : isVideo
+                                  ? 'play'
+                                  : isFieldStudy
+                                  ? 'water-drop-1'
+                                  : 'clipboard';
                                 const labelText = isPdf
                                   ? 'Dokumen PDF'
                                   : isVideo
                                   ? 'Video'
+                                  : isFieldStudy
+                                  ? 'Field Study (Opsi 2 Sertifikat)'
+                                  : isCriticalThinking
+                                  ? 'Evaluasi Critical Thinking'
                                   : item.content_type === 'mcq_quiz'
                                   ? 'Kuis MCQ'
                                   : 'Tugas';
@@ -298,18 +310,29 @@ export default function PublicCourseDetailPage() {
                                     className="py-2.5 flex items-center justify-between gap-3 text-xs sm:text-sm text-slate-600"
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                      <span className="text-slate-400 shrink-0">
+                                      <span className={`shrink-0 ${isFieldStudy ? 'text-emerald-600' : 'text-slate-400'}`}>
                                         <Icon
                                           name={iconName}
                                           size={15}
-                                          className="text-navy-light"
+                                          className={isFieldStudy ? 'text-emerald-600' : 'text-navy-light'}
                                         />
                                       </span>
-                                      <span className="font-medium text-navy-dark truncate">
-                                        {item.title}
-                                      </span>
+                                      <div className="min-w-0">
+                                        <span className="font-medium text-navy-dark truncate block">
+                                          {item.title}
+                                        </span>
+                                        {isFieldStudy && (
+                                          <span className="text-[10px] text-emerald-700 block mt-0.5">
+                                            Konfirmasi Keikutsertaan: Mendapatkan Sertifikat CBEc + Field Study jika ikut
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
-                                    <span className="text-[11px] text-slate-400 shrink-0 font-semibold">
+                                    <span className={`text-[11px] shrink-0 font-semibold px-2 py-0.5 rounded-md ${
+                                      isFieldStudy
+                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                        : 'text-slate-400'
+                                    }`}>
                                       {labelText}
                                     </span>
                                   </li>

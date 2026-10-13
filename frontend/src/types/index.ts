@@ -101,7 +101,8 @@ export type ContentType =
   | 'mcq_quiz'
   | 'essay_task'
   | 'oral_video_task'
-  | 'critical_thinking';
+  | 'critical_thinking'
+  | 'field_study';
 
 export type AttachmentCategory = 'case_study_brief' | 'template' | 'example_guide' | 'additional';
 

@@ -1748,13 +1748,30 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
           </div>
         )}
         <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-8 text-center flex flex-col items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-5xl"><Icon name="water-drop-1" size={48} /></div>
-          <div>
-            <h3 className="text-xl font-extrabold text-emerald-700">Kehadiran Terkonfirmasi!</h3>
-            <p className="text-emerald-600 text-sm mt-1">Kehadiran Field Study kamu sudah dikonfirmasi oleh admin.</p>
+          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-5xl">
+            <Icon name="water-drop-1" size={48} className="text-emerald-600" />
           </div>
-          <div className="bg-emerald-100 rounded-xl px-5 py-3 text-emerald-700 text-sm">
-            <Icon name="check-circle-1" size={16} className="mr-1.5" />Modul <strong>Case-Study Essay Examination — Critical Thinking</strong> telah terkunci secara otomatis
+          <div>
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
+              Kehadiran Divalidasi
+            </span>
+            <h3 className="text-xl font-extrabold text-emerald-800 mt-2">
+              Kehadiran Field Study Terkonfirmasi!
+            </h3>
+            <p className="text-emerald-700 text-sm mt-1 max-w-lg">
+              Kehadiran Field Study kamu sudah dikonfirmasi resmi oleh admin. Modul Case-Study Critical Thinking otomatis dibebaskan.
+            </p>
+          </div>
+
+          <div className="bg-white/80 border border-emerald-200 rounded-2xl p-4 max-w-md w-full text-left shadow-2xs space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+              <Icon name="certificate-badge-1" size={16} className="text-emerald-600" />
+              <span>Sertifikat yang Akan Diterbitkan:</span>
+            </div>
+            <ul className="text-xs text-emerald-800 space-y-1.5 pl-6 list-disc">
+              <li><strong>Sertifikat CBEc Specialization</strong> (Sertifikasi Kompetensi Utama)</li>
+              <li><strong>Sertifikat Field Study Specialization</strong> (Praktikum Lapangan 1.5 ECTS)</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -1771,21 +1788,47 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
             <MarkdownViewer content={content.instruction_text} />
           </div>
         )}
-        <div className={`rounded-2xl border-2 p-6 flex flex-col items-center gap-4 text-center ${attending ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
-          <div className="text-5xl"><Icon name={attending ? "hand-stop" : "pen-to-square"} size={48} /></div>
+        <div className={`rounded-2xl border-2 p-6 sm:p-8 flex flex-col items-center gap-4 text-center ${attending ? 'bg-emerald-50/80 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
+          <div className="text-5xl">
+            <Icon name={attending ? "water-drop-1" : "pen-to-square"} size={48} className={attending ? 'text-emerald-600' : 'text-slate-500'} />
+          </div>
           <div>
-            <h3 className={`text-lg font-extrabold ${attending ? 'text-emerald-700' : 'text-slate-600'}`}>
-              {attending ? 'Kamu memilih: Mengikuti Field Study' : 'Kamu memilih: Tidak Mengikuti Field Study'}
-            </h3>
-            <p className={`text-sm mt-1 ${attending ? 'text-emerald-600' : 'text-slate-500'}`}>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${attending ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}`}>
+              {attending ? 'Mengikuti Field Study' : 'Tidak Mengikuti Field Study'}
+            </span>
+            <h3 className={`text-lg sm:text-xl font-extrabold mt-2 ${attending ? 'text-emerald-800' : 'text-slate-800'}`}>
               {attending
-                ? 'Menunggu konfirmasi kehadiran dari admin.'
-                : 'Kamu perlu mengerjakan modul Critical Thinking sebagai pengganti Field Study.'}
+                ? 'Kamu memilih: Mengikuti Field Study Specialization'
+                : 'Kamu memilih: Tidak Mengikuti Field Study'}
+            </h3>
+            <p className={`text-sm mt-1 max-w-lg ${attending ? 'text-emerald-700' : 'text-slate-600'}`}>
+              {attending
+                ? 'Menunggu verifikasi kehadiran oleh admin di lokasi. Jika tuntas, kamu berhak atas 2 Sertifikat: CBEc Specialization + Field Study Specialization.'
+                : 'Kamu hanya mendapatkan Sertifikat CBEc Specialization (tidak mendapatkan sertifikat Field Study). Kamu wajib menyelesaikan modul Critical Thinking untuk kelulusan.'}
             </p>
           </div>
+
+          {/* Reward Certificate Information */}
+          <div className="bg-white/90 border border-slate-200 rounded-xl p-3.5 max-w-md w-full text-left text-xs space-y-1.5">
+            <div className="font-bold text-slate-800 flex items-center gap-2">
+              <Icon name="shield-2-check" size={15} className={attending ? 'text-emerald-600' : 'text-navy'} />
+              <span>Status Sertifikat Kelulusan:</span>
+            </div>
+            {attending ? (
+              <p className="text-emerald-800 pl-6 leading-relaxed">
+                🎓 <strong>2 Sertifikat:</strong> Sertifikat CBEc Specialization + Sertifikat Field Study Specialization (setelah diverifikasi admin).
+              </p>
+            ) : (
+              <p className="text-slate-600 pl-6 leading-relaxed">
+                📄 <strong>1 Sertifikat:</strong> Hanya Sertifikat CBEc Specialization (tanpa sertifikat Field Study) setelah menyelesaikan modul Critical Thinking.
+              </p>
+            )}
+          </div>
+
           {attending && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-amber-700 text-sm flex items-center gap-2">
-              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span> Admin akan memverifikasi kehadiran kamu
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-amber-800 text-xs sm:text-sm flex items-center gap-2">
+              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span>
+              <span>Admin akan memverifikasi kehadiran kamu pada sesi pelaksanaan lapangan</span>
             </div>
           )}
         </div>
@@ -1804,43 +1847,78 @@ function FieldStudyTask({ content, enrollment, enrollmentId, submission, onDone,
       )}
 
       {/* Confirmation Card */}
-      <div className="card flex flex-col gap-6">
-        <div className="text-center">
-          <div className="text-5xl mb-3"><Icon name="water-drop-1" size={48} /></div>
-          <h3 className="text-xl font-extrabold text-navy-dark">Apakah kamu mengikuti Field Study?</h3>
-          <p className="text-slate-500 text-sm mt-2">
-            Konfirmasi kehadiranmu. Pilihanmu akan menentukan modul apa yang perlu dikerjakan selanjutnya.
+      <div className="card flex flex-col gap-6 p-6 sm:p-8">
+        <div className="text-center max-w-xl mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto mb-3 shadow-xs">
+            <Icon name="water-drop-1" size={36} />
+          </div>
+          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider border border-emerald-200/60">
+            Section Field Study Specialization
+          </span>
+          <h3 className="text-xl sm:text-2xl font-extrabold text-navy-dark mt-2.5">
+            Apakah kamu mengikuti Field Study?
+          </h3>
+          <p className="text-slate-600 text-xs sm:text-sm mt-2 leading-relaxed">
+            Konfirmasikan keikutsertaanmu. Pilihan ini menentukan jumlah sertifikat resmi yang akan kamu peroleh serta modul evaluasi yang wajib diselesaikan.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {/* Yes */}
+        {/* Comparison Callout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-900 space-y-1">
+            <strong className="block font-bold text-emerald-800">✅ Jika Mengikuti Field Study:</strong>
+            <p className="text-emerald-700 leading-relaxed">
+              Mendapatkan <strong>2 Sertifikat</strong> (CBEc Specialization + Field Study Specialization). Modul Critical Thinking otomatis dibebaskan.
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 space-y-1">
+            <strong className="block font-bold text-slate-800">ℹ️ Jika Tidak Mengikuti:</strong>
+            <p className="text-slate-600 leading-relaxed">
+              Hanya mendapatkan <strong>1 Sertifikat</strong> (CBEc Specialization). Kamu wajib menyelesaikan modul Critical Thinking untuk kelulusan.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* Yes: Attend Field Study */}
           <button
             type="button"
             onClick={() => handleConfirm(true)}
             disabled={saving}
-            className="group flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center text-3xl transition-colors">
-              <Icon name="hand-stop" size={16} />
+            className="group flex flex-col items-center gap-3.5 p-6 rounded-2xl border-2 border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/70 hover:shadow-md transition-all text-center cursor-pointer relative"
+          >
+            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+              Mendapatkan 2 Sertifikat
+            </span>
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 group-hover:bg-emerald-200 text-emerald-700 flex items-center justify-center text-3xl transition-colors shadow-2xs">
+              <Icon name="hand-stop" size={26} />
             </div>
             <div>
-              <p className="font-bold text-emerald-700">Ya, Saya Mengikuti</p>
-              <p className="text-xs text-slate-500 mt-1">Modul Critical Thinking akan terkunci</p>
+              <p className="font-extrabold text-base text-emerald-800">Ya, Saya Mengikuti</p>
+              <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
+                Mendapatkan Sertifikat CBEc + Field Study Specialization (1.5 ECTS). Modul Critical Thinking dibebaskan.
+              </p>
             </div>
           </button>
 
-          {/* No */}
+          {/* No: Don't attend Field Study */}
           <button
             type="button"
             onClick={() => handleConfirm(false)}
             disabled={saving}
-            className="group flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all text-center">
-            <div className="w-14 h-14 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center text-3xl transition-colors">
-              <Icon name="pen-to-square" size={16} />
+            className="group flex flex-col items-center gap-3.5 p-6 rounded-2xl border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md transition-all text-center cursor-pointer relative"
+          >
+            <span className="text-[10px] font-extrabold text-slate-700 bg-slate-100 border border-slate-300 px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+              Mendapatkan 1 Sertifikat
+            </span>
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 group-hover:bg-slate-200 text-slate-700 flex items-center justify-center text-3xl transition-colors shadow-2xs">
+              <Icon name="pen-to-square" size={26} />
             </div>
             <div>
-              <p className="font-bold text-slate-700">Tidak, Saya Tidak Ikut</p>
-              <p className="text-xs text-slate-500 mt-1">Kamu perlu mengerjakan modul Critical Thinking</p>
+              <p className="font-extrabold text-base text-slate-800">Tidak, Saya Tidak Ikut</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Hanya mendapatkan Sertifikat CBEc Specialization. Wajib menyelesaikan modul Critical Thinking untuk lulus.
+              </p>
             </div>
           </button>
         </div>

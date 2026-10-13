@@ -24,11 +24,14 @@ export interface CertificateTemplate {
     title: string;
     desc: string;
   }[];
+  isOptionalAttendance?: boolean;
+  attendanceConditionNote?: string;
 }
 
 /**
  * Returns mapped certificate template(s) for a given course.
- * Foundation courses return both Foundation CBEc and Field Study certificates.
+ * - Foundation courses return both Foundation CBEc and Field Study certificates.
+ * - Specialization courses return both Specialization CBEc and Field Study Specialization certificates (with optional attendance condition).
  */
 export function getCertificateTemplatesForCourse(
   course: Course | null,
@@ -37,7 +40,10 @@ export function getCertificateTemplatesForCourse(
   const isEn = locale === 'en';
 
   if (!course) {
-    return [getDefaultSpecTemplate('Certified Blue Economist', isEn)];
+    return [
+      getDefaultSpecTemplate('Certified Blue Economist', isEn),
+      getFieldStudySpecializationTemplate('Certified Blue Economist', isEn),
+    ];
   }
 
   const rawCode = (course.certification_level?.code ?? '').toUpperCase();
@@ -92,7 +98,13 @@ export function getCertificateTemplatesForCourse(
   }
 
   // Case 5: Specialization Track (SPEC) or Default
-  return [getSpecializationTemplate(rawTitle, isEn)];
+  // Every specialization course contains a field study section.
+  // Participating grants both CBEc Specialization + Field Study Specialization.
+  // Not participating grants only the CBEc Specialization certificate.
+  return [
+    getSpecializationTemplate(rawTitle, isEn),
+    getFieldStudySpecializationTemplate(rawTitle, isEn),
+  ];
 }
 
 function getFoundationTemplate(isEn: boolean): CertificateTemplate {
@@ -229,6 +241,84 @@ function getFieldStudyTemplate(isEn: boolean): CertificateTemplate {
         desc: isEn
           ? 'Awarded only upon completion and verification of on-site fieldwork.'
           : 'Diterbitkan khusus bagi peserta yang tervalidasi hadir di lokasi.',
+      },
+      {
+        icon: 'file-multiple',
+        title: isEn ? 'Two-sided Transcript' : 'Transkrip 2 Halaman Lengkap',
+        desc: isEn
+          ? 'Front certificate and detailed curriculum transcript on reverse side.'
+          : 'Tampak depan sertifikat dan tampak belakang transkrip kompetensi.',
+      },
+    ],
+  };
+}
+
+function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean): CertificateTemplate {
+  return {
+    id: 'field_study_spec',
+    levelCode: 'FIELD_STUDY',
+    badgeText: isEn ? 'Field Study Specialization' : 'Field Study Specialization',
+    badgeStyle: {
+      badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      border: 'border-emerald-600',
+      bg: 'bg-emerald-600',
+      text: 'text-emerald-800',
+    },
+    title: isEn
+      ? `Training Course (Field Study) — ${courseTitle}`
+      : `Sertifikat Praktikum Lapangan (Field Study) — ${courseTitle}`,
+    subtitle: isEn
+      ? 'Specialization Integrated Fieldwork (30 Hours · 1.5 ECTS)'
+      : 'Praktikum Lapangan Terpadu Peminatan Spesialisasi (30 Jam · 1.5 ECTS)',
+    categoryLabel: isEn ? 'Field Study Specialization' : 'Field Study Specialization',
+    description: isEn
+      ? 'Official companion certificate earned by participants who confirm and attend the Specialization Field Study. Attending grants BOTH certificates (CBEc Specialization + Field Study Specialization). Not attending grants only the CBEc Specialization certificate.'
+      : 'Sertifikat pendamping resmi bagi peserta kursus Specialization yang mengonfirmasi & mengikuti kegiatan Field Study. Jika mengikuti, peserta mendapatkan 2 Sertifikat (CBEc Specialization + Field Study Specialization). Jika tidak mengikuti, peserta tetap lulus dan hanya mendapatkan Sertifikat CBEc Specialization.',
+    imageFront: '/images/certificates/template_field_study_front.png',
+    imageBack: '/images/certificates/template_field_study_back.png',
+    hasBack: true,
+    isOptionalAttendance: true,
+    attendanceConditionNote: isEn
+      ? 'Awarded upon confirming and completing the Field Study program. If you do not participate, you will receive only the CBEc Specialization certificate.'
+      : 'Didapatkan jika mengonfirmasi & mengikuti program Field Study. Jika tidak mengikuti, kamu hanya mendapatkan Sertifikat CBEc Specialization.',
+    frontHighlights: isEn
+      ? [
+          'Recipient identity and specialization field study program',
+          'Period and verified date of field study fieldwork',
+          'Official CBETC registration serial number',
+          'Consortium presidential authorization seal & signatures',
+        ]
+      : [
+          'Identitas peserta dan nama program peminatan spesialisasi',
+          'Periode & tanggal pelaksanaan praktikum observasi lapangan',
+          'Nomor seri registrasi konsorsium resmi (format unik CBETC)',
+          'Otorisasi & stempel kepemimpinan konsorsium maritim',
+        ],
+    backHighlights: isEn
+      ? [
+          'Field study specialized curriculum structure (30 Hours / 1.5 ECTS)',
+          'Specialized modules: Coastal Industry Observation, Community Dialogue & Sectoral FGD',
+          'Transcript of practical competencies and evaluation breakdown',
+        ]
+      : [
+          'Struktur kurikulum Field Study terperinci (30 Jam, 1.5 ECTS)',
+          'Materi spesialisasi: Observasi Industri Pesisir, Dialog Komunitas, Riset Sektoral, dan FGD',
+          'Transkrip capaian kompetensi praktis peserta terverifikasi',
+        ],
+    credibilityPoints: [
+      {
+        icon: 'water-drop-1',
+        title: isEn ? '1.5 ECTS Credit Transfer' : 'Setara 1.5 ECTS Credit',
+        desc: isEn
+          ? 'Standardized 30-hour workload recognized for university credits.'
+          : 'Beban 30 jam pembelajaran praktis berstandar akademik Eropa.',
+      },
+      {
+        icon: 'shield-2-check',
+        title: isEn ? 'Verified On-site Fieldwork' : 'Verifikasi Kehadiran Nyata',
+        desc: isEn
+          ? 'Awarded only upon completion and attendance verification of on-site fieldwork.'
+          : 'Diterbitkan khusus bagi peserta yang terverifikasi hadir di lokasi.',
       },
       {
         icon: 'file-multiple',

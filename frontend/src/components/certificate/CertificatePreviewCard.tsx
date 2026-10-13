@@ -58,12 +58,18 @@ export default function CertificatePreviewCard({
         </div>
       </div>
 
-      {/* ── Multi-template selector (if course provides > 1 cert, e.g. Foundation CBEc + Field Study) ── */}
+      {/* ── Multi-template selector (e.g. CBEc Specialization + Field Study Specialization) ── */}
       {templates.length > 1 && (
-        <div className="mb-3.5">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-            {isEn ? 'Available Certifications:' : 'Sertifikat pada Kursus Ini:'}
-          </p>
+        <div className="mb-3.5 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              {isEn ? 'Available Certifications:' : 'Sertifikat pada Kursus Ini:'}
+            </p>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+              {isEn ? 'Dual Certificate Option' : 'Opsi 2 Sertifikat'}
+            </span>
+          </div>
+
           <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-50 border border-slate-200/80 rounded-xl">
             {templates.map((tpl, idx) => {
               const isSelected = idx === selectedTemplateIndex;
@@ -82,10 +88,27 @@ export default function CertificatePreviewCard({
                   }`}
                   title={tpl.title}
                 >
-                  {tpl.categoryLabel}
+                  <span className="truncate block">{tpl.categoryLabel}</span>
                 </button>
               );
             })}
+          </div>
+
+          {/* Callout Kebijakan Keikutsertaan Field Study */}
+          <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-[11px] leading-relaxed text-amber-950 flex items-start gap-2.5">
+            <span className="text-amber-600 shrink-0 mt-0.5">
+              <Icon name="info-circle" size={14} />
+            </span>
+            <div>
+              <strong className="text-amber-900 block font-bold mb-0.5">
+                {isEn ? 'Field Study Participation Note:' : 'Ketentuan Keikutsertaan Field Study:'}
+              </strong>
+              <span className="text-amber-800">
+                {isEn
+                  ? 'Kursus ini memiliki section konfirmasi Field Study. Jika mengikuti, kamu mendapatkan 2 Sertifikat (CBEc Specialization + Field Study Specialization). Jika tidak mengikuti, kamu hanya mendapatkan Sertifikat CBEc Specialization.'
+                  : 'Kursus ini memiliki section konfirmasi Field Study. Jika mengikuti, peserta mendapatkan 2 Sertifikat (CBEc Specialization + Field Study Specialization). Jika tidak mengikuti, peserta hanya mendapatkan Sertifikat CBEc Specialization.'}
+              </span>
+            </div>
           </div>
         </div>
       )}
