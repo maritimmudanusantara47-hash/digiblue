@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import ModalPortal from '@/components/common/ModalPortal';
@@ -50,6 +51,11 @@ export default function VerifyPortalPage() {
   const [activeTab, setActiveTab] = useState<'front' | 'back' | 'replica'>('front');
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleVerify = async (codeToVerify?: string) => {
     const code = (codeToVerify || serialInput).trim();
@@ -634,17 +640,10 @@ export default function VerifyPortalPage() {
                   </div>
 
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <Link
-                      href={dossierUrl}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white transition-colors flex items-center gap-1.5 shadow-sm"
-                    >
-                      <Icon name="link-2-angular-right" size={14} />
-                      <span>{t('btn_open_dossier')}</span>
-                    </Link>
                     <button
                       type="button"
                       onClick={handleCopyValidationLink}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                     >
                       <Icon name="link-2-angular-right" size={14} />
                       <span>{copiedLink ? t('btn_copied') : t('btn_copy_link')}</span>
@@ -653,18 +652,14 @@ export default function VerifyPortalPage() {
                       type="button"
                       onClick={() => handleDownloadPdf()}
                       disabled={isDownloadingPdf}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-[#0f2b48] transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-60 font-heading"
                     >
-                      <Icon name="download" size={14} />
+                      {isDownloadingPdf ? (
+                        <span className="w-3.5 h-3.5 border-2 border-[#0f2b48] border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Icon name="printer" size={14} />
+                      )}
                       <span>{isDownloadingPdf ? t('btn_downloading_pdf') : t('btn_download_pdf')}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => window.print()}
-                      className="px-4.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-[#0f2b48] transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer font-heading"
-                    >
-                      <Icon name="printer" size={14} />
-                      <span>{t('btn_print')}</span>
                     </button>
                   </div>
                 </div>
@@ -893,31 +888,28 @@ export default function VerifyPortalPage() {
         );
       })()}
 
-      {/* ── Standalone Dedicated Hidden Element for Clean A4 Browser Printing ── */}
-      {result.valid && result.data && (() => {
-        const certData = result.data;
-        const templateConfig = resolveTemplateImages(certData);
-        return (
-          <div id="certificate-print-document" className="hidden print:block">
+      {/* ── Standalone Dedicated Hidden Element for Clean A4 Browser Printing (Portaled to Body) ── */}
+      {isMounted && result.valid && result.data && createPortal(
+        <div id="certificate-print-document" className="hidden print:block">
+          <div className="print-page-wrapper">
+            <RenderedCertificateSheet
+              side="front"
+              data={result.data}
+              templateConfig={resolveTemplateImages(result.data)}
+            />
+          </div>
+          {resolveTemplateImages(result.data).hasBack && (
             <div className="print-page-wrapper">
               <RenderedCertificateSheet
-                side="front"
-                data={certData}
-                templateConfig={templateConfig}
+                side="back"
+                data={result.data}
+                templateConfig={resolveTemplateImages(result.data)}
               />
             </div>
-            {templateConfig.hasBack && (
-              <div className="print-page-wrapper print-page-break">
-                <RenderedCertificateSheet
-                  side="back"
-                  data={certData}
-                  templateConfig={templateConfig}
-                />
-              </div>
-            )}
-          </div>
-        );
-      })()}
+          )}
+        </div>,
+        document.body
+      )}
 
       {/* ── Print Stylesheet Injection ── */}
       <style jsx global>{`
@@ -931,33 +923,47 @@ export default function VerifyPortalPage() {
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
+            width: 100% !important;
+            height: 100% !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          /* Hide main Next.js layout wrappers and all standard elements */
+          body > *:not(#certificate-print-document),
           header, footer, nav, button, .print\\:hidden, main, section {
             display: none !important;
           }
           #certificate-print-document {
             display: block !important;
-            width: 100vw !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 297mm !important;
             margin: 0 !important;
             padding: 0 !important;
+            background: #ffffff !important;
+            z-index: 99999999 !important;
           }
           .print-page-wrapper {
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 297mm !important;
+            height: 210mm !important;
+            max-width: 297mm !important;
+            max-height: 210mm !important;
             box-sizing: border-box !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            margin: 0 auto !important;
             padding: 0 !important;
-            margin: 0 !important;
+            overflow: hidden !important;
           }
-          .print-page-break {
-            page-break-before: always !important;
-            break-before: page !important;
+          .print-page-wrapper:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
           }
         }
       `}</style>

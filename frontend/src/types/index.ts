@@ -168,6 +168,7 @@ export type SyncStatus = 'synced' | 'failed' | 'pending';
 
 export interface Certificate {
   id: number;
+  enrollment_id?: number;
   enrollment: Enrollment;
   user: User;
   serial_number: string;   // e.g. 'CBEC/ID/IX/20260166'

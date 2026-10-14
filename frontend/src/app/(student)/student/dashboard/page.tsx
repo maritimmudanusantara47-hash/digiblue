@@ -267,7 +267,7 @@ function StudentDashboardContent() {
 
   const foundationCompleted = enrollments.some(
     (e) =>
-      (e.status === 'completed' || certificates.some((c) => c.enrollment_id === e.id)) &&
+      (e.status === 'completed' || certificates.some((c) => c.enrollment_id === e.id || c.enrollment?.id === e.id)) &&
       e.course?.certification_level?.code === 'FND'
   );
 

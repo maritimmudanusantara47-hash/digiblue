@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -52,6 +53,11 @@ export default function VerifyCertificateClient({
   const [searchInput, setSearchInput] = useState('');
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const data = result.data;
   const isFound = Boolean(result.valid && data);
@@ -177,23 +183,6 @@ export default function VerifyCertificateClient({
             </div>
           </Link>
 
-          {/* Center: Live Registry Status Pill */}
-          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono">
-            {isFound ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-emerald-300 font-bold tracking-wide">{t('badge_live')}</span>
-                <span className="text-white/30">•</span>
-                <span className="text-slate-300">{t('badge_registry')}</span>
-              </>
-            ) : (
-              <>
-                <span className="w-2 h-2 rounded-full bg-rose-500" />
-                <span className="text-rose-400 font-bold tracking-wide">{t('badge_invalid')}</span>
-              </>
-            )}
-          </div>
-
           {/* Right: Actions & Language Switcher */}
           <div className="flex items-center gap-2.5">
             <Link
@@ -248,8 +237,20 @@ export default function VerifyCertificateClient({
                   </div>
                 </div>
 
-                {/* Quick Print, Download & Copy Actions */}
-                <div className="flex items-center gap-2 self-start sm:self-center shrink-0 print:hidden flex-wrap">
+                {/* Primary Credential Actions (LinkedIn, Copy Link, and Print/Save PDF) */}
+                <div className="flex items-center gap-2.5 self-start sm:self-center shrink-0 print:hidden flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleShareLinkedIn}
+                    className="h-10 px-3.5 rounded-xl text-xs font-bold bg-[#0a66c2] hover:bg-[#004182] text-white transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    title="Bagikan kredensial ke profil LinkedIn"
+                  >
+                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+                    </svg>
+                    <span>{t('btn_share_linkedin')}</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleCopyLink}
@@ -264,25 +265,15 @@ export default function VerifyCertificateClient({
                     type="button"
                     onClick={handleDownloadPdf}
                     disabled={isDownloadingPdf}
-                    className="h-10 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white transition-all shadow-md shadow-sky-600/25 flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-                    title="Simpan file PDF resmi ke perangkat"
+                    className="h-10 px-4 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-[#00162d] transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-60 font-heading"
+                    title="Cetak atau simpan file sertifikat resmi (PDF)"
                   >
                     {isDownloadingPdf ? (
-                      <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="w-3.5 h-3.5 border-2 border-[#00162d] border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <Icon name="file-multiple" size={14} />
+                      <Icon name="printer" size={15} />
                     )}
                     <span>{isDownloadingPdf ? t('btn_downloading_pdf') : t('btn_download_pdf')}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    className="h-10 px-4 rounded-xl text-xs font-extrabold bg-amber-500 hover:bg-amber-400 text-[#00162d] transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer font-heading"
-                    title="Cetak langsung dokumen sertifikat via printer"
-                  >
-                    <Icon name="printer" size={15} />
-                    <span>{t('btn_print')}</span>
                   </button>
                 </div>
               </div>
@@ -445,45 +436,6 @@ export default function VerifyCertificateClient({
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Action Buttons Toolbar */}
-                  <div className="pt-5 border-t border-slate-100 flex flex-wrap items-center gap-2.5 print:hidden">
-                    <button
-                      type="button"
-                      onClick={handleDownloadPdf}
-                      disabled={isDownloadingPdf}
-                      className="flex-1 min-w-[140px] h-11 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
-                      title="Unduh file PDF resmi kredensial ini"
-                    >
-                      {isDownloadingPdf ? (
-                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Icon name="file-multiple" size={15} />
-                      )}
-                      <span>{isDownloadingPdf ? t('btn_downloading_pdf') : t('btn_download_pdf')}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleShareLinkedIn}
-                      className="flex-1 min-w-[140px] h-11 px-4 rounded-xl text-xs font-bold bg-[#0a66c2] hover:bg-[#004182] text-white transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-                    >
-                      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
-                      </svg>
-                      <span>{t('btn_share_linkedin')}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleCopyLink}
-                      className="h-11 px-4 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                      title={t('btn_copy_link')}
-                    >
-                      <Icon name="link-2-angular-right" size={15} />
-                      <span>{copiedLink ? t('btn_copied_link') : t('btn_copy_link')}</span>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -717,14 +669,6 @@ export default function VerifyCertificateClient({
                         <Icon name="shield-2-check" size={13} className="text-emerald-400" />
                         <span>Resmi terenkripsi dalam basis data DigiBlue</span>
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => window.print()}
-                        className="text-amber-300 hover:text-white font-bold transition-colors inline-flex items-center gap-1 cursor-pointer print:hidden"
-                      >
-                        <Icon name="printer" size={12} />
-                        <span>Cetak Dokumen</span>
-                      </button>
                     </div>
                   </div>
                 )}
@@ -905,8 +849,8 @@ export default function VerifyCertificateClient({
         </ModalPortal>
       )}
 
-      {/* ── DEDICATED FULL-PRECISION PRINT DOCUMENT (A4 LANDSCAPE) ── */}
-      {data && (
+      {/* ── DEDICATED FULL-PRECISION PRINT DOCUMENT (A4 LANDSCAPE - PORTALED TO BODY) ── */}
+      {isMounted && data && createPortal(
         <div id="certificate-print-document" className="hidden print:block">
           <div className="print-page-wrapper">
             <RenderedCertificateSheet
@@ -916,7 +860,7 @@ export default function VerifyCertificateClient({
             />
           </div>
           {templateConfig.hasBack && (
-            <div className="print-page-wrapper print-page-break">
+            <div className="print-page-wrapper">
               <RenderedCertificateSheet
                 side="back"
                 data={data}
@@ -924,7 +868,8 @@ export default function VerifyCertificateClient({
               />
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Print Stylesheet Injection ── */}
@@ -939,33 +884,47 @@ export default function VerifyCertificateClient({
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
+            width: 100% !important;
+            height: 100% !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          header, footer, nav, button, .print\\:hidden, main {
+          /* Hide main Next.js layout wrappers and all standard elements */
+          body > *:not(#certificate-print-document),
+          header, footer, nav, button, .print\\:hidden, main, section {
             display: none !important;
           }
           #certificate-print-document {
             display: block !important;
-            width: 100vw !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 297mm !important;
             margin: 0 !important;
             padding: 0 !important;
+            background: #ffffff !important;
+            z-index: 99999999 !important;
           }
           .print-page-wrapper {
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 297mm !important;
+            height: 210mm !important;
+            max-width: 297mm !important;
+            max-height: 210mm !important;
             box-sizing: border-box !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            margin: 0 auto !important;
             padding: 0 !important;
-            margin: 0 !important;
+            overflow: hidden !important;
           }
-          .print-page-break {
-            page-break-before: always !important;
-            break-before: page !important;
+          .print-page-wrapper:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
           }
         }
       `}</style>
