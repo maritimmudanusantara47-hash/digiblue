@@ -35,6 +35,12 @@ const statusBadgeConfig: Record<string, { label: string; bg: string; text: strin
     text: 'text-rose-800',
     border: 'border-rose-200',
   },
+  cancelled: {
+    label: 'Dibatalkan',
+    bg: 'bg-slate-100',
+    text: 'text-slate-600',
+    border: 'border-slate-200',
+  },
 };
 
 function StudentDashboardContent() {
@@ -51,6 +57,7 @@ function StudentDashboardContent() {
   const [payingId, setPayingId] = useState<number | null>(null);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [justVerified, setJustVerified] = useState(false);
+  const [dashboardTab, setDashboardTab] = useState<'learning' | 'transactions'>('learning');
   const [resendingEmail, setResendingEmail] = useState(false);
   const [resendStatus, setResendStatus] = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
   const hasAutoTriggeredRef = useRef(false);
@@ -271,6 +278,9 @@ function StudentDashboardContent() {
       e.course?.certification_level?.code === 'FND'
   );
 
+  const activeCourses = enrollments.filter((e) => ['active', 'completed'].includes(e.status));
+  const pendingCourses = enrollments.filter((e) => e.status === 'payment_pending');
+
   return (
     <div className="space-y-8 animate-fadeup pb-8">
       {/* Just Verified Success Alert */}
@@ -415,166 +425,311 @@ function StudentDashboardContent() {
         ))}
       </div>
 
-      {/* Kursus Saya (My Learning Track) */}
+      {/* Kursus Saya (My Learning Track) & Riwayat Transaksi */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
           <div>
             <h2 className="text-lg font-bold text-[#07192C] font-heading">
-              {t('section_courses')}
+              {dashboardTab === 'learning' ? t('section_courses') : 'Riwayat Pembelian & Transaksi'}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              {t('section_courses_desc')}
+              {dashboardTab === 'learning'
+                ? t('section_courses_desc')
+                : 'Daftar semua transaksi, status pembayaran, dan riwayat pesanan kursus Anda'}
             </p>
           </div>
-          <Link
-            href="/student/catalog"
-            className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors inline-flex items-center gap-1 group"
-          >
-            <span>{t('btn_add')}</span>
-            <Icon name="arrow-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        </div>
 
-        {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        ) : enrollments.length === 0 ? (
-          <div className="text-center py-14 px-4 rounded-2xl bg-slate-50/70 border border-dashed border-slate-200">
-            <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center mx-auto mb-3">
-              <Icon name="books-2" size={28} />
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {/* Tab Switcher */}
+            <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setDashboardTab('learning')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  dashboardTab === 'learning'
+                    ? 'bg-white text-[#07192C] shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icon name="book-1" size={13} />
+                <span>Kursus Aktif</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                  dashboardTab === 'learning' ? 'bg-sky-100 text-sky-800' : 'bg-slate-200 text-slate-600'
+                }`}>
+                  {activeCourses.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDashboardTab('transactions')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  dashboardTab === 'transactions'
+                    ? 'bg-white text-[#07192C] shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icon name="credit-card-multiple" size={13} />
+                <span>Riwayat Pembelian</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                  dashboardTab === 'transactions' ? 'bg-sky-100 text-sky-800' : 'bg-slate-200 text-slate-600'
+                }`}>
+                  {enrollments.length}
+                </span>
+              </button>
             </div>
-            <h3 className="font-bold text-base text-[#07192C] mb-1">
-              {t('empty_courses')}
-            </h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
-              Pilih program Foundation atau Specialization untuk memulai pelatihan dan memperoleh sertifikasi resmi.
-            </p>
+
             <Link
               href="/student/catalog"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#07192C] hover:bg-[#0284c7] transition-all shadow-xs"
+              className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors inline-flex items-center gap-1 group ml-1"
             >
-              <span>{t('btn_catalog')}</span>
-              <Icon name="arrow-right" size={13} />
+              <span>{t('btn_add')}</span>
+              <Icon name="arrow-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {enrollments.map((e) => {
-              const isPending = e.status === 'payment_pending';
-              const isActive = e.status === 'active';
-              const isCompleted = e.status === 'completed';
-              const isSpec = e.course?.certification_level?.code === 'SPEC';
-              const accessBlocked = isSpec && !foundationCompleted;
-              const badgeCfg = statusBadgeConfig[e.status] ?? {
-                label: e.status,
-                bg: 'bg-slate-100',
-                text: 'text-slate-700',
-                border: 'border-slate-200',
-              };
+        </div>
 
-              return (
-                <div
-                  key={e.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border transition-all ${isPending
-                    ? 'border-amber-200/90 bg-amber-50/20 hover:border-amber-300'
-                    : 'border-slate-200/70 hover:border-sky-300 hover:bg-slate-50/40 hover:shadow-xs'
-                    }`}
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-bold text-sm sm:text-base text-[#07192C] truncate">
-                        {e.course.title}
-                      </h3>
-                      {e.batch ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          <Icon name="flag-1" size={11} />
-                          {e.batch.batch_name}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                          Jalur Mandiri (Self-Paced)
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      {e.course.certification_level.name}
-                    </p>
-                    {isActive && accessBlocked && (
-                      <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50/80 border border-amber-200/60 rounded-lg px-2.5 py-1 mt-2 w-fit">
-                        <Icon name="locked-1" size={13} className="text-amber-600 shrink-0" />
-                        <span>Selesaikan kursus Foundation Level terlebih dahulu untuk membuka akses materi.</span>
-                      </div>
-                    )}
+        {dashboardTab === 'learning' ? (
+          <>
+            {pendingCourses.length > 0 && (
+              <div className="mb-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Icon name="credit-card-multiple" size={18} />
                   </div>
-
-                  <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${badgeCfg.bg} ${badgeCfg.text} ${badgeCfg.border}`}>
-                      {badgeCfg.label.startsWith('status_') ? t(badgeCfg.label as any) : badgeCfg.label}
-                    </span>
-
-                    {/* Action buttons */}
-                    {isPending && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleCancelOrder(e.id, e.course.title)}
-                          disabled={cancellingId === e.id}
-                          className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                          title="Batalkan pesanan ini"
-                        >
-                          <Icon name="trash" size={13} />
-                          <span>{cancellingId === e.id ? 'Membatalkan...' : 'Batalkan'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handlePay(e.id, e.course.slug)}
-                          disabled={payingId === e.id}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-[#07192C] flex items-center gap-1.5 shadow-xs transition-all cursor-pointer font-heading"
-                        >
-                          <Icon name="credit-card-multiple" size={14} />
-                          <span>{payingId === e.id ? t('btn_loading_snap') : t('btn_pay')}</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {isActive && accessBlocked && (
-                      <button
-                        type="button"
-                        disabled
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 flex items-center gap-1.5 cursor-not-allowed font-heading"
-                        title="Selesaikan kursus Foundation Level terlebih dahulu untuk membuka materi ini."
-                      >
-                        <Icon name="locked-1" size={13} className="text-amber-600" />
-                        <span>{t('btn_finish_fnd')}</span>
-                      </button>
-                    )}
-
-                    {isActive && !accessBlocked && (
-                      <Link
-                        href={`/student/courses/${e.course.slug}`}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-[#07192C] hover:bg-[#0284c7] text-white flex items-center gap-1.5 shadow-xs transition-all font-heading"
-                      >
-                        <span>{t('btn_start')}</span>
-                        <Icon name="arrow-right" size={12} />
-                      </Link>
-                    )}
-
-                    {isCompleted && (
-                      <Link
-                        href="/student/certificates"
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100 transition-colors flex items-center gap-1.5 font-heading"
-                      >
-                        <Icon name="certificate-badge-1" size={14} className="text-amber-500" />
-                        <span>Lihat Sertifikat</span>
-                      </Link>
-                    )}
+                  <div>
+                    <h4 className="font-bold text-xs sm:text-sm text-amber-950">
+                      Ada {pendingCourses.length} pesanan menunggu pembayaran
+                    </h4>
+                    <p className="text-[11px] text-amber-800">
+                      Selesaikan transaksi Anda agar akses modul kursus dapat segera aktif.
+                    </p>
                   </div>
                 </div>
-              );
-            })}
+                <button
+                  type="button"
+                  onClick={() => setDashboardTab('transactions')}
+                  className="text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 px-3.5 py-1.5 rounded-xl transition-colors shrink-0 self-start sm:self-auto cursor-pointer"
+                >
+                  Lihat Riwayat & Bayar →
+                </button>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            ) : activeCourses.length === 0 ? (
+              <div className="text-center py-14 px-4 rounded-2xl bg-slate-50/70 border border-dashed border-slate-200">
+                <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center mx-auto mb-3">
+                  <Icon name="books-2" size={28} />
+                </div>
+                <h3 className="font-bold text-base text-[#07192C] mb-1">
+                  {t('empty_courses')}
+                </h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
+                  Pilih program Foundation atau Specialization untuk memulai pelatihan dan memperoleh sertifikasi resmi.
+                </p>
+                <Link
+                  href="/student/catalog"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#07192C] hover:bg-[#0284c7] transition-all shadow-xs"
+                >
+                  <span>{t('btn_catalog')}</span>
+                  <Icon name="arrow-right" size={13} />
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {activeCourses.map((e) => {
+                  const isActive = e.status === 'active';
+                  const isCompleted = e.status === 'completed';
+                  const isSpec = e.course?.certification_level?.code === 'SPEC';
+                  const accessBlocked = isSpec && !foundationCompleted;
+                  const badgeCfg = statusBadgeConfig[e.status] ?? {
+                    label: e.status,
+                    bg: 'bg-slate-100',
+                    text: 'text-slate-700',
+                    border: 'border-slate-200',
+                  };
+
+                  return (
+                    <div
+                      key={e.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-slate-200/70 hover:border-sky-300 hover:bg-slate-50/40 hover:shadow-xs transition-all"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <h3 className="font-bold text-sm sm:text-base text-[#07192C] truncate">
+                            {e.course.title}
+                          </h3>
+                          {e.batch ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              <Icon name="flag-1" size={11} />
+                              {e.batch.batch_name}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                              Jalur Mandiri (Self-Paced)
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          {e.course.certification_level.name}
+                        </p>
+                        {isActive && accessBlocked && (
+                          <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50/80 border border-amber-200/60 rounded-lg px-2.5 py-1 mt-2 w-fit">
+                            <Icon name="locked-1" size={13} className="text-amber-600 shrink-0" />
+                            <span>Selesaikan kursus Foundation Level terlebih dahulu untuk membuka akses materi.</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${badgeCfg.bg} ${badgeCfg.text} ${badgeCfg.border}`}>
+                          {badgeCfg.label.startsWith('status_') ? t(badgeCfg.label as any) : badgeCfg.label}
+                        </span>
+
+                        {isActive && accessBlocked && (
+                          <button
+                            type="button"
+                            disabled
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 flex items-center gap-1.5 cursor-not-allowed font-heading"
+                            title="Selesaikan kursus Foundation Level terlebih dahulu untuk membuka materi ini."
+                          >
+                            <Icon name="locked-1" size={13} className="text-amber-600" />
+                            <span>{t('btn_finish_fnd')}</span>
+                          </button>
+                        )}
+
+                        {isActive && !accessBlocked && (
+                          <Link
+                            href={`/student/courses/${e.course.slug}`}
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#07192C] hover:bg-[#0284c7] text-white flex items-center gap-1.5 shadow-xs transition-all font-heading"
+                          >
+                            <span>{t('btn_start')}</span>
+                            <Icon name="arrow-right" size={12} />
+                          </Link>
+                        )}
+
+                        {isCompleted && (
+                          <Link
+                            href="/student/certificates"
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100 transition-colors flex items-center gap-1.5 font-heading"
+                          >
+                            <Icon name="certificate-badge-1" size={14} className="text-amber-500" />
+                            <span>Lihat Sertifikat</span>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : (
+          /* Tab Riwayat Pembelian & Transaksi */
+          <div className="space-y-3">
+            {enrollments.length === 0 ? (
+              <div className="text-center py-12 px-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200">
+                <p className="text-xs text-slate-500">Belum ada riwayat transaksi atau pendaftaran kursus.</p>
+              </div>
+            ) : (
+              enrollments.map((e) => {
+                const isPending = e.status === 'payment_pending';
+                const isCancelled = e.status === 'cancelled';
+                const badgeCfg = statusBadgeConfig[e.status] ?? {
+                  label: e.status,
+                  bg: 'bg-slate-100',
+                  text: 'text-slate-700',
+                  border: 'border-slate-200',
+                };
+                const formattedDate = e.created_at
+                  ? new Date(e.created_at).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : '—';
+                const amount = Number(e.final_payment_amount ?? e.course?.price ?? 0);
+
+                return (
+                  <div
+                    key={e.id}
+                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border transition-all ${
+                      isPending
+                        ? 'border-amber-200/90 bg-amber-50/20'
+                        : isCancelled
+                        ? 'border-slate-200/50 bg-slate-50/50 opacity-80'
+                        : 'border-slate-200/70 bg-white'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h4 className="font-bold text-sm text-[#07192C] truncate">
+                          {e.course.title}
+                        </h4>
+                        <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
+                          {e.order_id || `#ENR-${e.id}`}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+                        <span>{formattedDate}</span>
+                        <span>•</span>
+                        <span>{e.batch ? e.batch.batch_name : 'Jalur Mandiri (Self-Paced)'}</span>
+                        <span>•</span>
+                        <span className="font-semibold text-slate-700">
+                          {amount > 0 ? `Rp${amount.toLocaleString('id-ID')}` : 'Gratis'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${badgeCfg.bg} ${badgeCfg.text} ${badgeCfg.border}`}>
+                        {badgeCfg.label.startsWith('status_') ? t(badgeCfg.label as any) : badgeCfg.label}
+                      </span>
+
+                      {isPending && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleCancelOrder(e.id, e.course.title)}
+                            disabled={cancellingId === e.id}
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
+                            title="Batalkan pesanan ini"
+                          >
+                            <Icon name="trash" size={13} />
+                            <span>{cancellingId === e.id ? '...' : 'Batalkan'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handlePay(e.id, e.course.slug)}
+                            disabled={payingId === e.id}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-[#07192C] flex items-center gap-1.5 shadow-xs transition-all cursor-pointer font-heading"
+                          >
+                            <Icon name="credit-card-multiple" size={13} />
+                            <span>{payingId === e.id ? 'Memuat...' : 'Bayar Sekarang'}</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {isCancelled && (
+                        <Link
+                          href="/student/catalog"
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-colors flex items-center gap-1 font-heading"
+                        >
+                          <Icon name="rotate-ccw-1" size={12} />
+                          <span>Pesan Ulang</span>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>
