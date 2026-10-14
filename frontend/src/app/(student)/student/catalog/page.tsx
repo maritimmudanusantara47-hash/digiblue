@@ -763,7 +763,9 @@ function CourseCard({
   const style = LEVEL_STYLE[code] ?? LEVEL_STYLE["SPEC"];
   const isSpec = code === "SPEC";
   const accessBlocked =
-    isSpec && enrollment?.status === "active" && foundationCompleted === false;
+    isSpec &&
+    (enrollment?.status === "active" || enrollment?.status === "enrolled") &&
+    foundationCompleted === false;
 
   return (
     <div className="card transition-all duration-200 flex flex-col gap-4 hover:shadow-lg hover:-translate-y-0.5">
@@ -796,7 +798,7 @@ function CourseCard({
       </div>
 
       {/* CTA Button */}
-      {!enrollment ? (
+      {!enrollment || enrollment.status === "cancelled" ? (
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -904,7 +906,7 @@ function CourseCard({
           <Icon name="check-circle-1" size={16} className="mr-1.5" />
           {t("btn_completed")}
         </Link>
-      ) : enrollment.status === "active" && accessBlocked ? (
+      ) : (enrollment.status === "active" || enrollment.status === "enrolled") && accessBlocked ? (
         <button
           disabled
           className="btn w-full text-sm font-semibold text-center bg-amber-50 text-amber-700 border border-amber-300 cursor-not-allowed"
@@ -912,7 +914,7 @@ function CourseCard({
           <Icon name="locked-1" size={16} className="mr-1.5" />
           {t("btn_finish_fnd")}
         </button>
-      ) : enrollment.status === "active" ? (
+      ) : (enrollment.status === "active" || enrollment.status === "enrolled") ? (
         <Link
           href={`/student/courses/${course.slug}`}
           id={`learn-${course.id}`}
@@ -927,12 +929,12 @@ function CourseCard({
           <Icon name="hourglass" size={16} className="mr-1.5" />
           {t("btn_pending_review")}
         </div>
-      ) : (
+      ) : enrollment.status === "rejected" ? (
         <div className="btn w-full text-sm font-semibold text-center bg-red-50 text-red-600 border border-red-200 cursor-default">
           <Icon name="xmark-circle" size={16} className="mr-1.5" />
           {t("btn_rejected")}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
