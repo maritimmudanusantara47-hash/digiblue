@@ -10,6 +10,8 @@ import { useTranslations, useLocale } from 'next-intl';
 import { translateText } from '@/lib/translator';
 import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
+import { useCartStore } from '@/store/cartStore';
+import { Toast } from '@/lib/swal';
 
 type TabCategory = 'ALL' | 'INT_CERT' | 'NAT' | 'SGL';
 
@@ -34,6 +36,7 @@ function CoursesContent() {
   const searchParams = useSearchParams();
   const trackParam = searchParams?.get('track') as TabCategory | null;
   const { isAuthenticated } = useAuthStore();
+  const { addItem, isInCart } = useCartStore();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -305,11 +308,12 @@ function CoursesContent() {
                 ? `/student/catalog/${c.slug}`
                 : `/courses/${c.slug}`;
 
+              const inCart = isInCart(c.id);
+
               return (
-                <Link
+                <div
                   key={c.id}
-                  href={targetUrl}
-                  className="card transition-all duration-200 flex flex-col gap-4 hover:shadow-lg hover:-translate-y-1 group cursor-pointer block"
+                  className="card transition-all duration-200 flex flex-col gap-4 hover:shadow-lg hover:-translate-y-1 group bg-white border border-slate-200/80 rounded-2xl"
                 >
                   {/* 1. Gradient accent line di atas card */}
                   <div className={`-mx-6 -mt-6 h-2 rounded-t-2xl bg-gradient-to-r ${style.card}`} />
@@ -325,7 +329,7 @@ function CoursesContent() {
                   </div>
 
                   {/* 3. Judul dan Deskripsi */}
-                  <div className="flex-1">
+                  <Link href={targetUrl} className="flex-1 block group-hover:text-sky-700 transition-colors">
                     <h3 className="font-bold text-navy-dark text-base leading-snug group-hover:text-sky-700 transition-colors">
                       {c.title}
                     </h3>
@@ -334,8 +338,69 @@ function CoursesContent() {
                         {c.description}
                       </p>
                     )}
+                  </Link>
+
+                  {/* 4. Action Buttons: Tambah ke Keranjang & Beli Sekarang */}
+                  <div className="pt-3 border-t border-slate-100 flex items-center gap-2 mt-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (inCart) {
+                          router.push('/student/cart');
+                          return;
+                        }
+                        addItem({
+                          courseId: c.id,
+                          slug: c.slug,
+                          title: c.title,
+                          price: Number(c.price) || 0,
+                          thumbnailUrl: c.thumbnail_url,
+                          levelCode: code,
+                          levelName: c.certification_level?.name,
+                        });
+                        Toast.fire({
+                          icon: 'success',
+                          title: 'Ditambahkan ke keranjang',
+                        });
+                      }}
+                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
+                        inCart
+                          ? 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-slate-50'
+                      }`}
+                      title={inCart ? 'Lihat di Keranjang' : 'Tambah ke Keranjang'}
+                    >
+                      <Icon name={inCart ? 'check-circle-1' : 'cart'} size={14} className={inCart ? 'text-sky-600' : ''} />
+                      <span>{inCart ? 'Di Keranjang' : 'Keranjang'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!inCart) {
+                          addItem({
+                            courseId: c.id,
+                            slug: c.slug,
+                            title: c.title,
+                            price: Number(c.price) || 0,
+                            thumbnailUrl: c.thumbnail_url,
+                            levelCode: code,
+                            levelName: c.certification_level?.name,
+                          });
+                        }
+                        router.push('/student/cart');
+                      }}
+                      className="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-[#00162d] text-white hover:bg-[#0f2b48] flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                    >
+                      <Icon name="rocket-5" size={14} />
+                      <span>Beli Sekarang</span>
+                    </button>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

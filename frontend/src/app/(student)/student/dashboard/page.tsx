@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Enrollment, Certificate } from '@/types';
-import { showSuccess, showError, showWarning } from '@/lib/swal';
+import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
 
 const statusBadgeConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
   active: {
@@ -49,6 +49,7 @@ function StudentDashboardContent() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [justVerified, setJustVerified] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [resendStatus, setResendStatus] = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
@@ -190,6 +191,28 @@ function StudentDashboardContent() {
       setPayingId(null);
     }
   }, [loadData, router]);
+
+  const handleCancelOrder = async (enrollmentId: number, courseTitle: string) => {
+    const confirmed = await showConfirm(
+      'Batalkan Pesanan?',
+      `Apakah Anda yakin ingin membatalkan pesanan untuk kursus "${courseTitle}"?`,
+      'Ya, Batalkan',
+      true
+    );
+    if (!confirmed) return;
+
+    setCancellingId(enrollmentId);
+    try {
+      await api.delete(`/enrollments/${enrollmentId}/cancel`);
+      await showSuccess('Pesanan Dibatalkan', 'Pesanan Anda telah berhasil dibatalkan.');
+      await loadData();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Gagal membatalkan pesanan.';
+      showError('Gagal', msg);
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   // ── Auto-trigger Pop-up Pembayaran saat Login / Masuk Dashboard ──────────────
   useEffect(() => {
@@ -480,15 +503,27 @@ function StudentDashboardContent() {
 
                     {/* Action buttons */}
                     {isPending && (
-                      <button
-                        type="button"
-                        onClick={() => handlePay(e.id, e.course.slug)}
-                        disabled={payingId === e.id}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-[#07192C] flex items-center gap-1.5 shadow-xs transition-all cursor-pointer font-heading"
-                      >
-                        <Icon name="credit-card-multiple" size={14} />
-                        <span>{payingId === e.id ? t('btn_loading_snap') : t('btn_pay')}</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleCancelOrder(e.id, e.course.title)}
+                          disabled={cancellingId === e.id}
+                          className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                          title="Batalkan pesanan ini"
+                        >
+                          <Icon name="trash" size={13} />
+                          <span>{cancellingId === e.id ? 'Membatalkan...' : 'Batalkan'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePay(e.id, e.course.slug)}
+                          disabled={payingId === e.id}
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-[#07192C] flex items-center gap-1.5 shadow-xs transition-all cursor-pointer font-heading"
+                        >
+                          <Icon name="credit-card-multiple" size={14} />
+                          <span>{payingId === e.id ? t('btn_loading_snap') : t('btn_pay')}</span>
+                        </button>
+                      </div>
                     )}
 
                     {isActive && (

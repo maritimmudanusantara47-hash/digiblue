@@ -258,6 +258,34 @@ class EnrollmentController extends Controller
         ]);
     }
 
+    /**
+     * Student: Batalkan pesanan kursus yang masih berstatus payment_pending
+     */
+    public function cancel(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $enrollment = Enrollment::where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        if ($enrollment->status !== 'payment_pending') {
+            return response()->json([
+                'message' => 'Hanya pesanan dengan status menunggu pembayaran yang dapat dibatalkan.',
+            ], 422);
+        }
+
+        $enrollment->update([
+            'status'         => 'cancelled',
+            'payment_status' => 'cancelled',
+        ]);
+
+        return response()->json([
+            'message' => 'Pesanan berhasil dibatalkan.',
+            'data'    => $enrollment,
+        ]);
+    }
+
     /** Admin: Hapus enrollment */
     public function destroy(int $id): JsonResponse
     {

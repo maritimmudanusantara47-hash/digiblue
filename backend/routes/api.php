@@ -52,6 +52,7 @@ Route::prefix('v1')->group(function () {
         // Enrollment & Kursus Peserta
         Route::get('enrollments',           [EnrollmentController::class, 'index']);
         Route::post('enrollments',          [EnrollmentController::class, 'store']);          // Daftar kursus
+        Route::delete('enrollments/{id}/cancel', [EnrollmentController::class, 'cancel']);   // Batalkan pesanan
         Route::get('enrollments/{id}',      [EnrollmentController::class, 'show']);
         Route::get('enrollments/{id}/contents', [ContentController::class, 'index']);         // Daftar konten kursus
 
@@ -71,6 +72,7 @@ Route::prefix('v1')->group(function () {
 
         // Pembayaran Midtrans Snap
         Route::post('payments/create-snap-token', [PaymentController::class, 'createSnapToken']);
+        Route::post('payments/checkout-cart',     [PaymentController::class, 'checkoutCart']);
         Route::post('payments/verify-status',     [PaymentController::class, 'verifyStatus']);
 
         // ─── Assessor & Admin Routes ─────────────────────────────────────────

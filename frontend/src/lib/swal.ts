@@ -4,10 +4,11 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 // Instance SweetAlert dengan tema standar DigiBlue
 export const Toast = Swal.mixin({
   toast: true,
-  position: 'top-end',
+  position: 'center',
   showConfirmButton: false,
-  timer: 3000,
+  timer: 1000,
   timerProgressBar: true,
+  backdrop: false,
   didOpen: (toast) => {
     toast.onmouseenter = Swal.stopTimer;
     toast.onmouseleave = Swal.resumeTimer;
