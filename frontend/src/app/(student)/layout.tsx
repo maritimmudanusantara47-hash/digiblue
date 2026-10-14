@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
+import { useCartCount } from '@/store/cartStore';
 import api from '@/lib/api';
 
 const navItems = [
@@ -21,6 +22,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const cartCount = useCartCount();
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch { }
@@ -89,7 +91,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </span>
         </div>
 
-        {/* Navigation Menu (Strict: No items added or removed) */}
+        {/* Navigation Menu */}
         <nav className="sidebar-nav">
           {navItems.map(item => (
             <Link
@@ -101,6 +103,20 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               <span>{t(item.label as any)}</span>
             </Link>
           ))}
+          <Link
+            href="/cart"
+            className={`sidebar-link flex items-center justify-between ${pathname === '/cart' ? 'active' : ''}`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Icon name="cart" size={18} />
+              <span>{t('nav_cart')}</span>
+            </div>
+            {cartCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-sky-500 text-white shadow-xs">
+                {cartCount}
+              </span>
+            )}
+          </Link>
         </nav>
 
         {/* Bottom Actions: Logout */}

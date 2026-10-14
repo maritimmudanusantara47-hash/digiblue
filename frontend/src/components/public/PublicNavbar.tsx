@@ -6,12 +6,14 @@ import { usePathname } from 'next/navigation';
 import Icon from '@/components/Icon';
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/authStore';
+import { useCartCount } from '@/store/cartStore';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function PublicNavbar() {
   const t = useTranslations('LandingPage');
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
+  const cartCount = useCartCount();
   const isAdmin = user?.roles?.some(r => r.name === 'admin');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -105,9 +107,25 @@ export default function PublicNavbar() {
             </Link>
           </nav>
 
-          {/* Right Action Buttons: Language Switcher & Single Stitch-Styled LOGIN / REGISTER Pill */}
+          {/* Right Action Buttons: Language Switcher, Cart Button & Single Stitch-Styled LOGIN / REGISTER Pill */}
           <div className="hidden sm:flex items-center gap-3.5 shrink-0">
             <LanguageSwitcher />
+
+            {/* Cart Icon Button with Badge */}
+            <Link
+              href="/cart"
+              className="relative p-2.5 rounded-xl border border-slate-200 text-slate-700 hover:text-sky-600 hover:border-sky-300 hover:bg-sky-50/60 transition-all shadow-xs flex items-center justify-center group"
+              title={t('nav_cart')}
+              aria-label={t('nav_cart')}
+            >
+              <Icon name="cart" size={19} className="group-hover:scale-105 transition-transform" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-sky-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
             {isAuthenticated ? (
               <Link
                 href={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
@@ -126,8 +144,21 @@ export default function PublicNavbar() {
             )}
           </div>
 
-          {/* Mobile Hamburger Button */}
+          {/* Mobile Right Action: Cart & Hamburger Button */}
           <div className="flex items-center gap-2 lg:hidden">
+            <Link
+              href="/cart"
+              className="relative p-2 rounded-xl border border-slate-200 text-slate-700 hover:text-sky-600 transition-colors flex items-center justify-center"
+              aria-label={t('nav_cart')}
+            >
+              <Icon name="cart" size={18} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 bg-sky-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -189,6 +220,23 @@ export default function PublicNavbar() {
                 }`}
             >
               {t('nav_help')}
+            </Link>
+            <Link
+              href="/cart"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                pathname === '/cart' ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Icon name="cart" size={16} />
+                <span>{t('nav_cart')}</span>
+              </div>
+              {cartCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-sky-600 text-white">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <div className="pt-2 border-t border-slate-100 space-y-3">
               <div className="flex justify-center mb-2">
