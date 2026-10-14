@@ -9,8 +9,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 import type { Course } from "@/types";
-import { showSuccess, showError, showWarning } from "@/lib/swal";
+import { showSuccess, showError, showWarning, Toast } from "@/lib/swal";
 
 interface EnrollmentInfo {
   id: number;
@@ -755,6 +756,9 @@ function CourseCard({
   onPay: (enrollmentId: number) => void;
 }) {
   const t = useTranslations("StudentCatalog");
+  const router = useRouter();
+  const { addItem, isInCart } = useCartStore();
+  const inCart = isInCart(course.id);
   const code = course.certification_level?.code ?? "SPEC";
   const style = LEVEL_STYLE[code] ?? LEVEL_STYLE["SPEC"];
   const isSpec = code === "SPEC";
@@ -791,17 +795,69 @@ function CourseCard({
         )}
       </div>
 
-
       {/* CTA Button */}
       {!enrollment ? (
-        <Link
-          id={`enroll-${course.id}`}
-          href={`/student/catalog/${course.slug}`}
-          className="btn btn-primary w-full text-sm font-semibold flex items-center justify-center gap-1.5"
-        >
-          <Icon name="rocket-5" size={16} />
-          <span>{t("btn_enroll_now")}</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            id={`cart-${course.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (inCart) {
+                router.push('/cart');
+                return;
+              }
+              addItem({
+                courseId: course.id,
+                slug: course.slug,
+                title: course.title,
+                price: Number(course.price) || 0,
+                thumbnailUrl: course.thumbnail_url,
+                levelCode: code,
+                levelName: course.certification_level?.name,
+              });
+              Toast.fire({
+                icon: 'success',
+                title: 'Ditambahkan ke keranjang',
+              });
+            }}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
+              inCart
+                ? 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
+                : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-slate-50'
+            }`}
+            title={inCart ? 'Lihat di Keranjang' : 'Tambah ke Keranjang'}
+          >
+            <Icon name={inCart ? 'check-circle-1' : 'cart'} size={14} className={inCart ? 'text-sky-600' : ''} />
+            <span>{inCart ? 'Di Keranjang' : 'Keranjang'}</span>
+          </button>
+
+          <button
+            type="button"
+            id={`enroll-${course.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!inCart) {
+                addItem({
+                  courseId: course.id,
+                  slug: course.slug,
+                  title: course.title,
+                  price: Number(course.price) || 0,
+                  thumbnailUrl: course.thumbnail_url,
+                  levelCode: code,
+                  levelName: course.certification_level?.name,
+                });
+              }
+              router.push('/cart');
+            }}
+            className="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-[#00162d] text-white hover:bg-[#0f2b48] flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+          >
+            <Icon name="rocket-5" size={14} />
+            <span>Beli Sekarang</span>
+          </button>
+        </div>
       ) : enrollment.status === "payment_pending" ? (
         <button
           id={`pay-${course.id}`}

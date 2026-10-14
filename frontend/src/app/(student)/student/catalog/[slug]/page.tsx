@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Cookies from 'js-cookie';
 import { useTranslations, useLocale } from 'next-intl';
 import { translateText } from '@/lib/translator';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { showWarning } from '@/lib/swal';
+import { useCartStore } from '@/store/cartStore';
+import { Toast } from '@/lib/swal';
 import type { Course, CourseSection } from '@/types';
 import { CertificatePreviewSection, triggerCertificatePreview } from '@/components/certificate';
 
@@ -26,7 +26,8 @@ export default function CourseSyllabusDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
-  const { isAuthenticated, user } = useAuthStore();
+  const { user } = useAuthStore();
+  const { addItem, isInCart } = useCartStore();
   const isEmailUnverified = Boolean(user && !user.email_verified_at);
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -124,23 +125,7 @@ export default function CourseSyllabusDetailPage() {
     }));
   };
 
-  const handleEnrollClick = () => {
-    if (!course) return;
-    const token = Cookies.get('auth_token');
-    const isAuth = isAuthenticated || !!token;
 
-    if (!isAuth) {
-      router.push(`/login?redirect=${encodeURIComponent(`/student/catalog/${course.slug}`)}`);
-      return;
-    }
-
-    if (isEmailUnverified) {
-      showWarning('Perhatian', 'Silakan verifikasi email Anda terlebih dahulu sebelum mendaftar atau mengakses silabus kursus.');
-      return;
-    }
-
-    router.push(`/student/dashboard?pay=${course.slug}`);
-  };
 
   if (loading) {
     return (
@@ -181,6 +166,7 @@ export default function CourseSyllabusDetailPage() {
   const formattedPrice = isFree
     ? t('lbl_free')
     : `Rp${Number(course.price).toLocaleString('id-ID')}`;
+  const inCart = isInCart(course.id);
 
   const totalSections = course.sections?.length ?? 0;
   const totalContents = course.sections?.reduce(
@@ -516,7 +502,7 @@ export default function CourseSyllabusDetailPage() {
               ))}
             </div>
 
-            {/* CTA Button */}
+            {/* CTA Buttons: Tambah ke Keranjang & Beli Sekarang */}
             {isEmailUnverified ? (
               <button
                 type="button"
@@ -528,14 +514,62 @@ export default function CourseSyllabusDetailPage() {
                 <span>Verifikasi Email untuk Mendaftar</span>
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={handleEnrollClick}
-                className="btn btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition-all"
-              >
-                <Icon name="rocket-5" size={16} />
-                <span>{t('btn_enroll_now')}</span>
-              </button>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!course) return;
+                    if (inCart) {
+                      router.push('/cart');
+                      return;
+                    }
+                    addItem({
+                      courseId: course.id,
+                      slug: course.slug,
+                      title: course.title,
+                      price: Number(course.price) || 0,
+                      thumbnailUrl: course.thumbnail_url,
+                      levelCode: course.certification_level?.code,
+                      levelName: course.certification_level?.name,
+                    });
+                    Toast.fire({
+                      icon: 'success',
+                      title: 'Kursus ditambahkan ke keranjang',
+                    });
+                  }}
+                  className={`w-full py-3 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer border ${
+                    inCart
+                      ? 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-sky-500 hover:text-sky-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <Icon name={inCart ? 'check-circle-1' : 'cart'} size={16} className={inCart ? 'text-sky-600' : ''} />
+                  <span>{inCart ? 'Lihat di Keranjang' : 'Tambah ke Keranjang'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!course) return;
+                    if (!inCart) {
+                      addItem({
+                        courseId: course.id,
+                        slug: course.slug,
+                        title: course.title,
+                        price: Number(course.price) || 0,
+                        thumbnailUrl: course.thumbnail_url,
+                        levelCode: course.certification_level?.code,
+                        levelName: course.certification_level?.name,
+                      });
+                    }
+                    router.push('/cart');
+                  }}
+                  className="btn btn-primary w-full py-3.5 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition-all"
+                >
+                  <Icon name="rocket-5" size={16} />
+                  <span>Beli Sekarang</span>
+                </button>
+              </div>
             )}
 
             <p className="text-center text-[11px] text-slate-400 mt-4">
