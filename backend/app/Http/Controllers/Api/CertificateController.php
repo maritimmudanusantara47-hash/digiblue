@@ -77,9 +77,13 @@ class CertificateController extends Controller
                 ? base64_encode(file_get_contents($frontTemplatePath))
                 : null;
 
-            $backTemplatePath = file_exists(resource_path('images/template_field_study_back.png'))
-                ? resource_path('images/template_field_study_back.png')
-                : resource_path('images/Foundation (2).png');
+            $courseSlug = $cert->enrollment->course->slug ?? '';
+            $specFsBackPath = resource_path("images/template_fs_back_{$courseSlug}.png");
+            $backTemplatePath = file_exists($specFsBackPath)
+                ? $specFsBackPath
+                : (file_exists(resource_path('images/template_field_study_back.png'))
+                    ? resource_path('images/template_field_study_back.png')
+                    : resource_path('images/Foundation (2).png'));
             $backBase64 = file_exists($backTemplatePath)
                 ? base64_encode(file_get_contents($backTemplatePath))
                 : null;
@@ -187,19 +191,30 @@ class CertificateController extends Controller
             ? base64_encode(file_get_contents($templatePath))
             : null;
 
-        $templateBackPath = resource_path('images/template_back.png');
+        $courseSlug = $cert->enrollment->course->slug ?? '';
+        $specBackPath = resource_path("images/template_cbec_back_{$courseSlug}.png");
+        $hasCustomBackTemplate = false;
+
+        if (! $isFoundation && file_exists($specBackPath)) {
+            $templateBackPath = $specBackPath;
+            $hasCustomBackTemplate = true;
+        } else {
+            $templateBackPath = resource_path('images/template_back.png');
+        }
+
         $templateBackBase64 = file_exists($templateBackPath)
             ? base64_encode(file_get_contents($templateBackPath))
             : null;
 
         $pdf = Pdf::loadView('certificates.template', [
-            'certificate'        => $cert,
-            'user'               => $cert->user,
-            'course'             => $cert->enrollment->course,
-            'level'              => $cert->enrollment->course->certificationLevel,
-            'qrImageBase64'      => $qrImageBase64,
-            'templateBase64'     => $templateBase64,
-            'templateBackBase64' => $templateBackBase64,
+            'certificate'           => $cert,
+            'user'                  => $cert->user,
+            'course'                => $cert->enrollment->course,
+            'level'                 => $cert->enrollment->course->certificationLevel,
+            'qrImageBase64'         => $qrImageBase64,
+            'templateBase64'        => $templateBase64,
+            'templateBackBase64'    => $templateBackBase64,
+            'hasCustomBackTemplate' => $hasCustomBackTemplate,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";

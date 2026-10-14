@@ -56,9 +56,176 @@ const DEFAULT_LAYOUT: LayoutState = {
   fs_back_reg_no: { top: 29.5, left: 57.0, font_size: 13.0, label: 'Nomor Registrasi (Belakang)' },
 };
 
-const PRESETS = {
+interface PresetItem {
+  type: 'specialization' | 'foundation' | 'critical_thinking' | 'field_study';
+  trackSlug?: string;
+  name: string;
+  serial: string;
+  ribbon: string;
+  level: string;
+  grade: string;
+  date: string;
+  place: string;
+  courseTitle: string;
+  dateParticipation: string;
+  dateIssue: string;
+  regNo: string;
+}
+
+const PRESETS: Record<string, PresetItem> = {
+  spec_tourism: {
+    type: 'specialization',
+    trackSlug: 'blue-tourism',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Tourism - CBEc. (Tour.)',
+    level: 'Blue Tourism Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_shipping: {
+    type: 'specialization',
+    trackSlug: 'blue-shipping',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Shipping - CBEc. (Ship.)',
+    level: 'Blue Shipping Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_finance: {
+    type: 'specialization',
+    trackSlug: 'blue-finance',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Finance - CBEc. (Fin.)',
+    level: 'Blue Finance Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_farming: {
+    type: 'specialization',
+    trackSlug: 'blue-farming',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Farming - CBEc. (Farm.)',
+    level: 'Blue Farming Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_energy: {
+    type: 'specialization',
+    trackSlug: 'blue-energy',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Energy - CBEc. (Ener.)',
+    level: 'Blue Energy Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_data_intelligence: {
+    type: 'specialization',
+    trackSlug: 'blue-data-intelligence',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Data Intelligence - CBEc. (DataIntel.)',
+    level: 'Blue Data Intelligence Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_community_development: {
+    type: 'specialization',
+    trackSlug: 'blue-community-development',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Community Development - CBEc. (CommDev.)',
+    level: 'Blue Community Development Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_circular_economy: {
+    type: 'specialization',
+    trackSlug: 'blue-circular-economy',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Circular Economy - CBEc. (CirEc.)',
+    level: 'Blue Circular Economy Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_carbon: {
+    type: 'specialization',
+    trackSlug: 'blue-carbon',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)',
+    level: 'Blue Carbon Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  spec_business_development: {
+    type: 'specialization',
+    trackSlug: 'blue-business-development',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'Certified Blue Economist in Blue Business Development - CBEc. (BizDev.)',
+    level: 'Blue Business Development Specialization',
+    grade: 'Excellent',
+    date: 'September 21, 2026',
+    place: 'Jakarta',
+    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
   nabila: {
     type: 'specialization',
+    trackSlug: 'blue-carbon',
     name: 'Nabila Azzahro Widodo',
     serial: 'CBEC/ID/IX/20260187',
     ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)',
@@ -101,6 +268,7 @@ const PRESETS = {
   },
   field_study: {
     type: 'field_study',
+    trackSlug: 'foundation',
     name: 'Diana Supriati',
     serial: 'CBEC/ID/IX/20260187',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
@@ -108,7 +276,172 @@ const PRESETS = {
     grade: 'Excellent',
     date: 'June 11, 2026',
     place: 'Jakarta',
-    courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    courseTitle: 'International Blue Economist Certification Training Course',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_foundation: {
+    type: 'field_study',
+    trackSlug: 'foundation',
+    name: 'Diana Supriati',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study / Training Course',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_tourism: {
+    type: 'field_study',
+    trackSlug: 'blue-tourism',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Tourism',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Tourism Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_energy: {
+    type: 'field_study',
+    trackSlug: 'blue-energy',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Energy',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Energy Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_farming: {
+    type: 'field_study',
+    trackSlug: 'blue-farming',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Farming',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Farming Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_finance: {
+    type: 'field_study',
+    trackSlug: 'blue-finance',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Finance',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Finance Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_shipping: {
+    type: 'field_study',
+    trackSlug: 'blue-shipping',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Shipping',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Shipping Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_carbon: {
+    type: 'field_study',
+    trackSlug: 'blue-carbon',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Carbon',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Carbon Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_business_development: {
+    type: 'field_study',
+    trackSlug: 'blue-business-development',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Business Dev',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Business Development Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_community_development: {
+    type: 'field_study',
+    trackSlug: 'blue-community-development',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Community Dev',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Community Development Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_circular_economy: {
+    type: 'field_study',
+    trackSlug: 'blue-circular-economy',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Circular Economy',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Circular Economy Specialization',
+    dateParticipation: '20 May – 11 June 2026',
+    dateIssue: 'Jakarta, 11 June 2026',
+    regNo: 'CBETC144062026',
+  },
+  fs_data_intelligence: {
+    type: 'field_study',
+    trackSlug: 'blue-data-intelligence',
+    name: 'Nabila Azzahro Widodo',
+    serial: 'CBEC/ID/IX/20260187',
+    ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
+    level: 'Field Study — Blue Data Intelligence',
+    grade: 'Excellent',
+    date: 'June 11, 2026',
+    place: 'Jakarta',
+    courseTitle: 'International Blue Economist Certification Training Course - Blue Data Intelligence Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
     regNo: 'CBETC144062026',
@@ -156,6 +489,8 @@ export default function CertificateTemplateAdminPage() {
   const [templateImgFsFront, setTemplateImgFsFront] = useState<string | null>(null);
   const [templateImgFsBack, setTemplateImgFsBack] = useState<string | null>(null);
   const [templateImgCtBack, setTemplateImgCtBack] = useState<string | null>(null);
+  const [specBacks, setSpecBacks] = useState<Record<string, string>>({});
+  const [fsBacks, setFsBacks] = useState<Record<string, string>>({});
   const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
   const [selectedKey, setSelectedKey] = useState('recipient_name');
   const [editMode, setEditMode] = useState(false);
@@ -164,7 +499,7 @@ export default function CertificateTemplateAdminPage() {
   const [resetting, setResetting] = useState(false);
   const [resetOk, setResetOk] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [sample, setSample] = useState(PRESETS.nabila);
+  const [sample, setSample] = useState<PresetItem>(PRESETS.spec_tourism || PRESETS.nabila);
   const [openSection, setOpenSection] = useState<'fields' | 'preview' | null>('fields');
 
   // Multi-device responsive states & auto-fit zoom
@@ -180,7 +515,7 @@ export default function CertificateTemplateAdminPage() {
     }).catch(() => { });
 
     api.get('/admin/certificates/template/image').then(res => {
-      const { base64, mime_type, foundation_base64, back_base64, back_mime_type, field_study_front_base64, field_study_back_base64, critical_thinking_front_base64, critical_thinking_back_base64 } = res.data.data;
+      const { base64, mime_type, foundation_base64, back_base64, back_mime_type, field_study_front_base64, field_study_back_base64, critical_thinking_front_base64, critical_thinking_back_base64, specialization_backs, field_study_backs } = res.data.data;
       if (base64) {
         const specUrl = `data:${mime_type || 'image/png'};base64,${base64}`;
         setTemplateImg(specUrl);
@@ -194,6 +529,8 @@ export default function CertificateTemplateAdminPage() {
       if (ctFront) setTemplateImgFsFront(`data:image/png;base64,${ctFront}`);
       if (field_study_back_base64) setTemplateImgFsBack(`data:image/png;base64,${field_study_back_base64}`);
       if (critical_thinking_back_base64) setTemplateImgCtBack(`data:image/png;base64,${critical_thinking_back_base64}`);
+      if (specialization_backs) setSpecBacks(specialization_backs);
+      if (field_study_backs) setFsBacks(field_study_backs);
     }).catch(() => { });
   }, []);
 
@@ -333,7 +670,7 @@ export default function CertificateTemplateAdminPage() {
           <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 gap-0.5">
             <button
               onClick={() => {
-                setSample(PRESETS.nabila);
+                setSample(PRESETS.spec_tourism);
                 setSelectedKey(activeSide === 'front' ? 'recipient_name' : 'back_title');
               }}
               className={`text-xs px-2 sm:px-2.5 py-1 rounded-md transition ${sample.type === 'specialization' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-white'}`}
@@ -368,6 +705,78 @@ export default function CertificateTemplateAdminPage() {
               Critical Thinking
             </button>
           </div>
+
+          {/* Sub-selector for Specialization tracks */}
+          {sample.type === 'specialization' && (
+            <div className="flex items-center gap-1.5 bg-slate-800/90 border border-slate-700 rounded-lg px-2 py-1">
+              <span className="text-[11px] text-slate-400 hidden md:inline font-medium">Peminatan:</span>
+              <select
+                value={sample.trackSlug || 'blue-tourism'}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'blue-tourism') setSample(PRESETS.spec_tourism);
+                  else if (val === 'blue-shipping') setSample(PRESETS.spec_shipping);
+                  else if (val === 'blue-finance') setSample(PRESETS.spec_finance);
+                  else if (val === 'blue-farming') setSample(PRESETS.spec_farming);
+                  else if (val === 'blue-energy') setSample(PRESETS.spec_energy);
+                  else if (val === 'blue-data-intelligence') setSample(PRESETS.spec_data_intelligence);
+                  else if (val === 'blue-community-development') setSample(PRESETS.spec_community_development);
+                  else if (val === 'blue-circular-economy') setSample(PRESETS.spec_circular_economy);
+                  else if (val === 'blue-business-development') setSample(PRESETS.spec_business_development);
+                  else setSample(PRESETS.spec_carbon);
+                }}
+                className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded px-2 py-0.5 outline-hidden cursor-pointer"
+              >
+                <option value="blue-tourism">Blue Tourism – CBEc. (Tour.)</option>
+                <option value="blue-shipping">Blue Shipping – CBEc. (Ship.)</option>
+                <option value="blue-finance">Blue Finance – CBEc. (Fin.)</option>
+                <option value="blue-farming">Blue Farming – CBEc. (Farm.)</option>
+                <option value="blue-energy">Blue Energy – CBEc. (Ener.)</option>
+                <option value="blue-carbon">Blue Carbon – CBEc. (Carb.)</option>
+                <option value="blue-data-intelligence">Blue Data Intelligence – CBEc. (DataIntel.)</option>
+                <option value="blue-community-development">Blue Community Dev – CBEc. (CommDev.)</option>
+                <option value="blue-circular-economy">Blue Circular Economy – CBEc. (CirEc.)</option>
+                <option value="blue-business-development">Blue Business Dev – CBEc. (BizDev.)</option>
+              </select>
+            </div>
+          )}
+
+          {/* Sub-selector for Field Study tracks */}
+          {sample.type === 'field_study' && (
+            <div className="flex items-center gap-1.5 bg-slate-800/90 border border-slate-700 rounded-lg px-2 py-1">
+              <span className="text-[11px] text-slate-400 hidden md:inline font-medium">Peminatan FS:</span>
+              <select
+                value={sample.trackSlug || 'foundation'}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'blue-tourism') setSample(PRESETS.fs_tourism);
+                  else if (val === 'blue-energy') setSample(PRESETS.fs_energy);
+                  else if (val === 'blue-farming') setSample(PRESETS.fs_farming);
+                  else if (val === 'blue-finance') setSample(PRESETS.fs_finance);
+                  else if (val === 'blue-shipping') setSample(PRESETS.fs_shipping);
+                  else if (val === 'blue-carbon') setSample(PRESETS.fs_carbon);
+                  else if (val === 'blue-business-development') setSample(PRESETS.fs_business_development);
+                  else if (val === 'blue-community-development') setSample(PRESETS.fs_community_development);
+                  else if (val === 'blue-circular-economy') setSample(PRESETS.fs_circular_economy);
+                  else if (val === 'blue-data-intelligence') setSample(PRESETS.fs_data_intelligence);
+                  else setSample(PRESETS.fs_foundation || PRESETS.field_study);
+                }}
+                className="text-xs bg-slate-900 border border-slate-700 text-white font-semibold rounded px-2 py-0.5 outline-hidden cursor-pointer"
+              >
+                <option value="foundation">FS: Foundation</option>
+                <option value="blue-tourism">FS: Blue Tourism</option>
+                <option value="blue-energy">FS: Blue Energy</option>
+                <option value="blue-farming">FS: Blue Farming</option>
+                <option value="blue-finance">FS: Blue Finance</option>
+                <option value="blue-shipping">FS: Blue Shipping</option>
+                <option value="blue-carbon">FS: Blue Carbon</option>
+                <option value="blue-business-development">FS: Blue Business Development</option>
+                <option value="blue-community-development">FS: Blue Community Development</option>
+                <option value="blue-circular-economy">FS: Blue Circular Economy</option>
+                <option value="blue-data-intelligence">FS: Blue Data Intelligence</option>
+              </select>
+            </div>
+          )}
 
           {/* Edit mode toggle */}
           <button onClick={() => setEditMode(v => !v)} className={`flex items-center gap-1.5 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg border transition ${editMode ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'}`}>
@@ -575,8 +984,11 @@ export default function CertificateTemplateAdminPage() {
                   {(sample.type === 'critical_thinking' || sample.type === 'field_study') ? (
                     <>
                       {(() => {
+                        const customFsBack = (sample.type === 'field_study' && sample.trackSlug && fsBacks[sample.trackSlug])
+                          ? `data:image/png;base64,${fsBacks[sample.trackSlug]}`
+                          : null;
                         const activeBack = sample.type === 'field_study'
-                          ? (templateImgFsBack || templateImgCtBack)
+                          ? (customFsBack || templateImgFsBack || templateImgCtBack)
                           : (templateImgCtBack || templateImgFsBack);
                         return activeBack
                           ? <img src={activeBack} alt={sample.type === 'field_study' ? 'Template Field Study Belakang' : 'Template Critical Thinking Belakang'} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
@@ -603,39 +1015,52 @@ export default function CertificateTemplateAdminPage() {
                     </>
                   ) : (
                     <>
-                      {templateBackImg
-                        ? <img src={templateBackImg} alt="Template Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                        : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>
-                      }
+                      {(() => {
+                        const customSpecBack = (sample.type === 'specialization' && sample.trackSlug && specBacks[sample.trackSlug])
+                          ? `data:image/png;base64,${specBacks[sample.trackSlug]}`
+                          : null;
+                        const backImgSrc = customSpecBack || templateBackImg;
 
-                      {/* Back Side Title Block */}
-                      <div
-                        onClick={() => { setSelectedKey('back_title'); setEditMode(true); setMobilePanelOpen(true); }}
-                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'back_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded p-1.5' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{
-                          top: mmToPx(layout.back_title?.top ?? 20.0),
-                          left: mmToPx(20),
-                          right: mmToPx(20),
-                          textAlign: 'center',
-                          fontFamily: "'Poppins', sans-serif",
-                          zIndex: 10,
-                        }}
-                      >
-                        {sample.name.includes('Budi') ? (
+                        return (
                           <>
-                            <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25 }}>
-                              List of Competency Units of Certified Blue Economist (CBEc)
-                            </div>
-                            <div style={{ fontSize: `${Math.max(10, (layout.back_title?.font_size ?? 15.0) - 2.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', marginTop: `${mmToPx(2.2)}px`, lineHeight: 1.2 }}>
-                              Foundation Level
-                            </div>
+                            {backImgSrc
+                              ? <img src={backImgSrc} alt="Template Belakang" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                              : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>
+                            }
+
+                            {/* Back Side Title Block (only rendered if no custom specialization background with embedded table) */}
+                            {!customSpecBack && (
+                              <div
+                                onClick={() => { setSelectedKey('back_title'); setEditMode(true); setMobilePanelOpen(true); }}
+                                className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'back_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded p-1.5' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                                style={{
+                                  top: mmToPx(layout.back_title?.top ?? 20.0),
+                                  left: mmToPx(20),
+                                  right: mmToPx(20),
+                                  textAlign: 'center',
+                                  fontFamily: "'Poppins', sans-serif",
+                                  zIndex: 10,
+                                }}
+                              >
+                                {sample.name.includes('Budi') ? (
+                                  <>
+                                    <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25 }}>
+                                      List of Competency Units of Certified Blue Economist (CBEc)
+                                    </div>
+                                    <div style={{ fontSize: `${Math.max(10, (layout.back_title?.font_size ?? 15.0) - 2.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', marginTop: `${mmToPx(2.2)}px`, lineHeight: 1.2 }}>
+                                      Foundation Level
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25, marginTop: `${mmToPx(3.5)}px` }}>
+                                    List of Competency Units of {sample.ribbon}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </>
-                        ) : (
-                          <div style={{ fontSize: `${(layout.back_title?.font_size ?? 15.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', lineHeight: 1.25, marginTop: `${mmToPx(3.5)}px` }}>
-                            List of Competency Units of {sample.ribbon}
-                          </div>
-                        )}
-                      </div>
+                        );
+                      })()}
                     </>
                   )}
                 </>
