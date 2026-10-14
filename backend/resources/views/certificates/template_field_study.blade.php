@@ -133,6 +133,33 @@
         $placeShort = trim(explode(',', $place)[0]);
 
         $partDate = $participationDate ?? ('20 May – ' . $issueCarbon->format('j F Y'));
+
+        $rawCourseTitle = $course->title ?? '';
+        $levelName = $course->certificationLevel->name ?? '';
+        $levelCode = $course->certificationLevel->code ?? '';
+
+        $isFoundation = str_contains(strtolower($rawCourseTitle), 'foundation')
+            || str_contains(strtolower($levelName), 'foundation')
+            || strtolower($levelCode) === 'fnd'
+            || strtolower($levelCode) === 'foundation';
+
+        if ($isFoundation) {
+            $displayCourseTitle = 'International Blue Economist Certification Training Course';
+        } else {
+            // Format judul spesialisasi: "International Blue Economist Certification Training Course - {Track} Specialization"
+            $specName = preg_replace('/^Certified Blue Economist in\s*/i', '', $rawCourseTitle);
+            $specName = preg_replace('/\s*\(CBEc\)/i', '', $specName);
+            $specName = trim($specName);
+
+            if (!empty($specName)) {
+                if (!str_contains(strtolower($specName), 'specialization')) {
+                    $specName .= ' Specialization';
+                }
+                $displayCourseTitle = "International Blue Economist Certification Training Course - {$specName}";
+            } else {
+                $displayCourseTitle = 'International Blue Economist Certification Training Course';
+            }
+        }
     @endphp
 
     {{-- ==================== PAGE 1: FRONT ==================== --}}
@@ -150,7 +177,7 @@
 
             {{-- Training Course Title --}}
             <div class="fs-title" style="top: {{ $tTop }}mm; font-size: {{ $tFs }}pt;">
-                INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE
+                {{ $displayCourseTitle }}
             </div>
 
             {{-- Date of Participation (with clean background matching template to blend seamlessly) --}}

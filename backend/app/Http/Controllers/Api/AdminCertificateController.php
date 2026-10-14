@@ -187,19 +187,30 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($templatePath))
             : null;
 
-        $templateBackPath = resource_path('images/template_back.png');
+        $courseSlug = $cert->enrollment->course->slug ?? '';
+        $specBackPath = resource_path("images/template_cbec_back_{$courseSlug}.png");
+        $hasCustomBackTemplate = false;
+
+        if (! $isFoundation && file_exists($specBackPath)) {
+            $templateBackPath = $specBackPath;
+            $hasCustomBackTemplate = true;
+        } else {
+            $templateBackPath = resource_path('images/template_back.png');
+        }
+
         $templateBackBase64 = file_exists($templateBackPath)
             ? base64_encode(file_get_contents($templateBackPath))
             : null;
 
         $pdf = Pdf::loadView('certificates.template', [
-            'certificate' => $cert,
-            'user' => $cert->user,
-            'course' => $cert->enrollment->course,
-            'level' => $cert->enrollment->course->certificationLevel,
-            'qrImageBase64' => $qrImageBase64,
-            'templateBase64' => $templateBase64,
-            'templateBackBase64' => $templateBackBase64,
+            'certificate'           => $cert,
+            'user'                  => $cert->user,
+            'course'                => $cert->enrollment->course,
+            'level'                 => $cert->enrollment->course->certificationLevel,
+            'qrImageBase64'         => $qrImageBase64,
+            'templateBase64'        => $templateBase64,
+            'templateBackBase64'    => $templateBackBase64,
+            'hasCustomBackTemplate' => $hasCustomBackTemplate,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";
@@ -273,9 +284,13 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($frontTemplatePath))
             : null;
 
-        $backTemplatePath = file_exists(resource_path('images/template_field_study_back.png'))
-            ? resource_path('images/template_field_study_back.png')
-            : resource_path('images/Foundation (2).png');
+        $courseSlug = $cert->enrollment->course->slug ?? '';
+        $specFsBackPath = resource_path("images/template_fs_back_{$courseSlug}.png");
+        $backTemplatePath = file_exists($specFsBackPath)
+            ? $specFsBackPath
+            : (file_exists(resource_path('images/template_field_study_back.png'))
+                ? resource_path('images/template_field_study_back.png')
+                : resource_path('images/Foundation (2).png'));
         $backBase64 = file_exists($backTemplatePath)
             ? base64_encode(file_get_contents($backTemplatePath))
             : null;
@@ -424,6 +439,28 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($fsBackPath))
             : null;
 
+        $specBacks = [];
+        $specFiles = glob(resource_path('images/template_cbec_back_*.png'));
+        if ($specFiles) {
+            foreach ($specFiles as $sFile) {
+                $fName = basename($sFile);
+                if (preg_match('/template_cbec_back_(.+)\.png$/', $fName, $matches)) {
+                    $specBacks[$matches[1]] = base64_encode(file_get_contents($sFile));
+                }
+            }
+        }
+
+        $fsBacks = [];
+        $fsFiles = glob(resource_path('images/template_fs_back_*.png'));
+        if ($fsFiles) {
+            foreach ($fsFiles as $fFile) {
+                $fName = basename($fFile);
+                if (preg_match('/template_fs_back_(.+)\.png$/', $fName, $matches)) {
+                    $fsBacks[$matches[1]] = base64_encode(file_get_contents($fFile));
+                }
+            }
+        }
+
         return response()->json([
             'data' => [
                 'base64' => base64_encode(file_get_contents($templatePath)),
@@ -435,6 +472,8 @@ class AdminCertificateController extends Controller
                 'critical_thinking_back_base64' => $ctBackBase64,
                 'field_study_front_base64' => $fsFrontBase64,
                 'field_study_back_base64' => $fsBackBase64,
+                'specialization_backs' => $specBacks,
+                'field_study_backs' => $fsBacks,
                 'width_mm' => 297,
                 'height_mm' => 210,
             ],

@@ -102,8 +102,8 @@ export function getCertificateTemplatesForCourse(
   // Participating grants both CBEc Specialization + Field Study Specialization.
   // Not participating grants only the CBEc Specialization certificate.
   return [
-    getSpecializationTemplate(rawTitle, isEn),
-    getFieldStudySpecializationTemplate(rawTitle, isEn),
+    getSpecializationTemplate(rawTitle, isEn, rawSlug),
+    getFieldStudySpecializationTemplate(rawTitle, isEn, rawSlug),
   ];
 }
 
@@ -253,7 +253,54 @@ function getCriticalThinkingTemplate(isEn: boolean): CertificateTemplate {
   };
 }
 
-function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean): CertificateTemplate {
+function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean, rawSlug = ''): CertificateTemplate {
+  const s = (rawSlug + ' ' + courseTitle).toLowerCase();
+  let imageBack = '/images/certificates/template_field_study_back.png';
+  let hoursText = '30 Hours · 1.5 ECTS';
+  let hoursTextId = '30 Jam · 1.5 ECTS';
+
+  if (s.includes('tourism') || s.includes('tour')) {
+    imageBack = '/images/certificates/template_fs_back_blue-tourism.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('energy') || s.includes('ener')) {
+    imageBack = '/images/certificates/template_fs_back_blue-energy.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('farming') || s.includes('farm')) {
+    imageBack = '/images/certificates/template_fs_back_blue-farming.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('finance') || s.includes('fin')) {
+    imageBack = '/images/certificates/template_fs_back_blue-finance.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('shipping') || s.includes('ship')) {
+    imageBack = '/images/certificates/template_fs_back_blue-shipping.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('data') || s.includes('intel')) {
+    imageBack = '/images/certificates/template_fs_back_blue-data-intelligence.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('community') || s.includes('comm')) {
+    imageBack = '/images/certificates/template_fs_back_blue-community-development.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('business') || s.includes('bizdev')) {
+    imageBack = '/images/certificates/template_fs_back_blue-business-development.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('carbon') || s.includes('carb')) {
+    imageBack = '/images/certificates/template_fs_back_blue-carbon.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  } else if (s.includes('circular') || s.includes('cirec')) {
+    imageBack = '/images/certificates/template_fs_back_blue-circular-economy.png';
+    hoursText = '15 Hours · 0.75 ECTS';
+    hoursTextId = '15 Jam · 0.75 ECTS';
+  }
+
   return {
     id: 'field_study_spec',
     levelCode: 'FIELD_STUDY',
@@ -268,14 +315,14 @@ function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean)
       ? `Training Course (Field Study) — ${courseTitle}`
       : `Sertifikat Praktikum Lapangan (Field Study) — ${courseTitle}`,
     subtitle: isEn
-      ? 'Specialization Integrated Fieldwork (30 Hours · 1.5 ECTS)'
-      : 'Praktikum Lapangan Terpadu Peminatan Spesialisasi (30 Jam · 1.5 ECTS)',
+      ? `Specialization Integrated Fieldwork (${hoursText})`
+      : `Praktikum Lapangan Terpadu Peminatan Spesialisasi (${hoursTextId})`,
     categoryLabel: isEn ? 'Field Study Specialization' : 'Field Study Specialization',
     description: isEn
       ? 'Official companion certificate earned by participants who confirm and attend the Specialization Field Study. Attending grants BOTH certificates (CBEc Specialization + Field Study Specialization). Not attending grants only the CBEc Specialization certificate.'
       : 'Sertifikat pendamping resmi bagi peserta kursus Specialization yang mengonfirmasi & mengikuti kegiatan Field Study. Jika mengikuti, peserta mendapatkan 2 Sertifikat (CBEc Specialization + Field Study Specialization). Jika tidak mengikuti, peserta tetap lulus dan hanya mendapatkan Sertifikat CBEc Specialization.',
     imageFront: '/images/certificates/template_field_study_front.png',
-    imageBack: '/images/certificates/template_field_study_back.png',
+    imageBack,
     hasBack: true,
     isOptionalAttendance: true,
     attendanceConditionNote: isEn
@@ -296,22 +343,22 @@ function getFieldStudySpecializationTemplate(courseTitle: string, isEn: boolean)
         ],
     backHighlights: isEn
       ? [
-          'Field study specialized curriculum structure (30 Hours / 1.5 ECTS)',
-          'Modules: Integrated Ocean Governance, Blue Industry & ESG, Resources Valuation, Field Study',
+          `Field study specialized curriculum structure (${hoursText})`,
+          'Modules, topics, and practical competency breakdown',
           'Transcript of practical competencies and evaluation breakdown',
         ]
       : [
-          'Struktur kurikulum Field Study terperinci (30 Jam, 1.5 ECTS)',
-          'Modul: Integrated Ocean Governance, Blue Industry & ESG, Resources Valuation, Field Study (30 Jam)',
+          `Struktur kurikulum Field Study terperinci (${hoursTextId})`,
+          'Rincian modul, topik, dan alokasi jam praktikum lapangan spesialisasi',
           'Transkrip capaian kompetensi praktis peserta terverifikasi',
         ],
     credibilityPoints: [
       {
         icon: 'water-drop-1',
-        title: isEn ? '1.5 ECTS Credit Transfer' : 'Setara 1.5 ECTS Credit',
+        title: isEn ? `${hoursText.split('·')[1]?.trim() || 'Credit Transfer'}` : `Setara ${hoursTextId.split('·')[1]?.trim() || 'Credit Transfer'}`,
         desc: isEn
-          ? 'Standardized 30-hour workload recognized for university credits.'
-          : 'Beban 30 jam pembelajaran praktis berstandar akademik Eropa.',
+          ? `Standardized ${hoursText.split('·')[0]?.trim()} workload recognized for academic credit.`
+          : `Beban ${hoursTextId.split('·')[0]?.trim()} pembelajaran praktis berstandar akademik.`,
       },
       {
         icon: 'shield-2-check',
@@ -407,10 +454,34 @@ function getFieldStudyTemplate(isEn: boolean): CertificateTemplate {
   };
 }
 
-function getSpecializationTemplate(courseTitle: string, isEn: boolean): CertificateTemplate {
+function getSpecializationTemplate(courseTitle: string, isEn: boolean, rawSlug = ''): CertificateTemplate {
   let cleanTitle = courseTitle;
   if (!cleanTitle.includes('Certified Blue Economist')) {
     cleanTitle = `Certified Blue Economist in ${courseTitle} (CBEc)`;
+  }
+
+  const s = (rawSlug + ' ' + courseTitle).toLowerCase();
+  let imageBack = '/images/certificates/template_back.png';
+  if (s.includes('tourism') || s.includes('tour')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-tourism.png';
+  } else if (s.includes('shipping') || s.includes('ship')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-shipping.png';
+  } else if (s.includes('finance') || s.includes('fin')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-finance.png';
+  } else if (s.includes('farming') || s.includes('farm')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-farming.png';
+  } else if (s.includes('energy') || s.includes('ener')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-energy.png';
+  } else if (s.includes('data') || s.includes('intel')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-data-intelligence.png';
+  } else if (s.includes('community') || s.includes('comm')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-community-development.png';
+  } else if (s.includes('circular') || s.includes('cirec')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-circular-economy.png';
+  } else if (s.includes('carbon') || s.includes('carb')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-carbon.png';
+  } else if (s.includes('business') || s.includes('bizdev')) {
+    imageBack = '/images/certificates/template_cbec_back_blue-business-development.png';
   }
 
   return {
@@ -432,7 +503,7 @@ function getSpecializationTemplate(courseTitle: string, isEn: boolean): Certific
       ? 'Professional certificate recognizing advanced competency in this specialization track with non-academic post-nominal CBEc.'
       : 'Sertifikat resmi keahlian mendalam pada jalur peminatan dengan hak pencantuman gelar profesi non-akademik CBEc.',
     imageFront: '/images/certificates/template_CBEc.png',
-    imageBack: '/images/certificates/template_back.png',
+    imageBack,
     hasBack: true,
     frontHighlights: isEn
       ? [

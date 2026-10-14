@@ -368,6 +368,7 @@
     <div class="cert-page cert-page-back">
         <img class="bg-template" src="data:image/png;base64,{{ $templateBackBase64 }}" alt="Certificate Back Template">
 
+        @if(! ($hasCustomBackTemplate ?? false))
         <div class="overlay">
             <div class="back-title-block" style="top: {{ $btTop }}mm;">
                 @if($isFoundation)
@@ -378,6 +379,7 @@
                 @endif
             </div>
         </div>
+        @endif
     </div>
     @endif
 
