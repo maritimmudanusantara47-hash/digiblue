@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Enrollment;
+use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -98,7 +99,65 @@ class MidtransService
     }
 
     /**
-     * Sinkronkan status transaksi langsung dari API Midtrans
+     * Generate Snap Token untuk transaksi keranjang multi-kursus
+     *
+     * @param User $user
+     * @param string $orderId
+     * @param int $totalAmount
+     * @param array $itemDetails
+     * @param Enrollment[] $enrollments
+     * @return array
+     */
+    public function createCartSnapToken(User $user, string $orderId, int $totalAmount, array $itemDetails, array $enrollments): array
+    {
+        $this->initMidtrans();
+
+        $grossAmount = max(1, $totalAmount);
+
+        $params = [
+            'transaction_details' => [
+                'order_id'     => $orderId,
+                'gross_amount' => $grossAmount,
+            ],
+            'customer_details' => [
+                'first_name' => $user->name,
+                'email'      => $user->email,
+                'phone'      => $user->phone_number ?? '081234567890',
+            ],
+            'item_details' => $itemDetails,
+            'callbacks' => [
+                'finish' => config('app.frontend_url', 'http://localhost:3000') . '/student/dashboard?payment=success',
+            ],
+        ];
+
+        try {
+            $transaction = \Midtrans\Snap::createTransaction($params);
+            $snapToken   = $transaction->token ?? null;
+            $redirectUrl = $transaction->redirect_url ?? "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}";
+
+            // Update snap token ke setiap enrollment dalam keranjang
+            foreach ($enrollments as $enrollment) {
+                $enrollment->update([
+                    'payment_token'  => $snapToken,
+                    'order_id'       => $orderId,
+                    'payment_status' => 'pending',
+                ]);
+            }
+
+            return [
+                'snap_token'   => $snapToken,
+                'redirect_url' => $redirectUrl,
+                'order_id'     => $orderId,
+                'amount'       => $grossAmount,
+            ];
+        } catch (Exception $e) {
+            Log::error('Midtrans Cart Snap Error: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Sinkronkan status transaksi langsung dari API Midtrans berdasarkan Enrollment tunggal
      */
     public function syncTransactionStatus(Enrollment $enrollment): array
     {
@@ -108,46 +167,79 @@ class MidtransService
             return ['status' => 'no_order_id', 'message' => __('api.belum_ada_transaksi')];
         }
 
+        return $this->syncTransactionStatusByOrderId($enrollment->order_id);
+    }
+
+    /**
+     * Sinkronkan status transaksi berdasarkan order_id (cocok untuk checkout cart multi-kursus maupun single)
+     */
+    public function syncTransactionStatusByOrderId(string $orderId): array
+    {
+        $this->initMidtrans();
+
+        $enrollments = Enrollment::where('order_id', $orderId)->get();
+
+        if ($enrollments->isEmpty()) {
+            return ['status' => 'not_found', 'message' => 'Pesanan tidak ditemukan.'];
+        }
+
         try {
-            $rawStatus      = \Midtrans\Transaction::status($enrollment->order_id);
+            $rawStatus      = \Midtrans\Transaction::status($orderId);
             $midtransStatus = (array) $rawStatus;
             $trxStatus      = $midtransStatus['transaction_status'] ?? null;
             $fraudStatus    = $midtransStatus['fraud_status'] ?? null;
 
+            $isPaid = false;
+
             if ($trxStatus === 'capture') {
                 if ($fraudStatus === 'accept') {
+                    $isPaid = true;
+                    foreach ($enrollments as $enrollment) {
+                        $enrollment->update([
+                            'status'         => 'active',
+                            'payment_status' => 'paid',
+                            'paid_at'        => $enrollment->paid_at ?? now(),
+                        ]);
+                    }
+                }
+            } elseif ($trxStatus === 'settlement') {
+                $isPaid = true;
+                foreach ($enrollments as $enrollment) {
                     $enrollment->update([
                         'status'         => 'active',
                         'payment_status' => 'paid',
-                        'paid_at'        => now(),
+                        'paid_at'        => $enrollment->paid_at ?? now(),
                     ]);
                 }
-            } elseif ($trxStatus === 'settlement') {
-                $enrollment->update([
-                    'status'         => 'active',
-                    'payment_status' => 'paid',
-                    'paid_at'        => now(),
-                ]);
             } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
-                $enrollment->update([
-                    'payment_status' => 'failed',
-                ]);
+                foreach ($enrollments as $enrollment) {
+                    if ($enrollment->payment_status !== 'paid') {
+                        $enrollment->update([
+                            'payment_status' => 'failed',
+                        ]);
+                    }
+                }
             }
+
+            $firstEnrollment = $enrollments->first();
 
             return [
                 'status'             => 'synced',
-                'is_active'          => in_array($enrollment->fresh()->status, ['active', 'completed']),
-                'enrollment_status'  => $enrollment->fresh()->status,
+                'is_paid'            => $isPaid,
+                'is_active'          => in_array($firstEnrollment?->status, ['active', 'completed']),
+                'enrollment_status'  => $firstEnrollment?->status,
                 'transaction_status' => $trxStatus,
+                'order_id'           => $orderId,
+                'count'              => $enrollments->count(),
             ];
         } catch (Exception $e) {
-            Log::warning("Gagal sync status order {$enrollment->order_id}: " . $e->getMessage());
+            Log::warning("Gagal sync status order {$orderId}: " . $e->getMessage());
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
 
     /**
-     * Handle Webhook Notifikasi dari Midtrans
+     * Handle Webhook Notifikasi dari Midtrans (Mendukung transaksi single & cart multi-item)
      */
     public function handleNotification(array $payload): array
     {
@@ -168,63 +260,72 @@ class MidtransService
             return ['status' => 'invalid_signature'];
         }
 
-        // Ekstrak enrollment ID dari order_id: DIGIBLUE-{enrollment_id}-{timestamp}
-        preg_match('/DIGIBLUE-(\d+)-/', $orderId, $matches);
-        $enrollmentId = $matches[1] ?? null;
+        // Cari record enrollment berdasarkan order_id
+        $enrollments = Enrollment::where('order_id', $orderId)->get();
 
-        if (!$enrollmentId) {
+        // Fallback transaksi lama dengan pola DIGIBLUE-{enrollment_id}-{timestamp}
+        if ($enrollments->isEmpty()) {
+            preg_match('/DIGIBLUE-(\d+)-/', $orderId, $matches);
+            $legacyId = $matches[1] ?? null;
+            if ($legacyId) {
+                $legacy = Enrollment::find($legacyId);
+                if ($legacy) {
+                    $enrollments = collect([$legacy]);
+                }
+            }
+        }
+
+        if ($enrollments->isEmpty()) {
             return ['status' => 'enrollment_not_found'];
         }
 
-        $enrollment = Enrollment::find($enrollmentId);
-        if (!$enrollment) {
-            return ['status' => 'enrollment_not_found'];
-        }
-
-        // Verifikasi kesesuaian nominal: gross_amount tidak boleh lebih kecil dari nominal tagihan
-        if ($enrollment->final_payment_amount !== null && (float) $grossAmount < (float) $enrollment->final_payment_amount) {
-            Log::warning("Midtrans Gross Amount Mismatch for order {$orderId}: expected {$enrollment->final_payment_amount}, received {$grossAmount}");
+        // Verifikasi kesesuaian nominal
+        $expectedAmount = (float) $enrollments->sum('final_payment_amount');
+        if ($expectedAmount > 0 && (float) $grossAmount < $expectedAmount) {
+            Log::warning("Midtrans Gross Amount Mismatch for order {$orderId}: expected {$expectedAmount}, received {$grossAmount}");
             return ['status' => 'amount_mismatch'];
         }
 
-        // Idempotensi: jika enrollment sudah tercatat lunas/aktif, jangan turunkan statusnya karena notifikasi yang terlambat
-        $isAlreadyPaid = $enrollment->payment_status === 'paid' || in_array($enrollment->status, ['active', 'completed']);
+        foreach ($enrollments as $enrollment) {
+            // Idempotensi: jika enrollment sudah tercatat lunas/aktif, jangan turunkan statusnya
+            $isAlreadyPaid = $enrollment->payment_status === 'paid' || in_array($enrollment->status, ['active', 'completed']);
 
-        if ($transactionStatus === 'capture') {
-            if ($fraudStatus === 'accept') {
+            if ($transactionStatus === 'capture') {
+                if ($fraudStatus === 'accept') {
+                    $enrollment->update([
+                        'status'         => 'active',
+                        'payment_status' => 'paid',
+                        'paid_at'        => $enrollment->paid_at ?? now(),
+                    ]);
+                }
+            } elseif ($transactionStatus === 'settlement') {
+                // Lunas (QRIS, VA Bank, GoPay, dsb)
                 $enrollment->update([
                     'status'         => 'active',
                     'payment_status' => 'paid',
                     'paid_at'        => $enrollment->paid_at ?? now(),
                 ]);
-            }
-        } elseif ($transactionStatus === 'settlement') {
-            // Lunas (QRIS, VA Bank, GoPay, dsb)
-            $enrollment->update([
-                'status'         => 'active',
-                'payment_status' => 'paid',
-                'paid_at'        => $enrollment->paid_at ?? now(),
-            ]);
-        } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-            if (!$isAlreadyPaid) {
-                $enrollment->update([
-                    'payment_status' => 'failed',
-                    'status'         => 'payment_pending',
-                ]);
-            }
-        } elseif ($transactionStatus === 'pending') {
-            if (!$isAlreadyPaid) {
-                $enrollment->update([
-                    'payment_status' => 'pending',
-                    'status'         => 'payment_pending',
-                ]);
+            } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
+                if (!$isAlreadyPaid) {
+                    $enrollment->update([
+                        'payment_status' => 'failed',
+                        'status'         => 'payment_pending',
+                    ]);
+                }
+            } elseif ($transactionStatus === 'pending') {
+                if (!$isAlreadyPaid) {
+                    $enrollment->update([
+                        'payment_status' => 'pending',
+                        'status'         => 'payment_pending',
+                    ]);
+                }
             }
         }
 
         return [
-            'status'         => 'success',
-            'enrollment_id'  => $enrollment->id,
-            'payment_status' => $enrollment->payment_status,
+            'status'   => 'success',
+            'order_id' => $orderId,
+            'count'    => $enrollments->count(),
         ];
     }
 }
