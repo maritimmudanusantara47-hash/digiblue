@@ -9,6 +9,7 @@ use App\Services\MidtransService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class PaymentController extends Controller
 {
@@ -74,11 +75,15 @@ class PaymentController extends Controller
      */
     public function checkoutCart(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $rules = [
             'items'             => 'required|array|min:1',
             'items.*.course_id' => 'required|exists:courses,id',
-            'items.*.batch_id'  => 'nullable|exists:course_batches,id',
-        ]);
+            'items.*.batch_id'  => 'nullable',
+        ];
+        if (Schema::hasTable('course_batches')) {
+            $rules['items.*.batch_id'] = 'nullable|exists:course_batches,id';
+        }
+        $validated = $request->validate($rules);
 
         $user = $request->user();
 
@@ -144,6 +149,7 @@ class PaymentController extends Controller
 
         // Buat atau perbarui record enrollment
         $enrollments = [];
+        $hasBatchCol = Schema::hasColumn('enrollments', 'batch_id');
 
         // Jika seluruh item gratis (totalAmount == 0)
         if ($isAllFree || $totalAmount === 0) {
@@ -152,19 +158,23 @@ class PaymentController extends Controller
                 $batchId = $item['batch_id'] ?? null;
                 $price   = (int) ($courses[$cid]->price_idr ?? 0);
 
+                $updateData = [
+                    'enrollment_type'      => 'self_paid',
+                    'status'               => 'active',
+                    'payment_status'       => 'paid',
+                    'paid_at'              => now(),
+                    'final_payment_amount' => $price,
+                ];
+                if ($hasBatchCol) {
+                    $updateData['batch_id'] = $batchId;
+                }
+
                 $enrollment = Enrollment::updateOrCreate(
                     [
                         'user_id'   => $user->id,
                         'course_id' => $cid,
                     ],
-                    [
-                        'batch_id'             => $batchId,
-                        'enrollment_type'      => 'self_paid',
-                        'status'               => 'active',
-                        'payment_status'       => 'paid',
-                        'paid_at'              => now(),
-                        'final_payment_amount' => $price,
-                    ]
+                    $updateData
                 );
                 $enrollments[] = $enrollment;
             }
@@ -186,19 +196,23 @@ class PaymentController extends Controller
             $batchId = $item['batch_id'] ?? null;
             $price   = (int) ($courses[$cid]->price_idr ?? 0);
 
+            $updateData = [
+                'enrollment_type'      => 'self_paid',
+                'status'               => 'payment_pending',
+                'payment_status'       => 'pending',
+                'final_payment_amount' => $price,
+                'order_id'             => $orderId,
+            ];
+            if ($hasBatchCol) {
+                $updateData['batch_id'] = $batchId;
+            }
+
             $enrollment = Enrollment::updateOrCreate(
                 [
                     'user_id'   => $user->id,
                     'course_id' => $cid,
                 ],
-                [
-                    'batch_id'             => $batchId,
-                    'enrollment_type'      => 'self_paid',
-                    'status'               => 'payment_pending',
-                    'payment_status'       => 'pending',
-                    'final_payment_amount' => $price,
-                    'order_id'             => $orderId,
-                ]
+                $updateData
             );
             $enrollments[] = $enrollment;
         }
