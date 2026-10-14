@@ -265,6 +265,12 @@ function StudentDashboardContent() {
     },
   ];
 
+  const foundationCompleted = enrollments.some(
+    (e) =>
+      (e.status === 'completed' || certificates.some((c) => c.enrollment_id === e.id)) &&
+      e.course?.certification_level?.code === 'FND'
+  );
+
   return (
     <div className="space-y-8 animate-fadeup pb-8">
       {/* Just Verified Success Alert */}
@@ -460,6 +466,8 @@ function StudentDashboardContent() {
               const isPending = e.status === 'payment_pending';
               const isActive = e.status === 'active';
               const isCompleted = e.status === 'completed';
+              const isSpec = e.course?.certification_level?.code === 'SPEC';
+              const accessBlocked = isSpec && !foundationCompleted;
               const badgeCfg = statusBadgeConfig[e.status] ?? {
                 label: e.status,
                 bg: 'bg-slate-100',
@@ -494,6 +502,12 @@ function StudentDashboardContent() {
                     <p className="text-xs text-slate-500">
                       {e.course.certification_level.name}
                     </p>
+                    {isActive && accessBlocked && (
+                      <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50/80 border border-amber-200/60 rounded-lg px-2.5 py-1 mt-2 w-fit">
+                        <Icon name="locked-1" size={13} className="text-amber-600 shrink-0" />
+                        <span>Selesaikan kursus Foundation Level terlebih dahulu untuk membuka akses materi.</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
@@ -526,7 +540,19 @@ function StudentDashboardContent() {
                       </div>
                     )}
 
-                    {isActive && (
+                    {isActive && accessBlocked && (
+                      <button
+                        type="button"
+                        disabled
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-300 flex items-center gap-1.5 cursor-not-allowed font-heading"
+                        title="Selesaikan kursus Foundation Level terlebih dahulu untuk membuka materi ini."
+                      >
+                        <Icon name="locked-1" size={13} className="text-amber-600" />
+                        <span>{t('btn_finish_fnd')}</span>
+                      </button>
+                    )}
+
+                    {isActive && !accessBlocked && (
                       <Link
                         href={`/student/courses/${e.course.slug}`}
                         className="px-4 py-2 rounded-xl text-xs font-bold bg-[#07192C] hover:bg-[#0284c7] text-white flex items-center gap-1.5 shadow-xs transition-all font-heading"

@@ -18,6 +18,7 @@ class ContentController extends Controller
     {
         $user = $request->user();
         $query = Enrollment::with([
+            'course.certificationLevel',
             'course.sections.contents.quizQuestions.options',
         ]);
 
@@ -33,6 +34,23 @@ class ContentController extends Controller
         }
 
         $enrollment = $query->findOrFail($enrollmentId);
+
+        // Security check: Jika kursus bertipe Specialization, pastikan student sudah menyelesaikan Foundation
+        if ((!method_exists($user, 'hasRole') || !$user->hasRole('admin')) && $enrollment->course->certificationLevel?->code === 'SPEC') {
+            $hasCompletedFoundation = Enrollment::where('user_id', $user->id)
+                ->where('status', 'completed')
+                ->whereHas('course.certificationLevel', function ($q) {
+                    $q->where('code', 'FND');
+                })
+                ->exists();
+
+            if (!$hasCompletedFoundation) {
+                return response()->json([
+                    'message'             => 'Anda harus menyelesaikan kursus Foundation Level terlebih dahulu sebelum dapat mengakses materi kursus Spesialisasi.',
+                    'foundation_required' => true,
+                ], 403);
+            }
+        }
 
         // Untuk MCQ, sembunyikan is_correct dari student
         $sections = $enrollment->course->sections->map(function ($section) {

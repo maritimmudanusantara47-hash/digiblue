@@ -159,6 +159,15 @@ export default function StudentCoursePage() {
         throw new Error('Kamu belum terdaftar atau belum membayar kursus ini.');
       }
 
+      // Pastikan jika kursus Specialization, user harus sudah menyelesaikan Foundation
+      const isSpec = course?.certification_level?.code === 'SPEC';
+      const foundationCompleted = enrollments.some(
+        (e: any) => e.status === 'completed' && e.course?.certification_level?.code === 'FND'
+      );
+      if (isSpec && !foundationCompleted) {
+        throw new Error('Kamu harus menyelesaikan kursus Foundation Level terlebih dahulu sebelum dapat mengakses materi spesialisasi.');
+      }
+
       // Step 3: load full content using enrollment ID
       const contentRes = await api.get(`/enrollments/${enrollment.id}/contents`);
       const pageData: PageData = contentRes.data.data;
