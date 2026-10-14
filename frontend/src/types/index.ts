@@ -95,8 +95,6 @@ export interface Enrollment {
   payment_status?: string | null;
   payment_token?: string | null;
   attended_field_trip: boolean;
-  order_id?: string | null;
-  final_payment_amount?: number | null;
   created_at: string;
 }
 

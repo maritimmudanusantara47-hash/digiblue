@@ -366,7 +366,6 @@ export default function StudentOrdersPage() {
             {filteredOrders.map((e) => {
               const isPending = e.status === 'payment_pending';
               const isCancelled = e.status === 'cancelled';
-              const isPaid = ['active', 'completed'].includes(e.status) || e.payment_status === 'paid';
               const badgeCfg = statusBadgeConfig[e.status] ?? {
                 label: e.status,
                 bg: 'bg-slate-100',
@@ -448,15 +447,6 @@ export default function StudentOrdersPage() {
                       </div>
                     )}
 
-                    {isPaid && (
-                      <Link
-                        href={`/student/courses/${e.course.slug}`}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-[#07192C] hover:bg-[#0284c7] text-white flex items-center gap-1.5 shadow-xs transition-all font-heading"
-                      >
-                        <Icon name="book-1" size={13} />
-                        <span>Mulai Belajar</span>
-                      </Link>
-                    )}
 
                     {isCancelled && (
                       <Link
