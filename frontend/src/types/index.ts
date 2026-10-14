@@ -90,11 +90,16 @@ export interface Enrollment {
   batch?: CourseBatch | null;
   enrollment_type: EnrollmentType;
   status: EnrollmentStatus;
+  order_id?: string | null;
+  final_payment_amount?: number | string | null;
+  payment_status?: string | null;
+  payment_token?: string | null;
   attended_field_trip: boolean;
   order_id?: string | null;
   final_payment_amount?: number | null;
   created_at: string;
 }
+
 
 
 // ─── Course Content ──────────────────────────────────────────────────────────

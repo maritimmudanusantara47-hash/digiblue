@@ -14,6 +14,7 @@ const navItems = [
   { href: '/student/dashboard', label: 'nav_dashboard', icon: 'home-2' },
   { href: '/student/catalog', label: 'nav_catalog', icon: 'books-2' },
   { href: '/student/certificates', label: 'nav_certificates', icon: 'certificate-badge-1' },
+  { href: '/student/orders', label: 'nav_orders', icon: 'credit-card-multiple' },
   { href: '/student/profile', label: 'nav_profile', icon: 'user-4' },
 ];
 
