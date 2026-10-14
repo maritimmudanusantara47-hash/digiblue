@@ -113,7 +113,7 @@ export default function PublicNavbar() {
 
             {/* Cart Icon Button with Badge */}
             <Link
-              href="/cart"
+              href="/student/cart"
               className="relative p-2.5 rounded-xl border border-slate-200 text-slate-700 hover:text-sky-600 hover:border-sky-300 hover:bg-sky-50/60 transition-all shadow-xs flex items-center justify-center group"
               title={t('nav_cart')}
               aria-label={t('nav_cart')}
@@ -147,7 +147,7 @@ export default function PublicNavbar() {
           {/* Mobile Right Action: Cart & Hamburger Button */}
           <div className="flex items-center gap-2 lg:hidden">
             <Link
-              href="/cart"
+              href="/student/cart"
               className="relative p-2 rounded-xl border border-slate-200 text-slate-700 hover:text-sky-600 transition-colors flex items-center justify-center"
               aria-label={t('nav_cart')}
             >
@@ -222,10 +222,10 @@ export default function PublicNavbar() {
               {t('nav_help')}
             </Link>
             <Link
-              href="/cart"
+              href="/student/cart"
               onClick={() => setMobileMenuOpen(false)}
               className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                pathname === '/cart' ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                pathname.startsWith('/student/cart') ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               <div className="flex items-center gap-2.5">

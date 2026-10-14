@@ -33,9 +33,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     const checkAuth = () => {
       const token = Cookies.get('auth_token');
-      // Jika route bukan /student/catalog dan tidak ada token/auth, tendang ke landing page
+      // Jika route bukan /student/catalog dan tidak ada token/auth, tendang ke login
       if (!token && !isAuthenticated && !pathname.startsWith('/student/catalog')) {
-        window.location.replace('/');
+        window.location.replace('/login?redirect=' + encodeURIComponent(pathname));
       }
     };
     checkAuth();
@@ -104,8 +104,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             </Link>
           ))}
           <Link
-            href="/cart"
-            className={`sidebar-link flex items-center justify-between ${pathname === '/cart' ? 'active' : ''}`}
+            href="/student/cart"
+            className={`sidebar-link flex items-center justify-between ${pathname.startsWith('/student/cart') ? 'active' : ''}`}
           >
             <div className="flex items-center gap-2.5">
               <Icon name="cart" size={18} />

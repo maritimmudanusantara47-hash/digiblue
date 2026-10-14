@@ -805,7 +805,7 @@ function CourseCard({
               e.preventDefault();
               e.stopPropagation();
               if (inCart) {
-                router.push('/cart');
+                router.push('/student/cart');
                 return;
               }
               addItem({
@@ -850,7 +850,7 @@ function CourseCard({
                   levelName: course.certification_level?.name,
                 });
               }
-              router.push('/cart');
+              router.push('/student/cart');
             }}
             className="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-[#00162d] text-white hover:bg-[#0f2b48] flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >

@@ -520,7 +520,7 @@ export default function CourseSyllabusDetailPage() {
                   onClick={() => {
                     if (!course) return;
                     if (inCart) {
-                      router.push('/cart');
+                      router.push('/student/cart');
                       return;
                     }
                     addItem({
@@ -562,7 +562,7 @@ export default function CourseSyllabusDetailPage() {
                         levelName: course.certification_level?.name,
                       });
                     }
-                    router.push('/cart');
+                    router.push('/student/cart');
                   }}
                   className="btn btn-primary w-full py-3.5 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition-all"
                 >
