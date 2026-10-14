@@ -9,15 +9,20 @@ use Illuminate\Http\Request;
 
 class AdminBatchController extends Controller
 {
-    /** List semua batch (bisa difilter per course_id) */
-    public function index(Request $request): JsonResponse
+    /** List semua batch (bisa difilter per course_id atau route param courseId) */
+    public function index(Request $request, ?int $courseId = null): JsonResponse
     {
         $query = CourseBatch::with('course:id,title')
             ->withCount('enrollments')
             ->orderByDesc('id');
 
-        if ($request->filled('course_id')) {
-            $query->where('course_id', $request->course_id);
+        $filterCourseId = $courseId
+            ?? $request->route('courseId')
+            ?? $request->route('course_id')
+            ?? $request->query('course_id');
+
+        if ($filterCourseId) {
+            $query->where('course_id', $filterCourseId);
         }
 
         if ($request->boolean('active_only')) {
@@ -30,8 +35,11 @@ class AdminBatchController extends Controller
     }
 
     /** Buat batch baru */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, ?int $courseId = null): JsonResponse
     {
+        if ($courseId && !$request->has('course_id')) {
+            $request->merge(['course_id' => $courseId]);
+        }
         $validated = $request->validate([
             'course_id'               => 'required|exists:courses,id',
             'batch_name'              => 'required|string|max:100',
