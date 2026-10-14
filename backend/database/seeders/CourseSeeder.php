@@ -15,13 +15,13 @@ class CourseSeeder extends Seeder
         $spec       = CertificationLevel::where('code', 'SPEC')->first();
 
         // Foundation
-        Course::firstOrCreate(
+        Course::updateOrCreate(
             ['slug' => 'certified-blue-economist-foundation'],
             [
                 'certification_level_id' => $foundation->id,
                 'title' => 'Certified Blue Economist (CBEc) — Foundation Level',
                 'description' => 'Program sertifikasi dasar komprehensif yang membekali peserta dengan pemahaman mendalam tentang ekonomi biru.',
-                'price' => 0,
+                'price' => 500000,
                 'is_active' => true,
                 'order_index' => 1,
             ]
@@ -119,7 +119,7 @@ class CourseSeeder extends Seeder
                 'slug'                   => $spec_course['slug'],
                 'title'                  => "Certified Blue Economist in {$spec_course['title']} - {$spec_course['acronym']}",
                 'description'            => "Program sertifikasi peminatan {$spec_course['title']} : {$spec_course['acronym']} dalam ekosistem Blue Economy.",
-                'price'                  => 0,
+                'price'                  => 500000,
                 'is_active'              => true,
                 'order_index'            => $index + 1,
             ];

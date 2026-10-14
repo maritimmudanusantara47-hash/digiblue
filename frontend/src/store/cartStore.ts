@@ -19,6 +19,7 @@ interface CartStore {
   addItem: (item: CartItem) => void;
   removeItem: (courseId: number) => void;
   updateBatch: (courseId: number, batchId: number | null, batchName?: string | null) => void;
+  updateItemPrice: (courseId: number, price: number) => void;
   clearCart: () => void;
   isInCart: (courseId: number) => boolean;
   getTotalPrice: () => number;
@@ -48,6 +49,16 @@ export const useCartStore = create<CartStore>()(
           items: state.items.map((i) =>
             i.courseId === courseId
               ? { ...i, batchId: batchId || null, batchName: batchName || null }
+              : i
+          ),
+        }));
+      },
+
+      updateItemPrice: (courseId, price) => {
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.courseId === courseId
+              ? { ...i, price: Number(price) || 0 }
               : i
           ),
         }));

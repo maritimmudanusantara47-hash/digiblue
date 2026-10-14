@@ -21,7 +21,7 @@ interface BatchOption {
 export default function StudentCartPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
-  const { items, removeItem, updateBatch, clearCart, getTotalPrice } = useCartStore();
+  const { items, removeItem, updateBatch, updateItemPrice, clearCart, getTotalPrice } = useCartStore();
 
   const [mounted, setMounted] = useState(false);
   const [batchesMap, setBatchesMap] = useState<Record<number, BatchOption[]>>({});
@@ -32,7 +32,7 @@ export default function StudentCartPage() {
     setMounted(true);
   }, []);
 
-  // Ambil daftar batch aktif untuk setiap kursus di keranjang
+  // Ambil daftar batch aktif dan sinkronkan harga terbaru untuk setiap kursus di keranjang
   useEffect(() => {
     if (!mounted || items.length === 0) return;
 
@@ -41,6 +41,17 @@ export default function StudentCartPage() {
 
     const fetchBatches = async () => {
       const newBatches: Record<number, BatchOption[]> = {};
+
+      try {
+        const coursesRes = await api.get('/courses');
+        const courseList: { id: number; price: number | string }[] = coursesRes.data?.data ?? [];
+        courseList.forEach((c) => {
+          updateItemPrice(c.id, Number(c.price) || 0);
+        });
+      } catch {
+        // Abaikan jika offline/gagal sync harga
+      }
+
       await Promise.all(
         items.map(async (item) => {
           try {
