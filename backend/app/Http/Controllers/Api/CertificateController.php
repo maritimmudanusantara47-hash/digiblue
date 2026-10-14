@@ -58,7 +58,39 @@ class CertificateController extends Controller
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
-        if ($request->query('type') === 'field_study') {
+        return $this->generatePdfForCertificate($cert, $request);
+    }
+
+    /** Public: Download PDF sertifikat via serial URL key atau serial number */
+    public function downloadPublic(Request $request, string $serialUrlKey)
+    {
+        $lookupKey = trim($serialUrlKey);
+        $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])
+            ->where(function ($q) use ($lookupKey) {
+                $q->where('serial_url_key', $lookupKey)
+                  ->orWhere('serial_number', $lookupKey);
+            })
+            ->firstOrFail();
+
+        return $this->generatePdfForCertificate($cert, $request);
+    }
+
+    /** Helper: Render PDF untuk sertifikat */
+    private function generatePdfForCertificate(Certificate $cert, Request $request)
+    {
+        $type = $request->query('type');
+        if (! $type) {
+            if ($cert->enrollment && $cert->enrollment->attended_field_trip) {
+                $type = 'field_study';
+            } elseif (
+                str_contains(strtolower($cert->serial_number ?? ''), 'cbetc') ||
+                str_contains(strtolower($cert->enrollment->course->title ?? ''), 'critical thinking')
+            ) {
+                $type = 'critical_thinking';
+            }
+        }
+
+        if ($type === 'field_study') {
             if (! $cert->enrollment || ! $cert->enrollment->attended_field_trip) {
                 return response()->json([
                     'message' => 'Peserta tidak terdaftar atau belum menyelesaikan Field Study.',
@@ -108,10 +140,14 @@ class CertificateController extends Controller
             $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
             $filename = str_replace(['/', ' '], ['_', '_'], $filename);
 
+            if ($request->query('stream') === '1') {
+                return $pdf->stream($filename);
+            }
+
             return $pdf->download($filename);
         }
 
-        if ($request->query('type') === 'critical_thinking') {
+        if ($type === 'critical_thinking') {
             if (! $cert->enrollment || $cert->enrollment->attended_field_trip) {
                 return response()->json([
                     'message' => 'Peserta mengikuti Field Study (bukan jalur Critical Thinking).',
@@ -160,6 +196,10 @@ class CertificateController extends Controller
 
             $filename = "Sertifikat_Critical_Thinking_{$cert->user->name}_{$cert->serial_number}.pdf";
             $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+
+            if ($request->query('stream') === '1') {
+                return $pdf->stream($filename);
+            }
 
             return $pdf->download($filename);
         }
@@ -217,6 +257,10 @@ class CertificateController extends Controller
 
         $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";
         $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+
+        if ($request->query('stream') === '1') {
+            return $pdf->stream($filename);
+        }
 
         return $pdf->download($filename);
     }
@@ -279,6 +323,7 @@ class CertificateController extends Controller
                 'verification_url'  => $verificationUrl,
                 'qr_code_svg'       => $qrSvg,
                 'qr_code_base64'    => $qrImageBase64,
+                'pdf_download_url'  => url("api/v1/verify/{$cert->serial_url_key}/download"),
             ],
         ]);
     }

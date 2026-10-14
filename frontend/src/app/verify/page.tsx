@@ -6,8 +6,13 @@ import Icon from '@/components/Icon';
 import ModalPortal from '@/components/common/ModalPortal';
 import api from '@/lib/api';
 import { useTranslations } from 'next-intl';
+import {
+  RenderedCertificateSheet,
+  resolveTemplateImages,
+  CertificateData,
+} from '@/components/certificate/RenderedCertificateSheet';
 
-interface CertVerificationData {
+interface CertVerificationData extends CertificateData {
   recipient_name: string;
   program_name: string;
   level: string;
@@ -18,6 +23,9 @@ interface CertVerificationData {
   date_of_issue: string;
   place_of_issue?: string;
   status?: string;
+  qr_code_svg?: string;
+  qr_code_base64?: string;
+  verification_url?: string;
 }
 
 export default function VerifyPortalPage() {
@@ -39,6 +47,9 @@ export default function VerifyPortalPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [activeTab, setActiveTab] = useState<'front' | 'back' | 'replica'>('front');
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const handleVerify = async (codeToVerify?: string) => {
     const code = (codeToVerify || serialInput).trim();
@@ -88,6 +99,41 @@ export default function VerifyPortalPage() {
       navigator.clipboard.writeText(`${window.location.origin}/verify/${code}`);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
+    }
+  };
+
+  const handleDownloadPdf = async (codeToDownload?: string) => {
+    const key =
+      codeToDownload ||
+      result.data?.serial_url_key ||
+      result.data?.serial_number ||
+      serialInput.trim();
+    if (!key) return;
+
+    setIsDownloadingPdf(true);
+    try {
+      const res = await api.get(`/verify/${encodeURIComponent(key)}/download`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const safeName = (result.data?.recipient_name || 'Sertifikat').replace(/[/\\?%*:|"<>]/g, '_');
+      const safeSerial = (result.data?.serial_number || key).replace(/[/\\?%*:|"<>]/g, '_');
+      link.setAttribute('download', `Sertifikat_${safeName}_${safeSerial}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 1000);
+    } catch {
+      // Fallback direct URL download
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      window.open(`${apiUrl}/verify/${encodeURIComponent(key)}/download`, '_blank');
+    } finally {
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -317,146 +363,284 @@ export default function VerifyPortalPage() {
           )}
 
           {/* STATE 3: SEARCHED & VALID DATA FOUND */}
-          {result.searched && result.valid && result.data && (
-            <div>
-              {/* Metadata Chips Band */}
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-6 bg-white/90 backdrop-blur-md px-5 py-3 rounded-2xl border border-slate-200 shadow-xs">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    {t('cert_registered')}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200 font-mono">
-                    <Icon name="scan" size={12} />
-                    {t('cert_valid')}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 font-mono">
-                    <Icon name="water-drop-1" size={12} className="text-amber-600" />
-                    {t('cert_sdg')}
-                  </span>
+          {result.searched && result.valid && result.data && (() => {
+            const certData = result.data;
+            const templateConfig = resolveTemplateImages(certData);
+            const dossierUrl = `/verify/${certData.serial_url_key || certData.serial_number}`;
+
+            return (
+              <div className="space-y-6">
+                {/* Metadata Chips Band */}
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-white/90 backdrop-blur-md px-5 py-3 rounded-2xl border border-slate-200 shadow-xs">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      {t('cert_registered')}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200 font-mono">
+                      <Icon name="scan" size={12} />
+                      {t('cert_valid')}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 font-mono">
+                      <Icon name="water-drop-1" size={12} className="text-amber-600" />
+                      {t('cert_sdg')}
+                    </span>
+                  </div>
+
+                  <Link
+                    href={dossierUrl}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-700 hover:text-sky-900 transition-colors"
+                  >
+                    <span>{t('btn_open_dossier')}</span>
+                    <Icon name="arrow-right" size={13} />
+                  </Link>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
-                  <span className="hidden sm:inline">{t('cert_db_status')}</span>
-                  <span className="font-bold text-emerald-600">{t('cert_live')}</span>
+                {/* Mode Selector Tabs */}
+                <div className="bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700/80 flex items-center gap-1 print:hidden max-w-xl mx-auto shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('front')}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeTab === 'front'
+                        ? 'bg-amber-500 text-[#00162d] shadow-md shadow-amber-500/20'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <Icon name="image" size={14} />
+                    <span>{t('tab_front')}</span>
+                  </button>
+
+                  {templateConfig.hasBack && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('back')}
+                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
+                        activeTab === 'back'
+                          ? 'bg-amber-500 text-[#00162d] shadow-md shadow-amber-500/20'
+                          : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <Icon name="book-1" size={14} />
+                      <span>{t('tab_back')}</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('replica')}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeTab === 'replica'
+                        ? 'bg-amber-500 text-[#00162d] shadow-md shadow-amber-500/20'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <Icon name="certificate-badge-1" size={14} />
+                    <span>{t('tab_replica')}</span>
+                  </button>
                 </div>
-              </div>
 
-              {/* Certificate Scaled Frame Replica */}
-              <div className="relative rounded-3xl p-4 sm:p-7 md:p-8 shadow-2xl transition-all border border-slate-300/80 bg-gradient-to-br from-[#0a192f] via-[#0f2b48] to-[#0a192f] text-slate-900">
-                {/* Outer Gold Trim & Frame Accent */}
-                <div className="relative bg-[#ffffff] rounded-2xl p-6 sm:p-10 md:p-12 border-4 border-amber-400/90 shadow-inner overflow-hidden">
-                  {/* Inner Decorative Double Gold Inset Border */}
-                  <div className="absolute inset-3 sm:inset-4 md:inset-5 border-2 border-amber-300/60 rounded-xl pointer-events-none" />
-                  <div className="absolute inset-5 sm:inset-6 md:inset-7 border border-slate-200/90 rounded-lg pointer-events-none" />
+                {/* TAB 1: FRONT VIEW (REAL AUTHENTIC CERTIFICATE SHEET) */}
+                {activeTab === 'front' && (
+                  <div className="bg-slate-900/90 rounded-3xl p-3 sm:p-5 border border-slate-700/80 shadow-2xl space-y-4 max-w-4xl mx-auto">
+                    <div
+                      onClick={() => setIsZoomOpen(true)}
+                      className="group cursor-zoom-in relative rounded-2xl overflow-hidden border border-white/20 bg-white shadow-2xl transition-all"
+                      title={t('zoom_hint')}
+                    >
+                      <RenderedCertificateSheet
+                        side="front"
+                        data={certData}
+                        templateConfig={templateConfig}
+                      />
 
-                  {/* Watermark Crest Background */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.035] select-none">
-                    <Icon name="certificate-badge-1" size={500} />
-                  </div>
-
-                  {/* Certificate Header Crest & Institutes */}
-                  <div className="relative z-10 flex flex-col items-center text-center pb-6 sm:pb-8 border-b border-amber-200/80">
-                    <div className="flex items-center gap-4 sm:gap-6 mb-3">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-[#00162d] text-amber-400 flex items-center justify-center p-2.5 shadow-md border-2 border-amber-400">
-                        <Icon name="certificate-badge-1" size={32} />
-                      </div>
-                      <div className="text-left">
-                        <span className="text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase text-sky-800 font-mono block">
-                          {t('cert_inst_sub')}
-                        </span>
-                        <span className="text-sm sm:text-base font-extrabold text-[#00162d] tracking-tight uppercase font-heading block">
-                          {t('cert_inst_main')}
-                        </span>
+                      {/* Hover Overlay Zoom Indicator */}
+                      <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-bold pointer-events-none">
+                        <Icon name="scan" size={18} />
+                        <span>{t('zoom_title')}</span>
                       </div>
                     </div>
 
-                    <div className="mt-2">
-                      <span className="text-[10px] sm:text-xs font-bold tracking-[0.3em] uppercase text-amber-700 block font-mono">
-                        {t('cert_header_badge')}
+                    <div className="flex items-center justify-between text-xs text-slate-300 px-2">
+                      <span className="flex items-center gap-1.5">
+                        <Icon name="shield-2-check" size={13} className="text-emerald-400" />
+                        <span>Template Resmi Terakreditasi ({templateConfig.typeLabel})</span>
                       </span>
-                      <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#00162d] tracking-tight font-heading uppercase mt-1">
-                        {t('cert_header_title')}
-                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => setIsZoomOpen(true)}
+                        className="text-sky-300 hover:text-white font-semibold transition-colors cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <Icon name="scan" size={13} />
+                        <span>{t('zoom_title')}</span>
+                      </button>
                     </div>
                   </div>
+                )}
 
-                  {/* Certificate Body (Recipient & Program) */}
-                  <div className="relative z-10 py-6 sm:py-8 text-center space-y-4">
-                    <p className="text-xs sm:text-sm text-slate-500 font-serif italic">
-                      {t('cert_certifies')}
-                    </p>
+                {/* TAB 2: BACK VIEW (CURRICULUM MATRIX) */}
+                {activeTab === 'back' && templateConfig.hasBack && (
+                  <div className="bg-slate-900/90 rounded-3xl p-3 sm:p-5 border border-slate-700/80 shadow-2xl space-y-4 max-w-4xl mx-auto">
+                    <div
+                      onClick={() => setIsZoomOpen(true)}
+                      className="group cursor-zoom-in relative rounded-2xl overflow-hidden border border-white/20 bg-white shadow-2xl transition-all"
+                      title={t('zoom_hint')}
+                    >
+                      <RenderedCertificateSheet
+                        side="back"
+                        data={certData}
+                        templateConfig={templateConfig}
+                      />
 
-                    <div className="py-2">
-                      <h3 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-[#00162d] tracking-tight font-heading underline decoration-amber-400 decoration-2 underline-offset-8">
-                        {result.data.recipient_name}
-                      </h3>
-                      {result.data.grade && (
-                        <span className="text-xs sm:text-sm font-mono font-bold text-sky-800 mt-2 block tracking-wider uppercase">
-                          {t('cert_grade_prefix')} {result.data.grade}
-                        </span>
-                      )}
+                      {/* Hover Overlay Zoom Indicator */}
+                      <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-bold pointer-events-none">
+                        <Icon name="scan" size={18} />
+                        <span>{t('zoom_title')}</span>
+                      </div>
                     </div>
 
-                    <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
-                      {t('cert_completed')}
-                    </p>
-
-                    <div className="bg-sky-50/70 border border-sky-200/80 rounded-2xl p-4 sm:p-5 max-w-xl mx-auto shadow-xs">
-                      <span className="text-xs font-bold font-mono text-sky-800 uppercase tracking-wider block">
-                        {result.data.program_name}
-                      </span>
-                      <span className="text-sm sm:text-base font-extrabold text-[#00162d] block mt-1">
-                        {t('cert_level_prefix')} {result.data.level}
-                      </span>
-                      {result.data.specialization && (
-                        <span className="text-xs font-medium text-slate-600 block mt-1">
-                          {t('cert_focus_prefix')} {result.data.specialization}
-                        </span>
-                      )}
+                    <div className="flex items-center justify-between text-xs text-slate-300 px-2">
+                      <span>{t('curriculum_note')}</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsZoomOpen(true)}
+                        className="text-sky-300 hover:text-white font-semibold transition-colors cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <Icon name="scan" size={13} />
+                        <span>{t('zoom_title')}</span>
+                      </button>
                     </div>
                   </div>
+                )}
 
-                  {/* Certificate Footer: Serial, Date & Seal */}
-                  <div className="relative z-10 pt-6 border-t border-amber-200/80 flex flex-col sm:flex-row items-center justify-between gap-6">
-                    {/* Left: Serial Number & Issue Info */}
-                    <div className="text-left space-y-1.5 w-full sm:w-auto">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-slate-400 uppercase font-mono">{t('cert_serial_label')}</span>
-                        <span className="font-mono font-extrabold text-sm text-[#00162d] bg-slate-100 px-2.5 py-1 rounded border border-slate-300">
-                          {result.data.serial_number}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-500 font-medium">
-                        {t('cert_issued_label')} {result.data.date_of_issue} • {result.data.place_of_issue || 'Jakarta, Indonesia'}
-                      </div>
-                    </div>
+                {/* TAB 3: AUTHENTIC REPLICA FRAME */}
+                {activeTab === 'replica' && (
+                  <div
+                    id="certificate-print-area"
+                    className="relative rounded-3xl p-4 sm:p-7 md:p-8 shadow-2xl transition-all border border-slate-300/80 bg-gradient-to-br from-[#0a192f] via-[#0f2b48] to-[#0a192f] text-slate-900 max-w-4xl mx-auto"
+                  >
+                    {/* Outer Gold Trim & Frame Accent */}
+                    <div className="relative bg-[#ffffff] rounded-2xl p-6 sm:p-10 md:p-12 border-4 border-amber-400/90 shadow-inner overflow-hidden">
+                      {/* Inner Decorative Double Gold Inset Border */}
+                      <div className="absolute inset-3 sm:inset-4 md:inset-5 border-2 border-amber-300/60 rounded-xl pointer-events-none" />
+                      <div className="absolute inset-5 sm:inset-6 md:inset-7 border border-slate-200/90 rounded-lg pointer-events-none" />
 
-                    {/* Right: Golden Seal Stamp */}
-                    <div className="flex items-center gap-5 shrink-0">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 p-1 shadow-lg flex items-center justify-center">
-                        <div className="w-full h-full rounded-full border border-amber-600/50 flex flex-col items-center justify-center text-center p-1 bg-amber-500 text-[#00162d]">
-                          <span className="text-[8px] sm:text-[9px] font-black uppercase font-mono tracking-tighter leading-tight">
-                            SEAL OF AUTHENTICITY
+                      {/* Watermark Crest Background */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.035] select-none">
+                        <Icon name="certificate-badge-1" size={500} />
+                      </div>
+
+                      {/* Certificate Header Crest & Institutes */}
+                      <div className="relative z-10 flex flex-col items-center text-center pb-6 sm:pb-8 border-b border-amber-200/80">
+                        <div className="flex items-center gap-4 sm:gap-6 mb-3">
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-[#00162d] text-amber-400 flex items-center justify-center p-2.5 shadow-md border-2 border-amber-400">
+                            <Icon name="certificate-badge-1" size={32} />
+                          </div>
+                          <div className="text-left">
+                            <span className="text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase text-sky-800 font-mono block">
+                              {t('cert_inst_sub')}
+                            </span>
+                            <span className="text-sm sm:text-base font-extrabold text-[#00162d] tracking-tight uppercase font-heading block">
+                              {t('cert_inst_main')}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2">
+                          <span className="text-[10px] sm:text-xs font-bold tracking-[0.3em] uppercase text-amber-700 block font-mono">
+                            {t('cert_header_badge')}
                           </span>
-                          <Icon name="certificate-badge-1" size={14} className="my-0.5 text-[#00162d]" />
-                          <span className="text-[7px] sm:text-[8px] font-bold tracking-tighter">
-                            DIGIBLUE
+                          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#00162d] tracking-tight font-heading uppercase mt-1">
+                            {t('cert_header_title')}
+                          </h2>
+                        </div>
+                      </div>
+
+                      {/* Certificate Body (Recipient & Program) */}
+                      <div className="relative z-10 py-6 sm:py-8 text-center space-y-4">
+                        <p className="text-xs sm:text-sm text-slate-500 font-serif italic">
+                          {t('cert_certifies')}
+                        </p>
+
+                        <div className="py-2">
+                          <h3 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-[#00162d] tracking-tight font-heading underline decoration-amber-400 decoration-2 underline-offset-8">
+                            {certData.recipient_name}
+                          </h3>
+                          {certData.grade && (
+                            <span className="text-xs sm:text-sm font-mono font-bold text-sky-800 mt-2 block tracking-wider uppercase">
+                              {t('cert_grade_prefix')} {certData.grade}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
+                          {t('cert_completed')}
+                        </p>
+
+                        <div className="bg-sky-50/70 border border-sky-200/80 rounded-2xl p-4 sm:p-5 max-w-xl mx-auto shadow-xs">
+                          <span className="text-xs font-bold font-mono text-sky-800 uppercase tracking-wider block">
+                            {certData.program_name}
                           </span>
+                          <span className="text-sm sm:text-base font-extrabold text-[#00162d] block mt-1">
+                            {t('cert_level_prefix')} {certData.level}
+                          </span>
+                          {certData.specialization && (
+                            <span className="text-xs font-medium text-slate-600 block mt-1">
+                              {t('cert_focus_prefix')} {certData.specialization}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Certificate Footer: Serial, Date & Seal */}
+                      <div className="relative z-10 pt-6 border-t border-amber-200/80 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        {/* Left: Serial Number & Issue Info */}
+                        <div className="text-left space-y-1.5 w-full sm:w-auto">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase font-mono">{t('cert_serial_label')}</span>
+                            <span className="font-mono font-extrabold text-sm text-[#00162d] bg-slate-100 px-2.5 py-1 rounded border border-slate-300">
+                              {certData.serial_number}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-500 font-medium">
+                            {t('cert_issued_label')} {certData.date_of_issue} • {certData.place_of_issue || 'Jakarta, Indonesia'}
+                          </div>
+                        </div>
+
+                        {/* Right: Golden Seal Stamp */}
+                        <div className="flex items-center gap-5 shrink-0">
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 p-1 shadow-lg flex items-center justify-center">
+                            <div className="w-full h-full rounded-full border border-amber-600/50 flex flex-col items-center justify-center text-center p-1 bg-amber-500 text-[#00162d]">
+                              <span className="text-[8px] sm:text-[9px] font-black uppercase font-mono tracking-tighter leading-tight">
+                                SEAL OF AUTHENTICITY
+                              </span>
+                              <Icon name="certificate-badge-1" size={14} className="my-0.5 text-[#00162d]" />
+                              <span className="text-[7px] sm:text-[8px] font-bold tracking-tighter">
+                                DIGIBLUE
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Bottom Actions Toolbar */}
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-white">
+                <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-700/80 max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3 text-white shadow-xl">
                   <div className="flex items-center gap-2 text-xs text-sky-200">
                     <Icon name="check-circle-1" size={16} className="text-emerald-400" />
                     <span>{t('cert_verified_note')}</span>
                   </div>
 
                   <div className="flex items-center gap-2.5 flex-wrap">
+                    <Link
+                      href={dossierUrl}
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white transition-colors flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Icon name="link-2-angular-right" size={14} />
+                      <span>{t('btn_open_dossier')}</span>
+                    </Link>
                     <button
                       type="button"
                       onClick={handleCopyValidationLink}
@@ -464,6 +648,15 @@ export default function VerifyPortalPage() {
                     >
                       <Icon name="link-2-angular-right" size={14} />
                       <span>{copiedLink ? t('btn_copied') : t('btn_copy_link')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPdf()}
+                      disabled={isDownloadingPdf}
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>{isDownloadingPdf ? t('btn_downloading_pdf') : t('btn_download_pdf')}</span>
                     </button>
                     <button
                       type="button"
@@ -476,8 +669,8 @@ export default function VerifyPortalPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </section>
 
@@ -646,6 +839,128 @@ export default function VerifyPortalPage() {
           </div>
         </ModalPortal>
       )}
+
+      {/* Certificate Fullscreen Lightbox Zoom Modal */}
+      {isZoomOpen && result.data && (() => {
+        const certData = result.data;
+        const templateConfig = resolveTemplateImages(certData);
+
+        return (
+          <ModalPortal>
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-6"
+              onClick={() => setIsZoomOpen(false)}
+            >
+              <div
+                className="relative max-w-5xl w-full max-h-[95vh] flex flex-col items-center animate-fadeup"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close Button Top Right */}
+                <button
+                  type="button"
+                  onClick={() => setIsZoomOpen(false)}
+                  className="absolute -top-11 right-0 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                >
+                  <Icon name="xmark" size={16} />
+                  <span>Tutup</span>
+                </button>
+
+                {/* Scaled Certificate Container */}
+                <div className="w-full bg-white rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+                  <RenderedCertificateSheet
+                    side={activeTab === 'back' ? 'back' : 'front'}
+                    data={certData}
+                    templateConfig={templateConfig}
+                  />
+                </div>
+
+                {/* Sub-label */}
+                <div className="mt-3 text-xs text-white/70 flex items-center justify-between w-full px-2">
+                  <span>
+                    Pratinjau Kredensial Resmi — {certData.recipient_name} ({certData.serial_number})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsZoomOpen(false)}
+                    className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold transition-colors cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            </div>
+          </ModalPortal>
+        );
+      })()}
+
+      {/* ── Standalone Dedicated Hidden Element for Clean A4 Browser Printing ── */}
+      {result.valid && result.data && (() => {
+        const certData = result.data;
+        const templateConfig = resolveTemplateImages(certData);
+        return (
+          <div id="certificate-print-document" className="hidden print:block">
+            <div className="print-page-wrapper">
+              <RenderedCertificateSheet
+                side="front"
+                data={certData}
+                templateConfig={templateConfig}
+              />
+            </div>
+            {templateConfig.hasBack && (
+              <div className="print-page-wrapper print-page-break">
+                <RenderedCertificateSheet
+                  side="back"
+                  data={certData}
+                  templateConfig={templateConfig}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── Print Stylesheet Injection ── */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4 landscape;
+            margin: 0;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          header, footer, nav, button, .print\\:hidden, main, section {
+            display: none !important;
+          }
+          #certificate-print-document {
+            display: block !important;
+            width: 100vw !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .print-page-wrapper {
+            width: 100vw !important;
+            height: 100vh !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .print-page-break {
+            page-break-before: always !important;
+            break-before: page !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
