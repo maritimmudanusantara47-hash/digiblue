@@ -101,6 +101,32 @@ export default function AdminCertificatesPage() {
     setShowIssue(true);
   };
 
+  const fetchSuggestedSerial = (enrollmentId: string, date: string) => {
+    const params = new URLSearchParams();
+    if (enrollmentId) params.append('enrollment_id', enrollmentId);
+    if (date) params.append('date', date);
+    const qs = params.toString();
+    const url = `/admin/certificates/next-serial${qs ? `?${qs}` : ''}`;
+
+    api.get(url)
+      .then(res => {
+        if (res.data?.data?.next_serial_number) {
+          setSuggestedSerial(res.data.data.next_serial_number);
+        }
+      })
+      .catch(() => {});
+  };
+
+  const handleEnrollmentChange = (enrollmentId: string) => {
+    setIssueForm(f => ({ ...f, enrollment_id: enrollmentId }));
+    fetchSuggestedSerial(enrollmentId, issueForm.date_of_issue);
+  };
+
+  const handleDateChange = (date: string) => {
+    setIssueForm(f => ({ ...f, date_of_issue: date }));
+    fetchSuggestedSerial(issueForm.enrollment_id, date);
+  };
+
   const handleIssueSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!issueForm.enrollment_id) {
@@ -497,7 +523,7 @@ export default function AdminCertificatesPage() {
                   <select
                     required
                     value={issueForm.enrollment_id}
-                    onChange={e => setIssueForm(f => ({ ...f, enrollment_id: e.target.value }))}
+                    onChange={e => handleEnrollmentChange(e.target.value)}
                     className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                   >
                     <option value="">{t('opt_select_enrollment')}</option>
@@ -534,7 +560,7 @@ export default function AdminCertificatesPage() {
                       type="date"
                       required
                       value={issueForm.date_of_issue}
-                      onChange={e => setIssueForm(f => ({ ...f, date_of_issue: e.target.value }))}
+                      onChange={e => handleDateChange(e.target.value)}
                       className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                     />
                   </div>

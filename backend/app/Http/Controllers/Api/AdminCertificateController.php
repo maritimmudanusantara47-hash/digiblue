@@ -65,10 +65,12 @@ class AdminCertificateController extends Controller
 
         // Generate serial number (atau pakai override dari admin)
         if (empty($validated['serial_number'])) {
+            $course = $enrollment->course;
+            $trackCode = $this->certService->getTrackCode($course);
             $dateObj = new \DateTime($validated['date_of_issue']);
             $year = (int) $dateObj->format('Y');
-            $sequence = $this->certService->getNextSequence($year);
-            $serials = $this->certService->generateSerialNumbers($sequence, $dateObj);
+            $sequence = $this->certService->getNextSequence($year, $trackCode);
+            $serials = $this->certService->generateSerialNumbers($sequence, $dateObj, $trackCode);
         } else {
             // Admin menginput nomor seri manual
             $baseKey = preg_replace('/[^A-Z0-9]/', '', strtoupper($validated['serial_number']));
@@ -245,9 +247,8 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($backTemplatePath))
             : null;
 
-        $issueCarbon = \Carbon\Carbon::parse($cert->date_of_issue);
-        $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
-        $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
+        $customDate = request()->query('date') ? new \DateTime(request()->query('date')) : null;
+        $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
 
         $viewName = view()->exists('certificates.template_critical_thinking')
             ? 'certificates.template_critical_thinking'
@@ -295,9 +296,8 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($backTemplatePath))
             : null;
 
-        $issueCarbon = \Carbon\Carbon::parse($cert->date_of_issue);
-        $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
-        $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
+        $customDate = request()->query('date') ? new \DateTime(request()->query('date')) : null;
+        $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
 
         $viewName = view()->exists('certificates.template_field_study')
             ? 'certificates.template_field_study'
@@ -485,14 +485,27 @@ class AdminCertificateController extends Controller
     {
         $dateObj = $request->query('date') ? new \DateTime($request->query('date')) : now();
         $year = (int) $dateObj->format('Y');
-        $sequence = $this->certService->getNextSequence($year);
-        $serials = $this->certService->generateSerialNumbers($sequence, $dateObj);
+
+        $course = null;
+        if ($request->filled('enrollment_id')) {
+            $enrollment = Enrollment::with('course.certificationLevel')->find($request->query('enrollment_id'));
+            $course = $enrollment?->course;
+        } elseif ($request->filled('course_id')) {
+            $course = \App\Models\Course::with('certificationLevel')->find($request->query('course_id'));
+        }
+
+        $trackCode = $this->certService->getTrackCode($course);
+        $sequence = $this->certService->getNextSequence($year, $trackCode);
+        $serials = $this->certService->generateSerialNumbers($sequence, $dateObj, $trackCode);
+        $cbetcRegNo = $this->certService->generateCbetcRegNo($sequence, $dateObj, $trackCode);
 
         return response()->json([
             'data' => [
                 'next_sequence' => $sequence,
                 'next_serial_number' => $serials['serial_number'],
                 'next_serial_url_key' => $serials['serial_url_key'],
+                'next_cbetc_reg_no' => $cbetcRegNo,
+                'track_code' => $trackCode,
             ],
         ]);
     }

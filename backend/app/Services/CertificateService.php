@@ -10,19 +10,99 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class CertificateService
 {
     /**
-     * Generate dual serial numbers sesuai pola Digibluecamp:
-     * - Display: CBEC/ID/IX/20260001
-     * - URL Key:  CBECIDIX20260001HBB
+     * Dapatkan kode track 3 huruf sesuai peminatan/kursus
+     * - Foundation: null
+     * - Blue Business Development (BizDev): BZD
+     * - Blue Carbon: BCB
+     * - Blue Community Development: BCD
+     * - Blue Circular Economy: BCE
+     * - Blue Data Intelligence: BDI
+     * - Blue Energy: BEC
+     * - Blue Farming: BFM
+     * - Blue Finance: BFN
+     * - Blue Food: BFD
+     * - Blue Shipping: BSP
+     * - Blue Tourism: BTR
+     * - Blue Port: BPT
+     * - Executive / Lainnya: EXE
      */
-    public function generateSerialNumbers(int $sequence, ?\DateTimeInterface $date = null): array
+    public function getTrackCode(?\App\Models\Course $course): ?string
     {
-        $date      = $date ?? now();
-        $year      = $date->format('Y');
-        $monthRoman = $this->toRoman((int)$date->format('n'));
-        $seq       = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        if (!$course) {
+            return null;
+        }
 
-        $serialNumber = "CBEC/ID/{$monthRoman}/{$year}{$seq}";
-        $serialUrlKey = "CBECID{$monthRoman}{$year}{$seq}" . strtoupper(Str::random(3));
+        $title = strtolower($course->title ?? '');
+        $slug  = strtolower($course->slug ?? '');
+        $levelCode = strtolower($course->certificationLevel->code ?? '');
+
+        if ($levelCode === 'fnd' || str_contains($slug, 'foundation') || str_contains($title, 'foundation')) {
+            return null;
+        }
+
+        if (str_contains($slug, 'business') || str_contains($title, 'business') || str_contains($slug, 'bizdev') || str_contains($title, 'bizdev')) {
+            return 'BZD';
+        }
+        if (str_contains($slug, 'carbon') || str_contains($title, 'carbon')) {
+            return 'BCB';
+        }
+        if (str_contains($slug, 'community') || str_contains($title, 'community')) {
+            return 'BCD';
+        }
+        if (str_contains($slug, 'circular') || str_contains($title, 'circular')) {
+            return 'BCE';
+        }
+        if (str_contains($slug, 'data') || str_contains($title, 'data')) {
+            return 'BDI';
+        }
+        if (str_contains($slug, 'energy') || str_contains($title, 'energy')) {
+            return 'BEC';
+        }
+        if (str_contains($slug, 'farming') || str_contains($title, 'farming')) {
+            return 'BFM';
+        }
+        if (str_contains($slug, 'finance') || str_contains($title, 'finance')) {
+            return 'BFN';
+        }
+        if (str_contains($slug, 'food') || str_contains($title, 'food')) {
+            return 'BFD';
+        }
+        if (str_contains($slug, 'shipping') || str_contains($title, 'shipping')) {
+            return 'BSP';
+        }
+        if (str_contains($slug, 'tourism') || str_contains($title, 'tourism')) {
+            return 'BTR';
+        }
+        if (str_contains($slug, 'port') || str_contains($title, 'port')) {
+            return 'BPT';
+        }
+        if (str_contains($slug, 'executive') || str_contains($title, 'executive') || str_contains($slug, 'exe') || str_contains($title, 'exe')) {
+            return 'EXE';
+        }
+
+        return null;
+    }
+
+    /**
+     * Generate dual serial numbers sesuai pola Digibluecamp:
+     * - Foundation:     CBEC/ID/{BULAN_ROMAWI}/{TAHUN}{URUTAN_4_DIGIT} (URL: CBECID{BULAN_ROMAWI}{TAHUN}{URUTAN}{3_RANDOM_CHARS})
+     * - Specialization: CBEC/{TRACK}/ID/{BULAN_ROMAWI}/{TAHUN}{URUTAN_4_DIGIT} (URL: CBEC{TRACK}ID{BULAN_ROMAWI}{TAHUN}{URUTAN}{3_RANDOM_CHARS})
+     */
+    public function generateSerialNumbers(int $sequence, ?\DateTimeInterface $date = null, ?string $trackCode = null): array
+    {
+        $date       = $date ?? now();
+        $year       = $date->format('Y');
+        $monthRoman = $this->toRoman((int)$date->format('n'));
+        $seq        = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        $randomKey  = strtoupper(Str::random(3));
+
+        if (!empty($trackCode)) {
+            $serialNumber = "CBEC/{$trackCode}/ID/{$monthRoman}/{$year}{$seq}";
+            $serialUrlKey = "CBEC{$trackCode}ID{$monthRoman}{$year}{$seq}{$randomKey}";
+        } else {
+            $serialNumber = "CBEC/ID/{$monthRoman}/{$year}{$seq}";
+            $serialUrlKey = "CBECID{$monthRoman}{$year}{$seq}{$randomKey}";
+        }
 
         return [
             'serial_number'  => $serialNumber,
@@ -31,15 +111,59 @@ class CertificateService
     }
 
     /**
-     * Dapatkan sequence berikutnya (nomor urut sertifikat selanjutnya)
-     * Memindai semua nomor seri yang ada di database untuk menemukan angka tertinggi
-     * di belakang tahun (contoh: 20260187 -> sequence 187 -> urutan selanjutnya 188 / 0188).
+     * Generate Registration Number untuk sertifikat CBETC (Training Course / Field Study / Critical Thinking)
+     * Format:
+     * - Foundation:     CBETC{seq3}{month2}{year4}          contoh: CBETC001062026 atau CBETC112112025
+     * - Specialization: CBETC{TRACK}{seq3}{month2}{year4}    contoh: CBETCBZD001052026, CBETCBSP001032026, CBETCBCB001112025, CBETCEXE001062026
      */
-    public function getNextSequence(?int $year = null): int
+    public function generateCbetcRegNo(int $sequence, ?\DateTimeInterface $date = null, ?string $trackCode = null): string
+    {
+        $date  = $date ?? now();
+        $year  = $date->format('Y');
+        $month = $date->format('m');
+        $seq   = str_pad($sequence, 3, '0', STR_PAD_LEFT);
+
+        if (!empty($trackCode)) {
+            return "CBETC{$trackCode}{$seq}{$month}{$year}";
+        }
+
+        return "CBETC{$seq}{$month}{$year}";
+    }
+
+    /**
+     * Dapatkan CBETC Reg No untuk model Certificate
+     * Mendukung custom date (dinamis sesuai tanggal cetak/terbit)
+     */
+    public function getCbetcRegNoForCertificate(Certificate $cert, ?\DateTimeInterface $customDate = null): string
+    {
+        $course = $cert->enrollment?->course;
+        $trackCode = $this->getTrackCode($course);
+        $issueDate = $customDate ?? ($cert->date_of_issue ? new \DateTime($cert->date_of_issue) : now());
+
+        $seq = 1;
+        $year = $issueDate->format('Y');
+
+        if (preg_match('/' . $year . '(\d+)$/', $cert->serial_number, $ym)) {
+            $seq = (int) $ym[1];
+        } elseif (preg_match('/(\d{3,4})$/', $cert->serial_number, $matches)) {
+            $seq = (int) $matches[1];
+        }
+
+        return $this->generateCbetcRegNo($seq, $issueDate, $trackCode);
+    }
+
+    /**
+     * Dapatkan sequence berikutnya (nomor urut peserta selanjutnya per tahun dan track)
+     * Dimulai dari default 0 peserta (sehingga peserta pertama adalah 1 / 0001 / 001)
+     * Setiap ganti tahun, hitungan otomatis reset ke 0 lagi.
+     */
+    public function getNextSequence(?int $year = null, ?string $trackCode = null): int
     {
         $year = $year ?? (int)date('Y');
 
-        $serials = Certificate::whereNotNull('serial_number')->pluck('serial_number');
+        $serials = Certificate::whereNotNull('serial_number')
+            ->where('serial_number', 'like', "%{$year}%")
+            ->pluck('serial_number');
 
         $maxSeq = 0;
 
@@ -49,14 +173,21 @@ class CertificateService
                 continue;
             }
 
-            // Pola 1: Mencari tahun diikuti separator opsional lalu angka urut, contoh: 20260187, 2026/0187, 2026-0187
-            if (preg_match('/' . $year . '[\/\-_]?(\d+)/', $sn, $matches)) {
-                $seqVal = (int)$matches[1];
-                if ($seqVal > $maxSeq) {
-                    $maxSeq = $seqVal;
+            // Validasi kecocokan track
+            if (!empty($trackCode)) {
+                // Spesialisasi: harus memiliki /{trackCode}/ID/
+                if (!preg_match('#/' . preg_quote($trackCode, '#') . '/ID/#i', $sn)) {
+                    continue;
                 }
-            } elseif (preg_match('/(\d{4})$/', $sn, $matches)) {
-                // Pola 2: Fallback 4 digit di akhir string jika tidak cocok dengan tahun spesifik
+            } else {
+                // Foundation: format harus CBEC/ID/
+                if (!preg_match('#^CBEC/ID/#i', $sn)) {
+                    continue;
+                }
+            }
+
+            // Pola: {year}(\d+) di akhir nomor seri
+            if (preg_match('/' . $year . '(\d{1,6})$/', $sn, $matches)) {
                 $seqVal = (int)$matches[1];
                 if ($seqVal > $maxSeq) {
                     $maxSeq = $seqVal;
@@ -64,7 +195,7 @@ class CertificateService
             }
         }
 
-        return $maxSeq > 0 ? $maxSeq + 1 : 1;
+        return $maxSeq + 1;
     }
 
     /**
@@ -213,10 +344,11 @@ class CertificateService
             $grade = 'Good';
         }
 
-        $dateObj  = now();
-        $year     = (int)$dateObj->format('Y');
-        $sequence = $this->getNextSequence($year);
-        $serials  = $this->generateSerialNumbers($sequence, $dateObj);
+        $dateObj   = now();
+        $year      = (int)$dateObj->format('Y');
+        $trackCode = $this->getTrackCode($course);
+        $sequence  = $this->getNextSequence($year, $trackCode);
+        $serials   = $this->generateSerialNumbers($sequence, $dateObj, $trackCode);
 
         $certificate = Certificate::create([
             'enrollment_id'  => $enrollment->id,

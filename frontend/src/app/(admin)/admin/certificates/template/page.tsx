@@ -22,6 +22,7 @@ const Ico = {
   Fit: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>,
   Sliders: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" /><line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" /><line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" /><line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" /></svg>,
   Close: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
+  Calendar: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /></svg>,
 };
 
 /* ─── Types ──────────────────────────────────────────────────────── */
@@ -72,12 +73,60 @@ interface PresetItem {
   regNo: string;
 }
 
+function toRomanMonth(m: number): string {
+  const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+  return roman[m - 1] || 'I';
+}
+
+function parseDateParts(dateStr: string): { monthRoman: string; month2: string; year4: string; formattedEn: string; formattedIssue: string } | null {
+  if (!dateStr) return null;
+  const clean = dateStr.replace(/^[A-Za-z\s]+,\s*/, '').trim();
+  const d = new Date(clean);
+  if (!isNaN(d.getTime())) {
+    const m = d.getMonth() + 1;
+    const y = d.getFullYear().toString();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return {
+      monthRoman: toRomanMonth(m),
+      month2: m.toString().padStart(2, '0'),
+      year4: y,
+      formattedEn: `${monthNames[m - 1]} ${d.getDate()}, ${y}`,
+      formattedIssue: `Jakarta, ${d.getDate()} ${monthNames[m - 1]} ${y}`,
+    };
+  }
+  return null;
+}
+
+function syncSerialWithDate(serial: string, dateStr: string): string {
+  const parts = parseDateParts(dateStr);
+  if (!parts || !serial) return serial;
+  const match = serial.match(/^(CBEC(?:\/[A-Z0-9]+)?\/ID\/)([IVXLCDM]+)\/(\d{4})(\d+)$/i);
+  if (match) {
+    const prefix = match[1];
+    const seq = match[4];
+    return `${prefix}${parts.monthRoman}/${parts.year4}${seq}`;
+  }
+  return serial;
+}
+
+function syncRegNoWithDate(regNo: string, dateStr: string): string {
+  const parts = parseDateParts(dateStr);
+  if (!parts || !regNo) return regNo;
+  const match = regNo.match(/^(CBETC[A-Z]*)(\d{3})(\d{2})(\d{4})$/i);
+  if (match) {
+    const prefix = match[1];
+    const seq = match[2];
+    return `${prefix}${seq}${parts.month2}${parts.year4}`;
+  }
+  return regNo;
+}
+
 const PRESETS: Record<string, PresetItem> = {
   spec_tourism: {
     type: 'specialization',
     trackSlug: 'blue-tourism',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BTR/ID/IX/20260001',
     ribbon: 'Certified Blue Economist in Blue Tourism - CBEc. (Tour.)',
     level: 'Blue Tourism Specialization',
     grade: 'Excellent',
@@ -86,28 +135,28 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBTR001062026',
   },
   spec_shipping: {
     type: 'specialization',
     trackSlug: 'blue-shipping',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BSP/ID/III/20260001',
     ribbon: 'Certified Blue Economist in Blue Shipping - CBEc. (Ship.)',
     level: 'Blue Shipping Specialization',
     grade: 'Excellent',
-    date: 'September 21, 2026',
+    date: 'March 21, 2026',
     place: 'Jakarta',
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBSP001032026',
   },
   spec_finance: {
     type: 'specialization',
     trackSlug: 'blue-finance',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BFN/ID/IX/20260001',
     ribbon: 'Certified Blue Economist in Blue Finance - CBEc. (Fin.)',
     level: 'Blue Finance Specialization',
     grade: 'Excellent',
@@ -116,13 +165,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBFN001062026',
   },
   spec_farming: {
     type: 'specialization',
     trackSlug: 'blue-farming',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BFM/ID/IX/20260001',
     ribbon: 'Certified Blue Economist in Blue Farming - CBEc. (Farm.)',
     level: 'Blue Farming Specialization',
     grade: 'Excellent',
@@ -131,43 +180,43 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBFM001062026',
   },
   spec_energy: {
     type: 'specialization',
     trackSlug: 'blue-energy',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BEC/ID/IV/20260001',
     ribbon: 'Certified Blue Economist in Blue Energy - CBEc. (Ener.)',
     level: 'Blue Energy Specialization',
     grade: 'Excellent',
-    date: 'September 21, 2026',
+    date: 'April 21, 2026',
     place: 'Jakarta',
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBEC001062026',
   },
   spec_data_intelligence: {
     type: 'specialization',
     trackSlug: 'blue-data-intelligence',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BDI/ID/I/20260001',
     ribbon: 'Certified Blue Economist in Blue Data Intelligence - CBEc. (DataIntel.)',
     level: 'Blue Data Intelligence Specialization',
     grade: 'Excellent',
-    date: 'September 21, 2026',
+    date: 'January 21, 2026',
     place: 'Jakarta',
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBDI001062026',
   },
   spec_community_development: {
     type: 'specialization',
     trackSlug: 'blue-community-development',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BCD/ID/IX/20260001',
     ribbon: 'Certified Blue Economist in Blue Community Development - CBEc. (CommDev.)',
     level: 'Blue Community Development Specialization',
     grade: 'Excellent',
@@ -176,28 +225,28 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBCD001062026',
   },
   spec_circular_economy: {
     type: 'specialization',
     trackSlug: 'blue-circular-economy',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BCE/ID/III/20260001',
     ribbon: 'Certified Blue Economist in Blue Circular Economy - CBEc. (CirEc.)',
     level: 'Blue Circular Economy Specialization',
     grade: 'Excellent',
-    date: 'September 21, 2026',
+    date: 'March 21, 2026',
     place: 'Jakarta',
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBCE001062026',
   },
   spec_carbon: {
     type: 'specialization',
     trackSlug: 'blue-carbon',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BCB/ID/IX/20260001',
     ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)',
     level: 'Blue Carbon Specialization',
     grade: 'Excellent',
@@ -206,28 +255,28 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBCB001062026',
   },
   spec_business_development: {
     type: 'specialization',
     trackSlug: 'blue-business-development',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BZD/ID/IV/20260001',
     ribbon: 'Certified Blue Economist in Blue Business Development - CBEc. (BizDev.)',
     level: 'Blue Business Development Specialization',
     grade: 'Excellent',
-    date: 'September 21, 2026',
+    date: 'April 21, 2026',
     place: 'Jakarta',
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBZD001052026',
   },
   nabila: {
     type: 'specialization',
     trackSlug: 'blue-carbon',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BCB/ID/IX/20260001',
     ribbon: 'Certified Blue Economist in Blue Carbon - CBEc. (Carb.)',
     level: 'Blue Carbon Specialization',
     grade: 'Excellent',
@@ -236,12 +285,12 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBCB001062026',
   },
   budi: {
     type: 'foundation',
     name: 'Budi Santoso',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/ID/X/20260001',
     ribbon: 'Certified Blue Economist (CBEc)',
     level: 'Foundation Level',
     grade: 'Excellent',
@@ -250,12 +299,12 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETC001062026',
   },
   critical_thinking: {
     type: 'critical_thinking',
     name: 'Diana Supriati',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Critical Thinking / Training Course',
     grade: 'Excellent',
@@ -264,13 +313,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETC001062026',
   },
   field_study: {
     type: 'field_study',
     trackSlug: 'foundation',
     name: 'Diana Supriati',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study / Training Course',
     grade: 'Excellent',
@@ -279,13 +328,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETC001062026',
   },
   fs_foundation: {
     type: 'field_study',
     trackSlug: 'foundation',
     name: 'Diana Supriati',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study / Training Course',
     grade: 'Excellent',
@@ -294,13 +343,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETC001062026',
   },
   fs_tourism: {
     type: 'field_study',
     trackSlug: 'blue-tourism',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BTR/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Tourism',
     grade: 'Excellent',
@@ -309,13 +358,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Tourism Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBTR001062026',
   },
   fs_energy: {
     type: 'field_study',
     trackSlug: 'blue-energy',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BEC/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Energy',
     grade: 'Excellent',
@@ -324,13 +373,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Energy Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBEC001062026',
   },
   fs_farming: {
     type: 'field_study',
     trackSlug: 'blue-farming',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BFM/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Farming',
     grade: 'Excellent',
@@ -339,13 +388,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Farming Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBFM001062026',
   },
   fs_finance: {
     type: 'field_study',
     trackSlug: 'blue-finance',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BFN/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Finance',
     grade: 'Excellent',
@@ -354,13 +403,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Finance Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBFN001062026',
   },
   fs_shipping: {
     type: 'field_study',
     trackSlug: 'blue-shipping',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BSP/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Shipping',
     grade: 'Excellent',
@@ -369,13 +418,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Shipping Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBSP001032026',
   },
   fs_carbon: {
     type: 'field_study',
     trackSlug: 'blue-carbon',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BCB/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Carbon',
     grade: 'Excellent',
@@ -384,13 +433,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Carbon Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBCB001062026',
   },
   fs_business_development: {
     type: 'field_study',
     trackSlug: 'blue-business-development',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BZD/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Business Dev',
     grade: 'Excellent',
@@ -399,13 +448,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Business Development Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBZD001052026',
   },
   fs_community_development: {
     type: 'field_study',
     trackSlug: 'blue-community-development',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BCD/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Community Dev',
     grade: 'Excellent',
@@ -414,13 +463,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Community Development Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBCD001062026',
   },
   fs_circular_economy: {
     type: 'field_study',
     trackSlug: 'blue-circular-economy',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BCE/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Circular Economy',
     grade: 'Excellent',
@@ -429,13 +478,13 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Circular Economy Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBCE001062026',
   },
   fs_data_intelligence: {
     type: 'field_study',
     trackSlug: 'blue-data-intelligence',
     name: 'Nabila Azzahro Widodo',
-    serial: 'CBEC/ID/IX/20260187',
+    serial: 'CBEC/BDI/ID/VI/20260001',
     ribbon: 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE',
     level: 'Field Study — Blue Data Intelligence',
     grade: 'Excellent',
@@ -444,7 +493,7 @@ const PRESETS: Record<string, PresetItem> = {
     courseTitle: 'International Blue Economist Certification Training Course - Blue Data Intelligence Specialization',
     dateParticipation: '20 May – 11 June 2026',
     dateIssue: 'Jakarta, 11 June 2026',
-    regNo: 'CBETC144062026',
+    regNo: 'CBETCBDI001062026',
   },
 };
 
@@ -1010,7 +1059,7 @@ export default function CertificateTemplateAdminPage() {
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_reg_no' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                         style={{ top: mmToPx(layout.fs_back_reg_no?.top ?? 29.5), left: mmToPx(layout.fs_back_reg_no?.left ?? 57.0), fontSize: `${(layout.fs_back_reg_no?.font_size ?? 13.0) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
                       >
-                        {sample.regNo || 'CBETC144062026'}
+                        {sample.regNo || 'CBETC001062026'}
                       </div>
                     </>
                   ) : (
@@ -1318,11 +1367,33 @@ export default function CertificateTemplateAdminPage() {
 
                       {/* Tempat & Tanggal Terbit */}
                       <div>
-                        <label className="text-[11px] text-slate-500 block mb-1">Tempat & Tanggal Terbit</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] text-slate-500">Tempat &amp; Tanggal Terbit</label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const today = new Date();
+                              const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                              const todayIssue = `Jakarta, ${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
+                              const newRegNo = sample.regNo ? syncRegNoWithDate(sample.regNo, todayIssue) : sample.regNo;
+                              const newSerial = syncSerialWithDate(sample.serial, todayIssue);
+                              setSample({ ...sample, dateIssue: todayIssue, regNo: newRegNo, serial: newSerial });
+                            }}
+                            className="text-[10px] text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer flex items-center gap-1"
+                            title="Set tanggal ke hari ini dan update otomatis bulan/tahun nomor registrasi & serial"
+                          >
+                            <Ico.Calendar /> Tanggal Hari Ini (Dinamis)
+                          </button>
+                        </div>
                         <input
                           type="text"
                           value={sample.dateIssue || ''}
-                          onChange={e => setSample({ ...sample, dateIssue: e.target.value })}
+                          onChange={e => {
+                            const newDateIssue = e.target.value;
+                            const newRegNo = sample.regNo ? syncRegNoWithDate(sample.regNo, newDateIssue) : sample.regNo;
+                            const newSerial = syncSerialWithDate(sample.serial, newDateIssue);
+                            setSample({ ...sample, dateIssue: newDateIssue, regNo: newRegNo, serial: newSerial });
+                          }}
                           className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
                           placeholder="Jakarta, 11 June 2026"
                         />
@@ -1336,7 +1407,7 @@ export default function CertificateTemplateAdminPage() {
                           value={sample.regNo || ''}
                           onChange={e => setSample({ ...sample, regNo: e.target.value })}
                           className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
-                          placeholder="CBETC144062026"
+                          placeholder="CBETC001062026"
                         />
                       </div>
                     </>
@@ -1420,11 +1491,31 @@ export default function CertificateTemplateAdminPage() {
                       {/* Date of issue & Place of issue */}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[11px] text-slate-500 block mb-1">Date of issue</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px] text-slate-500">Date of issue</label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const today = new Date();
+                                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                                const todayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+                                const newSerial = syncSerialWithDate(sample.serial, todayDate);
+                                setSample({ ...sample, date: todayDate, serial: newSerial });
+                              }}
+                              className="text-[10px] text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer flex items-center gap-1"
+                              title="Set tanggal ke hari ini dan update otomatis bulan/tahun nomor serial"
+                            >
+                              <Ico.Calendar /> Hari Ini
+                            </button>
+                          </div>
                           <input
                             type="text"
                             value={sample.date}
-                            onChange={e => setSample({ ...sample, date: e.target.value })}
+                            onChange={e => {
+                              const newDate = e.target.value;
+                              const newSerial = syncSerialWithDate(sample.serial, newDate);
+                              setSample({ ...sample, date: newDate, serial: newSerial });
+                            }}
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
                           />
                         </div>

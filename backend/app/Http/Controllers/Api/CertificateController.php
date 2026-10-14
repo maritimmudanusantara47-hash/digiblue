@@ -88,9 +88,8 @@ class CertificateController extends Controller
                 ? base64_encode(file_get_contents($backTemplatePath))
                 : null;
 
-            $issueCarbon = \Carbon\Carbon::parse($cert->date_of_issue);
-            $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
-            $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
+            $customDate = $request->query('date') ? new \DateTime($request->query('date')) : null;
+            $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
 
             $viewName = view()->exists('certificates.template_field_study')
                 ? 'certificates.template_field_study'
@@ -142,9 +141,8 @@ class CertificateController extends Controller
                 ? base64_encode(file_get_contents($backTemplatePath))
                 : null;
 
-            $issueCarbon = \Carbon\Carbon::parse($cert->date_of_issue);
-            $seq = preg_match('/(\d{3,4})$/', $cert->serial_number, $m) ? $m[1] : '001';
-            $regNo = 'CBETC' . ltrim($seq, '0') . $issueCarbon->format('mY');
+            $customDate = $request->query('date') ? new \DateTime($request->query('date')) : null;
+            $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
 
             $viewName = view()->exists('certificates.template_critical_thinking')
                 ? 'certificates.template_critical_thinking'
@@ -235,12 +233,22 @@ class CertificateController extends Controller
             ], 404);
         }
 
-        $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])
+            $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])
             ->where(function ($q) use ($lookupKey) {
                 $q->where('serial_url_key', $lookupKey)
                   ->orWhere('serial_number', $lookupKey);
             })
             ->first();
+
+        if (! $cert && str_starts_with(strtoupper($lookupKey), 'CBETC')) {
+            $allCerts = Certificate::with(['user', 'enrollment.course.certificationLevel'])->get();
+            foreach ($allCerts as $candidate) {
+                if (strtoupper($this->certService->getCbetcRegNoForCertificate($candidate)) === strtoupper($lookupKey)) {
+                    $cert = $candidate;
+                    break;
+                }
+            }
+        }
 
         if (! $cert) {
             return response()->json([
