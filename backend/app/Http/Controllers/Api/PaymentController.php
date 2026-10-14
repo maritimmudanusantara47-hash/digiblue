@@ -133,7 +133,7 @@ class PaymentController extends Controller
 
         foreach ($items as $item) {
             $course = $courses[$item['course_id']];
-            $price  = (int) ($course->price_idr ?? 0);
+            $price  = (int) ($course->price ?? $course->price_idr ?? 0);
             if ($price > 0) {
                 $isAllFree = false;
             }
@@ -156,7 +156,7 @@ class PaymentController extends Controller
             foreach ($items as $item) {
                 $cid     = $item['course_id'];
                 $batchId = $item['batch_id'] ?? null;
-                $price   = (int) ($courses[$cid]->price_idr ?? 0);
+                $price   = (int) ($courses[$cid]->price ?? $courses[$cid]->price_idr ?? 0);
 
                 $updateData = [
                     'enrollment_type'      => 'self_paid',
@@ -194,7 +194,7 @@ class PaymentController extends Controller
         foreach ($items as $item) {
             $cid     = $item['course_id'];
             $batchId = $item['batch_id'] ?? null;
-            $price   = (int) ($courses[$cid]->price_idr ?? 0);
+            $price   = (int) ($courses[$cid]->price ?? $courses[$cid]->price_idr ?? 0);
 
             $updateData = [
                 'enrollment_type'      => 'self_paid',
