@@ -249,6 +249,12 @@ class CertificateController extends Controller
             ], 404);
         }
 
+        $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
+            . "/certification/{$cert->serial_url_key}";
+
+        $qrSvg = (string) QrCode::format('svg')->size(140)->generate($verificationUrl);
+        $qrImageBase64 = base64_encode($qrSvg);
+
         return response()->json([
             'valid'   => true,
             'message' => __('api.sertifikat_ini_valid_dan'),
@@ -262,6 +268,9 @@ class CertificateController extends Controller
                 'grade'             => $cert->grade,
                 'date_of_issue'     => $cert->date_of_issue,
                 'place_of_issue'    => $cert->place_of_issue,
+                'verification_url'  => $verificationUrl,
+                'qr_code_svg'       => $qrSvg,
+                'qr_code_base64'    => $qrImageBase64,
             ],
         ]);
     }
