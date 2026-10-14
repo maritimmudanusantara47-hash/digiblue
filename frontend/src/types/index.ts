@@ -62,7 +62,8 @@ export type EnrollmentStatus =
   | 'payment_pending'
   | 'active'
   | 'completed'
-  | 'rejected';
+  | 'rejected'
+  | 'cancelled';
 
 export interface CourseBatch {
   id: number;
@@ -90,6 +91,8 @@ export interface Enrollment {
   enrollment_type: EnrollmentType;
   status: EnrollmentStatus;
   attended_field_trip: boolean;
+  order_id?: string | null;
+  final_payment_amount?: number | null;
   created_at: string;
 }
 

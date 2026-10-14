@@ -55,13 +55,20 @@ export const useCartStore = create<CartStore>()(
       },
 
       updateItemPrice: (courseId, price) => {
-        set((state) => ({
-          items: state.items.map((i) =>
-            i.courseId === courseId
-              ? { ...i, price: Number(price) || 0 }
-              : i
-          ),
-        }));
+        set((state) => {
+          const numPrice = Number(price) || 0;
+          const currentItem = state.items.find((i) => i.courseId === courseId);
+          if (currentItem && currentItem.price === numPrice) {
+            return state;
+          }
+          return {
+            items: state.items.map((i) =>
+              i.courseId === courseId
+                ? { ...i, price: numPrice }
+                : i
+            ),
+          };
+        });
       },
 
       clearCart: () => set({ items: [] }),

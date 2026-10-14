@@ -33,8 +33,10 @@ export default function StudentCartPage() {
   }, []);
 
   // Ambil daftar batch aktif dan sinkronkan harga terbaru untuk setiap kursus di keranjang
+  const courseIdsKey = items.map((i) => i.courseId).sort().join(',');
+
   useEffect(() => {
-    if (!mounted || items.length === 0) return;
+    if (!mounted || !courseIdsKey) return;
 
     let isSubscribed = true;
     setLoadingBatches(true);
@@ -45,15 +47,18 @@ export default function StudentCartPage() {
       try {
         const coursesRes = await api.get('/courses');
         const courseList: { id: number; price: number | string }[] = coursesRes.data?.data ?? [];
-        courseList.forEach((c) => {
-          updateItemPrice(c.id, Number(c.price) || 0);
-        });
+        if (isSubscribed) {
+          courseList.forEach((c) => {
+            updateItemPrice(c.id, Number(c.price) || 0);
+          });
+        }
       } catch {
         // Abaikan jika offline/gagal sync harga
       }
 
+      const currentItems = useCartStore.getState().items;
       await Promise.all(
-        items.map(async (item) => {
+        currentItems.map(async (item) => {
           try {
             const res = await api.get(`/courses/${item.courseId}/batches?active_only=true`);
             if (isSubscribed) {
@@ -77,7 +82,7 @@ export default function StudentCartPage() {
     return () => {
       isSubscribed = false;
     };
-  }, [mounted, items]);
+  }, [mounted, courseIdsKey]);
 
   // Helper pemuatan Midtrans Snap jika belum siap di DOM
   const ensureSnapLoaded = (): Promise<void> => {
