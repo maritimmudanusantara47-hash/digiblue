@@ -29,8 +29,10 @@ export default function AssessorDashboard() {
     ]).then(([pending, graded]) => {
       const pendingData = pending.data.data;
       const list = Array.isArray(pendingData) ? pendingData : pendingData?.data ?? [];
-      const pendingTotal = pendingData?.meta?.total ?? list.length;
-      const gradedTotal = graded.data.data?.meta?.total ?? 0;
+      const pendingTotal = pendingData?.total ?? pendingData?.meta?.total ?? list.length;
+
+      const gradedData = graded.data.data;
+      const gradedTotal = gradedData?.total ?? gradedData?.meta?.total ?? (Array.isArray(gradedData) ? gradedData.length : gradedData?.data?.length ?? 0);
 
       setData({
         pending_count: pendingTotal,
