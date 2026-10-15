@@ -1,19 +1,21 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Pusat Bantuan & FAQ',
-  description:
-    'Temukan jawaban seputar pendaftaran pelatihan, pembayaran, pelaksanaan studi kasus, oral exam, dan penerbitan sertifikat resmi di DigiBlueCamp.',
-  alternates: {
-    canonical: '/help',
-  },
-  openGraph: {
-    title: 'Pusat Bantuan & FAQ | DigiBlueCamp',
-    description:
-      'Panduan lengkap dan FAQ mengenai program pelatihan dan sertifikasi Blue Economy DigiBlueCamp.',
-    url: '/help',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('HelpPage');
+  return {
+    title: t('meta_title'),
+    description: t('meta_desc'),
+    alternates: {
+      canonical: '/help',
+    },
+    openGraph: {
+      title: `${t('meta_title')} | DigiBlueCamp`,
+      description: t('meta_desc'),
+      url: '/help',
+    },
+  };
+}
 
 export default function HelpLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

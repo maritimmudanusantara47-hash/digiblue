@@ -362,7 +362,7 @@ function CoursesContent() {
                         });
                         Toast.fire({
                           icon: 'success',
-                          title: 'Ditambahkan ke keranjang',
+                          title: t('toast_added_cart'),
                         });
                       }}
                       className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
@@ -370,10 +370,10 @@ function CoursesContent() {
                           ? 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
                           : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-slate-50'
                       }`}
-                      title={inCart ? 'Lihat di Keranjang' : 'Tambah ke Keranjang'}
+                      title={inCart ? t('tooltip_view_cart') : t('tooltip_add_cart')}
                     >
                       <Icon name={inCart ? 'check-circle-1' : 'cart'} size={14} className={inCart ? 'text-sky-600' : ''} />
-                      <span>{inCart ? 'Di Keranjang' : 'Keranjang'}</span>
+                      <span>{inCart ? t('btn_in_cart') : t('btn_cart')}</span>
                     </button>
 
                     <button
@@ -397,7 +397,7 @@ function CoursesContent() {
                       className="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-[#00162d] text-white hover:bg-[#0f2b48] flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
                     >
                       <Icon name="rocket-5" size={14} />
-                      <span>Beli Sekarang</span>
+                      <span>{t('btn_buy_now')}</span>
                     </button>
                   </div>
                 </div>

@@ -1,26 +1,30 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = {
-  title: 'Tentang DigiBlueCamp — Visi & Ekosistem Ekonomi Biru',
-  description:
-    'Mengenal DigiBlueCamp, inisiatif edukasi dan sertifikasi ekonomi biru nasional kolaborasi Maritim Muda Nusantara dan The Blue Economist International Association.',
-  keywords: [
-    'tentang digibluecamp',
-    'maritim muda nusantara',
-    'the blue economist',
-    'visi ekonomi biru indonesia',
-    'konsorsium sertifikasi maritim',
-  ],
-  alternates: {
-    canonical: '/about',
-  },
-  openGraph: {
-    title: 'Tentang DigiBlueCamp — Visi & Ekosistem Ekonomi Biru | DigiBlueCamp',
-    description:
-      'Inisiatif edukasi dan sertifikasi maritim resmi untuk mencetak talenta unggul Blue Economy Indonesia.',
-    url: '/about',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('AboutPage');
+  return {
+    title: t('meta_title'),
+    description: t('meta_desc'),
+    keywords: [
+      'tentang digibluecamp',
+      'maritim muda nusantara',
+      'the blue economist',
+      'visi ekonomi biru indonesia',
+      'konsorsium sertifikasi maritim',
+      'about digibluecamp',
+      'blue economy consortium',
+    ],
+    alternates: {
+      canonical: '/about',
+    },
+    openGraph: {
+      title: `${t('meta_title')} | DigiBlueCamp`,
+      description: t('meta_desc'),
+      url: '/about',
+    },
+  };
+}
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
