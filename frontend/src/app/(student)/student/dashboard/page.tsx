@@ -362,7 +362,7 @@ function StudentDashboardContent() {
       )}
 
       {/* Student Welcome Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.04)]">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 text-sky-800 text-xs font-semibold mb-2.5">
             <span className="w-2 h-2 rounded-full bg-sky-500" />
@@ -380,23 +380,6 @@ function StudentDashboardContent() {
           <p className="text-slate-500 text-sm mt-1 leading-relaxed max-w-xl">
             Tingkatkan keahlian maritim dan sertifikasi resmi Anda bersama The Blue Economist.
           </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/student/catalog"
-            className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#07192C] hover:bg-[#0284c7] transition-all shadow-xs flex items-center gap-2 font-heading"
-          >
-            <Icon name="books-2" size={16} className="text-amber-400" />
-            <span>Katalog Kursus</span>
-          </Link>
-          <Link
-            href="/student/certificates"
-            className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-2 font-heading"
-          >
-            <Icon name="certificate-badge-1" size={15} className="text-slate-600" />
-            <span>Sertifikat Saya</span>
-          </Link>
         </div>
       </div>
 
