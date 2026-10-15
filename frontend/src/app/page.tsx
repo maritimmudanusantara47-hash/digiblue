@@ -4,27 +4,32 @@ import type { Metadata } from 'next';
 import ScrollReveal from '@/components/common/ScrollReveal';
 import { useTranslations } from 'next-intl';
 
-export const metadata: Metadata = {
-  title: 'DigiBlueCamp — Kursus & Sertifikasi Blue Economy Online Resmi',
-  description:
-    'Platform kursus online dan sertifikasi resmi Blue Economy berstandar internasional. Program Foundation Level & 10 Jalur Specialization bersama The Blue Economist dan Maritim Muda Nusantara.',
-  keywords: [
-    'kursus blue economy online',
-    'sertifikasi blue economy',
-    'certified blue economist',
-    'pelatihan maritim indonesia',
-    'kursus ekonomi biru bersertifikat',
-  ],
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: 'DigiBlueCamp — Kursus & Sertifikasi Blue Economy Online Resmi',
-    description:
-      'Platform kursus online dan sertifikasi resmi Blue Economy berstandar internasional. Sertifikat digital terakreditasi dengan QR verifikasi publik.',
-    url: '/',
-  },
-};
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('LandingPage');
+  return {
+    title: t('meta_title'),
+    description: t('meta_description'),
+    keywords: [
+      'kursus blue economy online',
+      'sertifikasi blue economy',
+      'certified blue economist',
+      'pelatihan maritim indonesia',
+      'kursus ekonomi biru bersertifikat',
+      'blue economy courses',
+      'maritime certification',
+    ],
+    alternates: {
+      canonical: '/',
+    },
+    openGraph: {
+      title: `${t('meta_title')} | DigiBlueCamp`,
+      description: t('meta_description'),
+      url: '/',
+    },
+  };
+}
 
 const certPoints = (t: any) => [
   { icon: 'file-multiple', title: t('cert_1_title'), desc: t('cert_1_desc') },

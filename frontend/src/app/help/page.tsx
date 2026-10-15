@@ -22,7 +22,7 @@ export default function HelpCenterPage() {
   const [ticketName, setTicketName] = useState('');
   const [ticketEmail, setTicketEmail] = useState('');
   const [ticketPhone, setTicketPhone] = useState('');
-  const [ticketCategory, setTicketCategory] = useState('Pembayaran & Midtrans');
+  const [ticketCategory, setTicketCategory] = useState('payment');
   const [ticketMessage, setTicketMessage] = useState('');
   const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
@@ -40,62 +40,62 @@ export default function HelpCenterPage() {
     {
       category: 'account',
       categoryLabel: t('cat_account'),
-      q: 'Bagaimana cara membuat akun pembelajar di DigiBlue?',
-      a: 'Klik tombol "Daftar" di sudut kanan atas halaman. Masukkan nama lengkap sesuai identitas resmi Anda, email aktif, negara asal, dan kata sandi. Setelah pendaftaran selesai, akun Anda langsung aktif dan dapat digunakan untuk memilih kursus.',
+      q: t('faq_1_q'),
+      a: t('faq_1_a'),
     },
     {
       category: 'account',
       categoryLabel: t('cat_account'),
-      q: 'Bagaimana jika saya lupa kata sandi akun?',
-      a: 'Pada halaman Masuk (Login), klik tautan "Lupa Kata Sandi". Masukkan alamat email Anda, dan sistem akan mengirimkan tautan pemulihan kata sandi ke kotak masuk email Anda.',
+      q: t('faq_2_q'),
+      a: t('faq_2_a'),
     },
     {
       category: 'payment',
       categoryLabel: t('cat_payment'),
-      q: 'Metode pembayaran apa saja yang didukung oleh DigiBlue?',
-      a: 'DigiBlue terintegrasi secara resmi dengan payment gateway Midtrans. Kami menerima transfer Bank Virtual Account (BCA, Mandiri, BNI, BRI, Permata), QRIS (GoPay, OVO, ShopeePay, Dana), serta Kartu Kredit/Debit berlogo Visa dan Mastercard.',
+      q: t('faq_3_q'),
+      a: t('faq_3_a'),
     },
     {
       category: 'payment',
       categoryLabel: t('cat_payment'),
-      q: 'Apakah verifikasi pembayaran berlangsung otomatis?',
-      a: 'Ya, seluruh transaksi melalui sistem Midtrans terkonfirmasi secara real-time dalam hitungan detik. Modul kursus Anda akan langsung terbuka secara otomatis di dashboard peserta segera setelah pembayaran berhasil.',
+      q: t('faq_4_q'),
+      a: t('faq_4_a'),
     },
     {
       category: 'payment',
       categoryLabel: t('cat_payment'),
-      q: 'Bagaimana cara mendapatkan invoice resmi untuk institusi atau perusahaan?',
-      a: 'Setiap transaksi berhasil akan menghasilkan invoice digital dengan rincian PPN yang dapat diunduh langsung dari Dashboard Siswa bagian Riwayat Pembayaran. Jika memerlukan invoice khusus institusi, hubungi halo@digibluecamp.id.',
+      q: t('faq_5_q'),
+      a: t('faq_5_a'),
     },
     {
       category: 'exam',
       categoryLabel: t('cat_exam'),
-      q: 'Kapan saya bisa mengikuti ujian kelulusan (assessment)?',
-      a: 'Anda dapat mengikuti ujian kapan saja secara fleksibel setelah menyelesaikan seluruh modul bacaan dan materi pelatihan yang ditentukan pada dashboard LMS Anda.',
+      q: t('faq_6_q'),
+      a: t('faq_6_a'),
     },
     {
       category: 'exam',
       categoryLabel: t('cat_exam'),
-      q: 'Berapa nilai kelulusan minimal (passing grade) untuk mendapatkan sertifikat?',
-      a: 'Nilai kelulusan standar untuk program Foundation Level dan Specialization adalah 70%. Jika belum mencapai nilai kelulusan, Anda diberikan kesempatan remedial untuk mengulang ujian.',
+      q: t('faq_7_q'),
+      a: t('faq_7_a'),
     },
     {
       category: 'exam',
       categoryLabel: t('cat_exam'),
-      q: 'Bagaimana cara memverifikasi keaslian sertifikat yang telah saya dapatkan?',
-      a: 'Setiap sertifikat resmi DigiBlue dilengkapi Nomor Seri Kredensial unik dan QR Code. Siapa pun dapat memverifikasinya melalui halaman Portal Verifikasi di /verify dengan mengetikkan nomor seri atau memindai kode QR.',
+      q: t('faq_8_q'),
+      a: t('faq_8_a'),
     },
     {
       category: 'lms',
       categoryLabel: t('cat_lms'),
-      q: 'Apakah materi kursus dapat diakses seumur hidup (lifetime)?',
-      a: 'Ya, seluruh peserta yang telah terdaftar pada program pelatihan memiliki akses berkelanjutan terhadap materi modul bacaan dan pembaruan silabus di masa mendatang tanpa biaya tambahan.',
+      q: t('faq_9_q'),
+      a: t('faq_9_a'),
     },
     {
       category: 'lms',
       categoryLabel: t('cat_lms'),
-      q: 'Apakah LMS DigiBlue dapat diakses melalui smartphone?',
-      a: 'Ya, antarmuka DigiBlue sepenuhnya responsif dan dioptimalkan untuk dibuka di smartphone Android, iOS, tablet, maupun laptop tanpa perlu mengunduh aplikasi tambahan dari Play Store atau App Store.',
+      q: t('faq_10_q'),
+      a: t('faq_10_a'),
     },
   ], [t]);
 
@@ -464,12 +464,12 @@ export default function HelpCenterPage() {
                         onChange={(e) => setTicketCategory(e.target.value)}
                         className="h-11 px-3.5 text-sm rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 outline-none transition-all"
                       >
-                        <option value="Pembayaran & Midtrans">{t('cat_payment')}</option>
-                        <option value="Pendaftaran & Akun">{t('cat_account')}</option>
-                        <option value="Ujian & Sertifikat CBEc">{t('cat_exam')}</option>
-                        <option value="Akses Materi LMS">{t('cat_lms')}</option>
-                        <option value="Kemitraan Institusi / Kampus">Kemitraan Institusi / Kampus</option>
-                        <option value="Lainnya">Lainnya</option>
+                        <option value="payment">{t('cat_opt_payment')}</option>
+                        <option value="account">{t('cat_opt_account')}</option>
+                        <option value="exam">{t('cat_opt_exam')}</option>
+                        <option value="lms">{t('cat_opt_lms')}</option>
+                        <option value="partnership">{t('cat_opt_partnership')}</option>
+                        <option value="other">{t('cat_opt_other')}</option>
                       </select>
                     </div>
                   </div>

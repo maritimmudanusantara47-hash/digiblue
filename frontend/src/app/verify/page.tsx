@@ -69,7 +69,7 @@ export default function VerifyPortalPage() {
         setResult({
           searched: true,
           valid: true,
-          message: res.data.message || 'Kredensial sertifikat terverifikasi valid dan resmi di sistem DigiBlue.',
+          message: res.data.message || t('msg_valid_default'),
           data: {
             ...res.data.data,
             status: 'valid',
@@ -79,7 +79,7 @@ export default function VerifyPortalPage() {
         setResult({
           searched: true,
           valid: false,
-          message: res.data?.message || 'Nomor seri tidak ditemukan dalam basis data resmi.',
+          message: res.data?.message || t('msg_not_found_default'),
           data: null,
         });
       }
@@ -87,7 +87,7 @@ export default function VerifyPortalPage() {
       const axiosErr = err as { response?: { data?: { message?: string } } };
       const errorMessage =
         axiosErr?.response?.data?.message ||
-        `Nomor seri "${code}" tidak ditemukan dalam sistem akreditasi maritim DigiBlue. Mohon periksa kembali nomor sertifikat Anda.`;
+        t('msg_not_found_param', { code });
       setResult({
         searched: true,
         valid: false,
@@ -145,20 +145,20 @@ export default function VerifyPortalPage() {
 
   const faqs = [
     {
-      q: 'Bagaimana cara memverifikasi sertifikat DigiBlue?',
-      a: 'Masukkan Nomor Seri Unik Kredensial yang tercetak pada sertifikat fisik atau file PDF Anda (misalnya: CBEC/ID/IX/20260166 atau kode pada QR), lalu klik tombol "Verifikasi". Basis data konsorsium maritim akan menampilkan status validitas dokumen secara real-time.',
+      q: t('faq1_q'),
+      a: t('faq1_a'),
     },
     {
-      q: 'Di mana saya dapat menemukan nomor seri sertifikat?',
-      a: 'Nomor seri tercetak di sudut kanan sertifikat DigiBlue, tepat di samping kode QR otentikasi serta pada metadata dokumen sertifikat digital PDF resmi Anda.',
+      q: t('faq2_q'),
+      a: t('faq2_a'),
     },
     {
-      q: 'Apakah sertifikat DigiBlue diakui oleh industri maritim internasional?',
-      a: 'Ya. Sertifikat diterbitkan atas mandat konsorsium The Blue Economist International Association bekerjasama dengan Maritim Muda Nusantara dan Indonesia Blue Economy Center (IBEC), selaras dengan target SDG 14 dan standar IMO 2050.',
+      q: t('faq3_q'),
+      a: t('faq3_a'),
     },
     {
-      q: 'Apa yang harus dilakukan jika nomor seri tidak ditemukan?',
-      a: 'Pastikan nomor seri yang Anda masukkan sesuai tanpa spasi tambahan. Jika sertifikat baru diterbitkan kurang dari 24 jam, proses replikasi basis data sedang berjalan. Anda dapat menghubungi layanan bantuan di halo@digibluecamp.id.',
+      q: t('faq4_q'),
+      a: t('faq4_a'),
     },
   ];
 
@@ -221,7 +221,7 @@ export default function VerifyPortalPage() {
                       type="button"
                       onClick={() => setSerialInput('')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                      aria-label="Bersihkan input"
+                      aria-label={t('btn_clear_input')}
                     >
                       <Icon name="xmark" size={14} />
                     </button>
@@ -470,7 +470,7 @@ export default function VerifyPortalPage() {
                     <div className="flex items-center justify-between text-xs text-slate-300 px-2">
                       <span className="flex items-center gap-1.5">
                         <Icon name="shield-2-check" size={13} className="text-emerald-400" />
-                        <span>Template Resmi Terakreditasi ({templateConfig.typeLabel})</span>
+                        <span>{t('lbl_template_accredited')} ({templateConfig.typeLabel})</span>
                       </span>
                       <button
                         type="button"
@@ -794,7 +794,7 @@ export default function VerifyPortalPage() {
               <button
                 onClick={() => setShowQrModal(false)}
                 className="absolute right-5 top-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
-                aria-label="Tutup modal"
+                aria-label={t('btn_close')}
               >
                 <Icon name="xmark" size={16} />
               </button>
@@ -857,7 +857,7 @@ export default function VerifyPortalPage() {
                   className="absolute -top-11 right-0 text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
                 >
                   <Icon name="xmark" size={16} />
-                  <span>Tutup</span>
+                  <span>{t('btn_close')}</span>
                 </button>
 
                 {/* Scaled Certificate Container */}
@@ -872,14 +872,14 @@ export default function VerifyPortalPage() {
                 {/* Sub-label */}
                 <div className="mt-3 text-xs text-white/70 flex items-center justify-between w-full px-2">
                   <span>
-                    Pratinjau Kredensial Resmi — {certData.recipient_name} ({certData.serial_number})
+                    {t('lbl_preview_official')} — {certData.recipient_name} ({certData.serial_number})
                   </span>
                   <button
                     type="button"
                     onClick={() => setIsZoomOpen(false)}
                     className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold transition-colors cursor-pointer"
                   >
-                    Tutup
+                    {t('btn_close')}
                   </button>
                 </div>
               </div>

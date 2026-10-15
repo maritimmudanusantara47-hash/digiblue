@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { translateText } from '@/lib/translator';
 import Icon from '@/components/Icon';
 import api from '@/lib/api';
@@ -20,6 +20,7 @@ const LEVEL_STYLE: Record<string, { badge: string; border: string; bg: string }>
 };
 
 export default function PublicCourseDetailPage() {
+  const t = useTranslations('PublicCourseDetail');
   const locale = useLocale();
   const params = useParams();
   const router = useRouter();
@@ -364,7 +365,7 @@ export default function PublicCourseDetailPage() {
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-lg">
               <div className="pb-6 border-b border-slate-100 mb-6">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                  Biaya Pendaftaran Kursus
+                  {t('fee_title')}
                 </p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-extrabold text-navy-dark">
@@ -372,7 +373,7 @@ export default function PublicCourseDetailPage() {
                   </span>
                   {!isFree && (
                     <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
-                      Sertifikasi Resmi
+                      {t('badge_official')}
                     </span>
                   )}
                 </div>
@@ -381,29 +382,29 @@ export default function PublicCourseDetailPage() {
               {/* Benefit List */}
               <div className="space-y-3 mb-8">
                 <p className="text-xs font-bold text-navy-dark uppercase tracking-wider">
-                  Fasilitas yang didapatkan:
+                  {t('facilities_title')}
                 </p>
                 {[
-                  'Akses lengkap semua modul silabus',
-                  'Ujian online MCQ & evaluasi studi kasus',
-                  'Sertifikat PDF resmi ber-ID unik & QR Code',
-                  'Dapat diverifikasi langsung oleh pemberi kerja',
-                  'Dukungan pembelajaran online 24/7',
-                ].map((b) => (
-                  <div key={b} className="flex items-start justify-between gap-2 text-xs text-slate-600">
+                  t('facility_1'),
+                  t('facility_2'),
+                  t('facility_3'),
+                  t('facility_4'),
+                  t('facility_5'),
+                ].map((b, idx) => (
+                  <div key={idx} className="flex items-start justify-between gap-2 text-xs text-slate-600">
                     <div className="flex items-start gap-2.5 min-w-0">
                       <span className="text-emerald-500 mt-0.5 shrink-0">
                         <Icon name="check-circle-1" size={14} />
                       </span>
                       <span>{b}</span>
                     </div>
-                    {b.includes('Sertifikat') && (
+                    {idx === 2 && (
                       <button
                         type="button"
                         onClick={() => triggerCertificatePreview()}
                         className="text-[11px] font-bold text-navy hover:text-navy-light underline hover:no-underline shrink-0 cursor-pointer ml-1"
                       >
-                        Lihat Contoh
+                        {t('btn_preview_sample')}
                       </button>
                     )}
                   </div>
@@ -431,7 +432,7 @@ export default function PublicCourseDetailPage() {
                     });
                     Toast.fire({
                       icon: 'success',
-                      title: 'Kursus ditambahkan ke keranjang',
+                      title: t('toast_added_cart'),
                     });
                   }}
                   className={`w-full py-3 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer border ${
@@ -439,9 +440,10 @@ export default function PublicCourseDetailPage() {
                       ? 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
                       : 'bg-white text-slate-700 border-slate-300 hover:border-sky-500 hover:text-sky-600 hover:bg-slate-50'
                   }`}
+                  title={inCart ? t('tooltip_view_cart') : t('tooltip_add_cart')}
                 >
                   <Icon name={inCart ? 'check-circle-1' : 'cart'} size={16} className={inCart ? 'text-sky-600' : ''} />
-                  <span>{inCart ? 'Lihat di Keranjang' : 'Tambah ke Keranjang'}</span>
+                  <span>{inCart ? t('btn_in_cart') : t('btn_cart')}</span>
                 </button>
 
                 <button
@@ -464,12 +466,12 @@ export default function PublicCourseDetailPage() {
                   className="btn btn-primary w-full py-3.5 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer transition-all"
                 >
                   <Icon name="rocket-5" size={16} />
-                  <span>Beli Sekarang</span>
+                  <span>{t('btn_buy_now')}</span>
                 </button>
               </div>
 
               <p className="text-center text-[11px] text-slate-400 mt-4">
-                Pembayaran aman & instan via QRIS, Virtual Account, GoPay & Midtrans Snap.
+                {t('payment_security_note')}
               </p>
             </div>
 

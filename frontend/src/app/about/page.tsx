@@ -37,27 +37,27 @@ export default function AboutPage() {
   const leaders = [
     {
       name: 'Kaisar Akhir, S.I.K., M.Sc.',
-      role: 'Ketua Umum Maritim Muda Nusantara & Inisiator DigiBlue',
-      bio: 'Pakar kebijakan kelautan dan ekonomi biru terapan lulusan Universitas Indonesia dan National Taiwan Ocean University. Berpengalaman dalam advokasi maritim pemuda internasional.',
-      badge: 'Blue Economy Specialist',
+      role: t('lead1_role'),
+      bio: t('lead1_bio'),
+      badge: t('lead1_badge'),
     },
     {
       name: 'Dr. Hendra Wijaya, M.M., CBEc',
-      role: 'Dewan Pakar Kurikulum & Asesor Utama',
-      bio: 'Praktisi logistik pelabuhan dan perkapalan berpengalaman 20+ tahun. Instruktur tersertifikasi dalam pemodelan resiko maritim dan valuasi logistik hijau.',
-      badge: 'Senior Maritime Assessor',
+      role: t('lead2_role'),
+      bio: t('lead2_bio'),
+      badge: t('lead2_badge'),
     },
     {
       name: 'Nadia Pratiwi, Ph.D.',
-      role: 'Direktur Riset Karbon Biru & Finansial Berkelanjutan',
-      bio: 'Peneliti oseanografi dan instrumen keuangan iklim pesisir. Mengkoordinasikan modul pembiayaan inovatif untuk perlindungan mangrove nasional.',
-      badge: 'Ocean Climate Finance',
+      role: t('lead3_role'),
+      bio: t('lead3_bio'),
+      badge: t('lead3_badge'),
     },
     {
       name: 'Budi Santoso, M.Si.',
-      role: 'Kepala Pengembangan Talenta Digital & LMS Maritim',
-      bio: 'Fasilitator edukasi maritim digital berdedikasi tinggi, memastikan materi kursus dapat diakses inklusif oleh pembelajar di pulau-pulau 3T seluruh Indonesia.',
-      badge: 'Digital Education Lead',
+      role: t('lead4_role'),
+      bio: t('lead4_bio'),
+      badge: t('lead4_badge'),
     },
   ];
 
