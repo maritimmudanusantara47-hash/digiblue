@@ -522,142 +522,132 @@ export default function InteractiveModuleViewer({
         )}
       </div>
 
-      {/* ─── Slide-Over Side Drawer for Notes (Catatan Pribadi Siswa) ───────── */}
+      {/* ─── Compact Floating Modal for Notes (Catatan Pribadi Siswa) ───────── */}
       {showNotesDrawer && (
-        <div className="fixed inset-0 z-50 overflow-hidden animate-fadein">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-50 pointer-events-none animate-fadein">
+          {/* Invisible backdrop to close on outside click */}
           <div
-            className="absolute inset-0 bg-navy-dark/40 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 pointer-events-auto"
             onClick={() => setShowNotesDrawer(false)}
           />
 
-          {/* Slide-over panel */}
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
-              {/* Header */}
-              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gold/20 text-gold-dark flex items-center justify-center font-bold">
-                    <Icon name="pencil-1" size={16} />
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-navy-dark text-sm">Catatan & Kutipan Modul</h4>
-                    <p className="text-[11px] text-slate-400">Tersimpan otomatis di browser kamu</p>
-                  </div>
+          {/* Compact floating modal - top right below toolbar */}
+          <div className="fixed top-[60px] right-4 w-[360px] max-h-[480px] bg-white rounded-2xl shadow-[0_8px_40px_-8px_rgba(7,25,44,0.20)] border border-slate-200/80 flex flex-col pointer-events-auto overflow-hidden">
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                  <Icon name="pencil-1" size={14} />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowNotesDrawer(false)}
-                  className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
-                  title="Tutup Catatan"
-                >
-                  <Icon name="xmark" size={18} />
-                </button>
+                <div>
+                  <h4 className="font-bold text-navy-dark text-[13px] leading-tight">Catatan & Kutipan Modul</h4>
+                  <p className="text-[10px] text-slate-400">Tersimpan otomatis di browser kamu</p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowNotesDrawer(false)}
+                className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+                title="Tutup Catatan"
+              >
+                <Icon name="xmark" size={16} />
+              </button>
+            </div>
 
-              {/* Drawer Content */}
-              <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-4">
-                {/* Input New Note */}
-                <div className="flex flex-col gap-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
-                  <p className="text-xs font-bold text-navy-dark">Tambah Catatan Baru</p>
+            {/* Scrollable Content */}
+            <div className="flex flex-col overflow-y-auto flex-1 min-h-0">
+              {/* Input New Note */}
+              <div className="p-3 border-b border-slate-100 flex flex-col gap-2">
+                <p className="text-[11px] font-bold text-navy-dark">Tambah Catatan Baru</p>
 
-                  {selectedQuote && (
-                    <div className="bg-amber-50/90 border-l-4 border-gold p-3 rounded-r-xl text-xs text-slate-700 flex items-start justify-between gap-2 shadow-sm">
-                      <div>
-                        <p className="font-bold text-navy-dark text-[10px] mb-0.5 uppercase tracking-wide">
-                          Kutipan yang disorot:
-                        </p>
-                        <p className="italic font-serif leading-relaxed">&ldquo;{selectedQuote}&rdquo;</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedQuote('')}
-                        className="text-slate-400 hover:text-red-500 p-1 flex-shrink-0"
-                        title="Hapus seleksi kutipan"
-                      >
-                        <Icon name="xmark" size={12} />
-                      </button>
-                    </div>
-                  )}
-
-                  <textarea
-                    rows={3}
-                    value={newNoteInput}
-                    onChange={e => setNewNoteInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                        handleAddNote();
-                      }
-                    }}
-                    placeholder={
-                      selectedQuote
-                        ? 'Tulis komentar atau poin penting dari kutipan di atas...'
-                        : 'Ketik ringkasan pemahaman, pertanyaan, atau catatan penting...'
-                    }
-                    className="form-input text-xs resize-none"
-                  />
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400">Tekan Ctrl+Enter atau tombol Simpan</span>
+                {selectedQuote && (
+                  <div className="bg-amber-50 border-l-3 border-amber-400 px-2.5 py-2 rounded-r-lg text-[11px] text-slate-700 flex items-start justify-between gap-2">
+                    <p className="italic leading-relaxed line-clamp-2">&ldquo;{selectedQuote}&rdquo;</p>
                     <button
                       type="button"
-                      onClick={handleAddNote}
-                      disabled={!newNoteInput.trim() && !selectedQuote}
-                      className="btn btn-primary btn-sm text-xs px-4"
+                      onClick={() => setSelectedQuote('')}
+                      className="text-slate-400 hover:text-red-500 flex-shrink-0 mt-0.5"
                     >
-                      <Icon name="plus" size={14} className="mr-1" />
-                      Simpan Catatan
+                      <Icon name="xmark" size={11} />
                     </button>
                   </div>
+                )}
+
+                <textarea
+                  rows={2}
+                  value={newNoteInput}
+                  onChange={e => setNewNoteInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      handleAddNote();
+                    }
+                  }}
+                  placeholder={
+                    selectedQuote
+                      ? 'Tulis komentar dari kutipan di atas...'
+                      : 'Ketik catatan penting...'
+                  }
+                  className="form-input text-[11px] resize-none"
+                />
+
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] text-slate-400">Ctrl+Enter untuk simpan</span>
+                  <button
+                    type="button"
+                    onClick={handleAddNote}
+                    disabled={!newNoteInput.trim() && !selectedQuote}
+                    className="btn btn-primary btn-sm text-[11px] px-3 py-1.5"
+                  >
+                    <Icon name="plus" size={12} className="mr-1" />
+                    Simpan
+                  </button>
                 </div>
+              </div>
 
-                {/* List of Notes */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
-                    <span>Daftar Catatan ({notes.length})</span>
-                  </div>
+              {/* List of Notes */}
+              <div className="p-3 flex flex-col gap-2">
+                <span className="text-[10px] text-slate-400 font-semibold">Daftar Catatan ({notes.length})</span>
 
-                  {notes.length > 0 ? (
-                    <div className="flex flex-col gap-2.5">
-                      {notes.map(note => (
-                        <div
-                          key={note.id}
-                          className="bg-white border border-slate-200/90 hover:border-navy/30 rounded-2xl p-4 flex flex-col gap-2 text-xs shadow-sm transition-colors"
-                        >
-                          {note.selectedText && (
-                            <blockquote className="border-l-2 border-gold pl-3 text-slate-600 italic bg-amber-50/40 p-1.5 rounded-r-lg">
-                              &ldquo;{note.selectedText}&rdquo;
-                            </blockquote>
-                          )}
-                          {note.text && (
-                            <p className="font-medium text-navy-dark leading-relaxed whitespace-pre-wrap">
-                              {note.text}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-100">
-                            <span>{note.timestamp}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteNote(note.id)}
-                              className="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1"
-                            >
-                              <Icon name="xmark" size={12} />
-                              Hapus
-                            </button>
-                          </div>
+                {notes.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {notes.map(note => (
+                      <div
+                        key={note.id}
+                        className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-col gap-1.5 text-[11px]"
+                      >
+                        {note.selectedText && (
+                          <p className="border-l-2 border-amber-400 pl-2 text-slate-500 italic line-clamp-2">
+                            &ldquo;{note.selectedText}&rdquo;
+                          </p>
+                        )}
+                        {note.text && (
+                          <p className="font-medium text-navy-dark leading-relaxed whitespace-pre-wrap">
+                            {note.text}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200/60">
+                          <span>{note.timestamp}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteNote(note.id)}
+                            className="text-red-400 hover:text-red-600 font-semibold flex items-center gap-0.5"
+                          >
+                            <Icon name="xmark" size={11} />
+                            Hapus
+                          </button>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-10 px-4 text-slate-400 border border-dashed border-slate-200 rounded-2xl">
-                      <Icon name="pencil-1" size={28} className="mx-auto mb-2 opacity-40" />
-                      <p className="text-xs font-semibold">Belum ada catatan.</p>
-                      <p className="text-[11px] mt-1">
-                        Sorot kalimat di artikel modul atau ketik catatan di atas untuk menyimpan referensi belajar.
-                      </p>
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 px-3 text-slate-400 border border-dashed border-slate-200 rounded-xl">
+                    <Icon name="pencil-1" size={22} className="mx-auto mb-1.5 opacity-40" />
+                    <p className="text-[11px] font-semibold">Belum ada catatan.</p>
+                    <p className="text-[10px] mt-0.5 leading-relaxed">
+                      Sorot kalimat di modul atau ketik catatan di atas.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
