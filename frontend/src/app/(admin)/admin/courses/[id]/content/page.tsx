@@ -740,20 +740,6 @@ export default function AdminCourseContentPage() {
                           placeholder="Contoh: Modul ini membahas kerangka dasar ekonomi biru dan valuasi sumber daya pesisir. Pelajari seluruh materi slide sebelum melanjutkan ke tahapan ujian."
                           className="form-input text-xs text-slate-700 bg-white leading-relaxed resize-none rounded-xl"
                         />
-                        <div className="flex items-center justify-between pt-1">
-                          <p className="text-[11px] text-slate-400">
-                            Jangan lupa klik tombol simpan agar petunjuk muncul di akun siswa.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={handleSaveContent}
-                            disabled={savingContent}
-                            className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
-                          >
-                            <Icon name="floppy-disk-1" size={14} />
-                            <span>{savingContent ? t('btn_saving') : 'Simpan Petunjuk & Modul'}</span>
-                          </button>
-                        </div>
                       </div>
                     </div>
                   )}
