@@ -305,12 +305,12 @@ export default function StudentCoursePage() {
         <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
           <button
             type="button"
-            onClick={() => router.push('/student/dashboard')}
+            onClick={() => router.push('/student/catalog')}
             className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition-all flex-shrink-0"
-            title="Kembali ke Dashboard Siswa"
+            title="Kembali ke Katalog Kursus"
           >
             <Icon name="arrow-left" size={14} />
-            <span className="hidden sm:inline">Dashboard</span>
+            <span className="hidden sm:inline">Katalog</span>
           </button>
 
           <div className="h-5 w-px bg-white/15 flex-shrink-0" />
