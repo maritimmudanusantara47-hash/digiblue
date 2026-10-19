@@ -97,6 +97,7 @@ export default function StudentCoursePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isEmailUnverified, setIsEmailUnverified] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [resendStatus, setResendStatus] = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
 
@@ -298,9 +299,80 @@ export default function StudentCoursePage() {
   if (!data || !enrollment) return null;
 
   return (
-    <div className="animate-fadeup flex gap-0 min-h-[80vh]">
-      {/* ── Sidebar ────────────────────────────────────────────────────────── */}
-      <aside className="w-72 flex-shrink-0 self-start border-r border-slate-200 bg-slate-50 rounded-l-2xl overflow-y-auto max-h-[calc(100vh-48px)] sticky top-6">
+    <div className="flex flex-col min-h-screen bg-slate-100 w-full">
+      {/* ── Top Bar Immersive Learning Header ── */}
+      <header className="h-16 bg-[#00162d] text-white border-b border-white/10 px-4 sm:px-6 flex items-center justify-between flex-shrink-0 sticky top-0 z-30 shadow-md">
+        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <button
+            type="button"
+            onClick={() => router.push('/student/dashboard')}
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition-all flex-shrink-0"
+            title="Kembali ke Dashboard Siswa"
+          >
+            <Icon name="arrow-left" size={14} />
+            <span className="hidden sm:inline">Dashboard</span>
+          </button>
+
+          <div className="h-5 w-px bg-white/15 flex-shrink-0" />
+
+          {/* Toggle Silabus Modul (Focus Mode) */}
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(prev => !prev)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all flex-shrink-0 ${
+              isSidebarOpen
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-white/10 hover:bg-white/20 text-slate-200'
+            }`}
+            title={isSidebarOpen ? 'Sembunyikan Silabus (Mode Layar Penuh Modul)' : 'Buka Silabus Modul'}
+          >
+            <Icon name="books-2" size={15} />
+            <span className="text-xs font-bold">{isSidebarOpen ? 'Tutup Silabus' : 'Daftar Modul'}</span>
+          </button>
+
+          <div className="min-w-0 hidden lg:flex items-center gap-2 ml-1">
+            <span className="text-slate-400 text-xs">/</span>
+            <h1 className="text-xs sm:text-sm font-extrabold truncate text-white">
+              {data.course.title}
+            </h1>
+          </div>
+        </div>
+
+        {/* Right side: Progress & Certificate */}
+        <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-[10px] text-slate-400 font-medium">Progres Belajar</p>
+              <p className="text-xs font-bold text-sky-400">
+                {completedCount}/{totalContents} Selesai ({progressPct}%)
+              </p>
+            </div>
+            <div className="w-24 sm:w-28 h-2 bg-slate-800 rounded-full overflow-hidden border border-white/10">
+              <div
+                className="h-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-500 rounded-full"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+
+          {progressPct === 100 && (
+            <button
+              type="button"
+              onClick={() => router.push('/student/certificates')}
+              className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
+            >
+              <Icon name="certificate-badge-1" size={14} />
+              <span className="hidden sm:inline">Sertifikat Terbit</span>
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* ── Main Viewport (Sidebar + Reading Area) ── */}
+      <div className="flex-1 flex overflow-hidden min-h-[calc(100vh-64px)]">
+        {/* ── Sidebar Silabus (Bisa di-toggle / Collapsible) ───────────────────── */}
+        {isSidebarOpen && (
+          <aside className="w-80 lg:w-88 flex-shrink-0 border-r border-slate-200 bg-white overflow-y-auto max-h-[calc(100vh-64px)] sticky top-16 z-20 shadow-sm animate-fadein">
         {/* Course Info */}
         <div className="p-5 border-b border-slate-200">
           <div className="flex items-center gap-1.5 mb-2 flex-wrap">
@@ -388,9 +460,10 @@ export default function StudentCoursePage() {
           ))}
         </nav>
       </aside>
+    )}
 
       {/* ── Main Content Area ──────────────────────────────────────────────── */}
-      <main className="flex-1 min-w-0 p-6 md:p-8">
+      <main className={`flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? '' : 'max-w-7xl mx-auto w-full'}`}>
         {/* Banner Selamat & Sertifikat Terbit Otomatis */}
         {progressPct === 100 && (
           <div className="mb-6 p-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeup border border-emerald-400/30">
@@ -472,6 +545,7 @@ export default function StudentCoursePage() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

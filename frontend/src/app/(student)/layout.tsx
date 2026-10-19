@@ -44,6 +44,16 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     return () => window.removeEventListener('pageshow', checkAuth);
   }, [pathname, isAuthenticated]);
 
+  const isCourseLearning = pathname.startsWith('/student/courses/');
+
+  if (isCourseLearning) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex flex-col w-full overflow-x-hidden">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Redesigned Student Portal Sidebar */}
