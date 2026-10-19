@@ -299,9 +299,9 @@ export default function StudentCoursePage() {
   if (!data || !enrollment) return null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-100 w-full">
+    <div className="flex flex-col h-full bg-slate-100 w-full overflow-hidden">
       {/* ── Top Bar Immersive Learning Header ── */}
-      <header className="h-16 bg-[#00162d] text-white border-b border-white/10 px-4 sm:px-6 flex items-center justify-between flex-shrink-0 sticky top-0 z-30 shadow-md">
+      <header className="h-16 bg-[#00162d] text-white border-b border-white/10 px-4 sm:px-6 flex items-center justify-between flex-shrink-0 z-30 shadow-md">
         <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
           <button
             type="button"
@@ -369,10 +369,10 @@ export default function StudentCoursePage() {
       </header>
 
       {/* ── Main Viewport (Sidebar + Reading Area) ── */}
-      <div className="flex-1 flex overflow-hidden min-h-[calc(100vh-64px)]">
+      <div className="flex-1 flex overflow-hidden w-full min-h-0">
         {/* ── Sidebar Silabus (Bisa di-toggle / Collapsible) ───────────────────── */}
         {isSidebarOpen && (
-          <aside className="w-80 lg:w-88 flex-shrink-0 border-r border-slate-200 bg-white overflow-y-auto max-h-[calc(100vh-64px)] sticky top-16 z-20 shadow-sm animate-fadein">
+          <aside className="w-80 lg:w-88 flex-shrink-0 border-r border-slate-200 bg-white overflow-y-auto h-full z-20 shadow-sm animate-fadein">
         {/* Course Info */}
         <div className="p-5 border-b border-slate-200">
           <div className="flex items-center gap-1.5 mb-2 flex-wrap">
@@ -463,7 +463,7 @@ export default function StudentCoursePage() {
     )}
 
       {/* ── Main Content Area ──────────────────────────────────────────────── */}
-      <main className={`flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? '' : 'max-w-7xl mx-auto w-full'}`}>
+      <main className={`flex-1 min-w-0 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300 ${isSidebarOpen ? '' : 'max-w-7xl mx-auto w-full'}`}>
         {/* Banner Selamat & Sertifikat Terbit Otomatis */}
         {progressPct === 100 && (
           <div className="mb-6 p-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeup border border-emerald-400/30">

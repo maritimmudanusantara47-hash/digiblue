@@ -48,7 +48,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
   if (isCourseLearning) {
     return (
-      <div className="min-h-screen bg-slate-100 flex flex-col w-full overflow-x-hidden">
+      <div className="h-screen bg-slate-100 flex flex-col w-full overflow-hidden">
         {children}
       </div>
     );
