@@ -622,223 +622,49 @@ export default function AdminCourseContentPage() {
                     </p>
                   </div>
 
-                  {/* Web-based Course Learning Material Editor (Materi Website Interaktif) */}
+
+                  {/* ─── BERKAS MODUL SLIDE PDF UTAMA (Khusus PDF Module) ─── */}
                   {selectedContent.content_type === 'pdf_module' && (
-                    <div className="bg-slate-50/80 border border-slate-200 rounded-3xl p-6 flex flex-col gap-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="w-8 h-8 rounded-lg bg-navy text-white flex items-center justify-center text-xs">
-                              <Icon name="book-1" size={16} />
+                            <span className="w-8 h-8 rounded-lg bg-navy text-white flex items-center justify-center text-xs shadow-sm">
+                              <Icon name="file-multiple" size={16} />
                             </span>
                             <h4 className="font-extrabold text-navy-dark text-base">
-                              {t('lbl_web_material_title')}
+                              Berkas Modul Pembelajaran (Slide PDF)
                             </h4>
                           </div>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {t('desc_web_material')}
+                          <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
+                            Unggah slide presentasi materi (.pdf). Berkas ini akan otomatis ditampilkan langsung di In-App Slide Reader terproteksi (tanpa opsi download untuk peserta).
                           </p>
                         </div>
-                        <div className="flex gap-1 bg-white p-1 rounded-xl border border-slate-200 self-start sm:self-auto shadow-sm">
-                          <button
-                            type="button"
-                            onClick={() => setBodyTab('editor')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${bodyTab === 'editor' ? 'bg-navy text-white shadow-sm' : 'text-slate-500 hover:text-navy'}`}
-                          >
-                            <Icon name="pencil-1" size={14} />
-                            {t('tab_text_editor')}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBodyTab('preview')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${bodyTab === 'preview' ? 'bg-navy text-white shadow-sm' : 'text-slate-500 hover:text-navy'}`}
-                          >
-                            <Icon name="eye" size={14} />
-                            {t('tab_preview_web')}
-                          </button>
-                        </div>
+                        {selectedContent.file_path && (
+                          <span className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <Icon name="check-circle-1" size={14} className="text-emerald-600" />
+                            Modul Terpasang
+                          </span>
+                        )}
                       </div>
 
-                      {/* Quick Markdown Formatting Helper Toolbar */}
-                      {bodyTab === 'editor' && (
-                        <div className="flex flex-wrap items-center gap-1.5 bg-white p-2 rounded-xl border border-slate-200 text-xs shadow-sm">
-                          <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase">{t('lbl_format')}</span>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n# ', '\n', t('lbl_h1'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title={t("title_h1_full")}
-                          >
-                            H1
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n## ', '\n', t('lbl_h2'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title={t("title_h2_full")}
-                          >
-                            H2
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n### ', '\n', t('lbl_h3'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title={t("title_h3_full")}
-                          >
-                            H3
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '**', '**', t('lbl_bold'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-bold transition-colors"
-                            title={t("title_bold_full")}
-                          >
-                            B
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '*', '*', t('lbl_italic'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 italic font-semibold transition-colors"
-                            title={t("title_italic_full")}
-                          >
-                            I
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n- ', '\n', t('lbl_bullet'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title={t("title_bullet_full")}
-                          >
-                            • List
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n1. ', '\n', t('lbl_number'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title={t("title_number_full")}
-                          >
-                            {t('lbl_btn_number')}
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n> ', '\n', t('lbl_quote'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title={t("title_quote_full")}
-                          >
-                            &ldquo; Quote
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '\n---\n', '', '')}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium transition-colors"
-                            title={t("title_divider")}
-                          >
-                            {t('lbl_btn_line')}
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertMarkdown('body', '[', '](https://example.com)', t('lbl_link_text'))}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-md text-slate-700 font-medium underline transition-colors"
-                            title={t("title_link")}
-                          >
-                            Link
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => openImageModal('body')}
-                            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-md font-bold flex items-center gap-1 transition-colors"
-                            title={t("title_insert_image_btn")}
-                          >
-                            <Icon name="camera-movie-1" size={12} />
-                            {t('btn_image')}
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => quickBodyImageRef.current?.click()}
-                            className="px-2.5 py-1 bg-blue-50 hover:bg-navy hover:text-white border border-blue-200 rounded-md text-navy font-bold flex items-center gap-1 transition-colors"
-                            title={t("title_quick_upload_body")}
-                          >
-                            <Icon name="upload-1" size={12} />
-                            {t('btn_upload_local')}
-                          </button>
-                          <input
-                            type="file"
-                            ref={quickBodyImageRef}
-                            accept="image/*"
-                            className="hidden"
-                            onChange={e => handleQuickImageSelect(e, 'body')}
-                          />
-                        </div>
-                      )}
-
-                      {bodyTab === 'editor' ? (
-                        <div className="flex flex-col gap-2">
-                          <textarea
-                            ref={bodyTextareaRef}
-                            rows={16}
-                            value={editContentBody}
-                            onChange={e => setEditContentBody(e.target.value)}
-                            placeholder={t("ph_text_editor")}
-                            className="form-input font-mono text-xs leading-relaxed resize-y bg-white border-slate-200 p-4"
-                          />
-                          <p className="text-[11px] text-slate-400">
-                            {t('desc_editor_tips')}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 min-h-[300px] max-h-[600px] overflow-y-auto shadow-inner">
-                          {editContentBody ? (
-                            <article className="prose max-w-none">
-                              <MarkdownViewer content={editContentBody} />
-                            </article>
-                          ) : (
-                            <div className="text-center py-16 text-slate-400">
-                              <Icon name="book-1" size={32} className="mx-auto mb-2 opacity-40" />
-                              <p className="text-sm font-semibold">{t('empty_web_material')}</p>
-                              <p className="text-xs mt-1">{t('msg_select_editor')}</p>
+                      {/* Status file yang sudah diunggah */}
+                      {selectedContent.file_path ? (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+                              <Icon name="file-multiple" size={20} />
                             </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* PDF Upload (Khusus PDF Module) */}
-                  {selectedContent.content_type === 'pdf_module' && (
-                    <details className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm group" open={!selectedContent.content_body && !!selectedContent.file_path}>
-                      <summary className="font-semibold text-slate-700 cursor-pointer flex items-center justify-between list-none">
-                        <span className="flex items-center gap-2">
-                          <Icon name="file-multiple" size={16} className="text-navy" />
-                          <span>{t('lbl_pdf_attachment_optional')}</span>
-                          {selectedContent.file_path && (
-                            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                              {t('lbl_has_pdf')}
-                            </span>
-                          )}
-                        </span>
-                        <Icon name="chevron-down" size={14} className="text-slate-400 transition-transform group-open:rotate-180" />
-                      </summary>
-
-                      <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-slate-200/60">
-                        <p className="text-xs text-slate-500">
-                          {t('desc_pdf_attachment')}
-                        </p>
-                        {selectedContent.file_path && (
-                          <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-200">
-                            <span><Icon name="check-circle-1" size={18} className="text-emerald-500" /></span>
-                            <div className="flex-1 text-xs text-slate-600 truncate font-mono">File: {selectedContent.file_path}</div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-navy-dark truncate">
+                                {selectedContent.file_path.split('/').pop()}
+                              </p>
+                              <p className="text-[11px] text-slate-400 font-mono truncate">
+                                Penyimpanan: {selectedContent.file_path}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <button
                               type="button"
                               onClick={() => {
@@ -849,27 +675,73 @@ export default function AdminCourseContentPage() {
                                 setPreviewPdfUrl(rawUrl);
                                 setPreviewPdfTitle(selectedContent.title);
                               }}
-                              className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5"
+                              className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5 shadow-sm"
                             >
-                              <Icon name="eye" size={16} className="mr-1.5" />{t('btn_preview_reader')}
+                              <Icon name="eye" size={15} />
+                              {t('btn_preview_reader')}
                             </button>
                           </div>
-                        )}
+                        </div>
+                      ) : (
+                        <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-amber-800 text-xs">
+                          <Icon name="info" size={18} className="flex-shrink-0 text-amber-600" />
+                          <span>Modul ini belum memiliki berkas PDF. Silakan pilih dan unggah berkas slide (.pdf) di bawah ini.</span>
+                        </div>
+                      )}
+
+                      {/* Form Upload PDF */}
+                      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 flex flex-col gap-3">
+                        <label className="text-xs font-bold text-navy-dark">
+                          {selectedContent.file_path ? 'Ganti / Unggah Berkas PDF Baru:' : 'Pilih Berkas PDF dari Komputer:'}
+                        </label>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                          <input type="file" accept=".pdf"
+                          <input
+                            type="file"
+                            accept=".pdf"
                             onChange={e => setUploadFile(e.target.files?.[0] ?? null)}
-                            className="text-sm text-slate-600 flex-1" />
-                          <button onClick={handleUploadPDF}
+                            className="text-xs text-slate-600 flex-1 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-navy hover:file:bg-blue-100 cursor-pointer"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleUploadPDF}
                             disabled={!uploadFile || uploading}
-                            className="btn btn-primary btn-sm">
-                            {uploading ? t('btn_uploading') : <><Icon name="upload-1" size={16} className="mr-1.5" />{t('btn_upload_pdf')}</>}
+                            className="btn btn-primary btn-sm flex items-center justify-center gap-1.5"
+                          >
+                            {uploading ? (
+                              t('btn_uploading')
+                            ) : (
+                              <>
+                                <Icon name="upload-1" size={15} />
+                                {t('btn_upload_pdf')}
+                              </>
+                            )}
                           </button>
                         </div>
                         {uploadFile && (
-                          <p className="text-xs text-slate-500">{t('lbl_file_selected')} {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)</p>
+                          <p className="text-xs text-emerald-600 font-medium">
+                            {t('lbl_file_selected')} {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
+                          </p>
                         )}
                       </div>
-                    </details>
+
+                      {/* Petunjuk Belajar Singkat (Opsional) */}
+                      <div className="pt-2 flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <Icon name="pencil-1" size={13} className="text-slate-400" />
+                          Petunjuk Belajar / Sasaran Modul (Opsional):
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={editInstruction}
+                          onChange={e => setEditInstruction(e.target.value)}
+                          placeholder="Contoh: Modul ini membahas kerangka dasar ekonomi biru dan valuasi sumber daya pesisir. Pelajari seluruh materi slide sebelum melanjutkan ke tahapan ujian."
+                          className="form-input text-xs text-slate-700 bg-white leading-relaxed resize-none rounded-xl"
+                        />
+                        <p className="text-[11px] text-slate-400">
+                          Catatan pengantar singkat yang akan ditampilkan di bagian atas Slide Reader bagi siswa.
+                        </p>
+                      </div>
+                    </div>
                   )}
 
                   {/* ─── Case Study & Essay Multi-Attachment Manager ─── */}

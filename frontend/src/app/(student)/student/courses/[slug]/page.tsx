@@ -656,6 +656,7 @@ function PDFModule({
   onUnmark: () => void;
   onNext?: () => void;
 }) {
+  const { user } = useAuthStore();
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(true);
 
@@ -720,38 +721,43 @@ function PDFModule({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Instructions */}
+      {/* Petunjuk Belajar / Ringkasan Modul (Jika ada dari Instruktur) */}
       {content.instruction_text && (
-        <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 sm:p-6">
-          <MarkdownViewer content={content.instruction_text} />
+        <div className="bg-gradient-to-r from-blue-50/90 to-sky-50/70 border border-blue-200/80 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-6 h-6 rounded-lg bg-navy text-white flex items-center justify-center text-xs">
+              <Icon name="info" size={13} />
+            </span>
+            <h5 className="font-bold text-xs sm:text-sm text-navy-dark">Petunjuk & Sasaran Modul</h5>
+          </div>
+          <div className="text-xs text-slate-700 leading-relaxed pl-8">
+            <MarkdownViewer content={content.instruction_text} />
+          </div>
         </div>
       )}
 
-      {/* Online Course Learning Material (Materi Interaktif & Kreatif di Website) */}
-      {content.content_body ? (
-        <InteractiveModuleViewer
-          contentId={content.id}
-          title={content.title}
-          body={content.content_body}
-          pdfUrl={pdfUrl}
-        />
-      ) : pdfUrl ? (
-        /* PDF Document Reader (Fallback jika materi lama masih PDF) */
+      {/* ─── SLIDE DECK VIEWER (IN-APP SECURE READER DENGAN CATATAN SLIDE) ─── */}
+      {pdfUrl ? (
         <div className="flex flex-col gap-3">
           <AestheticPdfReader
             url={pdfUrl}
             title={content.title}
             allowDownload={false}
-            watermarkText="DigiBlueCamp Digital Learning • Hak Cipta Dilindungi"
-            height="78vh"
+            contentId={content.id}
+            watermarkText={`${user?.name || 'Peserta DigiBlue'} (${user?.email || 'Student Portal'}) • Materi Resmi Terproteksi`}
+            height="82vh"
           />
         </div>
       ) : (
         <div className="card flex flex-col items-center gap-4 py-16 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center text-4xl"><Icon name="file-multiple" size={36} /></div>
+          <div className="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center text-4xl text-navy">
+            <Icon name="file-multiple" size={36} />
+          </div>
           <div>
             <p className="font-bold text-navy-dark text-lg">{content.title}</p>
-            <p className="text-slate-400 text-sm mt-1">Materi pembelajaran sedang disiapkan oleh instruktur/admin.</p>
+            <p className="text-slate-400 text-sm mt-1">
+              Berkas modul pembelajaran (.pdf) sedang disiapkan oleh instruktur/admin.
+            </p>
           </div>
         </div>
       )}

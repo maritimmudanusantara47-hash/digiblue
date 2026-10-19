@@ -34,6 +34,7 @@ class ModuleNoteController extends Controller
     {
         $validated = $request->validate([
             'content_id'    => 'required|integer|exists:course_contents,id',
+            'slide_number'  => 'nullable|integer|min:1',
             'note_text'     => 'nullable|string|max:5000',
             'selected_text' => 'nullable|string|max:2000',
         ]);
@@ -45,6 +46,7 @@ class ModuleNoteController extends Controller
         $note = ModuleNote::create([
             'user_id'           => $request->user()->id,
             'course_content_id' => $validated['content_id'],
+            'slide_number'      => $validated['slide_number'] ?? null,
             'note_text'         => $validated['note_text'] ?? null,
             'selected_text'     => $validated['selected_text'] ?? null,
         ]);

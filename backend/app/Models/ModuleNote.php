@@ -10,6 +10,7 @@ class ModuleNote extends Model
     protected $fillable = [
         'user_id',
         'course_content_id',
+        'slide_number',
         'note_text',
         'selected_text',
     ];

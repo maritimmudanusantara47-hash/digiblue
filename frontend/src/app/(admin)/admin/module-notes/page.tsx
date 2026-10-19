@@ -11,6 +11,7 @@ interface ModuleNote  {
   id: number;
   user: NoteUser;
   course_content: NoteContent;
+  slide_number?: number | null;
   note_text: string | null;
   selected_text: string | null;
   created_at: string;
@@ -147,9 +148,17 @@ export default function AdminModuleNotesPage() {
                       {note.course_content.section.course.title}
                     </p>
                   )}
-                  <p className="text-xs font-semibold text-navy-dark line-clamp-2 leading-snug">
-                    {note.course_content.title}
-                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-xs font-semibold text-navy-dark line-clamp-2 leading-snug">
+                      {note.course_content.title}
+                    </p>
+                    {note.slide_number && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-bold">
+                        <Icon name="file-multiple" size={10} />
+                        Slide {note.slide_number}
+                      </span>
+                    )}
+                  </div>
                   {note.course_content.section && (
                     <p className="text-[10px] text-slate-400 mt-0.5 truncate">
                       {note.course_content.section.title}

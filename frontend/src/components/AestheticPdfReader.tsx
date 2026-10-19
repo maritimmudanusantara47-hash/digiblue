@@ -2,6 +2,7 @@
 
 import Icon from '@/components/Icon';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import api from '@/lib/api';
 
 export interface AestheticPdfReaderProps {
   url: string;
@@ -12,6 +13,15 @@ export interface AestheticPdfReaderProps {
   watermarkText?: string;
   height?: string;
   className?: string;
+  contentId?: number;
+}
+
+interface SlideNoteItem {
+  id: number;
+  slide_number?: number | null;
+  note_text: string | null;
+  selected_text?: string | null;
+  created_at: string;
 }
 
 export default function AestheticPdfReader({
@@ -23,6 +33,7 @@ export default function AestheticPdfReader({
   watermarkText = 'DigiBlueCamp Digital Learning • Hak Cipta Dilindungi',
   height = '78vh',
   className = '',
+  contentId,
 }: AestheticPdfReaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -41,6 +52,66 @@ export default function AestheticPdfReader({
   const [rendering, setRendering] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showProtectionNotice, setShowProtectionNotice] = useState<boolean>(false);
+
+  // ─── Slide Notes State ─────────────────────────────────────────────────────
+  const [showNotes, setShowNotes] = useState<boolean>(false);
+  const [notes, setNotes] = useState<SlideNoteItem[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState<boolean>(false);
+  const [newNoteText, setNewNoteText] = useState<string>('');
+  const [savingNote, setSavingNote] = useState<boolean>(false);
+  const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null);
+
+  const fetchNotes = useCallback(async () => {
+    if (!contentId) return;
+    try {
+      setLoadingNotes(true);
+      const res = await api.get<{ data: SlideNoteItem[] }>('/module-notes', {
+        params: { content_id: contentId },
+      });
+      setNotes(res.data.data || []);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingNotes(false);
+    }
+  }, [contentId]);
+
+  useEffect(() => {
+    if (contentId) {
+      fetchNotes();
+    }
+  }, [contentId, fetchNotes]);
+
+  const handleSaveNote = async () => {
+    if (!contentId || !newNoteText.trim() || savingNote) return;
+    setSavingNote(true);
+    try {
+      const res = await api.post('/module-notes', {
+        content_id: contentId,
+        slide_number: currentPage,
+        note_text: newNoteText.trim(),
+      });
+      setNotes(prev => [res.data.data, ...prev]);
+      setNewNoteText('');
+    } catch (err: unknown) {
+      console.error('Failed to save note:', err);
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: number) => {
+    if (deletingNoteId) return;
+    setDeletingNoteId(noteId);
+    try {
+      await api.delete(`/module-notes/${noteId}`);
+      setNotes(prev => prev.filter(n => n.id !== noteId));
+    } catch (err: unknown) {
+      console.error('Failed to delete note:', err);
+    } finally {
+      setDeletingNoteId(null);
+    }
+  };
 
   // Render task cancellation ref to avoid canvas collisions
   const renderTaskRef = useRef<any>(null);
@@ -428,6 +499,32 @@ export default function AestheticPdfReader({
             </svg>
           </button>
 
+          {/* Slide Notes Toggle Button (Khusus jika ada contentId) */}
+          {contentId && (
+            <button
+              type="button"
+              onClick={() => setShowNotes(prev => !prev)}
+              title={showNotes ? 'Tutup Panel Catatan' : 'Buka Catatan Slide'}
+              className={`p-2 rounded-xl border transition text-xs font-semibold flex items-center gap-1.5 ${
+                showNotes
+                  ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/25'
+                  : 'bg-slate-800/40 hover:bg-slate-700/60 border-slate-700/50 text-slate-200'
+              }`}
+            >
+              <Icon name="pencil-1" size={15} />
+              <span className="hidden sm:inline">Catatan</span>
+              {notes.length > 0 && (
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                    showNotes ? 'bg-white text-blue-700' : 'bg-blue-500 text-white'
+                  }`}
+                >
+                  {notes.length}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Theme Canvas Toggle */}
           <button
             onClick={() => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))}
@@ -477,80 +574,232 @@ export default function AestheticPdfReader({
         </div>
       )}
 
-      {/* ─── Reading Canvas & Document Body ─────────────────────────────── */}
-      <main
-        className={`flex-1 overflow-auto relative p-4 sm:p-8 flex items-center justify-center transition-colors ${theme === 'dark' ? 'bg-slate-900/95' : 'bg-slate-200/90'
+      {/* ─── Center Work Area (Canvas Viewer + Slide Notes Drawer) ──────── */}
+      <div className="flex-1 flex overflow-hidden relative">
+        <main
+          className={`flex-1 overflow-auto relative p-4 sm:p-8 flex items-center justify-center transition-colors ${
+            theme === 'dark' ? 'bg-slate-900/95' : 'bg-slate-200/90'
           }`}
-      >
-        {/* Loading Spinner */}
-        {loading && (
-          <div className="flex flex-col items-center gap-4 text-center my-16">
-            <div className="relative w-14 h-14">
-              <div className="w-14 h-14 rounded-full border-4 border-sky-400/20 border-t-sky-500 animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center text-lg"><Icon name="water-drop-1" size={18} /></div>
-            </div>
-            <div>
-              <p className="font-bold text-sm text-sky-400">Menyiapkan Reader Digital DigiBlue...</p>
-              <p className="text-xs text-slate-400 mt-1">Merender dokumen dengan resolusi tinggi</p>
-            </div>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && !loading && (
-          <div className="max-w-md p-6 rounded-2xl bg-rose-950/50 border border-rose-800 text-center my-12">
-            <div className="text-4xl mb-3"><Icon name="info" size={36} /></div>
-            <h5 className="font-bold text-rose-300 text-sm mb-1">Gagal Membuka Dokumen</h5>
-            <p className="text-xs text-rose-200 leading-relaxed mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition"
-            >
-              Muat Ulang Halaman
-            </button>
-          </div>
-        )}
-
-        {/* View Mode 1: Single Page Canvas */}
-        {!loading && !error && viewMode === 'single' && (
-          <div className="relative inline-block my-auto">
-            {/* Watermark Overlay across Canvas */}
-            <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center overflow-hidden opacity-10 select-none">
-              <div className="transform -rotate-45 text-slate-400 font-extrabold text-sm sm:text-lg tracking-wider text-center leading-loose whitespace-pre-line">
-                {watermarkText}
-                {'\n'}
-                {watermarkText}
-                {'\n'}
-                {watermarkText}
+        >
+          {/* Loading Spinner */}
+          {loading && (
+            <div className="flex flex-col items-center gap-4 text-center my-16">
+              <div className="relative w-14 h-14">
+                <div className="w-14 h-14 rounded-full border-4 border-sky-400/20 border-t-sky-500 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center text-lg"><Icon name="water-drop-1" size={18} /></div>
+              </div>
+              <div>
+                <p className="font-bold text-sm text-sky-400">Menyiapkan Reader Digital DigiBlue...</p>
+                <p className="text-xs text-slate-400 mt-1">Merender dokumen dengan resolusi tinggi</p>
               </div>
             </div>
+          )}
 
-            {/* Rendering Spinner Overlay */}
-            {rendering && (
-              <div className="absolute top-3 right-3 z-20 bg-slate-900/80 backdrop-blur-sm text-sky-400 text-[10px] font-semibold px-2 py-1 rounded-lg border border-sky-500/30 flex items-center gap-1.5">
-                <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-                <span>Rendering...</span>
+          {/* Error State */}
+          {error && !loading && (
+            <div className="max-w-md p-6 rounded-2xl bg-rose-950/50 border border-rose-800 text-center my-12">
+              <div className="text-4xl mb-3"><Icon name="info" size={36} /></div>
+              <h5 className="font-bold text-rose-300 text-sm mb-1">Gagal Membuka Dokumen</h5>
+              <p className="text-xs text-rose-200 leading-relaxed mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition"
+              >
+                Muat Ulang Halaman
+              </button>
+            </div>
+          )}
+
+          {/* View Mode 1: Single Page Canvas */}
+          {!loading && !error && viewMode === 'single' && (
+            <div className="relative inline-block my-auto">
+              {/* Watermark Overlay across Canvas */}
+              <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center overflow-hidden opacity-10 select-none">
+                <div className="transform -rotate-45 text-slate-400 font-extrabold text-sm sm:text-lg tracking-wider text-center leading-loose whitespace-pre-line">
+                  {watermarkText}
+                  {'\n'}
+                  {watermarkText}
+                  {'\n'}
+                  {watermarkText}
+                </div>
               </div>
-            )}
 
-            <canvas
-              ref={canvasRef}
-              className="rounded-2xl shadow-2xl transition-all border border-slate-700/40 bg-white"
+              {/* Rendering Spinner Overlay */}
+              {rendering && (
+                <div className="absolute top-3 right-3 z-20 bg-slate-900/80 backdrop-blur-sm text-sky-400 text-[10px] font-semibold px-2 py-1 rounded-lg border border-sky-500/30 flex items-center gap-1.5">
+                  <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  <span>Rendering...</span>
+                </div>
+              )}
+
+              <canvas
+                ref={canvasRef}
+                className="rounded-2xl shadow-2xl transition-all border border-slate-700/40 bg-white"
+              />
+            </div>
+          )}
+
+          {/* View Mode 2: Continuous Scroll Container */}
+          {!loading && !error && viewMode === 'continuous' && (
+            <div
+              ref={continuousContainerRef}
+              className="flex flex-col items-center w-full max-w-4xl py-6"
             />
-          </div>
-        )}
+          )}
+        </main>
 
-        {/* View Mode 2: Continuous Scroll Container */}
-        {!loading && !error && viewMode === 'continuous' && (
-          <div
-            ref={continuousContainerRef}
-            className="flex flex-col items-center w-full max-w-4xl py-6"
-          />
+        {/* ─── Slide Notes Side Panel ──────────────────────────────────── */}
+        {contentId && showNotes && (
+          <aside
+            className={`w-80 sm:w-96 flex-shrink-0 border-l flex flex-col z-20 transition-all select-text ${
+              theme === 'dark'
+                ? 'bg-slate-950/98 border-slate-800 text-slate-100'
+                : 'bg-white border-slate-200 text-slate-800 shadow-xl'
+            }`}
+          >
+            {/* Notes Panel Header */}
+            <div className={`p-4 border-b flex items-center justify-between ${
+              theme === 'dark' ? 'border-slate-800/80' : 'border-slate-100'
+            }`}>
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-sm">
+                  <Icon name="pencil-1" size={14} />
+                </span>
+                <div>
+                  <h5 className="font-bold text-xs sm:text-sm">Catatan Modul & Slide</h5>
+                  <p className="text-[10px] text-slate-400">Catatan pribadi untuk persiapan ujian</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowNotes(false)}
+                title="Tutup Catatan"
+                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition"
+              >
+                <Icon name="cancel" size={16} />
+              </button>
+            </div>
+
+            {/* Input Form Catatan untuk Slide Aktif */}
+            <div className={`p-4 border-b flex flex-col gap-2.5 ${
+              theme === 'dark' ? 'border-slate-800/80 bg-slate-900/40' : 'border-slate-100 bg-slate-50/70'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[11px] font-bold">
+                  <Icon name="file-multiple" size={11} />
+                  Catatan untuk Slide {currentPage}
+                </span>
+                <span className="text-[10px] text-slate-400">Ctrl+Enter untuk simpan</span>
+              </div>
+              <textarea
+                rows={3}
+                value={newNoteText}
+                onChange={e => setNewNoteText(e.target.value)}
+                onKeyDown={e => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSaveNote();
+                  }
+                }}
+                placeholder={`Tulis rangkuman penting atau kata kunci di slide ${currentPage}...`}
+                className={`w-full p-2.5 rounded-xl text-xs leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 transition ${
+                  theme === 'dark'
+                    ? 'bg-slate-900 border border-slate-700 text-slate-100 placeholder:text-slate-500'
+                    : 'bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400'
+                }`}
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveNote}
+                  disabled={!newNoteText.trim() || savingNote}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                >
+                  {savingNote ? (
+                    <span>Menyimpan...</span>
+                  ) : (
+                    <>
+                      <Icon name="pencil-1" size={12} />
+                      Simpan Catatan
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* List Catatan Tersimpan */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {loadingNotes ? (
+                <div className="text-center py-10 text-xs text-slate-400">
+                  <p>Memuat catatan...</p>
+                </div>
+              ) : notes.length === 0 ? (
+                <div className="text-center py-12 text-slate-400">
+                  <div className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-2 text-slate-500">
+                    <Icon name="pencil-1" size={18} />
+                  </div>
+                  <p className="text-xs font-semibold">Belum Ada Catatan</p>
+                  <p className="text-[11px] mt-1 max-w-[200px] mx-auto text-slate-500 leading-relaxed">
+                    Tulis poin penting materi saat membaca slide untuk memudahkan Anda belajar.
+                  </p>
+                </div>
+              ) : (
+                notes.map(item => (
+                  <div
+                    key={item.id}
+                    className={`p-3 rounded-xl border flex flex-col gap-2 transition group ${
+                      theme === 'dark'
+                        ? 'bg-slate-900/60 border-slate-800/80 hover:border-slate-700'
+                        : 'bg-slate-50 border-slate-200/80 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      {item.slide_number ? (
+                        <button
+                          type="button"
+                          onClick={() => goToPage(item.slide_number!)}
+                          title={`Klik untuk melompat ke Slide ${item.slide_number}`}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 text-[10px] font-bold transition"
+                        >
+                          <Icon name="file-multiple" size={10} />
+                          Slide {item.slide_number} ↗
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-slate-400">Catatan Umum</span>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-500">
+                          {new Date(item.created_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteNote(item.id)}
+                          disabled={deletingNoteId === item.id}
+                          title="Hapus catatan ini"
+                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 transition p-1"
+                        >
+                          <Icon name="trash-bin-trash" size={12} />
+                        </button>
+                      </div>
+                    </div>
+                    {item.note_text && (
+                      <p className="text-xs leading-relaxed whitespace-pre-wrap">
+                        {item.note_text}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
         )}
-      </main>
+      </div>
 
       {/* ─── Bottom Footer Status Bar ───────────────────────────────────── */}
       <footer
