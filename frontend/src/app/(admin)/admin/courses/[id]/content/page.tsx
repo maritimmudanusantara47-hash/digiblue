@@ -725,11 +725,14 @@ export default function AdminCourseContentPage() {
                       </div>
 
                       {/* Petunjuk Belajar Singkat (Opsional) */}
-                      <div className="pt-2 flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                          <Icon name="pencil-1" size={13} className="text-slate-400" />
-                          Petunjuk Belajar / Sasaran Modul (Opsional):
-                        </label>
+                      <div className="pt-2 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <Icon name="pencil-1" size={13} className="text-slate-400" />
+                            Petunjuk Belajar / Sasaran Modul (Opsional):
+                          </label>
+                          <span className="text-[10px] text-slate-400">Tampil sebagai banner panduan di atas Slide Reader</span>
+                        </div>
                         <textarea
                           rows={3}
                           value={editInstruction}
@@ -737,9 +740,20 @@ export default function AdminCourseContentPage() {
                           placeholder="Contoh: Modul ini membahas kerangka dasar ekonomi biru dan valuasi sumber daya pesisir. Pelajari seluruh materi slide sebelum melanjutkan ke tahapan ujian."
                           className="form-input text-xs text-slate-700 bg-white leading-relaxed resize-none rounded-xl"
                         />
-                        <p className="text-[11px] text-slate-400">
-                          Catatan pengantar singkat yang akan ditampilkan di bagian atas Slide Reader bagi siswa.
-                        </p>
+                        <div className="flex items-center justify-between pt-1">
+                          <p className="text-[11px] text-slate-400">
+                            Jangan lupa klik tombol simpan agar petunjuk muncul di akun siswa.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleSaveContent}
+                            disabled={savingContent}
+                            className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm"
+                          >
+                            <Icon name="floppy-disk-1" size={14} />
+                            <span>{savingContent ? t('btn_saving') : 'Simpan Petunjuk & Modul'}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -937,8 +951,9 @@ export default function AdminCourseContentPage() {
                     </div>
                   )}
 
-                  {/* Instruction Text / Essay Markdown Prompt (for all types) */}
-                  <div className="flex flex-col gap-2">
+                  {/* Instruction Text / Essay Markdown Prompt (for non-pdf_module types) */}
+                  {selectedContent.content_type !== 'pdf_module' && (
+                    <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="text-sm font-bold text-navy-dark">
@@ -1069,7 +1084,8 @@ export default function AdminCourseContentPage() {
                         )}
                       </div>
                     )}
-                  </div>
+                    </div>
+                  )}
 
                   <button onClick={handleSaveContent} disabled={savingContent}
                     className="btn btn-primary self-start">
