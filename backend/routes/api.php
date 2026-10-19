@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\AdminQuizController;
 use App\Http\Controllers\Api\AdminBatchController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\EmailVerificationController;
+use App\Http\Controllers\Api\ModuleNoteController;
 
 // ─── Public Routes ───────────────────────────────────────────────────────────
 Route::prefix('v1')->group(function () {
@@ -65,6 +66,11 @@ Route::prefix('v1')->group(function () {
         Route::get('submissions/my',        [SubmissionController::class, 'mySubmissions']); // Submission milik sendiri
         Route::get('submissions/{id}',      [SubmissionController::class, 'show']);
         Route::delete('submissions/{id}',   [SubmissionController::class, 'destroy']);
+
+        // Catatan Modul (Module Notes)
+        Route::get('module-notes',           [ModuleNoteController::class, 'index']);
+        Route::post('module-notes',          [ModuleNoteController::class, 'store']);
+        Route::delete('module-notes/{id}',   [ModuleNoteController::class, 'destroy']);
 
         // Sertifikat Peserta
         Route::get('certificates',          [CertificateController::class, 'index']);
@@ -133,6 +139,9 @@ Route::prefix('v1')->group(function () {
             Route::patch('questions/{id}',                [AdminQuizController::class, 'update']);  // Edit soal
             Route::delete('questions/{id}',               [AdminQuizController::class, 'destroy']); // Hapus soal
 
+
+            // Module Notes (Admin: lihat semua catatan siswa)
+            Route::get('module-notes', [ModuleNoteController::class, 'adminIndex']);
 
             // Certificate Management
             Route::get('certificates',                   [AdminCertificateController::class, 'index']);

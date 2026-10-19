@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Icon from '@/components/Icon';
 import MarkdownViewer from '@/components/MarkdownViewer';
 import { showWarning } from '@/lib/swal';
+import api from '@/lib/api';
 
 interface InteractiveModuleViewerProps {
   contentId: number;
@@ -13,10 +14,10 @@ interface InteractiveModuleViewerProps {
 }
 
 interface NoteItem {
-  id: string;
-  text: string;
-  selectedText?: string;
-  timestamp: string;
+  id: number;
+  note_text: string | null;
+  selected_text?: string | null;
+  created_at: string;
 }
 
 export default function InteractiveModuleViewer({
@@ -211,52 +212,47 @@ export default function InteractiveModuleViewer({
     };
   }, [contentId]);
 
-  // ─── 5. Catatan Pribadi Siswa & Highlight (Local Storage) ──────────────────
-  const storageKey = `digiblue_module_notes_${contentId}`;
+  // ─── 5. Catatan Pribadi Siswa (API-backed) ──────────────────────────────
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [newNoteInput, setNewNoteInput] = useState('');
   const [selectedQuote, setSelectedQuote] = useState('');
   const [showNotesDrawer, setShowNotesDrawer] = useState(false);
+  const [notesSaving, setNotesSaving] = useState(false);
 
+  // Fetch catatan dari server setiap kali contentId berubah atau drawer dibuka
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) setNotes(JSON.parse(saved));
-      else setNotes([]);
-    } catch {
-      setNotes([]);
-    }
-  }, [storageKey]);
+    if (!showNotesDrawer) return;
+    api.get('/module-notes', { params: { content_id: contentId } })
+      .then(res => setNotes(res.data.data ?? []))
+      .catch(() => setNotes([]));
+  }, [showNotesDrawer, contentId]);
 
-  const saveNotes = (updated: NoteItem[]) => {
-    setNotes(updated);
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(updated));
-    } catch {
-      // ignore storage error
-    }
-  };
-
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!newNoteInput.trim() && !selectedQuote) return;
-    const newNote: NoteItem = {
-      id: Date.now().toString(),
-      text: newNoteInput.trim(),
-      selectedText: selectedQuote || undefined,
-      timestamp: new Date().toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: 'numeric',
-        month: 'short',
-      }),
-    };
-    saveNotes([newNote, ...notes]);
-    setNewNoteInput('');
-    setSelectedQuote('');
+    setNotesSaving(true);
+    try {
+      const res = await api.post('/module-notes', {
+        content_id:    contentId,
+        note_text:     newNoteInput.trim() || null,
+        selected_text: selectedQuote || null,
+      });
+      setNotes(prev => [res.data.data, ...prev]);
+      setNewNoteInput('');
+      setSelectedQuote('');
+    } catch {
+      // silent fail
+    } finally {
+      setNotesSaving(false);
+    }
   };
 
-  const handleDeleteNote = (id: string) => {
-    saveNotes(notes.filter(n => n.id !== id));
+  const handleDeleteNote = async (id: number) => {
+    try {
+      await api.delete(`/module-notes/${id}`);
+      setNotes(prev => prev.filter(n => n.id !== id));
+    } catch {
+      // silent fail
+    }
   };
 
   // Deteksi seleksi teks untuk quick-quote note
@@ -595,11 +591,11 @@ export default function InteractiveModuleViewer({
                   <button
                     type="button"
                     onClick={handleAddNote}
-                    disabled={!newNoteInput.trim() && !selectedQuote}
-                    className="btn btn-primary btn-sm text-[11px] px-3 py-1.5"
+                    disabled={notesSaving || (!newNoteInput.trim() && !selectedQuote)}
+                    className="btn btn-primary btn-sm text-[11px] px-3 py-1.5 disabled:opacity-60"
                   >
                     <Icon name="plus" size={12} className="mr-1" />
-                    Simpan
+                    {notesSaving ? 'Menyimpan...' : 'Simpan'}
                   </button>
                 </div>
               </div>
@@ -615,18 +611,18 @@ export default function InteractiveModuleViewer({
                         key={note.id}
                         className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-col gap-1.5 text-[11px]"
                       >
-                        {note.selectedText && (
+                        {note.selected_text && (
                           <p className="border-l-2 border-amber-400 pl-2 text-slate-500 italic line-clamp-2">
-                            &ldquo;{note.selectedText}&rdquo;
+                            &ldquo;{note.selected_text}&rdquo;
                           </p>
                         )}
-                        {note.text && (
+                        {note.note_text && (
                           <p className="font-medium text-navy-dark leading-relaxed whitespace-pre-wrap">
-                            {note.text}
+                            {note.note_text}
                           </p>
                         )}
                         <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200/60">
-                          <span>{note.timestamp}</span>
+                          <span>{new Date(note.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                           <button
                             type="button"
                             onClick={() => handleDeleteNote(note.id)}

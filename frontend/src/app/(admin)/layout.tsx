@@ -16,6 +16,7 @@ const adminNav = [
   { href: '/admin/enrollments', label: 'nav_enrollments', icon: 'clipboard' },
   { href: '/admin/batches', label: 'nav_batches', icon: 'calendar-days' },
   { href: '/admin/certificates', label: 'nav_certificates', icon: 'certificate-badge-1' },
+  { href: '/admin/module-notes', label: 'nav_module_notes', icon: 'pencil-1' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
