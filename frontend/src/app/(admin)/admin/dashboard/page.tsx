@@ -115,13 +115,6 @@ export default function AdminDashboard() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/admin/certificates"
-            className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#07192C] hover:bg-[#0284c7] transition-all shadow-xs flex items-center gap-2 font-heading"
-          >
-            <Icon name="certificate-badge-1" size={16} className="text-amber-400" />
-            <span>Kelola Sertifikat</span>
-          </Link>
-          <Link
             href="/verify"
             target="_blank"
             className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-2 font-heading"
