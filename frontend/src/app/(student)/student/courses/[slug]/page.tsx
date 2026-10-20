@@ -1384,7 +1384,9 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
         <div className={`${bgClass} border rounded-2xl p-6`}>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xl"><Icon name="check-circle-1" size={20} /></span>
-            <p className={`font-extrabold ${textClass} text-base`}>Tugas Studi Kasus Sudah Dikumpulkan</p>
+            <p className={`font-extrabold ${textClass} text-base`}>
+              {isCriticalThinking ? 'Jawaban Critical Thinking Assignment Sudah Dikumpulkan' : 'Tugas Studi Kasus Sudah Dikumpulkan'}
+            </p>
           </div>
           {submission.essay_text && (
             <div className="mt-4">
@@ -1424,8 +1426,10 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
     }
 
     const isConfirmed = await showConfirm(
-      'Kumpulkan Tugas Studi Kasus?',
-      'Apakah kamu yakin ingin mengumpulkan tugas studi kasus ini? Asesor akan meninjau jawabanmu.',
+      isCriticalThinking ? 'Kumpulkan Jawaban Critical Thinking?' : 'Kumpulkan Tugas Studi Kasus?',
+      isCriticalThinking
+        ? 'Apakah kamu yakin ingin mengumpulkan jawaban Critical Thinking ini? Asesor akan meninjau dan menilai dokumen jawabanmu.'
+        : 'Apakah kamu yakin ingin mengumpulkan tugas studi kasus ini? Asesor akan meninjau jawabanmu.',
       'Ya, Kumpulkan'
     );
     if (!isConfirmed) return;
@@ -1444,7 +1448,12 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       });
 
       const savedSub = res.data.data;
-      showSuccess('Berhasil!', 'Tugas studi kasus berhasil dikumpulkan.');
+      showSuccess(
+        'Berhasil!',
+        isCriticalThinking
+          ? 'Jawaban Critical Thinking Assignment berhasil dikumpulkan.'
+          : 'Tugas studi kasus berhasil dikumpulkan.'
+      );
       onDone({
         content_id: content.id,
         score: null,
@@ -1466,13 +1475,62 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Critical Thinking Assignment Guidelines Banner */}
+      {isCriticalThinking && (
+        <div className="bg-gradient-to-br from-indigo-900 via-navy-dark to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex flex-col gap-4 relative z-10">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                Critical Thinking Assignment
+              </span>
+              <span className="text-xs text-slate-300 font-medium">
+                IBECTC Batch XV • Foundation Level
+              </span>
+            </div>
+
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-white">
+                BLUE ECONOMY CRITICAL THINKING ASSIGNMENT
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Studi Kasus: Mass Stranding of Pilot Whales in Rote, East Nusa Tenggara (Indonesia, 2026). Jawab 15 butir pertanyaan analitis secara kritis, orisinal, dan mendalam.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-white/10 text-xs">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Batas Pengumpulan</span>
+                <span className="font-bold text-amber-300 text-xs">10 Sep 2026</span>
+                <span className="text-[10px] text-slate-400 block">23.59 GMT+7</span>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Panjang Tulisan</span>
+                <span className="font-bold text-white text-xs">500 – 1,500 Kata</span>
+                <span className="text-[10px] text-slate-400 block">Orisinal & Analitis</span>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Format Dokumen</span>
+                <span className="font-bold text-white text-xs">APA Style</span>
+                <span className="text-[10px] text-slate-400 block">TNR 12pt, Double-Spaced</span>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Metode Submit</span>
+                <span className="font-bold text-teal-300 text-xs">Digibluecamp.id</span>
+                <span className="text-[10px] text-slate-400 block">Upload PDF / DOCX</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instructions / Case Study Markdown Prompt */}
       {content.instruction_text && (
         <div className={`${bgClass} border rounded-3xl p-6 sm:p-8 shadow-sm`}>
           <div className="flex items-center gap-2.5 mb-4 pb-2 border-b border-navy/10">
             <Icon name={isCriticalThinking ? "bulb-2" : "clipboard"} size={24} />
             <h3 className={`text-lg font-extrabold ${textClass}`}>
-              Naskah Soal & Panduan Studi Kasus
+              {isCriticalThinking ? "Naskah Soal & Panduan Critical Thinking" : "Naskah Soal & Panduan Studi Kasus"}
             </h3>
           </div>
           <MarkdownViewer content={content.instruction_text} />
@@ -1485,14 +1543,16 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
           <div>
             <div className="flex items-center gap-2">
               <span className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center text-sm shadow-sm">
-                <Icon name="folder-open" size={18} />
+                <Icon name={isCriticalThinking ? "bulb-2" : "folder-open"} size={18} />
               </span>
               <h3 className="font-extrabold text-navy-dark text-base sm:text-lg">
-                Berkas & Dokumen Pendukung Studi Kasus
+                {isCriticalThinking ? "Dokumen Naskah Soal Resmi (PDF)" : "Berkas & Dokumen Pendukung Studi Kasus"}
               </h3>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-              Unduh template lembar kerja dan berkas acuan di bawah ini untuk memulai pengerjaan tugas studi kasus Anda. Kerjakan sesuai format template yang telah disediakan.
+              {isCriticalThinking
+                ? "Unduh atau buka naskah soal resmi studi kasus paus pilot di bawah ini untuk mempelajari detail kasus dan 15 pertanyaan secara lengkap."
+                : "Unduh template lembar kerja dan berkas acuan di bawah ini untuk memulai pengerjaan tugas studi kasus Anda. Kerjakan sesuai format template yang telah disediakan."}
             </p>
           </div>
 
@@ -1701,16 +1761,21 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
       {/* Form Pengumpulan Jawaban */}
       <form onSubmit={handleSubmit} className="card flex flex-col gap-5 border border-slate-200 shadow-sm">
         <div>
-          <h4 className="font-bold text-navy-dark text-base"><Icon name="upload-1" size={16} className="mr-1.5" />Formulir Pengumpulan Jawaban</h4>
+          <h4 className="font-bold text-navy-dark text-base">
+            <Icon name="upload-1" size={16} className="mr-1.5" />
+            {isCriticalThinking ? 'Formulir Pengumpulan Jawaban Critical Thinking' : 'Formulir Pengumpulan Jawaban'}
+          </h4>
           <p className="text-xs text-slate-500 mt-0.5">
-            Anda dapat mengunggah berkas dokumen (PDF/DOCX), melampirkan tautan drive, dan/atau menulis esai langsung.
+            {isCriticalThinking
+              ? 'Unggah berkas dokumen jawaban Anda (PDF / DOCX) sesuai format APA Style (500–1.500 kata, Times New Roman 12pt, Double-Spaced) atau lampirkan tautan berkas cloud.'
+              : 'Anda dapat mengunggah berkas dokumen (PDF/DOCX), melampirkan tautan drive, dan/atau menulis esai langsung.'}
           </p>
         </div>
 
         {/* Opsi 1: Upload File Langsung */}
         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col gap-2">
           <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-            <span><Icon name="file-multiple" size={18} /></span> Opsi 1: Upload Berkas Jawaban (PDF / DOCX)
+            <span><Icon name="file-multiple" size={18} /></span> Opsi 1: Upload Berkas Dokumen Jawaban (PDF / DOCX)
           </label>
           <input
             type="file"
@@ -1752,6 +1817,9 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
               <span>{essay.length} karakter</span>
               <span>•</span>
               <span className="font-semibold text-navy">{essay.split(/\s+/).filter(Boolean).length} kata</span>
+              {isCriticalThinking && (
+                <span className="text-[10px] text-slate-400 italic">(Target: 500–1.500 kata)</span>
+              )}
             </div>
           </div>
           <textarea
@@ -1773,7 +1841,10 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
               Mengunggah & Mengumpulkan Jawaban...
             </>
           ) : (
-            <><Icon name="upload-1" size={16} className="mr-1.5" />Kumpulkan Jawaban Studi Kasus</>
+            <>
+              <Icon name="upload-1" size={16} className="mr-1.5" />
+              {isCriticalThinking ? 'Kumpulkan Jawaban Critical Thinking' : 'Kumpulkan Jawaban Studi Kasus'}
+            </>
           )}
         </button>
       </form>

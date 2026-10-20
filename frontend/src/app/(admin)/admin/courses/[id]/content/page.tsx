@@ -745,7 +745,7 @@ export default function AdminCourseContentPage() {
                   )}
 
                   {/* ─── Case Study & Essay Multi-Attachment Manager ─── */}
-                  {(selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking') && (
+                  {selectedContent.content_type === 'essay_task' && (
                     <div className="bg-gradient-to-br from-slate-50 via-teal-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
                         <div>
@@ -917,6 +917,81 @@ export default function AdminCourseContentPage() {
                     </div>
                   )}
 
+                  {/* ─── Critical Thinking Assignment Manager (Single PDF Upload) ─── */}
+                  {selectedContent.content_type === 'critical_thinking' && (
+                    <div className="bg-gradient-to-br from-slate-50 via-teal-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs shadow-sm">
+                              <Icon name="bulb-2" size={16} />
+                            </span>
+                            <h4 className="font-extrabold text-navy-dark text-base">
+                              Naskah Soal Critical Thinking Assignment
+                            </h4>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
+                            Unggah 1 dokumen naskah soal resmi (.pdf / .docx) yang memuat latar belakang studi kasus dan 15 butir pertanyaan analitis untuk peserta.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Info Box Detail Penugasan & Ketentuan */}
+                      <div className="bg-white/95 border border-teal-200/90 rounded-2xl p-4 flex flex-col gap-3 text-xs shadow-xs">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-100 text-teal-800 uppercase tracking-wide">
+                              Ketentuan Tugas
+                            </span>
+                            <span className="font-bold text-navy-dark">
+                              International Blue Economist Certification Training Course - Batch XV (Foundation)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-600">
+                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Batas Pengumpulan</span>
+                            <span className="font-bold text-navy-dark text-xs">10 September 2026</span>
+                            <span className="text-[11px] text-slate-500 block">23.59 GMT+7 Jakarta Time</span>
+                          </div>
+                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Panjang Tulisan</span>
+                            <span className="font-bold text-navy-dark text-xs">500 – 1,500 Words</span>
+                            <span className="text-[11px] text-slate-500 block">Kritis & Analitis</span>
+                          </div>
+                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Format Dokumen</span>
+                            <span className="font-bold text-navy-dark text-xs">APA Style</span>
+                            <span className="text-[11px] text-slate-500 block">Times New Roman 12pt, Double-Spaced</span>
+                          </div>
+                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Metode Pengumpulan</span>
+                            <span className="font-bold text-teal-700 text-xs">Digibluecamp.id</span>
+                            <span className="text-[11px] text-slate-500 block">Upload PDF / DOCX</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Single Slot Dokumen Naskah Soal (.pdf / .docx) */}
+                      <div className="max-w-md">
+                        <AttachmentCardSlot
+                          category="case_study_brief"
+                          label="Dokumen Naskah Soal Kasus (PDF / Word)"
+                          description="Unggah 1 berkas naskah soal resmi skenario paus pilot (.pdf / .docx) untuk diunduh / dibaca peserta."
+                          icon="clipboard"
+                          badgeText="Naskah Soal Kasus"
+                          badgeBg="bg-teal-100"
+                          badgeColor="text-teal-800"
+                          attachment={selectedContent.attachments?.find(a => a.category === 'case_study_brief')}
+                          uploading={uploadingAttachmentCat === 'case_study_brief'}
+                          onUpload={(file) => handleUploadAttachment(file, 'case_study_brief')}
+                          onDelete={(id) => handleDeleteAttachment(id)}
+                          onPreviewPdf={(url, title) => { setPreviewPdfUrl(url); setPreviewPdfTitle(title); }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* ─── Oral Video Exam Manager ─── */}
                   {selectedContent.content_type === 'oral_video_task' && (
                     <div className="bg-gradient-to-br from-slate-50 via-rose-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
@@ -1003,13 +1078,17 @@ export default function AdminCourseContentPage() {
                           <Icon name="clipboard" size={16} className="mr-1.5" />
                           {selectedContent.content_type === 'oral_video_task'
                             ? 'Petunjuk Pengerjaan & Naskah Soal Oral Exam (Format Markdown)'
-                            : (selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking')
+                            : selectedContent.content_type === 'critical_thinking'
+                            ? 'Naskah Soal & Panduan Critical Thinking (Format Markdown)'
+                            : selectedContent.content_type === 'essay_task'
                             ? t('lbl_essay_prompt')
                             : t('lbl_instruction_text')}
                         </label>
                         <p className="text-xs text-slate-400 mt-0.5">
                           {selectedContent.content_type === 'oral_video_task'
                             ? 'Teks ini tampil sebagai petunjuk pengerjaan dan ringkasan studi kasus bagi peserta.'
+                            : selectedContent.content_type === 'critical_thinking'
+                            ? 'Teks ini memuat rincian studi kasus paus pilot di Rote 2026 dan 15 butir pertanyaan analitis (Bagian A–E) bagi peserta.'
                             : t('desc_instruction_text')}
                         </p>
                       </div>

@@ -245,19 +245,64 @@ The problem has raised concerns among environmental activists, researchers, and 
         CourseContent::create([
             'section_id' => $section->id,
             'content_type' => 'critical_thinking',
-            'title' => 'Case-Study Essay Examination — Critical Thinking',
-            'instruction_text' => "### Ujian Analisis Kritis: Tata Kelola Perikanan Tangkap vs Kebijakan Kawasan Konservasi Laut (KKL) di Indonesia
+            'title' => 'Critical Thinking Assignment: Mass Stranding of Pilot Whales in Rote (2026)',
+            'instruction_text' => "### BLUE ECONOMY CRITICAL THINKING ASSIGNMENT
 
-*Catatan: Modul ini diperuntukkan khusus bagi peserta yang TIDAK mengikuti kegiatan Field Study.*
+#### COURSE DETAILS
+- **Course Title:** International Blue Economist Certification Training Course - Batch XV
+- **Level of Certification:** Foundation
 
-#### Latar Belakang Analisis
-Penerapan Kebijakan Penangkapan Ikan Terukur (PIT) berbasis kuota di Wilayah Pengelolaan Perikanan Negara Republik Indonesia (WPPNRI) dan target perluasan Kawasan Konservasi Laut sebesar 30% pada tahun 2045 sering kali memicu perdebatan antara kepentingan peningkatan devisa negara dari ekspor perikanan dan perlindungan hak-hak nelayan skala kecil tradisional (Small-Scale Fisheries).
+#### INSTRUCTION
+- **Submission Deadline:** September 10, 2026 (23.59 GMT+7 Jakarta Time)
+- **Length:** 500 – 1,500 Words
+- **Format:** APA Style, Times New Roman 12pt, Double-Spaced
+- **Submission Method:** Upload the Answers to Digibluecamp.id Platform
 
-#### Tugas Peserta:
-Susun naskah telaah kritis (minimal 500 kata) yang mengupas:
-1. **Evaluasi Kritis Keseimbangan Ekologi dan Ekonomi**: Apakah kebijakan alokasi kuota perikanan saat ini sudah cukup melindungi stok ikan dari penangkapan berlebih (*overfishing*) dan memitigasi risiko *bycatch* satwa terancam punah?
-2. **Keadilan Sosial & Kearifan Lokal**: Bagaimana regulasi kelautan nasional dapat mengakomodasi hak-hak masyarakat hukum adat laut (seperti kearifan Sasi, Awig-awig, dan Panglima Laot) agar tidak terpinggirkan oleh zona industri penangkapan skala besar?
-3. **Rekomendasi Kebijakan**: Rekomendasikan 3 langkah konkret berbasis sains (*evidence-based policy*) untuk meningkatkan efektivitas pengawasan laut terhadap IUU Fishing di perairan kepulauan terluar Indonesia.",
+---
+
+### CASE DETAILS
+**Case Title:** Mass Stranding of Pilot Whales in Rote, East Nusa Tenggara (Indonesia, 2026)
+
+#### Case Description:
+In March 2026, a mass stranding of pilot whales occurred in Rote Ndao Regency, East Nusa Tenggara, Indonesia. Dozens of pilot whales were found stranded along the coastal areas of Deranitan and Fuafuni villages in Rote Barat Daya. Local residents, environmental volunteers, and authorities worked together to rescue the animals. Some of the whales were successfully returned to the sea, but several others were found dead.
+
+Marine researchers suggested that one of the possible causes of this incident was damage to the whales’ echolocation system. Echolocation is the ability of marine mammals, such as whales, to navigate and detect objects using sound waves. When this system is disturbed, whales may not be able to determine water depth, distance, or direction, which increases the risk of becoming trapped in shallow waters.
+
+Other possible factors include underwater noise pollution from ships, changes in ocean conditions, environmental pollution, and the social behavior of pilot whales. Pilot whales live in highly social groups. When one whale becomes disoriented, others may follow it, which can lead to mass stranding.
+
+This incident has raised concerns among scientists and environmental organizations because similar events have been reported more frequently in recent years. Many experts believe that mass whale strandings may be an indicator of environmental imbalance in marine ecosystems.
+
+**Source:**
+https://lestari.kompas.com/read/2026/03/31/141500586/puluhan-paus-pilot-terdampar-di-rote-ntt-diduga-akibat-ekolokasi-rusak
+
+---
+
+### QUESTIONS
+
+#### A. Critical Understanding
+1. Explain why the mass stranding of pilot whales can be considered an environmental issue, not only a biological event.
+2. Why is echolocation essential for whales, and what might happen if this system is disrupted? Provide a scientific explanation.
+3. Analyze why pilot whales are more vulnerable to mass stranding compared to other marine animals.
+
+#### B. Analytical Thinking
+4. Identify and explain at least three possible causes of the mass stranding in this case. Rank them from the most likely to the least likely and justify your answer.
+5. How might human activities in the ocean indirectly affect the survival of marine mammals such as whales?
+6. Explain the relationship between environmental changes and animal behavior using this case as an example.
+
+#### C. Evaluation and Reasoning
+7. Do you think mass whale strandings are mainly caused by natural factors or human activities? Support your answer with logical arguments.
+8. Evaluate the role of local communities in responding to environmental disasters such as this one. Do you think their involvement is important? Why?
+9. If this phenomenon continues to happen in the future, what could be the long-term impact on marine biodiversity?
+
+#### D. Problem Solving and Decision Making
+10. If you were a marine scientist, what steps would you take to investigate the cause of this incident?
+11. Propose three solutions that could help prevent similar events in the future. Explain how each solution works.
+12. Imagine you are part of an environmental organization. Design a short action plan to respond to this situation.
+
+#### E. Higher-Level Reflection
+13. How can mass whale stranding be used as an indicator of ocean health? Explain your reasoning.
+14. What lessons can humans learn from this incident about the relationship between humans and nature?
+15. In your opinion, which is more important: economic activities in the ocean (shipping, fishing, tourism) or protecting marine ecosystems? Explain your answer critically.",
             'max_score' => 100,
             'is_prerequisite' => false,
             'order_index' => 8,
