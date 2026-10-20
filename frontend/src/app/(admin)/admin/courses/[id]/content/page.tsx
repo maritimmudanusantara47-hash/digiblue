@@ -463,28 +463,28 @@ export default function AdminCourseContentPage() {
   if (!course) return <div className="text-center py-20 text-slate-400">{t('err_course_not_found')}</div>;
 
   return (
-    <div className="animate-fadeup">
+    <div className="flex flex-col h-[calc(100vh-3rem)] sm:h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] overflow-hidden">
       {/* Back Button + Header */}
-      <div className="mb-6">
+      <div className="flex-shrink-0 mb-4">
         <button onClick={() => router.push('/admin/courses')}
-          className="text-sm text-slate-500 hover:text-navy flex items-center gap-1 mb-3">
+          className="text-sm text-slate-500 hover:text-navy flex items-center gap-1 mb-2">
           <Icon name="arrow-left" size={16} className="mr-1.5" />{t('btn_back_to_courses')}
         </button>
-        <h1 className="text-2xl font-extrabold text-navy-dark">{course.title}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('desc_manage_course')}</p>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-navy-dark leading-tight">{course.title}</h1>
+        <p className="text-slate-500 text-xs sm:text-sm mt-0.5">{t('desc_manage_course')}</p>
       </div>
 
-      <div className="flex gap-6">
-        {/* Sidebar: Section & Content List */}
-        <aside className="w-72 flex-shrink-0 self-start">
-          <div className="card p-0 overflow-hidden sticky top-6">
-            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+      <div className="flex-1 flex gap-6 min-h-0 overflow-hidden">
+        {/* Sidebar: Section & Content List (Natural height, stuck on left) */}
+        <aside className="w-72 lg:w-80 flex-shrink-0 self-start">
+          <div className="card p-0 overflow-hidden shadow-sm border border-slate-200 flex flex-col max-h-[75vh]">
+            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('title_content_list')}</p>
             </div>
-            <div className="overflow-y-auto max-h-[70vh]">
+            <div className="overflow-y-auto flex-1 overscroll-contain divide-y divide-slate-100" style={{ scrollbarWidth: 'thin' }}>
               {course.sections.map(section => (
                 <div key={section.id}>
-                  <div className="px-4 py-2 bg-slate-50 border-b border-slate-100">
+                  <div className="px-4 py-2 bg-slate-50/95 backdrop-blur-xs border-b border-slate-100 sticky top-0 z-10">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{section.title}</p>
                   </div>
                   {section.contents.map(content => {
@@ -493,7 +493,7 @@ export default function AdminCourseContentPage() {
                     return (
                       <button key={content.id}
                         onClick={() => selectContent(content)}
-                        className={`w-full text-left px-4 py-3 flex items-center gap-3 text-sm border-b border-slate-100 transition-colors
+                        className={`w-full text-left px-4 py-3 flex items-center gap-3 text-sm transition-colors
                           ${isSelected ? 'bg-navy text-white' : 'hover:bg-slate-50 text-navy-dark'}`}>
                         <Icon name={meta.icon} size={16} />
                         <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold' : ''}`}>
@@ -511,8 +511,8 @@ export default function AdminCourseContentPage() {
           </div>
         </aside>
 
-        {/* Main Panel */}
-        <div className="flex-1 min-w-0">
+        {/* Main Panel (Scrollable Right Area) */}
+        <div className="flex-1 min-w-0 h-full overflow-y-auto pr-1 pb-16" style={{ scrollbarWidth: 'thin' }}>
           {!selectedContent ? (
             <div className="card text-center py-20 text-slate-400">
               <div className="text-5xl mb-3"><Icon name="arrow-left" size={48} /></div>
