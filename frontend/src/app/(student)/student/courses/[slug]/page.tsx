@@ -2126,7 +2126,14 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
   const [videoUrl, setVideoUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [viewingPdfUrl, setViewingPdfUrl] = useState<string | null>(null);
+  const [viewingPdfTitle, setViewingPdfTitle] = useState<string>('');
   const alreadySubmitted = submission !== null;
+
+  const hasAttachments = (content.attachments?.length ?? 0) > 0;
+  const soalPdfUrl = content.file_path
+    ? `${(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '')}/storage/${content.file_path}`
+    : null;
 
   const getEmbedUrl = (url: string | null | undefined): string | null => {
     if (!url) return null;
@@ -2139,88 +2146,16 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
 
   const previewEmbed = getEmbedUrl(videoUrl);
 
-  if (alreadySubmitted) {
-    const submittedEmbed = getEmbedUrl(submission.video_url);
-
-    return (
-      <div className="flex flex-col gap-4">
-        {content.instruction_text && (
-          <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-5 sm:p-6">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-rose-200/60">
-              <Icon name="camera-movie-1" size={18} className="text-rose-600" />
-              <span className="text-xs font-extrabold uppercase tracking-wider text-rose-700">
-                Petunjuk Oral Video Exam
-              </span>
-            </div>
-            <MarkdownViewer content={content.instruction_text} />
-          </div>
-        )}
-
-        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5">
-          <p className="font-bold text-rose-700 mb-2 flex items-center">
-            <Icon name="camera-movie-1" size={18} className="mr-2" />
-            Video Sudah Dikumpulkan
-          </p>
-
-          {submittedEmbed && (
-            <div className="mt-3 rounded-2xl overflow-hidden border border-rose-200 aspect-video bg-black/5 shadow-sm max-w-2xl">
-              <iframe
-                src={submittedEmbed}
-                title="Oral Exam Submission Video"
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          )}
-
-          {submission.video_url && (
-            <div className="mt-3">
-              <a href={submission.video_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-navy font-semibold hover:underline bg-white rounded-xl px-4 py-2 border border-rose-200 shadow-sm">
-                <Icon name="camera-movie-1" size={16} className="text-rose-600" />
-                Buka Link Video Asli
-                <Icon name="arrow-right" size={14} className="ml-1" />
-              </a>
-            </div>
-          )}
-
-          {submission.essay_text && (
-            <div className="mt-3 bg-white/90 rounded-xl p-3.5 border border-rose-100 text-xs text-slate-700 leading-relaxed">
-              <span className="font-bold text-navy-dark">Catatan untuk Assessor:</span> {submission.essay_text}
-            </div>
-          )}
-
-          {submission.assessor_feedback && (
-            <div className="mt-3 bg-emerald-50 rounded-xl p-3.5 border border-emerald-200 text-xs text-emerald-800 leading-relaxed">
-              <span className="font-bold flex items-center gap-1.5 mb-1">
-                <Icon name="check-circle-1" size={14} />
-                Feedback dari Assessor:
-              </span>
-              {submission.assessor_feedback}
-            </div>
-          )}
-
-          {submission.score === null && (
-            <p className="text-sm text-rose-600 mt-3 flex items-center gap-2 font-medium">
-              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span> Menunggu penilaian assessor...
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!videoUrl.trim()) {
-      showWarning('Link Kosong', 'Link video wajib diisi.');
+      showWarning('Link Kosong', 'Tautan (URL) video wajib diisi.');
       return;
     }
     const isConfirmed = await showConfirm(
-      'Kumpulkan Rekaman Video?',
-      'Apakah kamu yakin ingin mengumpulkan rekaman video ini? Asesor akan menilai tugasmu.',
-      'Ya, Kumpulkan'
+      'Kumpulkan Link Video Oral Exam?',
+      'Pastikan video sudah dapat diakses (Anyone with the link / Unlisted) agar asesor dapat menilai rekaman presentasimu.',
+      'Ya, Kumpulkan Video'
     );
     if (!isConfirmed) return;
 
@@ -2229,92 +2164,433 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
       await api.post('/submissions', {
         enrollment_id: enrollmentId,
         content_id: content.id,
-        video_url: videoUrl,
-        essay_text: notes || null,
+        video_url: videoUrl.trim(),
+        essay_text: notes.trim() || null,
       });
-      showSuccess('Berhasil!', 'Rekaman video berhasil dikumpulkan.');
+      showSuccess('Berhasil!', 'Tautan video oral exam berhasil dikumpulkan.');
       onDone({
         content_id: content.id,
         score: null,
         assessor_feedback: null,
         graded_at: null,
         status: 'submitted',
-        video_url: videoUrl,
-        essay_text: notes || null,
+        video_url: videoUrl.trim(),
+        essay_text: notes.trim() || null,
       });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      showError('Gagal!', msg ?? 'Gagal mengumpulkan tugas.');
+      showError('Gagal!', msg ?? 'Gagal mengumpulkan tugas video.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {content.instruction_text && (
-        <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-5 sm:p-6">
-          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-rose-200/60">
-            <Icon name="camera-movie-1" size={18} className="text-rose-600" />
-            <span className="text-xs font-extrabold uppercase tracking-wider text-rose-700">
-              Petunjuk Oral Video Exam
-            </span>
+    <div className="flex flex-col gap-6">
+      {/* ─── Highlights Ketentuan Oral Exam ─── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="p-3.5 rounded-2xl bg-white border border-slate-200 flex items-center gap-3 shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+            <Icon name="camera-movie-1" size={18} />
           </div>
-          <MarkdownViewer content={content.instruction_text} />
+          <div>
+            <p className="text-[10px] uppercase font-bold text-slate-400">Durasi Video</p>
+            <p className="text-xs font-extrabold text-navy-dark">3 – 5 Menit</p>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-white border border-slate-200 flex items-center gap-3 shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Icon name="flag-1" size={18} />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-bold text-slate-400">Bahasa Presentasi</p>
+            <p className="text-xs font-extrabold text-navy-dark">Indonesia / English</p>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-white border border-slate-200 flex items-center gap-3 shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <Icon name="link-2-angular-right" size={18} />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-bold text-slate-400">Metode Pengumpulan</p>
+            <p className="text-xs font-extrabold text-navy-dark">Link GDrive / YouTube</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Berkas Lampiran Soal Kasus & Dokumen Acuan (Jika Ada) ─── */}
+      {(hasAttachments || soalPdfUrl) && (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">
+              <Icon name="folder-open" size={14} />
+            </span>
+            <h3 className="text-sm font-bold text-navy-dark">Berkas Soal & Dokumen Panduan Oral Exam</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {/* 1. Naskah Soal */}
+            {(() => {
+              const att = content.attachments?.find(a => a.category === 'case_study_brief');
+              if (!att) return null;
+              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+              const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+              const isPdf = att.extension?.toLowerCase() === 'pdf' || att.file_name.toLowerCase().endsWith('.pdf');
+              return (
+                <div className="bg-white border-2 border-teal-100 hover:border-teal-300 rounded-2xl p-4 flex flex-col justify-between transition-all shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800 bg-teal-100 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                      Naskah Soal Kasus
+                    </span>
+                    <h4 className="font-bold text-navy-dark text-sm line-clamp-1">{att.title}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={att.file_name}
+                      className="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>Unduh Soal</span>
+                    </a>
+                    {isPdf && (
+                      <button
+                        type="button"
+                        onClick={() => { setViewingPdfUrl(downloadUrl); setViewingPdfTitle(att.title); }}
+                        className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs transition-colors"
+                        title="Baca langsung di layar"
+                      >
+                        <Icon name="eye" size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 2. Template Lembar Jawaban */}
+            {(() => {
+              const att = content.attachments?.find(a => a.category === 'template');
+              if (!att) return null;
+              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+              const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+              const isWord = att.extension?.toLowerCase().includes('doc');
+              return (
+                <div className="bg-white border-2 border-blue-100 hover:border-blue-300 rounded-2xl p-4 flex flex-col justify-between transition-all shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-800 bg-blue-100 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                      Template Lembar Kerja
+                    </span>
+                    <h4 className="font-bold text-navy-dark text-sm line-clamp-1">{att.title}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100">
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={att.file_name}
+                      className="w-full py-2 bg-navy hover:bg-navy-dark text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>Unduh Template {isWord ? '(.docx)' : ''}</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 3. Contoh Pengisian / Rubrik Acuan */}
+            {(() => {
+              const att = content.attachments?.find(a => a.category === 'example_guide');
+              if (!att) return null;
+              const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+              const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+              const isPdf = att.extension?.toLowerCase() === 'pdf' || att.file_name.toLowerCase().endsWith('.pdf');
+              return (
+                <div className="bg-white border-2 border-amber-100 hover:border-amber-300 rounded-2xl p-4 flex flex-col justify-between transition-all shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                      Contoh Acuan Pengerjaan
+                    </span>
+                    <h4 className="font-bold text-navy-dark text-sm line-clamp-1">{att.title}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={att.file_name}
+                      className="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>Unduh Acuan</span>
+                    </a>
+                    {isPdf && (
+                      <button
+                        type="button"
+                        onClick={() => { setViewingPdfUrl(downloadUrl); setViewingPdfTitle(att.title); }}
+                        className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs transition-colors"
+                        title="Baca langsung di layar"
+                      >
+                        <Icon name="eye" size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Dokumen Tambahan */}
+          {(content.attachments?.filter(a => a.category === 'additional').length ?? 0) > 0 && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-3">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Icon name="paperclip-1" size={14} />
+                Dokumen Pendukung Tambahan ({content.attachments?.filter(a => a.category === 'additional').length})
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {content.attachments?.filter(a => a.category === 'additional').map(att => {
+                  const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+                  const downloadUrl = `${backendBase}/storage/${att.file_path}`;
+                  return (
+                    <div key={att.id} className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100/70 transition-colors">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="w-7 h-7 rounded-lg bg-teal-100 text-teal-800 font-extrabold text-[10px] flex items-center justify-center uppercase shrink-0">
+                          {att.extension || 'file'}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-navy-dark truncate">{att.title}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{att.file_name} • {att.file_size_formatted || ''}</p>
+                        </div>
+                      </div>
+                      <a
+                        href={downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download={att.file_name}
+                        className="px-3 py-1.5 bg-white hover:bg-navy hover:text-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1 transition-colors shrink-0"
+                      >
+                        <Icon name="download" size={13} />
+                        <span>Unduh</span>
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-navy-dark flex items-center">
-          <Icon name="link-2-angular-right" size={16} className="mr-1.5" />
-          Link Video Oral Exam <span className="text-rose-500 ml-1">*</span>
-        </label>
-        <input
-          type="url"
-          required
-          value={videoUrl}
-          onChange={e => setVideoUrl(e.target.value)}
-          placeholder="https://youtu.be/... atau https://drive.google.com/..."
-          className="form-input"
-        />
-        <p className="text-xs text-slate-500">
-          Mendukung tautan video <strong>Google Drive</strong> (pastikan akses disetel &quot;Anyone with the link can view&quot;) atau <strong>YouTube</strong> (bisa Unlisted maupun Public).
-        </p>
+      {/* ─── PDF Preview Modal ─── */}
+      {viewingPdfUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadein">
+          <div className="bg-slate-950 border border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-xl"><Icon name="book-1" size={20} /></span>
+                <span className="font-bold text-sm truncate">{viewingPdfTitle}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingPdfUrl(null)}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold flex items-center gap-1.5"
+              >
+                <Icon name="xmark" size={16} /> Tutup
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden p-2">
+              <AestheticPdfReader
+                url={viewingPdfUrl}
+                title={viewingPdfTitle}
+                allowDownload={true}
+                height="100%"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
-        {previewEmbed && (
-          <div className="mt-2 rounded-xl overflow-hidden border border-rose-200 aspect-video bg-black/5 shadow-inner max-w-md">
-            <iframe
-              src={previewEmbed}
-              title="Preview Video Oral Exam"
-              className="w-full h-full border-0"
-              allowFullScreen
+      {/* ─── Panduan & Deskripsi Soal (Markdown) ─── */}
+      {content.instruction_text && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col gap-4">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+            <span className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+              <Icon name="camera-movie-1" size={16} />
+            </span>
+            <h3 className="font-extrabold text-navy-dark text-base">
+              Naskah Soal & Petunjuk Pengerjaan Oral Exam
+            </h3>
+          </div>
+          <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed">
+            <MarkdownViewer content={content.instruction_text} />
+          </div>
+        </div>
+      )}
+
+      {/* ─── Status Sudah Dikumpulkan ─── */}
+      {alreadySubmitted ? (
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+          <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100 flex-wrap">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
+                <Icon name="check-circle-1" size={22} />
+              </span>
+              <div>
+                <h4 className="font-extrabold text-navy-dark text-base">Tautan Video Telah Berhasil Dikumpulkan</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Asesor akan memutar dan mengevaluasi hasil rekaman presentasimu.</p>
+              </div>
+            </div>
+            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Terkumpul
+            </span>
+          </div>
+
+          {/* Embedded Video Player */}
+          {getEmbedUrl(submission.video_url) ? (
+            <div className="rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-black/5 shadow-sm max-w-3xl">
+              <iframe
+                src={getEmbedUrl(submission.video_url)!}
+                title="Oral Exam Submission Video"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Icon name="link-2-angular-right" size={16} className="text-slate-500 shrink-0" />
+                <span className="text-xs text-navy-dark font-mono truncate">{submission.video_url}</span>
+              </div>
+            </div>
+          )}
+
+          {submission.video_url && (
+            <div>
+              <a
+                href={submission.video_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-navy hover:text-white rounded-xl text-xs font-bold text-navy-dark transition-all shadow-xs"
+              >
+                <Icon name="camera-movie-1" size={15} />
+                <span>Buka Tautan Video Eksternal</span>
+                <Icon name="arrow-right" size={13} className="ml-0.5" />
+              </a>
+            </div>
+          )}
+
+          {submission.essay_text && (
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-xs text-slate-700">
+              <span className="font-bold text-navy-dark block mb-1">Catatan Tambahan untuk Asesor:</span>
+              <p className="leading-relaxed">{submission.essay_text}</p>
+            </div>
+          )}
+
+          {submission.score === null ? (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2.5 font-medium">
+              <span className="animate-pulse"><Icon name="hourglass" size={18} /></span>
+              <span>Tugasmu sedang dalam antrean review oleh Tim Asesor DigiBlueCamp. Nilai akan muncul otomatis setelah penilaian selesai.</span>
+            </div>
+          ) : (
+            <GradedBanner submission={submission} content={content} />
+          )}
+        </div>
+      ) : (
+        /* ─── Form Pengumpulan Tautan Video (Hanya Link) ─── */
+        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
+          <div>
+            <h4 className="font-extrabold text-navy-dark text-base flex items-center gap-2">
+              <Icon name="upload-1" size={18} className="text-navy" />
+              <span>Formulir Pengumpulan Video Oral Exam</span>
+            </h4>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Kumpulkan rekaman video presentasimu dalam bentuk <strong>link</strong> (Google Drive atau YouTube) sesuai petunjuk di atas.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+              <Icon name="link-2-angular-right" size={15} className="text-rose-600" />
+              <span>Tautan / Link Video (Google Drive atau YouTube)</span>
+              <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="url"
+              required
+              value={videoUrl}
+              onChange={e => setVideoUrl(e.target.value)}
+              placeholder="Contoh: https://drive.google.com/file/d/... atau https://youtu.be/..."
+              className="form-input text-xs sm:text-sm font-mono py-2.5"
+            />
+            <p className="text-[11px] text-slate-400">
+              💡 <em>Tips: Jika mengunggah ke Google Drive, pastikan izin tautan disetel ke <strong>&quot;Anyone with the link can view&quot;</strong> agar tim asesor dapat menonton dan menilai rekamanmu.</em>
+            </p>
+
+            {/* Live Preview Embed Player */}
+            {previewEmbed && (
+              <div className="mt-3">
+                <p className="text-[11px] font-bold text-navy-dark mb-1.5 flex items-center gap-1">
+                  <Icon name="check-circle-1" size={13} className="text-emerald-600" />
+                  Pratinjau Video Terdeteksi:
+                </p>
+                <div className="rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-black/5 shadow-inner max-w-xl">
+                  <iframe
+                    src={previewEmbed}
+                    title="Live Preview Video"
+                    className="w-full h-full border-0"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+              <Icon name="pen-to-square" size={15} className="text-slate-400" />
+              <span>Catatan untuk Asesor <span className="font-normal text-slate-400">(Opsional)</span></span>
+            </label>
+            <textarea
+              rows={3}
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Tambahkan ringkasan pokok presentasi, poin penting, atau catatan lain jika diperlukan..."
+              className="form-input text-xs leading-relaxed resize-none"
             />
           </div>
-        )}
-      </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-navy-dark flex items-center">
-          <Icon name="pen-to-square" size={16} className="mr-1.5" />
-          Catatan untuk Assessor <span className="text-slate-400 font-normal ml-1">(opsional)</span>
-        </label>
-        <textarea
-          rows={4}
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="Cantumkan ringkasan pokok presentasi atau keterangan tambahan untuk tim asesor..."
-          className="form-input resize-none"
-        />
-      </div>
-
-      <button type="submit" disabled={submitting} className="btn btn-primary btn-lg shadow-md shadow-navy/20">
-        {submitting ? 'Mengumpulkan...' : (
-          <>
-            <Icon name="camera-movie-1" size={18} className="mr-2" />
-            Submit Video Oral Exam
-          </>
-        )}
-      </button>
-    </form>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn btn-primary btn-lg flex items-center justify-center gap-2 shadow-md shadow-navy/20 self-start sm:w-auto w-full"
+          >
+            {submitting ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                <span>Mengumpulkan Link Video...</span>
+              </>
+            ) : (
+              <>
+                <Icon name="camera-movie-1" size={16} />
+                <span>Kumpulkan Video Oral Exam</span>
+              </>
+            )}
+          </button>
+        </form>
+      )}
+    </div>
   );
 }
+

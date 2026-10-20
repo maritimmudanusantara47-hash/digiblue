@@ -178,26 +178,53 @@ Sebagai seorang kandidat *Certified Blue Economist (CBEc)*, Anda diminta menyusu
             'order_index' => 5,
         ]);
 
-        // 6. Oral Video Examination
+        // 6. Oral Exam: Case Study (English or Indonesia)
         CourseContent::create([
             'section_id' => $section->id,
             'content_type' => 'oral_video_task',
-            'title' => 'Oral Video Examination — Foundation Level',
-            'instruction_text' => "### Ujian Lisan Berbasis Video (Oral Video Examination) — Foundation Level
+            'title' => 'Oral Exam: Case Study (English or Indonesia)',
+            'instruction_text' => "### Oral Exam: Case Study (English or Indonesia)
 
-Sebagai bagian dari evaluasi kompetensi Certified Blue Economist (CBEc), Anda diminta menyusun dan merekam video presentasi lisan berdurasi 5 hingga 10 menit.
+#### Oral Examination Instructions:
+1. **Record your answers** by creating a video explanation.
+2. **Deliver your explanation** in either Indonesian or English.
+3. **Ensure the video duration** is between 3–5 minutes.
+4. **Upload your video** to Google Drive or YouTube (can be set to *Unlisted* or *Public*).
+5. **Set link permissions** to *\"Anyone with the link can view\"* (if using Google Drive) so assessors can review and watch your submission.
+6. **Copy and paste** your video URL link in the submission form below.
 
-#### Pilihan Topik Presentasi (Pilih Salah Satu):
-1. Strategi Transformasi Ekonomi Biru di Indonesia: Uraikan visi, pilar keberlanjutan, dan tantangan transisi dari brown economy menuju blue economy.
-2. Valuasi & Monetisasi Karbon Biru (Blue Carbon): Jelaskan potensi mangrove dan padang lamun Indonesia serta peranan mekanisme pembiayaan inovatif (seperti Sovereign Blue Bond atau pasar karbon sukarela).
-3. Harmonisasi Konservasi Maritim & Kesejahteraan Nelayan: Paparkan analisis kritis Anda mengenai kebijakan Penangkapan Ikan Terukur (PIT) vs perlindungan hak nelayan skala kecil dan masyarakat adat laut.
+---
 
-#### Ketentuan Perekaman & Pengumpulan Video:
-• Durasi Video: 5 – 10 menit (wajah dan suara peserta wajib terdengar dan terlihat jelas).
-• Format Pengumpulan: Unggah video Anda ke platform Google Drive atau YouTube (dapat disetel sebagai Unlisted atau Public).
-• Izin Akses Tautan: Jika menggunakan Google Drive, pastikan izin akses tautan diatur ke 'Anyone with the link can view' (Siapa saja yang memiliki tautan dapat melihat) agar tim asesor dapat mengakses dan memutar video.
-• Pengumpulan Tugas: Cantumkan tautan URL video pada kolom input formulir di bawah ini. Anda juga dapat menambahkan ringkasan poin presentasi pada kolom catatan untuk asesor.
-• Standar Penilaian: Dinilai secara komprehensif oleh Tim Asesor DigiBlueCamp berdasarkan penguasaan materi (40%), ketajaman analisis & argumen kritis (30%), serta kejelasan artikulasi presentasi (30%). Nilai kelulusan minimum: 70 / 100.",
+### Case Study Details
+**Case Title:** Plastic Waste Pollution in Indonesian Coastal Waters and Its Impact on Marine Ecosystems (2026)
+
+#### Case Description:
+Indonesia is known as one of the world’s largest maritime countries with rich marine biodiversity and extensive coastal resources. However, marine pollution, especially plastic waste, has become a serious environmental challenge in many coastal areas across Indonesia.
+
+In early 2026, large amounts of plastic waste were found floating and accumulating along several coastal regions, including Jakarta Bay, Bali, and parts of Sulawesi. Environmental organizations reported that the waste came from household garbage, tourism activities, fishing operations, and poor waste management systems.
+
+Marine scientists warned that plastic pollution could threaten marine ecosystems and biodiversity. Sea animals such as turtles, fish, dolphins, and seabirds may accidentally consume plastic waste or become trapped in it. In addition, microplastics have also been detected in fish and seafood consumed by humans.
+
+The problem has raised concerns among environmental activists, researchers, and local communities because Indonesia’s coastal economy highly depends on fisheries, tourism, and marine resources. Many experts believe that stronger cooperation between government, industries, and society is needed to reduce marine pollution and protect ocean sustainability.
+
+#### Questions to Address:
+**A. Critical Understanding**
+1. Explain why plastic waste in the ocean is considered a serious environmental issue for Indonesia.
+2. Describe how plastic pollution can affect marine animals and coastal ecosystems.
+
+**B. Analytical Thinking**
+3. Analyze how human activities contribute to the increase of plastic waste in marine environments.
+4. Explain the possible relationship between poor waste management systems and the condition of Indonesia’s coastal waters.
+
+**C. Evaluation and Reasoning**
+5. In your opinion, who should be most responsible for reducing marine plastic pollution: government, industries, or society? Explain your reasoning.
+6. Evaluate the impact of marine plastic pollution on Indonesia’s economy, especially in fisheries and tourism sectors.
+7. Do you think public awareness about marine environmental protection in Indonesia is already sufficient? Why or why not?
+
+**D. Problem Solving and Decision Making**
+8. If you were an environmental policymaker, what steps would you take to reduce plastic pollution in coastal areas?
+9. Propose three practical solutions that local communities can implement to help protect marine ecosystems from plastic waste.
+10. Imagine you are part of a youth environmental organization. Create a short action plan to educate society about reducing plastic waste and protecting the ocean.",
             'max_score' => 100,
             'is_prerequisite' => false,
             'order_index' => 6,

@@ -744,8 +744,8 @@ export default function AdminCourseContentPage() {
                     </div>
                   )}
 
-                  {/* ─── Case Study & Essay Multi-Attachment Manager ─── */}
-                  {(selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking') && (
+                  {/* ─── Case Study & Essay / Oral Exam Multi-Attachment Manager ─── */}
+                  {(selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking' || selectedContent.content_type === 'oral_video_task') && (
                     <div className="bg-gradient-to-br from-slate-50 via-teal-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
                         <div>
@@ -754,11 +754,13 @@ export default function AdminCourseContentPage() {
                               <Icon name="folder-open" size={16} />
                             </span>
                             <h4 className="font-extrabold text-navy-dark text-base">
-                              Berkas & Panduan Tugas Studi Kasus
+                              {selectedContent.content_type === 'oral_video_task' ? 'Berkas & Panduan Oral Exam' : 'Berkas & Panduan Tugas Studi Kasus'}
                             </h4>
                           </div>
                           <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
-                            Kelola naskah soal, template lembar kerja (.docx), contoh acuan, serta berkas pendukung tambahan yang dapat diunduh peserta.
+                            {selectedContent.content_type === 'oral_video_task'
+                              ? 'Kelola naskah soal skenario kasus oral exam (.pdf / .docx), rubrik pedoman, serta berkas pendukung yang dapat diunduh peserta.'
+                              : 'Kelola naskah soal, template lembar kerja (.docx), contoh acuan, serta berkas pendukung tambahan yang dapat diunduh peserta.'}
                           </p>
                         </div>
 
@@ -943,7 +945,7 @@ export default function AdminCourseContentPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="text-sm font-bold text-navy-dark">
-                          <Icon name="clipboard" size={16} className="mr-1.5" />{selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking'
+                          <Icon name="clipboard" size={16} className="mr-1.5" />{selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking' || selectedContent.content_type === 'oral_video_task'
                             ? t('lbl_essay_prompt')
                             : t('lbl_instruction_text')}
                         </label>
