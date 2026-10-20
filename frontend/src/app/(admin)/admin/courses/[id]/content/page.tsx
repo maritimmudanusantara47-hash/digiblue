@@ -1312,15 +1312,15 @@ function AttachmentCardSlot({
   const downloadUrl = attachment ? `${backendBase}/storage/${attachment.file_path}` : '#';
 
   return (
-    <div className={`rounded-2xl border p-4 flex flex-col justify-between transition-all ${attachment ? 'bg-white border-slate-200 shadow-sm' : 'bg-white/70 border-dashed border-slate-300 hover:border-slate-400'
+    <div className={`rounded-2xl border p-3.5 sm:p-4 flex flex-col justify-between transition-all min-w-0 overflow-hidden ${attachment ? 'bg-white border-slate-200 shadow-sm' : 'bg-white/70 border-dashed border-slate-300 hover:border-slate-400'
       }`}>
       <div>
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${badgeBg} ${badgeColor}`}>
+        <div className="flex items-center justify-between gap-1.5 flex-wrap mb-2">
+          <span className={`text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0 ${badgeBg} ${badgeColor}`}>
             {badgeText}
           </span>
           {attachment && (
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200 shrink-0">
               <Icon name="check-circle-1" size={11} /> Tersedia
             </span>
           )}
@@ -1335,16 +1335,16 @@ function AttachmentCardSlot({
         </p>
 
         {attachment ? (
-          <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1">
+          <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1 min-w-0 overflow-hidden">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-6 h-6 rounded-lg bg-navy text-white text-[9px] font-bold flex items-center justify-center uppercase flex-shrink-0">
+              <span className="w-6 h-6 rounded-lg bg-navy text-white text-[9px] font-bold flex items-center justify-center uppercase shrink-0">
                 {attachment.extension || 'file'}
               </span>
-              <p className="text-xs font-bold text-navy-dark truncate" title={attachment.file_name}>
+              <p className="text-xs font-bold text-navy-dark truncate min-w-0 flex-1" title={attachment.file_name}>
                 {attachment.file_name}
               </p>
             </div>
-            <p className="text-[11px] text-slate-400 pl-8">
+            <p className="text-[10px] text-slate-400 pl-8 truncate">
               Ukuran: {attachment.file_size_formatted || '-'}
             </p>
           </div>
@@ -1356,7 +1356,7 @@ function AttachmentCardSlot({
         )}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
         <input
           type="file"
           ref={fileInputRef}
@@ -1373,23 +1373,23 @@ function AttachmentCardSlot({
 
         {attachment ? (
           <>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 shrink-0">
               <a
                 href={downloadUrl}
                 target="_blank"
                 rel="noreferrer"
                 download={attachment.file_name}
-                className="px-2.5 py-1.5 bg-slate-100 hover:bg-navy hover:text-white rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1 transition-colors"
+                className="px-2 py-1 bg-slate-100 hover:bg-navy hover:text-white rounded-lg text-[11px] font-semibold text-slate-700 flex items-center gap-1 transition-colors"
                 title="Unduh berkas"
               >
-                <Icon name="download" size={13} />
+                <Icon name="download" size={12} />
                 <span>Unduh</span>
               </a>
               {isPdf && (
                 <button
                   type="button"
                   onClick={() => onPreviewPdf(downloadUrl, attachment.title)}
-                  className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold text-slate-600 transition-colors"
+                  className="p-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
                   title="Lihat Pratinjau PDF"
                 >
                   <Icon name="eye" size={13} />
@@ -1397,12 +1397,12 @@ function AttachmentCardSlot({
               )}
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 shrink-0">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="px-2 py-1.5 hover:bg-slate-100 rounded-lg text-xs font-semibold text-navy transition-colors"
+                className="px-2 py-1 hover:bg-slate-100 rounded-lg text-[11px] font-semibold text-navy transition-colors"
                 title="Ganti berkas ini"
               >
                 {uploading ? '...' : 'Ganti'}
@@ -1411,7 +1411,7 @@ function AttachmentCardSlot({
                 type="button"
                 onClick={() => onDelete(attachment.id)}
                 disabled={uploading}
-                className="px-2 py-1.5 hover:bg-rose-50 rounded-lg text-xs text-rose-500 transition-colors"
+                className="p-1 hover:bg-rose-50 rounded-lg text-rose-500 transition-colors"
                 title="Hapus berkas"
               >
                 <Icon name="trash-1" size={13} />
