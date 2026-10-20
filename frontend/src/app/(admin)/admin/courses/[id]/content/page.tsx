@@ -744,8 +744,8 @@ export default function AdminCourseContentPage() {
                     </div>
                   )}
 
-                  {/* ─── Case Study & Essay / Oral Exam Multi-Attachment Manager ─── */}
-                  {(selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking' || selectedContent.content_type === 'oral_video_task') && (
+                  {/* ─── Case Study & Essay Multi-Attachment Manager ─── */}
+                  {(selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking') && (
                     <div className="bg-gradient-to-br from-slate-50 via-teal-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
                         <div>
@@ -754,13 +754,11 @@ export default function AdminCourseContentPage() {
                               <Icon name="folder-open" size={16} />
                             </span>
                             <h4 className="font-extrabold text-navy-dark text-base">
-                              {selectedContent.content_type === 'oral_video_task' ? 'Berkas & Panduan Oral Exam' : 'Berkas & Panduan Tugas Studi Kasus'}
+                              Berkas & Panduan Tugas Studi Kasus
                             </h4>
                           </div>
                           <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
-                            {selectedContent.content_type === 'oral_video_task'
-                              ? 'Kelola naskah soal skenario kasus oral exam (.pdf / .docx), rubrik pedoman, serta berkas pendukung yang dapat diunduh peserta.'
-                              : 'Kelola naskah soal, template lembar kerja (.docx), contoh acuan, serta berkas pendukung tambahan yang dapat diunduh peserta.'}
+                            Kelola naskah soal, template lembar kerja (.docx), contoh acuan, serta berkas pendukung tambahan yang dapat diunduh peserta.
                           </p>
                         </div>
 
@@ -919,6 +917,63 @@ export default function AdminCourseContentPage() {
                     </div>
                   )}
 
+                  {/* ─── Oral Video Exam Manager ─── */}
+                  {selectedContent.content_type === 'oral_video_task' && (
+                    <div className="bg-gradient-to-br from-slate-50 via-rose-50/20 to-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col gap-5 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center text-xs shadow-sm">
+                              <Icon name="camera-movie-1" size={16} />
+                            </span>
+                            <h4 className="font-extrabold text-navy-dark text-base">
+                              Berkas & Panduan Ujian Lisan (Oral Exam)
+                            </h4>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
+                            Unggah dokumen naskah soal skenario kasus (.pdf / .docx) yang menjadi bahan acuan presentasi lisan peserta. Peserta akan mengumpulkan tugas dalam bentuk rekaman video via tautan link (Google Drive / YouTube).
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Info Ketentuan Tugas Video */}
+                      <div className="bg-white/90 border border-rose-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                            <Icon name="camera-movie-1" size={20} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-navy-dark">Ketentuan Pengumpulan Peserta</p>
+                            <p className="text-slate-500 text-[11px] mt-0.5">
+                              Peserta mengumpulkan tautan video rekaman berdurasi 3–5 menit via Google Drive atau YouTube (Bahasa Indonesia / Inggris).
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-rose-100 text-rose-800 shrink-0">
+                          Tugas Video
+                        </span>
+                      </div>
+
+                      {/* Single Slot Dokumen Soal Kasus (.pdf / .docx) */}
+                      <div className="max-w-md">
+                        <AttachmentCardSlot
+                          category="case_study_brief"
+                          label="Dokumen Naskah Soal Kasus"
+                          description="Unggah berkas soal skenario studi kasus (.pdf / .docx) untuk diunduh / dibaca peserta."
+                          icon="clipboard"
+                          badgeText="Naskah Soal"
+                          badgeBg="bg-rose-100"
+                          badgeColor="text-rose-800"
+                          attachment={selectedContent.attachments?.find(a => a.category === 'case_study_brief')}
+                          uploading={uploadingAttachmentCat === 'case_study_brief'}
+                          onUpload={(file) => handleUploadAttachment(file, 'case_study_brief')}
+                          onDelete={(id) => handleDeleteAttachment(id)}
+                          onPreviewPdf={(url, title) => { setPreviewPdfUrl(url); setPreviewPdfTitle(title); }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Field Study: admin note */}
                   {selectedContent.content_type === 'field_study' && (
                     <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
@@ -945,11 +1000,18 @@ export default function AdminCourseContentPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="text-sm font-bold text-navy-dark">
-                          <Icon name="clipboard" size={16} className="mr-1.5" />{selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking' || selectedContent.content_type === 'oral_video_task'
+                          <Icon name="clipboard" size={16} className="mr-1.5" />
+                          {selectedContent.content_type === 'oral_video_task'
+                            ? 'Petunjuk Pengerjaan & Naskah Soal Oral Exam (Format Markdown)'
+                            : (selectedContent.content_type === 'essay_task' || selectedContent.content_type === 'critical_thinking')
                             ? t('lbl_essay_prompt')
                             : t('lbl_instruction_text')}
                         </label>
-                        <p className="text-xs text-slate-400 mt-0.5">{t('desc_instruction_text')}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {selectedContent.content_type === 'oral_video_task'
+                            ? 'Teks ini tampil sebagai petunjuk pengerjaan dan ringkasan studi kasus bagi peserta.'
+                            : t('desc_instruction_text')}
+                        </p>
                       </div>
                       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
                         <button type="button" onClick={() => setInstructionTab('editor')}
@@ -1060,7 +1122,7 @@ export default function AdminCourseContentPage() {
                         </div>
 
                         <textarea ref={instructionTextareaRef} rows={10} value={editInstruction} onChange={e => setEditInstruction(e.target.value)}
-                          placeholder={t("ph_essay_prompt")}
+                          placeholder={selectedContent.content_type === 'oral_video_task' ? 'Tuliskan petunjuk pengerjaan ujian oral exam dan naskah skenario kasus di sini...' : t("ph_essay_prompt")}
                           className="form-input font-mono text-xs leading-relaxed resize-y" />
                       </div>
                     ) : (
