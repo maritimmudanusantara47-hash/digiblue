@@ -936,42 +936,6 @@ export default function AdminCourseContentPage() {
                         </div>
                       </div>
 
-                      {/* Info Box Detail Penugasan & Ketentuan */}
-                      <div className="bg-white/95 border border-teal-200/90 rounded-2xl p-4 flex flex-col gap-3 text-xs shadow-xs">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-100 text-teal-800 uppercase tracking-wide">
-                              Ketentuan Tugas
-                            </span>
-                            <span className="font-bold text-navy-dark">
-                              International Blue Economist Certification Training Course - Batch XV (Foundation)
-                            </span>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-slate-600">
-                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Batas Pengumpulan</span>
-                            <span className="font-bold text-navy-dark text-xs">10 September 2026</span>
-                            <span className="text-[11px] text-slate-500 block">23.59 GMT+7 Jakarta Time</span>
-                          </div>
-                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Panjang Tulisan</span>
-                            <span className="font-bold text-navy-dark text-xs">500 – 1,500 Words</span>
-                            <span className="text-[11px] text-slate-500 block">Kritis & Analitis</span>
-                          </div>
-                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Format Dokumen</span>
-                            <span className="font-bold text-navy-dark text-xs">APA Style</span>
-                            <span className="text-[11px] text-slate-500 block">Times New Roman 12pt, Double-Spaced</span>
-                          </div>
-                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 block">Metode Pengumpulan</span>
-                            <span className="font-bold text-teal-700 text-xs">Digibluecamp.id</span>
-                            <span className="text-[11px] text-slate-500 block">Upload PDF / DOCX</span>
-                          </div>
-                        </div>
-                      </div>
-
                       {/* Single Slot Dokumen Naskah Soal (.pdf / .docx) */}
                       <div className="max-w-md">
                         <AttachmentCardSlot

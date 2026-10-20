@@ -1475,55 +1475,6 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Critical Thinking Assignment Guidelines Banner */}
-      {isCriticalThinking && (
-        <div className="bg-gradient-to-br from-indigo-900 via-navy-dark to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="flex flex-col gap-4 relative z-10">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">
-                Critical Thinking Assignment
-              </span>
-              <span className="text-xs text-slate-300 font-medium">
-                IBECTC Batch XV • Foundation Level
-              </span>
-            </div>
-
-            <div>
-              <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-white">
-                BLUE ECONOMY CRITICAL THINKING ASSIGNMENT
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                Studi Kasus: Mass Stranding of Pilot Whales in Rote, East Nusa Tenggara (Indonesia, 2026). Jawab 15 butir pertanyaan analitis secara kritis, orisinal, dan mendalam.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-white/10 text-xs">
-              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Batas Pengumpulan</span>
-                <span className="font-bold text-amber-300 text-xs">10 Sep 2026</span>
-                <span className="text-[10px] text-slate-400 block">23.59 GMT+7</span>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Panjang Tulisan</span>
-                <span className="font-bold text-white text-xs">500 – 1,500 Kata</span>
-                <span className="text-[10px] text-slate-400 block">Orisinal & Analitis</span>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Format Dokumen</span>
-                <span className="font-bold text-white text-xs">APA Style</span>
-                <span className="text-[10px] text-slate-400 block">TNR 12pt, Double-Spaced</span>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Metode Submit</span>
-                <span className="font-bold text-teal-300 text-xs">Digibluecamp.id</span>
-                <span className="text-[10px] text-slate-400 block">Upload PDF / DOCX</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Instructions / Case Study Markdown Prompt */}
       {content.instruction_text && (
         <div className={`${bgClass} border rounded-3xl p-6 sm:p-8 shadow-sm`}>
