@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -1373,6 +1374,17 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
   const [viewingPdfUrl, setViewingPdfUrl] = useState<string | null>(null);
   const [viewingPdfTitle, setViewingPdfTitle] = useState('');
 
+  useEffect(() => {
+    if (viewingPdfUrl) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [viewingPdfUrl]);
+
   // Show soal PDF if admin uploaded one
   const soalPdfUrl = content.file_path
     ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}/storage/${content.file_path}`
@@ -1682,31 +1694,42 @@ function EssayTask({ content, enrollmentId, submission, onDone }: {
 
       {/* ─── PDF Preview Modal if student opens direct preview ─── */}
       {viewingPdfUrl && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadein">
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xl"><Icon name="book-1" size={20} /></span>
-                <span className="font-bold text-sm truncate">{viewingPdfTitle}</span>
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fadein"
+            onClick={() => setViewingPdfUrl(null)}
+          >
+            <div 
+              className="bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[88vh] flex flex-col overflow-hidden shadow-2xl animate-fadeup"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Modal */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-sky-400"><Icon name="book-1" size={18} /></span>
+                  <span className="font-bold text-sm truncate">{viewingPdfTitle}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewingPdfUrl(null)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold flex items-center gap-1.5"
+                >
+                  <Icon name="xmark" size={15} /> Tutup
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setViewingPdfUrl(null)}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold flex items-center gap-1.5"
-              >
-                <Icon name="xmark" size={16} /> Tutup
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden p-2">
-              <AestheticPdfReader
-                url={viewingPdfUrl}
-                title={viewingPdfTitle}
-                allowDownload={true}
-                height="100%"
-              />
+
+              {/* PDF Viewer Body */}
+              <div className="flex-1 min-h-0 overflow-hidden p-2 bg-slate-900/50">
+                <AestheticPdfReader
+                  url={viewingPdfUrl}
+                  title={viewingPdfTitle}
+                  allowDownload={true}
+                  height="100%"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* Form Pengumpulan Jawaban */}
@@ -2150,6 +2173,17 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
   const [submitting, setSubmitting] = useState(false);
   const [viewingPdfUrl, setViewingPdfUrl] = useState<string | null>(null);
   const [viewingPdfTitle, setViewingPdfTitle] = useState<string>('');
+
+  useEffect(() => {
+    if (viewingPdfUrl) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [viewingPdfUrl]);
   const alreadySubmitted = submission !== null;
 
   const hasAttachments = (content.attachments?.length ?? 0) > 0;
@@ -2413,31 +2447,42 @@ function OralVideoTask({ content, enrollmentId, submission, onDone }: {
 
       {/* ─── PDF Preview Modal ─── */}
       {viewingPdfUrl && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadein">
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xl"><Icon name="book-1" size={20} /></span>
-                <span className="font-bold text-sm truncate">{viewingPdfTitle}</span>
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fadein"
+            onClick={() => setViewingPdfUrl(null)}
+          >
+            <div 
+              className="bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[88vh] flex flex-col overflow-hidden shadow-2xl animate-fadeup"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Modal */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-sky-400"><Icon name="book-1" size={18} /></span>
+                  <span className="font-bold text-sm truncate">{viewingPdfTitle}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewingPdfUrl(null)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold flex items-center gap-1.5"
+                >
+                  <Icon name="xmark" size={15} /> Tutup
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setViewingPdfUrl(null)}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold flex items-center gap-1.5"
-              >
-                <Icon name="xmark" size={16} /> Tutup
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden p-2">
-              <AestheticPdfReader
-                url={viewingPdfUrl}
-                title={viewingPdfTitle}
-                allowDownload={true}
-                height="100%"
-              />
+
+              {/* PDF Viewer Body */}
+              <div className="flex-1 min-h-0 overflow-hidden p-2 bg-slate-900/50">
+                <AestheticPdfReader
+                  url={viewingPdfUrl}
+                  title={viewingPdfTitle}
+                  allowDownload={true}
+                  height="100%"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ─── Panduan & Deskripsi Soal (Markdown) ─── */}

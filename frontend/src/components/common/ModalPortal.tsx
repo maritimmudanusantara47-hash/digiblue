@@ -1,17 +1,22 @@
 'use client';
 
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect, useSyncExternalStore, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalPortalProps {
   children: ReactNode;
 }
 
+const emptySubscribe = () => () => {};
+
 export default function ModalPortal({ children }: ModalPortalProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
-    setMounted(true);
     // Cegah background scrolling saat modal terbuka
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
