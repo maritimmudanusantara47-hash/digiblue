@@ -188,30 +188,202 @@ export default function LandingPage() {
       </section>
 
       {/* =========================================================
-          SECTION 2: SUPPORTED BY / PARTNERS STRIP (Stitch Screenshot 113418)
+          SECTION 2: STRATEGIC PARTNERSHIP & ACCREDITATION CONSORTIUM
       ========================================================= */}
-      <section className="border-y border-slate-200/90 bg-white py-6">
-        <ScrollReveal direction="up" distance={16} duration={600}>
-          <div className="container flex flex-col md:flex-row items-center justify-center gap-5 md:gap-12">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">
-              {t('partners_title')}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-slate-700 font-bold text-sm">
-              <span className="flex items-center gap-2 hover:text-sky-600 transition-colors cursor-default">
-                <Icon name="globe-1" size={18} className="text-sky-600" />
-                <span>The Blue Economist International Association</span>
-              </span>
-              <span className="flex items-center gap-2 hover:text-sky-600 transition-colors cursor-default">
-                <Icon name="flag-1" size={18} className="text-emerald-600" />
-                <span>SDG 14 — Life Below Water</span>
-              </span>
-              <span className="flex items-center gap-2 hover:text-sky-600 transition-colors cursor-default">
-                <Icon name="anchor" size={18} className="text-[#00162d]" />
-                <span>Maritim Muda Nusantara</span>
-              </span>
+      <section className="relative py-16 lg:py-20 bg-gradient-to-b from-slate-50/90 via-white to-slate-50/60 border-y border-slate-200/80 overflow-hidden">
+        {/* Subtle decorative background water ripple blur */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-64 bg-sky-100/40 blur-3xl pointer-events-none rounded-full" />
+        <div className="container relative z-10">
+          <ScrollReveal direction="up" distance={20} duration={650}>
+            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-black text-[#00162d] tracking-tight mb-4 font-heading leading-tight">
+                {t('partnership_title')}
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                {t('partnership_desc')}
+              </p>
             </div>
+          </ScrollReveal>
+
+          {/* 3 Partner Cards Grid */}
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+            {/* Partner 1: Maritim Muda Nusantara */}
+            <ScrollReveal delay={0} distance={20} duration={700} className="h-full">
+              <div className="bg-white rounded-3xl p-7 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-cyan-300 transition-all duration-300 flex flex-col justify-between h-full group relative overflow-hidden">
+                <div className="absolute -top-16 -right-16 w-32 h-32 bg-cyan-400/10 rounded-full blur-2xl group-hover:bg-cyan-400/20 transition-all pointer-events-none" />
+                <div>
+                  {/* Logo Display Surface */}
+                  <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs group-hover:border-cyan-100 transition-all duration-300">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/partners/maritim_muda_logo@2x.png"
+                      alt="Maritim Muda Nusantara"
+                      className="max-h-14 sm:max-h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <span className="inline-block text-[11px] font-bold text-cyan-800 bg-cyan-50 border border-cyan-200/70 px-3 py-1 rounded-full mb-2">
+                      {t('partner_1_badge')}
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-bold text-[#00162d] font-heading group-hover:text-cyan-700 transition-colors">
+                      {t('partner_1_title')}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-semibold">{t('partner_1_sub')}</p>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
+                    {t('partner_1_desc')}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_1_tag_1')}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_1_tag_2')}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_1_tag_3')}
+                  </span>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Partner 2: STIE Indonesia Jakarta | IBEC */}
+            <ScrollReveal delay={120} distance={20} duration={700} className="h-full">
+              <div className="bg-white rounded-3xl p-7 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all duration-300 flex flex-col justify-between h-full group relative overflow-hidden">
+                <div className="absolute -top-16 -right-16 w-32 h-32 bg-indigo-400/10 rounded-full blur-2xl group-hover:bg-indigo-400/20 transition-all pointer-events-none" />
+                <div>
+                  {/* Logo Display Surface */}
+                  <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs group-hover:border-indigo-100 transition-all duration-300">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/partners/stie_ibec_logo@2x.png"
+                      alt="STIE Indonesia Jakarta | IBEC"
+                      className="max-h-14 sm:max-h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <span className="inline-block text-[11px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200/70 px-3 py-1 rounded-full mb-2">
+                      {t('partner_2_badge')}
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-bold text-[#00162d] font-heading group-hover:text-indigo-700 transition-colors">
+                      {t('partner_2_title')}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-semibold">{t('partner_2_sub')}</p>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
+                    {t('partner_2_desc')}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_2_tag_1')}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_2_tag_2')}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_2_tag_3')}
+                  </span>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Partner 3: The Blue Economist International Association */}
+            <ScrollReveal delay={240} distance={20} duration={700} className="h-full">
+              <div className="bg-white rounded-3xl p-7 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-sky-400 transition-all duration-300 flex flex-col justify-between h-full group relative overflow-hidden">
+                <div className="absolute -top-16 -right-16 w-32 h-32 bg-sky-400/10 rounded-full blur-2xl group-hover:bg-sky-400/20 transition-all pointer-events-none" />
+                <div>
+                  {/* Logo Display Surface */}
+                  <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs group-hover:border-sky-100 transition-all duration-300">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/partners/the_blue_economist_logo@2x.png"
+                      alt="The Blue Economist International Association"
+                      className="max-h-12 sm:max-h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <span className="inline-block text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200/70 px-3 py-1 rounded-full mb-2">
+                      {t('partner_3_badge')}
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-bold text-[#00162d] font-heading group-hover:text-sky-700 transition-colors">
+                      {t('partner_3_title')}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-semibold">{t('partner_3_sub')}</p>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
+                    {t('partner_3_desc')}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_3_tag_1')}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_3_tag_2')}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
+                    {t('partner_3_tag_3')}
+                  </span>
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
-        </ScrollReveal>
+
+          {/* Interactive Consortium Trust & Verification Banner */}
+          <ScrollReveal direction="up" distance={16} duration={650}>
+            <div className="bg-[#00162d] text-white rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl relative overflow-hidden border border-slate-800">
+              {/* Subtle ocean decorative glow */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
+                <div className="flex items-start sm:items-center gap-4 sm:gap-5">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center shrink-0 shadow-inner">
+                    <Icon name="shield-2-check" size={26} />
+                  </div>
+                  <div>
+                    <div className="inline-flex items-center gap-2 text-cyan-400 text-[11px] font-extrabold tracking-wider uppercase mb-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                      <span>{t('partnership_banner_badge')}</span>
+                    </div>
+                    <h4 className="text-lg sm:text-xl font-bold text-white font-heading">
+                      {t('partnership_banner_title')}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed mt-1">
+                      {t('partnership_banner_desc')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
+                  <Link
+                    href="/verify"
+                    className="px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-sky-500/20 transition-all inline-flex items-center justify-center gap-2 group hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Icon name="scan" size={16} />
+                    <span>{t('partnership_banner_btn_verify')}</span>
+                  </Link>
+                  <Link
+                    href="/courses"
+                    className="px-5 py-3 rounded-xl border border-white/20 hover:border-white/50 bg-white/5 hover:bg-white/10 text-white font-semibold text-xs sm:text-sm transition-all inline-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <span>{t('partnership_banner_btn_courses')}</span>
+                    <Icon name="arrow-right" size={14} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
       </section>
 
       {/* =========================================================

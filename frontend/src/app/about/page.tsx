@@ -63,22 +63,43 @@ export default function AboutPage() {
 
   const consortiumEntities = [
     {
-      name: 'The Blue Economist International',
-      tag: t('ent1_tag'),
-      desc: t('ent1_desc'),
-      icon: 'globe-1',
-    },
-    {
-      name: 'Maritim Muda Nusantara',
+      name: t('ent2_name'),
+      sub: 'MaritimMuda.id',
+      badge: t('ent2_badge'),
       tag: t('ent2_tag'),
       desc: t('ent2_desc'),
-      icon: 'flag-1',
+      logo: '/images/partners/maritim_muda_logo@2x.png',
+      alt: 'Maritim Muda Nusantara',
+      borderColor: 'hover:border-cyan-300',
+      badgeStyle: 'bg-cyan-50 text-cyan-800 border-cyan-200/70',
+      glowColor: 'bg-cyan-400/10 group-hover:bg-cyan-400/20',
+      tags: ['Jejaring 38 Provinsi', 'Field Study Lapangan', 'Pemberdayaan Pemuda'],
     },
     {
-      name: 'Indonesia Blue Economy Center (IBEC)',
+      name: t('ent3_name'),
+      sub: 'Indonesia Blue Economy Center',
+      badge: t('ent3_badge'),
       tag: t('ent3_tag'),
       desc: t('ent3_desc'),
-      icon: 'buildings-1',
+      logo: '/images/partners/stie_ibec_logo@2x.png',
+      alt: 'STIE Indonesia Jakarta | IBEC',
+      borderColor: 'hover:border-indigo-300',
+      badgeStyle: 'bg-indigo-50 text-indigo-800 border-indigo-200/70',
+      glowColor: 'bg-indigo-400/10 group-hover:bg-indigo-400/20',
+      tags: ['Riset Ekonomi Biru', 'Silabus Terakreditasi', 'Studi Kasus Industri'],
+    },
+    {
+      name: t('ent1_name'),
+      sub: 'International Association',
+      badge: t('ent1_badge'),
+      tag: t('ent1_tag'),
+      desc: t('ent1_desc'),
+      logo: '/images/partners/the_blue_economist_logo@2x.png',
+      alt: 'The Blue Economist International Association',
+      borderColor: 'hover:border-sky-400',
+      badgeStyle: 'bg-sky-50 text-sky-800 border-sky-200/70',
+      glowColor: 'bg-sky-400/10 group-hover:bg-sky-400/20',
+      tags: ['Standar Global CBEc', 'QR Verifikasi Online', 'Diakui di 30+ Negara'],
     },
   ];
 
@@ -125,34 +146,113 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Consortium Overview */}
+      {/* =========================================================
+          PARTNERSHIP & CONSORTIUM OVERVIEW SECTION
+      ========================================================= */}
       <section className="container py-16 sm:py-20 -mt-10 relative z-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {/* Partnership Header Card */}
+        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200/90 shadow-xl mb-10 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-32 bg-sky-100/50 blur-3xl pointer-events-none rounded-full" />
+          <div className="relative z-10 max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-[#00162d] tracking-tight mb-3 font-heading leading-tight">
+              {t('partnership_title')}
+            </h2>
+            <p className="text-slate-800 text-base sm:text-lg font-bold mb-3 font-heading">
+              {t('partnership_subtitle')}
+            </p>
+            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+              {t('partnership_desc')}
+            </p>
+          </div>
+        </div>
+
+        {/* 3 Partner Institutional Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-10">
           {consortiumEntities.map((ent, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/80 shadow-lg hover:shadow-xl transition-all flex flex-col justify-between"
+              className={`bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/90 shadow-sm hover:shadow-xl ${ent.borderColor} transition-all duration-300 flex flex-col justify-between group relative overflow-hidden`}
             >
+              <div className={`absolute -top-16 -right-16 w-32 h-32 ${ent.glowColor} rounded-full blur-2xl transition-all pointer-events-none`} />
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-700 flex items-center justify-center mb-5 border border-sky-100">
-                  <Icon name={ent.icon} size={24} />
+                {/* Official Logo Surface */}
+                <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs transition-all duration-300">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={ent.logo}
+                    alt={ent.alt}
+                    className="max-h-14 sm:max-h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-wider text-sky-600 mb-1 block font-mono">
-                  {ent.tag}
-                </span>
-                <h3 className="text-xl font-bold text-[#00162d] mb-3 font-heading">
-                  {ent.name}
-                </h3>
-                <p className="text-sm text-slate-600 leading-relaxed mb-6">
+
+                <div className="mb-3">
+                  <span className={`inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border ${ent.badgeStyle}`}>
+                    {ent.badge}
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-bold text-[#00162d] mb-1 font-heading group-hover:text-sky-700 transition-colors">
+                    {ent.name}
+                  </h3>
+                  <p className="text-xs text-slate-400 font-semibold">{ent.sub}</p>
+                </div>
+
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
                   {ent.desc}
                 </p>
               </div>
-              <div className="pt-4 border-t border-slate-100 text-xs text-slate-500 flex items-center gap-2 font-medium">
-                <Icon name="check-circle-1" size={14} className="text-emerald-600" />
-                <span>{t('accredited_entity')}</span>
+
+              <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
+                {ent.tags.map((tag, tIdx) => (
+                  <span
+                    key={tIdx}
+                    className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Consortium Joint Seal & Verification Card */}
+        <div className="bg-[#00162d] text-white rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl relative overflow-hidden border border-slate-800">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
+            <div className="flex items-start sm:items-center gap-4 sm:gap-5">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center shrink-0 shadow-inner">
+                <Icon name="shield-2-check" size={26} />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-2 text-cyan-400 text-[11px] font-extrabold tracking-wider uppercase mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <span>{t('consortium_seal_badge')}</span>
+                </div>
+                <h4 className="text-lg sm:text-xl font-bold text-white font-heading">
+                  {t('consortium_seal_title')}
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed mt-1">
+                  {t('consortium_seal_desc')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
+              <Link
+                href="/verify"
+                className="px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-sky-500/20 transition-all inline-flex items-center justify-center gap-2 group hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Icon name="scan" size={16} />
+                <span>{t('consortium_seal_btn')}</span>
+              </Link>
+              <Link
+                href="/courses"
+                className="px-5 py-3 rounded-xl border border-white/20 hover:border-white/50 bg-white/5 hover:bg-white/10 text-white font-semibold text-xs sm:text-sm transition-all inline-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>{t('btn_courses')}</span>
+                <Icon name="arrow-right" size={14} />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
