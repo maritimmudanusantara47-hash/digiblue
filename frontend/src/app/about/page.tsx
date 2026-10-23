@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import PartnershipExpandableCards from '@/components/common/PartnershipExpandableCards';
+import AboutIntroSection from '@/components/common/AboutIntroSection';
 import { useTranslations } from 'next-intl';
 
 export default function AboutPage() {
@@ -198,17 +199,21 @@ export default function AboutPage() {
                 <Icon name="scan" size={16} />
                 <span>{t('consortium_seal_btn')}</span>
               </Link>
-              <Link
-                href="/courses"
-                className="px-5 py-3 rounded-xl border border-white/20 hover:border-white/50 bg-white/5 hover:bg-white/10 text-white font-semibold text-xs sm:text-sm transition-all inline-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <span>{t('btn_courses')}</span>
-                <Icon name="arrow-right" size={14} />
-              </Link>
             </div>
           </div>
         </div>
       </section>
+
+      {/* About DigiBlueCamp Platform Section */}
+      <AboutIntroSection
+        title={t('intro_sec_title')}
+        desc={t('intro_sec_desc')}
+        point1={t('intro_sec_feat_1')}
+        point2={t('intro_sec_feat_2')}
+        ctaText={t('btn_courses')}
+        ctaHref="/courses"
+        className="bg-white border-t border-slate-200/60"
+      />
 
       {/* Strategic Visi & 4 Pilar 2030 */}
       <section id="pilar" className="bg-slate-100/60 border-y border-slate-200/80 py-16 sm:py-20">

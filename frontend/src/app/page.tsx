@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import ScrollReveal from '@/components/common/ScrollReveal';
 import PartnershipExpandableCards from '@/components/common/PartnershipExpandableCards';
+import AboutIntroSection from '@/components/common/AboutIntroSection';
 import { useTranslations } from 'next-intl';
 
 import { getTranslations } from 'next-intl/server';
@@ -279,19 +280,25 @@ export default function LandingPage() {
                     <Icon name="scan" size={16} />
                     <span>{t('partnership_banner_btn_verify')}</span>
                   </Link>
-                  <Link
-                    href="/courses"
-                    className="px-5 py-3 rounded-xl border border-white/20 hover:border-white/50 bg-white/5 hover:bg-white/10 text-white font-semibold text-xs sm:text-sm transition-all inline-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <span>{t('partnership_banner_btn_courses')}</span>
-                    <Icon name="arrow-right" size={14} />
-                  </Link>
                 </div>
               </div>
             </div>
           </ScrollReveal>
         </div>
       </section>
+
+      {/* =========================================================
+          SECTION 2.5: ABOUT DIGIBLUECAMP INTRODUCTION
+      ========================================================= */}
+      <AboutIntroSection
+        title={t('about_sec_title')}
+        desc={t('about_sec_desc')}
+        point1={t('about_sec_feat_1')}
+        point2={t('about_sec_feat_2')}
+        ctaText={t('about_sec_btn_about')}
+        ctaHref="/about"
+        secondaryCtaHref="/courses"
+      />
 
       {/* =========================================================
           SECTION 3: 3 PROGRAM PATHWAYS (Stitch Screenshot 113436)
@@ -445,47 +452,99 @@ export default function LandingPage() {
       </section>
 
       {/* =========================================================
-          SECTION 5: DARK STATS / WHY DIGIBLUE (Stitch Screenshot 113514)
+          SECTION 5: WHY CHOOSE US / APA YANG MEMBUAT KAMI BERBEDA
       ========================================================= */}
-      <section className="bg-[#0A192F] text-white relative overflow-hidden py-20 lg:py-24">
-        <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-          <ScrollReveal direction="left" distance={24} duration={700}>
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 font-heading leading-tight">
+      <section className="bg-[#021224] text-white relative overflow-hidden py-20 lg:py-28 border-y border-slate-800">
+        {/* Soft bioluminescent ambient background light */}
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-96 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-96 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
+
+        <div className="container relative z-10">
+          {/* Centered Header */}
+          <ScrollReveal direction="up" distance={20} duration={650}>
+            <div className="text-center max-w-3xl mx-auto mb-14">
+
+              {/* Section Title */}
+              <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-black text-white tracking-tight mb-4 font-heading leading-tight">
                 {t('why_title')}
               </h2>
-              <p className="text-slate-300 text-sm sm:text-base mb-8 leading-relaxed">
+
+              {/* Subtitle / Description */}
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
                 {t('why_desc')}
               </p>
-              <Link
-                href="/courses"
-                className="px-8 py-3.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-[#0A192F] text-sm font-black shadow-lg shadow-amber-500/25 inline-flex items-center gap-2.5 group hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                <span>{t('why_btn')}</span>
-                <Icon name="arrow-right" size={15} className="transition-transform group-hover:translate-x-1" />
-              </Link>
             </div>
           </ScrollReveal>
 
-          {/* Symmetrical 2x2 Metric Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              ['14', t('why_stat_1')],
-              ['10', t('why_stat_2')],
-              ['3', t('why_stat_3')],
-              ['1', t('why_stat_4')],
-            ].map(([num, label], idx) => (
-              <ScrollReveal key={label} delay={idx * 100} distance={20} duration={650} className="h-full">
-                <div className="h-full min-h-[148px] rounded-2xl bg-[#132644] border border-slate-700/60 p-5 sm:p-6 flex flex-col justify-between hover:bg-[#1a335c] hover:border-amber-400/40 transition-all duration-300">
-                  <div className="text-4xl sm:text-5xl font-black text-[#F59E0B] mb-2 font-heading">
-                    {num}
-                  </div>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-snug">
-                    {label}
+          {/* 4 Value Proposition Cards in Balanced 2x2 Grid */}
+          <div className="grid md:grid-cols-2 gap-5 sm:gap-6 max-w-5xl mx-auto mb-12">
+            {/* Point 1: E-learning Pertama */}
+            <ScrollReveal delay={0} distance={20} duration={650} className="h-full">
+              <div className="h-full p-6 sm:p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/50 hover:bg-white/[0.08] transition-all duration-300 flex items-start gap-5 group">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                  <Icon name="graduation-cap-1" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {t('why_point_1_title')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1.5">
+                    {t('why_point_1_desc')}
                   </p>
                 </div>
-              </ScrollReveal>
-            ))}
+              </div>
+            </ScrollReveal>
+
+            {/* Point 2: Edukatif & Aplikatif */}
+            <ScrollReveal delay={100} distance={20} duration={650} className="h-full">
+              <div className="h-full p-6 sm:p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/50 hover:bg-white/[0.08] transition-all duration-300 flex items-start gap-5 group">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-teal-400 text-white flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                  <Icon name="book-1" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {t('why_point_2_title')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1.5">
+                    {t('why_point_2_desc')}
+                  </p>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Point 3: Mentor Praktisi */}
+            <ScrollReveal delay={200} distance={20} duration={650} className="h-full">
+              <div className="h-full p-6 sm:p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/50 hover:bg-white/[0.08] transition-all duration-300 flex items-start gap-5 group">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                  <Icon name="certificate-badge-1" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {t('why_point_3_title')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1.5">
+                    {t('why_point_3_desc')}
+                  </p>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Point 4: Ekonomi Biru & Digital */}
+            <ScrollReveal delay={300} distance={20} duration={650} className="h-full">
+              <div className="h-full p-6 sm:p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-cyan-400/50 hover:bg-white/[0.08] transition-all duration-300 flex items-start gap-5 group">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-white flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                  <Icon name="globe-1" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {t('why_point_4_title')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1.5">
+                    {t('why_point_4_desc')}
+                  </p>
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -503,13 +562,6 @@ export default function LandingPage() {
               <p className="text-slate-600 mb-8 leading-relaxed">
                 {t('cert_sec_desc')}
               </p>
-              <Link
-                href="/courses"
-                className="px-8 py-3.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-sm font-bold shadow-md shadow-sky-600/25 inline-flex items-center gap-2.5 group hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                <span>{t('cert_sec_btn')}</span>
-                <Icon name="arrow-right" size={15} className="transition-transform group-hover:translate-x-1" />
-              </Link>
             </div>
           </ScrollReveal>
 
@@ -537,26 +589,6 @@ export default function LandingPage() {
       ========================================================= */}
       <section id="termasuk" className="bg-sky-50/50 border-y border-slate-200/80 scroll-mt-24 py-16 sm:py-20 lg:py-24">
         <div className="container grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <ScrollReveal direction="left" distance={24} duration={700}>
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#00162d] mb-4 font-heading leading-tight">
-                {t('inc_sec_title')}
-              </h2>
-              <p className="text-slate-600 mb-8 leading-relaxed max-w-lg">
-                {t('inc_sec_desc')}
-              </p>
-              <div className="inline-flex items-center gap-3.5 bg-white rounded-2xl border border-slate-200 px-5 py-3.5 shadow-xs">
-                <div className="w-10 h-10 rounded-full bg-sky-100 text-[#0284C7] flex items-center justify-center shrink-0">
-                  <Icon name="trophy-1" size={20} />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">{t('inc_sec_badge_title')}</p>
-                  <p className="font-bold text-[#00162d] text-sm font-heading">{t('inc_sec_badge_val')}</p>
-                </div>
-              </div>
-            </div>
-          </ScrollReveal>
-
           <ScrollReveal delay={120} distance={24} duration={700}>
             <div className="bg-white rounded-3xl border border-slate-200 p-7 sm:p-9 shadow-xl shadow-sky-500/5">
               <h3 className="font-bold text-[#00162d] mb-6 text-base font-heading flex items-center gap-2.5">
@@ -573,13 +605,26 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/courses"
-                className="w-full py-4 px-6 rounded-xl bg-[#0096C7] hover:bg-[#0077B6] text-white text-sm font-bold shadow-lg shadow-sky-600/25 inline-flex items-center justify-center gap-2.5 group hover:scale-[1.01] active:scale-[0.99] transition-all"
-              >
-                <span>{t('inc_sec_btn')}</span>
-                <Icon name="arrow-right" size={15} className="transition-transform group-hover:translate-x-1" />
-              </Link>
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal direction="right" distance={24} duration={700}>
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#00162d] mb-4 font-heading leading-tight">
+                {t('inc_sec_title')}
+              </h2>
+              <p className="text-slate-600 mb-8 leading-relaxed max-w-lg">
+                {t('inc_sec_desc')}
+              </p>
+              <div className="inline-flex items-center gap-3.5 bg-white rounded-2xl border border-slate-200 px-5 py-3.5 shadow-xs">
+                <div className="w-10 h-10 rounded-full bg-sky-100 text-[#0284C7] flex items-center justify-center shrink-0">
+                  <Icon name="trophy-1" size={20} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">{t('inc_sec_badge_title')}</p>
+                  <p className="font-bold text-[#00162d] text-sm font-heading">{t('inc_sec_badge_val')}</p>
+                </div>
+              </div>
             </div>
           </ScrollReveal>
         </div>
