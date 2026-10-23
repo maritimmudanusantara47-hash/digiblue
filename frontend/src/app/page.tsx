@@ -2,6 +2,7 @@ import Icon from '@/components/Icon';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import ScrollReveal from '@/components/common/ScrollReveal';
+import PartnershipExpandableCards from '@/components/common/PartnershipExpandableCards';
 import { useTranslations } from 'next-intl';
 
 import { getTranslations } from 'next-intl/server';
@@ -205,139 +206,52 @@ export default function LandingPage() {
             </div>
           </ScrollReveal>
 
-          {/* 3 Partner Cards Grid */}
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
-            {/* Partner 1: Maritim Muda Nusantara */}
-            <ScrollReveal delay={0} distance={20} duration={700} className="h-full">
-              <div className="bg-white rounded-3xl p-7 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-cyan-300 transition-all duration-300 flex flex-col justify-between h-full group relative overflow-hidden">
-                <div className="absolute -top-16 -right-16 w-32 h-32 bg-cyan-400/10 rounded-full blur-2xl group-hover:bg-cyan-400/20 transition-all pointer-events-none" />
-                <div>
-                  {/* Logo Display Surface */}
-                  <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs group-hover:border-cyan-100 transition-all duration-300">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/images/partners/maritim_muda_logo@2x.png"
-                      alt="Maritim Muda Nusantara"
-                      className="max-h-14 sm:max-h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <span className="inline-block text-[11px] font-bold text-cyan-800 bg-cyan-50 border border-cyan-200/70 px-3 py-1 rounded-full mb-2">
-                      {t('partner_1_badge')}
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-bold text-[#00162d] font-heading group-hover:text-cyan-700 transition-colors">
-                      {t('partner_1_title')}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-semibold">{t('partner_1_sub')}</p>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
-                    {t('partner_1_desc')}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_1_tag_1')}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_1_tag_2')}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_1_tag_3')}
-                  </span>
-                </div>
-              </div>
-            </ScrollReveal>
-
-            {/* Partner 2: STIE Indonesia Jakarta | IBEC */}
-            <ScrollReveal delay={120} distance={20} duration={700} className="h-full">
-              <div className="bg-white rounded-3xl p-7 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all duration-300 flex flex-col justify-between h-full group relative overflow-hidden">
-                <div className="absolute -top-16 -right-16 w-32 h-32 bg-indigo-400/10 rounded-full blur-2xl group-hover:bg-indigo-400/20 transition-all pointer-events-none" />
-                <div>
-                  {/* Logo Display Surface */}
-                  <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs group-hover:border-indigo-100 transition-all duration-300">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/images/partners/stie_ibec_logo@2x.png"
-                      alt="STIE Indonesia Jakarta | IBEC"
-                      className="max-h-14 sm:max-h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <span className="inline-block text-[11px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200/70 px-3 py-1 rounded-full mb-2">
-                      {t('partner_2_badge')}
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-bold text-[#00162d] font-heading group-hover:text-indigo-700 transition-colors">
-                      {t('partner_2_title')}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-semibold">{t('partner_2_sub')}</p>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
-                    {t('partner_2_desc')}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_2_tag_1')}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_2_tag_2')}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_2_tag_3')}
-                  </span>
-                </div>
-              </div>
-            </ScrollReveal>
-
-            {/* Partner 3: The Blue Economist International Association */}
-            <ScrollReveal delay={240} distance={20} duration={700} className="h-full">
-              <div className="bg-white rounded-3xl p-7 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-sky-400 transition-all duration-300 flex flex-col justify-between h-full group relative overflow-hidden">
-                <div className="absolute -top-16 -right-16 w-32 h-32 bg-sky-400/10 rounded-full blur-2xl group-hover:bg-sky-400/20 transition-all pointer-events-none" />
-                <div>
-                  {/* Logo Display Surface */}
-                  <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs group-hover:border-sky-100 transition-all duration-300">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/images/partners/the_blue_economist_logo@2x.png"
-                      alt="The Blue Economist International Association"
-                      className="max-h-12 sm:max-h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <span className="inline-block text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200/70 px-3 py-1 rounded-full mb-2">
-                      {t('partner_3_badge')}
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-bold text-[#00162d] font-heading group-hover:text-sky-700 transition-colors">
-                      {t('partner_3_title')}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-semibold">{t('partner_3_sub')}</p>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
-                    {t('partner_3_desc')}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_3_tag_1')}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_3_tag_2')}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg">
-                    {t('partner_3_tag_3')}
-                  </span>
-                </div>
-              </div>
-            </ScrollReveal>
+          {/* Interactive Expandable Partner Cards */}
+          <div className="mb-12">
+            <PartnershipExpandableCards
+              partners={[
+                {
+                  id: 'maritim-muda',
+                  name: t('partner_1_title'),
+                  sub: t('partner_1_sub'),
+                  badge: t('partner_1_badge'),
+                  desc: t('partner_1_desc'),
+                  logo: '/images/partners/maritim_muda_logo@2x.png',
+                  alt: 'Maritim Muda Nusantara',
+                  borderColor: 'border-cyan-300',
+                  badgeStyle: 'bg-cyan-50 text-cyan-800 border-cyan-200/70',
+                  glowColor: 'bg-cyan-400/20',
+                  tags: [t('partner_1_tag_1'), t('partner_1_tag_2'), t('partner_1_tag_3')],
+                },
+                {
+                  id: 'stie-ibec',
+                  name: t('partner_2_title'),
+                  sub: t('partner_2_sub'),
+                  badge: t('partner_2_badge'),
+                  desc: t('partner_2_desc'),
+                  logo: '/images/partners/stie_ibec_logo@2x.png',
+                  alt: 'STIE Indonesia Jakarta | IBEC',
+                  borderColor: 'border-indigo-300',
+                  badgeStyle: 'bg-indigo-50 text-indigo-800 border-indigo-200/70',
+                  glowColor: 'bg-indigo-400/20',
+                  tags: [t('partner_2_tag_1'), t('partner_2_tag_2'), t('partner_2_tag_3')],
+                },
+                {
+                  id: 'the-blue-economist',
+                  name: t('partner_3_title'),
+                  sub: t('partner_3_sub'),
+                  badge: t('partner_3_badge'),
+                  desc: t('partner_3_desc'),
+                  logo: '/images/partners/the_blue_economist_logo@2x.png',
+                  alt: 'The Blue Economist International Association',
+                  borderColor: 'border-sky-400',
+                  badgeStyle: 'bg-sky-50 text-sky-800 border-sky-200/70',
+                  glowColor: 'bg-sky-400/20',
+                  tags: [t('partner_3_tag_1'), t('partner_3_tag_2'), t('partner_3_tag_3')],
+                },
+              ]}
+              hideDetailsText={t('partnership_hide_details')}
+            />
           </div>
 
           {/* Interactive Consortium Trust & Verification Banner */}
@@ -347,14 +261,7 @@ export default function LandingPage() {
               <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
               <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
                 <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center shrink-0 shadow-inner">
-                    <Icon name="shield-2-check" size={26} />
-                  </div>
                   <div>
-                    <div className="inline-flex items-center gap-2 text-cyan-400 text-[11px] font-extrabold tracking-wider uppercase mb-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                      <span>{t('partnership_banner_badge')}</span>
-                    </div>
                     <h4 className="text-lg sm:text-xl font-bold text-white font-heading">
                       {t('partnership_banner_title')}
                     </h4>

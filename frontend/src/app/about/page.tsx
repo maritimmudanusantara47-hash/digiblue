@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import PartnershipExpandableCards from '@/components/common/PartnershipExpandableCards';
 import { useTranslations } from 'next-intl';
 
 export default function AboutPage() {
@@ -63,42 +64,42 @@ export default function AboutPage() {
 
   const consortiumEntities = [
     {
+      id: 'maritim-muda',
       name: t('ent2_name'),
       sub: 'MaritimMuda.id',
       badge: t('ent2_badge'),
-      tag: t('ent2_tag'),
       desc: t('ent2_desc'),
       logo: '/images/partners/maritim_muda_logo@2x.png',
       alt: 'Maritim Muda Nusantara',
-      borderColor: 'hover:border-cyan-300',
+      borderColor: 'border-cyan-300',
       badgeStyle: 'bg-cyan-50 text-cyan-800 border-cyan-200/70',
-      glowColor: 'bg-cyan-400/10 group-hover:bg-cyan-400/20',
+      glowColor: 'bg-cyan-400/20',
       tags: ['Jejaring 38 Provinsi', 'Field Study Lapangan', 'Pemberdayaan Pemuda'],
     },
     {
+      id: 'stie-ibec',
       name: t('ent3_name'),
       sub: 'Indonesia Blue Economy Center',
       badge: t('ent3_badge'),
-      tag: t('ent3_tag'),
       desc: t('ent3_desc'),
       logo: '/images/partners/stie_ibec_logo@2x.png',
       alt: 'STIE Indonesia Jakarta | IBEC',
-      borderColor: 'hover:border-indigo-300',
+      borderColor: 'border-indigo-300',
       badgeStyle: 'bg-indigo-50 text-indigo-800 border-indigo-200/70',
-      glowColor: 'bg-indigo-400/10 group-hover:bg-indigo-400/20',
+      glowColor: 'bg-indigo-400/20',
       tags: ['Riset Ekonomi Biru', 'Silabus Terakreditasi', 'Studi Kasus Industri'],
     },
     {
+      id: 'the-blue-economist',
       name: t('ent1_name'),
       sub: 'International Association',
       badge: t('ent1_badge'),
-      tag: t('ent1_tag'),
       desc: t('ent1_desc'),
       logo: '/images/partners/the_blue_economist_logo@2x.png',
       alt: 'The Blue Economist International Association',
-      borderColor: 'hover:border-sky-400',
+      borderColor: 'border-sky-400',
       badgeStyle: 'bg-sky-50 text-sky-800 border-sky-200/70',
-      glowColor: 'bg-sky-400/10 group-hover:bg-sky-400/20',
+      glowColor: 'bg-sky-400/20',
       tags: ['Standar Global CBEc', 'QR Verifikasi Online', 'Diakui di 30+ Negara'],
     },
   ];
@@ -166,52 +167,12 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* 3 Partner Institutional Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-10">
-          {consortiumEntities.map((ent, idx) => (
-            <div
-              key={idx}
-              className={`bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/90 shadow-sm hover:shadow-xl ${ent.borderColor} transition-all duration-300 flex flex-col justify-between group relative overflow-hidden`}
-            >
-              <div className={`absolute -top-16 -right-16 w-32 h-32 ${ent.glowColor} rounded-full blur-2xl transition-all pointer-events-none`} />
-              <div>
-                {/* Official Logo Surface */}
-                <div className="h-24 w-full bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-center p-3 mb-6 group-hover:bg-white group-hover:shadow-xs transition-all duration-300">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={ent.logo}
-                    alt={ent.alt}
-                    className="max-h-14 sm:max-h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <span className={`inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border ${ent.badgeStyle}`}>
-                    {ent.badge}
-                  </span>
-                  <h3 className="text-lg sm:text-xl font-bold text-[#00162d] mb-1 font-heading group-hover:text-sky-700 transition-colors">
-                    {ent.name}
-                  </h3>
-                  <p className="text-xs text-slate-400 font-semibold">{ent.sub}</p>
-                </div>
-
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
-                  {ent.desc}
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-1.5">
-                {ent.tags.map((tag, tIdx) => (
-                  <span
-                    key={tIdx}
-                    className="text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+        {/* Interactive Expandable Partner Cards */}
+        <div className="mb-10">
+          <PartnershipExpandableCards
+            partners={consortiumEntities}
+            hideDetailsText={t('partnership_hide_details')}
+          />
         </div>
 
         {/* Consortium Joint Seal & Verification Card */}
@@ -219,14 +180,7 @@ export default function AboutPage() {
           <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
             <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center shrink-0 shadow-inner">
-                <Icon name="shield-2-check" size={26} />
-              </div>
               <div>
-                <div className="inline-flex items-center gap-2 text-cyan-400 text-[11px] font-extrabold tracking-wider uppercase mb-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  <span>{t('consortium_seal_badge')}</span>
-                </div>
                 <h4 className="text-lg sm:text-xl font-bold text-white font-heading">
                   {t('consortium_seal_title')}
                 </h4>
