@@ -87,6 +87,17 @@ export default function AdminCourseContentPage() {
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [previewPdfTitle, setPreviewPdfTitle] = useState('');
 
+  useEffect(() => {
+    if (previewPdfUrl) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [previewPdfUrl]);
+
   // Multi-attachment state for case study
   const [uploadingAttachmentCat, setUploadingAttachmentCat] = useState<string | null>(null);
   const [newAdditionalTitle, setNewAdditionalTitle] = useState('');
@@ -1207,30 +1218,42 @@ export default function AdminCourseContentPage() {
 
       {/* ─── PDF Preview Modal ────────────────────────────────────────── */}
       {previewPdfUrl && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadein">
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xl"><Icon name="book-1" size={20} /></span>
-                <span className="font-bold text-sm truncate">{t('lbl_admin_reader_preview')} {previewPdfTitle}</span>
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fadein"
+            onClick={() => setPreviewPdfUrl(null)}
+          >
+            <div 
+              className="bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl w-full max-w-5xl h-[88vh] flex flex-col overflow-hidden shadow-2xl animate-fadeup"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Modal */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900 text-white flex-shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-sky-400"><Icon name="book-1" size={18} /></span>
+                  <span className="font-bold text-sm truncate">{t('lbl_admin_reader_preview')} {previewPdfTitle}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewPdfUrl(null)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold flex items-center gap-1.5"
+                >
+                  <Icon name="xmark" size={15} /> {t('btn_close')}
+                </button>
               </div>
-              <button
-                onClick={() => setPreviewPdfUrl(null)}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs font-bold"
-              >
-                <Icon name="xmark" size={16} className="mr-1.5" />{t('btn_close')}
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden p-2">
-              <AestheticPdfReader
-                url={previewPdfUrl}
-                title={previewPdfTitle}
-                allowDownload={true}
-                height="100%"
-              />
+
+              {/* PDF Viewer Body */}
+              <div className="flex-1 min-h-0 overflow-hidden p-2 bg-slate-900/50">
+                <AestheticPdfReader
+                  url={previewPdfUrl}
+                  title={previewPdfTitle}
+                  allowDownload={true}
+                  height="100%"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
       {/* ─── Image Insertion Modal (Upload Lokal & URL) ──────────────────── */}
       {imageModalOpen && (
