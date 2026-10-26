@@ -80,13 +80,11 @@ class CertificateController extends Controller
     {
         $type = $request->query('type');
         if (! $type) {
-            if ($cert->enrollment && $cert->enrollment->attended_field_trip) {
-                $type = 'field_study';
-            } elseif (
-                str_contains(strtolower($cert->serial_number ?? ''), 'cbetc') ||
-                str_contains(strtolower($cert->enrollment->course->title ?? ''), 'critical thinking')
-            ) {
-                $type = 'critical_thinking';
+            // Hanya fallback ke tipe sertifikat pelatihan jika nomor seri memang berawalan CBETC
+            if (str_starts_with(strtoupper($cert->serial_number ?? ''), 'CBETC')) {
+                $type = ($cert->enrollment && $cert->enrollment->attended_field_trip)
+                    ? 'field_study'
+                    : 'critical_thinking';
             }
         }
 
