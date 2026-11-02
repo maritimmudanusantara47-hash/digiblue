@@ -3,7 +3,6 @@
 import Icon from '@/components/Icon';
 import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
 import api from '@/lib/api';
 import { useTranslations, useLocale } from 'next-intl';
 import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
@@ -383,13 +382,6 @@ export default function AdminEnrollmentsPage() {
                       >
                         <Icon name="pencil-1" size={16} />
                       </button>
-                      <Link
-                        href="/admin/certificates"
-                        className="btn btn-sm btn-secondary text-xs px-2.5 flex items-center justify-center"
-                        title={t('tooltip_manage_cert')}
-                      >
-                        <Icon name="graduation-cap-1" size={16} />
-                      </Link>
                       <button
                         id={`del-btn-${en.id}`}
                         onClick={() => setDeleteTarget(en)}
