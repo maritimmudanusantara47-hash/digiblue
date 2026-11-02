@@ -363,11 +363,15 @@ class CertificateService
 
         $enrollment->update(['status' => 'completed']);
 
-        // Sinkronisasi otomatis ke The Blue Economist jika konfigurasi aktif
+        // Sinkronisasi otomatis ke The Blue Economist via Queue Job (asinkron)
         try {
-            app(TheBlueEconomistService::class)->syncCertificate($certificate);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Auto-sync certificate {$certificate->id} ke TBE gagal: " . $e->getMessage());
+            \App\Jobs\SyncCertificateToTBEJob::dispatch($certificate);
+        } catch (\Throwable $e) {
+            try {
+                app(TheBlueEconomistService::class)->syncCertificate($certificate);
+            } catch (\Throwable $ex) {
+                \Illuminate\Support\Facades\Log::warning("Auto-sync certificate {$certificate->id} ke TBE gagal: " . $ex->getMessage());
+            }
         }
 
         return $certificate;

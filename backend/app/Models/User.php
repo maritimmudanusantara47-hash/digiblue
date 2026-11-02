@@ -21,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'country',
         'region',
         'institution',
+        'tbe_user_id',
         'email_verified_at',
     ];
 

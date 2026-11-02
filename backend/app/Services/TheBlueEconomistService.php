@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Certificate;
 use App\Models\CertificateSyncLog;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -14,42 +15,69 @@ class TheBlueEconomistService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(config('services.the_blue_economist.url', ''), '/');
-        $this->apiKey  = config('services.the_blue_economist.key', '');
+        $rawUrl = config('services.the_blue_economist.url', 'https://backend.theblueeconomist.org');
+        // Normalisasi URL: hilangkan trailing slash dan akhiran /api atau /api/v1 jika tidak sengaja tertulis
+        $cleanUrl = preg_replace('/\/api(\/v\d+)?\/?$/i', '', rtrim($rawUrl, '/'));
+        $this->baseUrl = !empty($cleanUrl) ? $cleanUrl : 'https://backend.theblueeconomist.org';
+        $this->apiKey  = config('services.the_blue_economist.key', 'digiblue_secret_sync_key_2026');
     }
 
     /**
-     * Push data sertifikat ke The Blue Economist API
+     * Push data sertifikat ke The Blue Economist API agar otomatis tersimpan di database TBE
+     * dan dapat langsung diverifikasi di URL publik theblueeconomist.org/certification/{routeKey}.
      */
     public function syncCertificate(Certificate $certificate): bool
     {
+        $user       = $certificate->user;
         $enrollment = $certificate->enrollment;
-        $course     = $enrollment->course;
-        $level      = $course->certificationLevel;
+        $course     = $enrollment ? $enrollment->course : null;
+        $level      = $course ? $course->certificationLevel : null;
+        $levelName  = $level ? $level->name : 'Foundation Level';
+        $isExecutive= ($level && $level->code === 'EXE');
+        $verificationUrl = "https://theblueeconomist.org/certification/{$certificate->serial_url_key}";
+        
+        $issueDateFormatted = Carbon::parse($certificate->date_of_issue)->translatedFormat('d F Y');
 
         $payload = [
-            'recipient_name'       => $certificate->user->name,
-            'recipient_email'      => $certificate->user->email,
+            // Kontrak utama TBE (sesuai skema tabel certificates di The Blue Economist)
+            'route_key'            => $certificate->serial_url_key,
+            'certificate_id'       => $certificate->serial_number,
+            'holder_name'          => $user->name,
+            'recipient_email'      => $user->email,
+            'certification_name'   => 'Certified Blue Economist (CBEc)',
+            'level'                => $levelName,
+            'type'                 => $isExecutive ? 'Executive' : 'Regular',
+            'issue_date'           => $issueDateFormatted,
+            'grade'                => $certificate->grade,
+            'specialization_track' => ($level && $level->code === 'SPEC') ? $course->title : null,
+            'verification_url'     => $verificationUrl,
+            'layout'               => 'new',
+
+            // Data profil tambahan untuk user mapping di TBE
+            'phone_number'         => $user->phone_number,
+            'institution'          => $user->institution,
+            'country'              => $user->country ?? 'Indonesia',
+
+            // Kompatibilitas mundur (Legacy PRD specification)
+            'recipient_name'       => $user->name,
             'serial_number'        => $certificate->serial_number,
             'serial_url_key'       => $certificate->serial_url_key,
-            'verification_url'     => "https://theblueeconomist.org/certification/{$certificate->serial_url_key}",
-            'program_type'         => $level->name,
+            'program_type'         => $levelName,
             'program_name'         => 'Certified Blue Economist (CBEc)',
-            'specialization_track' => $level->code === 'SPEC' ? $course->title : null,
-            'grade'                => $certificate->grade,
             'date_of_issue'        => $certificate->date_of_issue,
-            'place_of_issue'       => $certificate->place_of_issue,
+            'place_of_issue'       => $certificate->place_of_issue ?? 'Jakarta, Indonesia',
             'issued_by'            => 'The Blue Economist International Association',
         ];
 
         try {
             $response = Http::withToken($this->apiKey)
-                ->timeout(30)
+                ->timeout(20)
                 ->post("{$this->baseUrl}/api/v1/certificates", $payload);
 
             $success = $response->successful();
+            $responseData = $response->json();
 
-            // Log setiap percobaan sinkronisasi
+            // Log setiap percobaan sinkronisasi ke tabel audit
             CertificateSyncLog::create([
                 'certificate_id'   => $certificate->id,
                 'status'           => $success ? 'success' : 'failed',
@@ -60,13 +88,29 @@ class TheBlueEconomistService
             ]);
 
             if ($success) {
+                // Ambil ID hasil simpan dari The Blue Economist
+                $tbeCertId = $responseData['data']['tbe_certificate_id'] ?? null;
+                $tbeUserId = $responseData['data']['tbe_user_id'] ?? null;
+
                 $certificate->update([
-                    'sync_status' => 'synced',
-                    'synced_at'   => now(),
+                    'tbe_certificate_id' => $tbeCertId,
+                    'sync_status'        => 'synced',
+                    'synced_at'          => now(),
                 ]);
+
+                // Simpan juga tbe_user_id ke data user di DigiBlue
+                if ($tbeUserId && $user) {
+                    $user->update([
+                        'tbe_user_id' => $tbeUserId,
+                    ]);
+                }
             } else {
                 $certificate->update(['sync_status' => 'failed']);
-                Log::error('TBE Sync Failed', ['cert_id' => $certificate->id, 'response' => $response->body()]);
+                Log::error('TBE Sync Failed', [
+                    'cert_id'  => $certificate->id,
+                    'status'   => $response->status(),
+                    'response' => $response->body()
+                ]);
             }
 
             return $success;
