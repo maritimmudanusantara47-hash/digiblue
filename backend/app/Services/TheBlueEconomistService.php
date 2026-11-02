@@ -52,6 +52,7 @@ class TheBlueEconomistService
             'specialization_track' => ($level && $level->code === 'SPEC') ? $course->title : null,
             'verification_url'     => $verificationUrl,
             'layout'               => 'new',
+            'is_published'         => config('services.the_blue_economist.auto_publish', false),
 
             // Data profil tambahan untuk user mapping di TBE
             'phone_number'         => $user->phone_number,
