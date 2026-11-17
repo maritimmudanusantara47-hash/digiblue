@@ -633,29 +633,19 @@ export default function AdminCourseContentPage() {
               {course.sections.map(section => (
                 <div key={section.id}>
                   <div className="px-3.5 py-2 bg-slate-100/90 backdrop-blur-xs border-b border-slate-200/70 sticky top-0 z-10 flex items-center justify-between">
-                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider truncate flex-1 mr-2" title={section.title}>
+                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider truncate flex-1" title={section.title}>
                       {section.title}
                     </p>
-                    <div className="flex items-center gap-1 shrink-0">
+                    {course.sections.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => openAddContentModal(section.id)}
-                        className="p-1 text-slate-400 hover:text-navy hover:bg-white rounded transition-colors"
-                        title={`Tambah materi ke ${section.title}`}
+                        onClick={() => handleDeleteSection(section.id, section.title)}
+                        className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                        title={`Hapus bab ${section.title}`}
                       >
-                        <Icon name="plus" size={13} />
+                        <Icon name="trash" size={13} />
                       </button>
-                      {course.sections.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteSection(section.id, section.title)}
-                          className="p-1 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                          title={`Hapus bab ${section.title}`}
-                        >
-                          <Icon name="trash" size={13} />
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
                   {section.contents.map(content => {
                     const meta = TYPE_META[content.content_type] ?? { icon: 'flag-1', label: content.content_type };
@@ -688,14 +678,14 @@ export default function AdminCourseContentPage() {
                             e.stopPropagation();
                             handleDeleteContent(content);
                           }}
-                          className={`mr-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${
+                          className={`mr-2.5 p-1.5 rounded-lg transition-colors ${
                             isSelected
-                              ? 'text-rose-300 hover:text-rose-100 hover:bg-navy-light/60'
+                              ? 'text-rose-200 hover:text-white hover:bg-rose-500/30'
                               : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
                           }`}
                           title={`Hapus ${content.title}`}
                         >
-                          <Icon name="trash" size={13} />
+                          <Icon name="trash" size={14} />
                         </button>
                       </div>
                     );
@@ -714,7 +704,7 @@ export default function AdminCourseContentPage() {
                 className="w-full py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-navy hover:bg-white border border-dashed border-slate-300 hover:border-navy/40 rounded-xl flex items-center justify-center gap-1.5 transition-all"
               >
                 <Icon name="plus" size={12} />
-                <span>+ Tambah Bab / Seksi Baru</span>
+                <span>Tambah Bab / Seksi Baru</span>
               </button>
             </div>
           </div>
