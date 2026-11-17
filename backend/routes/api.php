@@ -89,6 +89,10 @@ Route::prefix('v1')->group(function () {
             Route::patch('enrollments/{id}/field-trip', [EnrollmentController::class, 'toggleFieldTrip']); // Centang kehadiran Field Trip
         });
 
+        Route::middleware('role:admin')->group(function () {
+            Route::patch('batches/{id}', [AdminBatchController::class, 'update']); // Direct alias PATCH /api/v1/batches/{id}
+        });
+
         // ─── Admin Only Routes ────────────────────────────────────────────────
         Route::middleware('role:admin')->prefix('admin')->group(function () {
 

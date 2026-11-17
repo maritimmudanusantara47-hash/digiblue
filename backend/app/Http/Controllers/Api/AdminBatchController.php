@@ -50,6 +50,9 @@ class AdminBatchController extends Controller
             'end_date'                => 'nullable|date|after_or_equal:start_date',
             'field_trip_date'         => 'nullable|date',
             'is_active'               => 'boolean',
+        ], [
+            'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',
+            'end_date.after_or_equal'              => 'Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.',
         ]);
 
         $batch = CourseBatch::create($validated);
@@ -65,15 +68,22 @@ class AdminBatchController extends Controller
     {
         $batch = CourseBatch::findOrFail($id);
 
+        $regStart = $request->input('registration_start_date', $batch->registration_start_date ? $batch->registration_start_date->format('Y-m-d') : null);
+        $learnStart = $request->input('start_date', $batch->start_date ? $batch->start_date->format('Y-m-d') : null);
+
         $validated = $request->validate([
+            'course_id'               => 'sometimes|required|exists:courses,id',
             'batch_name'              => 'sometimes|required|string|max:100',
             'batch_code'              => 'nullable|string|max:50',
             'registration_start_date' => 'nullable|date',
-            'registration_end_date'   => 'nullable|date',
+            'registration_end_date'   => 'nullable|date' . ($regStart ? '|after_or_equal:' . $regStart : ''),
             'start_date'              => 'nullable|date',
-            'end_date'                => 'nullable|date',
+            'end_date'                => 'nullable|date' . ($learnStart ? '|after_or_equal:' . $learnStart : ''),
             'field_trip_date'         => 'nullable|date',
             'is_active'               => 'boolean',
+        ], [
+            'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',
+            'end_date.after_or_equal'              => 'Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.',
         ]);
 
         $batch->update($validated);

@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
+import { showSuccess, showError } from '@/lib/swal';
 
 interface Course { id: number; title: string }
 interface CourseBatch {
@@ -124,7 +125,10 @@ export default function AdminBatchesPage() {
   // ── CRUD ───────────────────────────────────────────────────────────────────
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.course_id || !form.batch_name) { setError('Kursus dan nama batch wajib diisi.'); return; }
+    if (!form.course_id || !form.batch_name) {
+      setError('Kursus dan nama batch wajib diisi.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -145,10 +149,17 @@ export default function AdminBatchesPage() {
         await api.patch(`/admin/batches/${editId}`, payload);
       }
       closeModal();
-      fetchBatches();
+      await fetchBatches();
+      showSuccess(
+        'Berhasil!',
+        mode === 'create'
+          ? 'Batch angkatan baru berhasil dibuat.'
+          : 'Data batch angkatan berhasil diperbarui.'
+      );
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? 'Gagal menyimpan batch.');
+      showError('Gagal Menyimpan!', msg ?? 'Terjadi kesalahan saat menyimpan data batch.');
     } finally {
       setSaving(false);
     }
@@ -159,11 +170,13 @@ export default function AdminBatchesPage() {
     setDeleting(true);
     try {
       await api.delete(`/admin/batches/${deleteTarget.id}`);
+      const targetName = deleteTarget.batch_name;
       setDeleteTarget(null);
-      fetchBatches();
+      await fetchBatches();
+      showSuccess('Berhasil!', `Batch ${targetName} berhasil dihapus.`);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Gagal menghapus batch.');
+      showError('Gagal Menghapus!', msg ?? 'Gagal menghapus batch.');
     } finally {
       setDeleting(false);
     }
@@ -275,10 +288,22 @@ export default function AdminBatchesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
-                      <button onClick={() => openEdit(b)} title="Edit" className="p-1.5 rounded-lg hover:bg-sky-50 text-sky-600 transition-colors">
-                        <Icon name="pencil-edit" size={15} />
+                      <button
+                        type="button"
+                        id={`btn-edit-batch-${b.id}`}
+                        onClick={() => openEdit(b)}
+                        title="Edit Batch"
+                        className="p-1.5 rounded-lg hover:bg-sky-50 text-sky-600 transition-colors cursor-pointer"
+                      >
+                        <Icon name="pencil-1" size={15} />
                       </button>
-                      <button onClick={() => setDeleteTarget(b)} title="Hapus" className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
+                      <button
+                        type="button"
+                        id={`btn-delete-batch-${b.id}`}
+                        onClick={() => setDeleteTarget(b)}
+                        title="Hapus Batch"
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors cursor-pointer"
+                      >
                         <Icon name="trash-3" size={15} />
                       </button>
                     </div>
@@ -322,10 +347,9 @@ export default function AdminBatchesPage() {
                 <label className="text-xs font-bold text-navy-dark">Kursus <span className="text-rose-500">*</span></label>
                 <select
                   required
-                  disabled={mode === 'edit'}
                   value={form.course_id}
                   onChange={e => setForm(f => ({ ...f, course_id: e.target.value }))}
-                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700 disabled:bg-slate-50 disabled:text-slate-400"
+                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                 >
                   <option value="">— Pilih Kursus —</option>
                   {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
@@ -451,7 +475,12 @@ export default function AdminBatchesPage() {
                   id="save-batch-btn"
                   className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  {saving ? 'Menyimpan...' : (
+                  {saving ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                      <span>{mode === 'create' ? 'Membuat...' : 'Menyimpan...'}</span>
+                    </>
+                  ) : (
                     <>
                       <Icon name="check-circle-1" size={16} />
                       <span>{mode === 'create' ? 'Buat Batch' : 'Simpan Perubahan'}</span>
