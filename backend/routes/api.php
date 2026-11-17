@@ -124,6 +124,9 @@ Route::prefix('v1')->group(function () {
 
             // Course Management (CRUD Dinamis)
             Route::apiResource('courses',  AdminCourseController::class);
+            Route::post('courses/{courseId}/sections',                      [AdminCourseController::class, 'storeSection']);
+            Route::patch('courses/{courseId}/sections/{sectionId}',         [AdminCourseController::class, 'updateSection']);
+            Route::delete('courses/{courseId}/sections/{sectionId}',        [AdminCourseController::class, 'destroySection']);
             Route::post('contents/{id}/upload',                             [AdminCourseController::class, 'uploadFile']);        // Upload PDF modul
             Route::post('contents/{id}/attachments',                        [AdminCourseController::class, 'uploadAttachment']);  // Upload attachment studi kasus
             Route::delete('contents/{id}/attachments/{attachmentId}',       [AdminCourseController::class, 'deleteAttachment']);  // Hapus attachment studi kasus

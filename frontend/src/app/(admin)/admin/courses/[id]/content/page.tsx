@@ -306,6 +306,134 @@ export default function AdminCourseContentPage() {
     }
   };
 
+  // ─── Add / Delete Content & Section States ──────────────────────────────────
+  const [isAddContentModalOpen, setIsAddContentModalOpen] = useState(false);
+  const [targetSectionId, setTargetSectionId] = useState<number | null>(null);
+  const [newContentTitle, setNewContentTitle] = useState('');
+  const [newContentType, setNewContentType] = useState<Content['content_type']>('pdf_module');
+  const [newContentInstruction, setNewContentInstruction] = useState('');
+  const [savingNewContent, setSavingNewContent] = useState(false);
+
+  const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
+  const [newSectionTitle, setNewSectionTitle] = useState('');
+  const [savingNewSection, setSavingNewSection] = useState(false);
+
+  const openAddContentModal = (sectionId?: number) => {
+    if (sectionId) {
+      setTargetSectionId(sectionId);
+    } else if (course?.sections && course.sections.length > 0) {
+      setTargetSectionId(course.sections[0].id);
+    }
+    setNewContentTitle('');
+    setNewContentType('pdf_module');
+    setNewContentInstruction('');
+    setIsAddContentModalOpen(true);
+  };
+
+  const handleCreateContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newContentTitle.trim()) {
+      showWarning('Perhatian', 'Judul materi wajib diisi.');
+      return;
+    }
+    if (!targetSectionId) {
+      showWarning('Perhatian', 'Pilih bab/seksi materi terlebih dahulu.');
+      return;
+    }
+    setSavingNewContent(true);
+    try {
+      const res = await api.post(`/admin/sections/${targetSectionId}/contents`, {
+        title: newContentTitle.trim(),
+        content_type: newContentType,
+        instruction_text: newContentInstruction.trim() || null,
+      });
+      showSuccess('Berhasil!', 'Materi baru berhasil ditambahkan ke kelas.');
+      setIsAddContentModalOpen(false);
+      setNewContentTitle('');
+      setNewContentInstruction('');
+      const updatedCourseRes = await api.get(`/admin/courses/${courseId}`);
+      setCourse(updatedCourseRes.data.data);
+      if (res.data?.data) {
+        selectContent(res.data.data);
+      }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showError('Gagal Menambahkan', msg ?? 'Gagal menambahkan materi baru.');
+    } finally {
+      setSavingNewContent(false);
+    }
+  };
+
+  const handleDeleteContent = async (contentToDelete?: Content) => {
+    const target = contentToDelete ?? selectedContent;
+    if (!target) return;
+
+    const confirmed = await showConfirm(
+      'Hapus Materi Ini?',
+      `Apakah Anda yakin ingin menghapus "${target.title}" dari kelas? Seluruh data nilai dan materi terkait akan dihapus secara permanen.`,
+      'Ya, Hapus Materi'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/admin/contents/${target.id}`);
+      showSuccess('Berhasil!', `Materi "${target.title}" berhasil dihapus.`);
+      if (selectedContent?.id === target.id) {
+        setSelectedContent(null);
+      }
+      const updatedCourseRes = await api.get(`/admin/courses/${courseId}`);
+      setCourse(updatedCourseRes.data.data);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showError('Gagal Menghapus', msg ?? 'Gagal menghapus materi.');
+    }
+  };
+
+  const handleCreateSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSectionTitle.trim()) {
+      showWarning('Perhatian', 'Judul bab/seksi wajib diisi.');
+      return;
+    }
+    setSavingNewSection(true);
+    try {
+      await api.post(`/admin/courses/${courseId}/sections`, {
+        title: newSectionTitle.trim(),
+      });
+      showSuccess('Berhasil!', 'Bab/Seksi baru berhasil ditambahkan.');
+      setIsAddSectionModalOpen(false);
+      setNewSectionTitle('');
+      const updatedCourseRes = await api.get(`/admin/courses/${courseId}`);
+      setCourse(updatedCourseRes.data.data);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showError('Gagal Menambahkan', msg ?? 'Gagal menambahkan bab baru.');
+    } finally {
+      setSavingNewSection(false);
+    }
+  };
+
+  const handleDeleteSection = async (sectionId: number, sectionTitle: string) => {
+    const confirmed = await showConfirm(
+      'Hapus Bab/Seksi Ini?',
+      `Apakah Anda yakin ingin menghapus "${sectionTitle}" beserta seluruh materi di dalamnya?`,
+      'Ya, Hapus Bab'
+    );
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/admin/courses/${courseId}/sections/${sectionId}`);
+      showSuccess('Berhasil!', `Bab "${sectionTitle}" berhasil dihapus.`);
+      setSelectedContent(null);
+      const updatedCourseRes = await api.get(`/admin/courses/${courseId}`);
+      setCourse(updatedCourseRes.data.data);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showError('Gagal Menghapus', msg ?? 'Gagal menghapus bab.');
+    }
+  };
+
   const handleUploadPDF = async () => {
     if (!uploadFile || !selectedContent) return;
     setUploading(true);
@@ -489,35 +617,105 @@ export default function AdminCourseContentPage() {
         {/* Sidebar: Section & Content List (Natural height, stuck on left) */}
         <aside className="w-72 lg:w-80 flex-shrink-0 self-start">
           <div className="card p-0 overflow-hidden shadow-sm border border-slate-200 flex flex-col max-h-[75vh]">
-            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0 flex items-center justify-between">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('title_content_list')}</p>
+              <button
+                type="button"
+                onClick={() => openAddContentModal()}
+                className="btn btn-primary btn-xs text-[11px] py-1 px-2.5 flex items-center gap-1 shadow-2xs"
+                title="Tambah materi baru ke kelas"
+              >
+                <Icon name="plus" size={12} />
+                <span>Tambah Materi</span>
+              </button>
             </div>
             <div className="overflow-y-auto flex-1 overscroll-contain divide-y divide-slate-100" style={{ scrollbarWidth: 'thin' }}>
               {course.sections.map(section => (
                 <div key={section.id}>
-                  <div className="px-4 py-2 bg-slate-50/95 backdrop-blur-xs border-b border-slate-100 sticky top-0 z-10">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{section.title}</p>
+                  <div className="px-3.5 py-2 bg-slate-100/90 backdrop-blur-xs border-b border-slate-200/70 sticky top-0 z-10 flex items-center justify-between">
+                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider truncate flex-1 mr-2" title={section.title}>
+                      {section.title}
+                    </p>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openAddContentModal(section.id)}
+                        className="p-1 text-slate-400 hover:text-navy hover:bg-white rounded transition-colors"
+                        title={`Tambah materi ke ${section.title}`}
+                      >
+                        <Icon name="plus" size={13} />
+                      </button>
+                      {course.sections.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSection(section.id, section.title)}
+                          className="p-1 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                          title={`Hapus bab ${section.title}`}
+                        >
+                          <Icon name="trash" size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {section.contents.map(content => {
                     const meta = TYPE_META[content.content_type] ?? { icon: 'flag-1', label: content.content_type };
                     const isSelected = selectedContent?.id === content.id;
                     return (
-                      <button key={content.id}
-                        onClick={() => selectContent(content)}
-                        className={`w-full text-left px-4 py-3 flex items-center gap-3 text-sm transition-colors
-                          ${isSelected ? 'bg-navy text-white' : 'hover:bg-slate-50 text-navy-dark'}`}>
-                        <Icon name={meta.icon} size={16} />
-                        <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold' : ''}`}>
-                          {content.title}
-                        </span>
-                        {(content.content_body || content.file_path) && (
-                          <span className="text-xs opacity-70" title={t("title_material_filled")}><Icon name="check-circle-1" size={12} /></span>
-                        )}
-                      </button>
+                      <div
+                        key={content.id}
+                        className={`group relative flex items-center border-b border-slate-100 transition-colors ${
+                          isSelected ? 'bg-navy text-white' : 'hover:bg-slate-50 text-navy-dark'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => selectContent(content)}
+                          className="flex-1 text-left px-4 py-3 flex items-center gap-2.5 text-sm min-w-0"
+                        >
+                          <Icon name={meta.icon} size={15} className="shrink-0" />
+                          <span className={`flex-1 text-xs leading-snug truncate ${isSelected ? 'font-semibold' : ''}`}>
+                            {content.title}
+                          </span>
+                          {(content.content_body || content.file_path) && (
+                            <span className="text-xs opacity-70 shrink-0" title={t("title_material_filled")}>
+                              <Icon name="check-circle-1" size={12} />
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteContent(content);
+                          }}
+                          className={`mr-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${
+                            isSelected
+                              ? 'text-rose-300 hover:text-rose-100 hover:bg-navy-light/60'
+                              : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                          }`}
+                          title={`Hapus ${content.title}`}
+                        >
+                          <Icon name="trash" size={13} />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
               ))}
+            </div>
+            {/* Bottom button for Add Section */}
+            <div className="p-2.5 bg-slate-50 border-t border-slate-200 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setNewSectionTitle('');
+                  setIsAddSectionModalOpen(true);
+                }}
+                className="w-full py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-navy hover:bg-white border border-dashed border-slate-300 hover:border-navy/40 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+              >
+                <Icon name="plus" size={12} />
+                <span>+ Tambah Bab / Seksi Baru</span>
+              </button>
             </div>
           </div>
         </aside>
@@ -538,20 +736,31 @@ export default function AdminCourseContentPage() {
                     <Icon name={TYPE_META[selectedContent.content_type]?.icon ?? "flag-1"} size={16} className="mr-1.5" />
                     {TYPE_META[selectedContent.content_type]?.label ?? selectedContent.content_type}
                   </span>
-                  {!isEditingTitle && (
+                  <div className="flex items-center gap-2">
+                    {!isEditingTitle && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditTitle(selectedContent.title);
+                          setIsEditingTitle(true);
+                        }}
+                        className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5 py-1 px-3 shadow-xs hover:border-slate-300"
+                        title="Ubah judul modul ini"
+                      >
+                        <Icon name="pencil-1" size={13} />
+                        <span>Ubah Nama Modul</span>
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => {
-                        setEditTitle(selectedContent.title);
-                        setIsEditingTitle(true);
-                      }}
-                      className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5 py-1 px-3 shadow-xs hover:border-slate-300"
-                      title="Ubah judul modul ini"
+                      onClick={() => handleDeleteContent(selectedContent)}
+                      className="btn btn-sm text-xs flex items-center gap-1.5 py-1 px-3 border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors shadow-2xs"
+                      title="Hapus materi ini dari kelas"
                     >
-                      <Icon name="pencil-1" size={13} />
-                      <span>Ubah Nama Modul</span>
+                      <Icon name="trash" size={13} />
+                      <span>Hapus Materi</span>
                     </button>
-                  )}
+                  </div>
                 </div>
 
                 {isEditingTitle ? (
@@ -1399,6 +1608,217 @@ export default function AdminCourseContentPage() {
             </div>
           </div>
         </div>
+        </ModalPortal>
+      )}
+
+      {/* ── Modal Tambah Materi Baru ────────────────────────────────────────── */}
+      {isAddContentModalOpen && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl border border-sky-100 bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
+                    <Icon name="plus" size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">Tambah Materi Baru</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Tambahkan item materi baru ke kelas kursus ini</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAddContentModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                  aria-label="Tutup"
+                >
+                  <Icon name="xmark" size={16} />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateContent} className="space-y-4">
+                {/* Section selection */}
+                {course.sections.length > 1 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Pilih Bab / Seksi
+                    </label>
+                    <select
+                      value={targetSectionId ?? ''}
+                      onChange={(e) => setTargetSectionId(Number(e.target.value))}
+                      className="input w-full text-xs"
+                      required
+                    >
+                      {course.sections.map((sec) => (
+                        <option key={sec.id} value={sec.id}>
+                          {sec.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Content Type */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Tipe Materi
+                  </label>
+                  <select
+                    value={newContentType}
+                    onChange={(e) => setNewContentType(e.target.value as Content['content_type'])}
+                    className="input w-full text-xs"
+                  >
+                    <option value="pdf_module">Modul Dokumen / PDF (pdf_module)</option>
+                    <option value="video_embed">Video Pembelajaran (video_embed)</option>
+                    <option value="mcq_quiz">Kuis Pilihan Ganda (mcq_quiz)</option>
+                    <option value="essay_task">Tugas Esai Studi Kasus (essay_task)</option>
+                    <option value="oral_video_task">Ujian Video Oral (oral_video_task)</option>
+                    <option value="critical_thinking">Ujian Critical Thinking (critical_thinking)</option>
+                    <option value="field_study">Training Course / Field Study (field_study)</option>
+                  </select>
+                </div>
+
+                {/* Content Title */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Judul Materi <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newContentTitle}
+                    onChange={(e) => setNewContentTitle(e.target.value)}
+                    placeholder="Contoh: Modul 4: Evaluasi Lapangan"
+                    className="input w-full text-xs"
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                {/* Instruction / Short description */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Instruksi / Keterangan Singkat (Opsional)
+                  </label>
+                  <textarea
+                    value={newContentInstruction}
+                    onChange={(e) => setNewContentInstruction(e.target.value)}
+                    rows={3}
+                    placeholder="Instruksi pengerjaan atau deskripsi materi bagi peserta..."
+                    className="input w-full text-xs py-2 leading-relaxed"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddContentModalOpen(false)}
+                    className="btn btn-secondary btn-sm text-xs"
+                    disabled={savingNewContent}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-sm text-xs flex items-center gap-1.5"
+                    disabled={savingNewContent}
+                  >
+                    {savingNewContent ? (
+                      <>
+                        <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        <span>Menyimpan...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="check-circle-1" size={14} />
+                        <span>Tambahkan Materi</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* ── Modal Tambah Bab / Seksi Baru ───────────────────────────────────── */}
+      {isAddSectionModalOpen && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl border border-indigo-100 bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                    <Icon name="book-1" size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-[#00162d] leading-tight">Tambah Bab / Seksi Baru</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Kelompokkan materi ke dalam bab baru</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAddSectionModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                  aria-label="Tutup"
+                >
+                  <Icon name="xmark" size={16} />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateSection} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Judul Bab / Seksi <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newSectionTitle}
+                    onChange={(e) => setNewSectionTitle(e.target.value)}
+                    placeholder="Contoh: Bab 2: Praktikum & Ujian Lanjutan"
+                    className="input w-full text-xs"
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddSectionModalOpen(false)}
+                    className="btn btn-secondary btn-sm text-xs"
+                    disabled={savingNewSection}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-sm text-xs flex items-center gap-1.5"
+                    disabled={savingNewSection}
+                  >
+                    {savingNewSection ? (
+                      <>
+                        <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        <span>Menyimpan...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="check-circle-1" size={14} />
+                        <span>Simpan Bab</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </ModalPortal>
       )}
     </div>

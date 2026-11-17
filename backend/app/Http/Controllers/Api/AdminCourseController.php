@@ -158,6 +158,14 @@ class AdminCourseController extends Controller
             'order_index'      => 'nullable|integer',
         ]);
 
+        if (!isset($validated['order_index']) || is_null($validated['order_index'])) {
+            $validated['order_index'] = ($section->contents()->max('order_index') ?? 0) + 1;
+        }
+
+        if (!isset($validated['max_score']) || is_null($validated['max_score'])) {
+            $validated['max_score'] = in_array($validated['content_type'], ['pdf_module', 'video_embed', 'field_study']) ? 0 : 100;
+        }
+
         $content = $section->contents()->create($validated);
 
         return response()->json(['message' => __('api.konten_berhasil_ditambahkan'), 'data' => $content], 201);

@@ -653,7 +653,7 @@ https://lestari.kompas.com/read/2026/03/31/141500586/puluhan-paus-pilot-terdampa
         CourseContent::create([
             'section_id' => $section->id,
             'content_type' => 'field_study',
-            'title' => "Training Course (Field Study) — {$trackTitle}",
+            'title' => 'Training Course (Field Study)',
             'instruction_text' => "Field Study adalah komponen praktikum lapangan terpadu program Spesialisasi DigiBlueCamp ({$trackTitle}).\n\n🎯 Fokus Praktikum Lapangan:\n🌊 Observasi dan validasi langsung implementasi peminatan {$trackTitle} di kawasan pesisir/maritim.\n🤝 Dialog interaktif dan pendalaman studi kasus bersama praktisi, industri, serta masyarakat pesisir.\n📊 Pengumpulan data primer lapangan dan verifikasi instrumen teknis peminatan.\n💡 Perumusan rekomendasi strategis & presentasi hasil observasi lapangan.\n\n📌 **Ketentuan Keikutsertaan & Sertifikat:**\n• **Jika Anda mengikuti Field Study**: Anda akan memperoleh **2 Sertifikat Resmi** (Sertifikat CBEc Specialization + Sertifikat Field Study Specialization).\n• **Jika Anda TIDAK mengikuti Field Study**: Anda hanya akan memperoleh **1 Sertifikat Resmi** (Sertifikat CBEc Specialization) dan tidak mendapatkan sertifikat Field Study Specialization.\n\nSilakan konfirmasikan keikutsertaan Anda di bawah ini.",
             'max_score' => 0,
             'is_prerequisite' => false,
