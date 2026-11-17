@@ -32,6 +32,10 @@ const ICON_ALIASES: Record<string, string> = {
   'check-circle': 'check-circle-1',
   'credit-card-1': 'credit-card-multiple',
   'trash': 'trash-3',
+  'pencil-edit': 'pencil-1',
+  'pen-to-square': 'pencil-1',
+  'pencil': 'pencil-1',
+  'edit': 'pencil-1',
   'ship-2': 'ship-1',
   'users-social': 'user-multiple-4',
 };
