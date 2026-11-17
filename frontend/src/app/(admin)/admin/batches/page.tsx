@@ -38,6 +38,7 @@ const emptyForm = {
 
 export default function AdminBatchesPage() {
   const [batches, setBatches] = useState<CourseBatch[]>([]);
+  const [allBatches, setAllBatches] = useState<CourseBatch[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCourse, setFilterCourse] = useState('');
@@ -49,6 +50,7 @@ export default function AdminBatchesPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [referenceBatch, setReferenceBatch] = useState<CourseBatch | null>(null);
 
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<CourseBatch | null>(null);
@@ -70,6 +72,15 @@ export default function AdminBatchesPage() {
     }
   }, [filterCourse, filterActive]);
 
+  const fetchAllBatches = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/batches');
+      setAllBatches(res.data.data ?? []);
+    } catch {
+      setAllBatches([]);
+    }
+  }, []);
+
   const fetchCourses = useCallback(async () => {
     try {
       const res = await api.get('/courses');
@@ -80,6 +91,7 @@ export default function AdminBatchesPage() {
   }, []);
 
   useEffect(() => { fetchBatches(); }, [fetchBatches]);
+  useEffect(() => { fetchAllBatches(); }, [fetchAllBatches]);
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -89,8 +101,11 @@ export default function AdminBatchesPage() {
     catch { return d; }
   };
 
-  const toInputDate = (d: string | null) => {
+  const toInputDate = (d: string | null | undefined) => {
     if (!d) return '';
+    if (typeof d === 'string' && d.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(d)) {
+      return d.slice(0, 10);
+    }
     try { return new Date(d).toISOString().slice(0, 10); }
     catch { return ''; }
   };
@@ -101,6 +116,7 @@ export default function AdminBatchesPage() {
     setEditId(null);
     setForm(emptyForm);
     setError('');
+    setReferenceBatch(null);
   };
 
   const openEdit = (b: CourseBatch) => {
@@ -118,9 +134,198 @@ export default function AdminBatchesPage() {
       is_active: b.is_active,
     });
     setError('');
+
+    // Cari batch referensi sejenis dari kursus lain jika ada
+    const trimmed = b.batch_name.trim().toLowerCase();
+    const otherMatch = allBatches.find(
+      other => other.id !== b.id && (
+        other.batch_name.trim().toLowerCase() === trimmed ||
+        (other.batch_code && other.batch_code.trim().toLowerCase() === trimmed)
+      )
+    );
+    setReferenceBatch(otherMatch ?? null);
   };
 
-  const closeModal = () => { setMode(null); setEditId(null); };
+  const closeModal = () => {
+    setMode(null);
+    setEditId(null);
+    setReferenceBatch(null);
+  };
+
+  // ── Smart Auto-Fill & Schedule Consistency Handlers ───────────────────────
+  const handleBatchNameChange = (val: string) => {
+    setForm(prev => {
+      const updated = { ...prev, batch_name: val };
+      const trimmed = val.trim().toLowerCase();
+
+      if (!trimmed) {
+        setReferenceBatch(null);
+        return updated;
+      }
+
+      // Cari kecocokan di database batches yang sudah ter-load
+      const match = allBatches.find(
+        b => b.id !== editId && (
+          b.batch_name.trim().toLowerCase() === trimmed ||
+          (b.batch_code && b.batch_code.trim().toLowerCase() === trimmed)
+        )
+      );
+
+      if (match) {
+        setReferenceBatch(match);
+
+        // Smart Auto-Fill: Jika kolom tanggal masih kosong, otomatis isi!
+        const datesEmpty = !prev.registration_start_date &&
+                           !prev.registration_end_date &&
+                           !prev.start_date &&
+                           !prev.end_date &&
+                           !prev.field_trip_date;
+
+        if (datesEmpty) {
+          updated.batch_code = prev.batch_code || match.batch_code || '';
+          updated.registration_start_date = toInputDate(match.registration_start_date);
+          updated.registration_end_date = toInputDate(match.registration_end_date);
+          updated.start_date = toInputDate(match.start_date);
+          updated.end_date = toInputDate(match.end_date);
+          updated.field_trip_date = toInputDate(match.field_trip_date);
+        }
+      } else {
+        setReferenceBatch(null);
+      }
+
+      return updated;
+    });
+  };
+
+  const handleBatchCodeChange = (val: string) => {
+    setForm(prev => {
+      const updated = { ...prev, batch_code: val };
+      const trimmed = val.trim().toLowerCase();
+
+      if (!referenceBatch && trimmed) {
+        const match = allBatches.find(
+          b => b.id !== editId && (
+            (b.batch_code && b.batch_code.trim().toLowerCase() === trimmed) ||
+            b.batch_name.trim().toLowerCase() === trimmed
+          )
+        );
+
+        if (match) {
+          setReferenceBatch(match);
+          if (!prev.batch_name) {
+            updated.batch_name = match.batch_name;
+          }
+          const datesEmpty = !prev.registration_start_date &&
+                             !prev.registration_end_date &&
+                             !prev.start_date &&
+                             !prev.end_date &&
+                             !prev.field_trip_date;
+
+          if (datesEmpty) {
+            updated.registration_start_date = toInputDate(match.registration_start_date);
+            updated.registration_end_date = toInputDate(match.registration_end_date);
+            updated.start_date = toInputDate(match.start_date);
+            updated.end_date = toInputDate(match.end_date);
+            updated.field_trip_date = toInputDate(match.field_trip_date);
+          }
+        }
+      }
+
+      return updated;
+    });
+  };
+
+  // Debounced API template lookup untuk menjamin batch yang baru/belum di-cache tetap terdeteksi
+  useEffect(() => {
+    if (!mode) return;
+
+    const trimmedName = form.batch_name.trim();
+    const trimmedCode = form.batch_code.trim();
+
+    if (!trimmedName && !trimmedCode) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        if (trimmedName) params.set('batch_name', trimmedName);
+        if (trimmedCode) params.set('batch_code', trimmedCode);
+        if (editId) params.set('exclude_id', String(editId));
+
+        const res = await api.get(`/admin/batches/template?${params}`);
+        const template = res.data?.data as CourseBatch | null;
+
+        if (template) {
+          setReferenceBatch(template);
+          // Auto-fill jika tanggal masih kosong saat template ditemukan
+          setForm(f => {
+            const datesEmpty = !f.registration_start_date &&
+                               !f.registration_end_date &&
+                               !f.start_date &&
+                               !f.end_date &&
+                               !f.field_trip_date;
+
+            if (datesEmpty) {
+              return {
+                ...f,
+                batch_code: f.batch_code || template.batch_code || '',
+                registration_start_date: toInputDate(template.registration_start_date),
+                registration_end_date: toInputDate(template.registration_end_date),
+                start_date: toInputDate(template.start_date),
+                end_date: toInputDate(template.end_date),
+                field_trip_date: toInputDate(template.field_trip_date),
+              };
+            }
+            return f;
+          });
+        }
+      } catch {
+        // silent
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [form.batch_name, form.batch_code, editId, mode]);
+
+  // Tombol 1-klik untuk menyamakan dengan jadwal standar batch referensi
+  const applyStandardSchedule = () => {
+    if (!referenceBatch) return;
+    setForm(f => ({
+      ...f,
+      batch_code: f.batch_code || referenceBatch.batch_code || '',
+      registration_start_date: toInputDate(referenceBatch.registration_start_date),
+      registration_end_date: toInputDate(referenceBatch.registration_end_date),
+      start_date: toInputDate(referenceBatch.start_date),
+      end_date: toInputDate(referenceBatch.end_date),
+      field_trip_date: toInputDate(referenceBatch.field_trip_date),
+    }));
+  };
+
+  // Evaluasi Inkonsistensi / Perbedaan Jadwal
+  const hasReferenceSchedule = Boolean(
+    referenceBatch && (
+      referenceBatch.start_date ||
+      referenceBatch.end_date ||
+      referenceBatch.registration_start_date ||
+      referenceBatch.registration_end_date ||
+      referenceBatch.field_trip_date
+    )
+  );
+
+  const hasDateDiscrepancy = Boolean(
+    hasReferenceSchedule && referenceBatch && (
+      toInputDate(referenceBatch.registration_start_date) !== (form.registration_start_date || '') ||
+      toInputDate(referenceBatch.registration_end_date) !== (form.registration_end_date || '') ||
+      toInputDate(referenceBatch.start_date) !== (form.start_date || '') ||
+      toInputDate(referenceBatch.end_date) !== (form.end_date || '') ||
+      toInputDate(referenceBatch.field_trip_date) !== (form.field_trip_date || '')
+    )
+  );
+
+  const isScheduleSynced = Boolean(
+    hasReferenceSchedule && referenceBatch && !hasDateDiscrepancy && (
+      form.start_date || form.registration_start_date || form.field_trip_date
+    )
+  );
 
   // ── CRUD ───────────────────────────────────────────────────────────────────
   const handleSave = async (e: React.FormEvent) => {
@@ -150,6 +355,7 @@ export default function AdminBatchesPage() {
       }
       closeModal();
       await fetchBatches();
+      await fetchAllBatches();
       showSuccess(
         'Berhasil!',
         mode === 'create'
@@ -173,6 +379,7 @@ export default function AdminBatchesPage() {
       const targetName = deleteTarget.batch_name;
       setDeleteTarget(null);
       await fetchBatches();
+      await fetchAllBatches();
       showSuccess('Berhasil!', `Batch ${targetName} berhasil dihapus.`);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -359,27 +566,121 @@ export default function AdminBatchesPage() {
               {/* Nama & Kode */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-navy-dark">Nama Batch <span className="text-rose-500">*</span></label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-navy-dark">
+                      Nama Batch <span className="text-rose-500">*</span>
+                    </label>
+                    {referenceBatch && (
+                      <span className="text-[10px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/60">
+                        Template Terdeteksi
+                      </span>
+                    )}
+                  </div>
                   <input
                     required
+                    id="input-batch-name"
                     type="text"
                     placeholder="Contoh: Batch 18"
                     value={form.batch_name}
-                    onChange={e => setForm(f => ({ ...f, batch_name: e.target.value }))}
+                    onChange={e => handleBatchNameChange(e.target.value)}
                     className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-navy-dark">Kode Batch</label>
                   <input
+                    id="input-batch-code"
                     type="text"
                     placeholder="B18"
                     value={form.batch_code}
-                    onChange={e => setForm(f => ({ ...f, batch_code: e.target.value }))}
+                    onChange={e => handleBatchCodeChange(e.target.value)}
                     className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700 font-mono"
                   />
                 </div>
               </div>
+
+              {/* ── Schedule Conflict Warning (Inkonsistensi Tanggal) ── */}
+              {hasDateDiscrepancy && referenceBatch && (
+                <div
+                  id="batch-schedule-conflict-warning"
+                  className="bg-amber-50/90 border border-amber-300 rounded-2xl p-4 flex flex-col gap-3 shadow-xs animate-fadein"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <Icon name="warning" size={18} />
+                    </div>
+                    <div className="flex-1 text-xs space-y-1">
+                      <div className="flex items-center justify-between flex-wrap gap-1">
+                        <h4 className="font-bold text-amber-950 text-sm">
+                          Perhatian Jadwal Berbeda:
+                        </h4>
+                        {referenceBatch.course?.title && (
+                          <span className="text-[11px] font-medium bg-amber-200/60 text-amber-900 px-2.5 py-0.5 rounded-full">
+                            Ref: {referenceBatch.course.title}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-amber-900 leading-relaxed">
+                        Pada kursus lain{referenceBatch.course?.title ? ` (${referenceBatch.course.title})` : ''},{' '}
+                        <strong className="text-amber-950">{referenceBatch.batch_name}</strong> dijadwalkan pada{' '}
+                        {referenceBatch.start_date && referenceBatch.end_date ? (
+                          <strong className="text-amber-950">
+                            {fmtDate(referenceBatch.start_date)} – {fmtDate(referenceBatch.end_date)}
+                          </strong>
+                        ) : (
+                          <strong className="text-amber-950">jadwal standar</strong>
+                        )}
+                        {referenceBatch.field_trip_date ? (
+                          <> (Field Trip: <strong className="text-amber-950">{fmtDate(referenceBatch.field_trip_date)}</strong>)</>
+                        ) : null}
+                        .
+                      </p>
+                      {(referenceBatch.registration_start_date || referenceBatch.registration_end_date) && (
+                        <p className="text-[11px] text-amber-800">
+                          Registrasi: {fmtDate(referenceBatch.registration_start_date)} – {fmtDate(referenceBatch.registration_end_date)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-1 border-t border-amber-200/60">
+                    <button
+                      id="btn-apply-standard-schedule"
+                      type="button"
+                      onClick={applyStandardSchedule}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-full shadow-xs transition-colors cursor-pointer"
+                    >
+                      <Icon name="check-circle-1" size={14} />
+                      <span>Gunakan Jadwal Standar {referenceBatch.batch_name}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Smart Auto-Fill Confirmation Notification ── */}
+              {isScheduleSynced && referenceBatch && (
+                <div
+                  id="batch-autofill-notification"
+                  className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-4 py-3 rounded-2xl flex items-center justify-between gap-3 shadow-xs animate-fadein"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <Icon name="check-circle-1" size={14} />
+                    </div>
+                    <span className="leading-relaxed">
+                      💡 Tanggal disesuaikan otomatis dengan jadwal <strong>{referenceBatch.batch_name}</strong> yang sudah ada
+                      {referenceBatch.course?.title ? ` (${referenceBatch.course.title})` : ''}.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={applyStandardSchedule}
+                    className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 underline underline-offset-2 shrink-0 cursor-pointer"
+                    title="Klik untuk menyamakan ulang jika diperlukan"
+                  >
+                    Samakan Ulang
+                  </button>
+                </div>
+              )}
 
               {/* Periode Registrasi */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

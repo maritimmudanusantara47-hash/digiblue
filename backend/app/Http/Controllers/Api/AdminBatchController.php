@@ -34,6 +34,48 @@ class AdminBatchController extends Controller
         return response()->json(['data' => $batches]);
     }
 
+    /**
+     * Dapatkan template jadwal batch sejenis berdasarkan nama atau kode batch.
+     * Digunakan untuk fitur Smart Auto-Fill & Pengecekan Inkonsistensi Jadwal.
+     */
+    public function template(Request $request): JsonResponse
+    {
+        $name = trim((string) $request->query('batch_name', ''));
+        $code = trim((string) $request->query('batch_code', ''));
+        $excludeId = $request->query('exclude_id');
+
+        if ($name === '' && $code === '') {
+            return response()->json(['data' => null]);
+        }
+
+        $query = CourseBatch::with('course:id,title');
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $terms = array_values(array_unique(array_filter([
+            mb_strtolower($name),
+            mb_strtolower($code),
+        ])));
+
+        $query->where(function ($q) use ($terms) {
+            foreach ($terms as $term) {
+                $q->orWhereRaw('LOWER(batch_name) = ?', [$term])
+                  ->orWhereRaw('LOWER(batch_code) = ?', [$term]);
+            }
+        });
+
+        // Utamakan batch yang memiliki jadwal tanggal lengkap dan ID terbaru
+        $batch = $query->orderByRaw('CASE WHEN start_date IS NOT NULL THEN 0 ELSE 1 END')
+            ->orderByDesc('id')
+            ->first();
+
+        return response()->json([
+            'data' => $batch,
+        ]);
+    }
+
     /** Buat batch baru */
     public function store(Request $request, ?int $courseId = null): JsonResponse
     {

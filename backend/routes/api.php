@@ -32,6 +32,7 @@ Route::prefix('v1')->group(function () {
     Route::get('courses',              [CourseController::class, 'index']);
     Route::get('courses/{slug}',       [CourseController::class, 'show']);
     Route::get('courses/{courseId}/batches', [AdminBatchController::class, 'index']);
+    Route::get('batches/template',     [AdminBatchController::class, 'template']);
     Route::get('certification-levels', function () {
         return response()->json(['data' => \App\Models\CertificationLevel::where('is_active', true)->orderBy('order_index')->get()]);
     });
@@ -122,6 +123,7 @@ Route::prefix('v1')->group(function () {
 
             // Batch Angkatan Management (Admin)
             Route::get('batches',                           [AdminBatchController::class, 'index']);
+            Route::get('batches/template',                  [AdminBatchController::class, 'template']);
             Route::post('courses/{courseId}/batches',       [AdminBatchController::class, 'store']);
             Route::patch('batches/{id}',                    [AdminBatchController::class, 'update']);
             Route::delete('batches/{id}',                   [AdminBatchController::class, 'destroy']);
