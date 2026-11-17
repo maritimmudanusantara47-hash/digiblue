@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\CourseBatch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminBatchController extends Controller
 {
@@ -102,6 +104,92 @@ class AdminBatchController extends Controller
         return response()->json([
             'message' => 'Batch angkatan baru berhasil dibuat.',
             'data'    => $batch->load('course:id,title'),
+        ], 201);
+    }
+
+    /**
+     * Buat batch angkatan baru secara massal (bulk) untuk banyak kursus sekaligus.
+     * Mendukung target_scope:
+     * - 'all_specialization': seluruh kursus dengan sertifikasi SPEC aktif (12 tracks)
+     * - 'all_courses': seluruh kursus aktif
+     * - 'custom': array course_ids tertentu
+     */
+    public function bulkStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'target_scope'            => 'required|string|in:all_specialization,all_courses,custom',
+            'course_ids'              => 'required_if:target_scope,custom|array',
+            'course_ids.*'            => 'integer|exists:courses,id',
+            'batch_name'              => 'required|string|max:100',
+            'batch_code'              => 'nullable|string|max:50',
+            'registration_start_date' => 'nullable|date',
+            'registration_end_date'   => 'nullable|date|after_or_equal:registration_start_date',
+            'start_date'              => 'nullable|date',
+            'end_date'                => 'nullable|date|after_or_equal:start_date',
+            'field_trip_date'         => 'nullable|date',
+            'is_active'               => 'boolean',
+        ], [
+            'target_scope.required'                => 'Target cakupan kursus wajib dipilih.',
+            'target_scope.in'                      => 'Pilihan target cakupan kursus tidak valid.',
+            'course_ids.required_if'               => 'Daftar kursus wajib dipilih jika memilih custom.',
+            'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',
+            'end_date.after_or_equal'              => 'Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.',
+        ]);
+
+        $scope = $validated['target_scope'];
+        $courseIds = collect();
+
+        if ($scope === 'all_specialization') {
+            $courseIds = Course::whereHas('certificationLevel', fn($q) => $q->where('code', 'SPEC'))
+                ->where('is_active', true)
+                ->orderBy('order_index')
+                ->pluck('id');
+        } elseif ($scope === 'all_courses') {
+            $courseIds = Course::where('is_active', true)
+                ->orderBy('order_index')
+                ->pluck('id');
+        } elseif ($scope === 'custom') {
+            $courseIds = collect($validated['course_ids'] ?? [])->unique()->values();
+        }
+
+        if ($courseIds->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada kursus aktif yang ditemukan untuk target ini.',
+            ], 422);
+        }
+
+        $batchData = [
+            'batch_name'              => $validated['batch_name'],
+            'batch_code'              => $validated['batch_code'] ?? null,
+            'registration_start_date' => $validated['registration_start_date'] ?? null,
+            'registration_end_date'   => $validated['registration_end_date'] ?? null,
+            'start_date'              => $validated['start_date'] ?? null,
+            'end_date'                => $validated['end_date'] ?? null,
+            'field_trip_date'         => $validated['field_trip_date'] ?? null,
+            'is_active'               => $validated['is_active'] ?? true,
+        ];
+
+        $createdBatches = DB::transaction(function () use ($courseIds, $batchData) {
+            $batches = [];
+            foreach ($courseIds as $cid) {
+                $batches[] = CourseBatch::create(array_merge($batchData, [
+                    'course_id' => $cid,
+                ]));
+            }
+            return $batches;
+        });
+
+        $count = count($createdBatches);
+        $scopeLabel = match ($scope) {
+            'all_specialization' => 'semua kursus spesialisasi',
+            'all_courses'        => 'semua kursus',
+            default              => "{$count} kursus terpilih",
+        };
+
+        return response()->json([
+            'message'       => "Berhasil membuat {$validated['batch_name']} untuk {$scopeLabel} ({$count} kursus).",
+            'created_count' => $count,
+            'data'          => $createdBatches,
         ], 201);
     }
 
