@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { showSuccess, showError } from '@/lib/swal';
+import ModalPortal from '@/components/common/ModalPortal';
 
 /* ─── Icons ─────────────────────────────────────────────────────── */
 const Ico = {
@@ -529,6 +530,26 @@ const FIELD_LIST_FS_BACK = [
   { key: 'fs_back_reg_no', label: 'Nomor Registrasi (Belakang)' },
 ];
 
+const FRONT_FIELDS = [
+  'recipient_name',
+  'ribbon_text',
+  'serial_no',
+  'level_value',
+  'meta_block',
+  'qr_left',
+  'qr_right',
+  'fs_recipient_name',
+  'fs_course_title',
+  'fs_date_participation',
+  'fs_date_issue',
+];
+
+const BACK_FIELDS = [
+  'back_title',
+  'fs_back_name',
+  'fs_back_reg_no',
+];
+
 export default function CertificateTemplateAdminPage() {
   const [layout, setLayout] = useState<LayoutState>(DEFAULT_LAYOUT);
   const [templateImg, setTemplateImg] = useState<string | null>(null);
@@ -547,6 +568,7 @@ export default function CertificateTemplateAdminPage() {
   const [savedOk, setSavedOk] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetOk, setResetOk] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sample, setSample] = useState<PresetItem>(PRESETS.spec_tourism || PRESETS.nabila);
   const [openSection, setOpenSection] = useState<'fields' | 'preview' | null>('fields');
@@ -635,18 +657,49 @@ export default function CertificateTemplateAdminPage() {
     finally { setSaving(false); }
   };
 
-  const handleReset = async () => {
+  const handleResetCurrentPage = async () => {
     try {
       setResetting(true);
+      setShowResetModal(false);
+      const isBack = activeSide === 'back';
+      const pageName = isBack ? 'Halaman Belakang' : 'Halaman Depan';
+      const targetKeys = isBack ? BACK_FIELDS : FRONT_FIELDS;
+
+      const updated: LayoutState = { ...layout };
+      targetKeys.forEach(k => {
+        if (DEFAULT_LAYOUT[k]) {
+          updated[k] = JSON.parse(JSON.stringify(DEFAULT_LAYOUT[k]));
+        }
+      });
+
+      setLayout(updated);
+      await api.put('/admin/certificates/template/layout', { fields: updated });
+      setResetOk(true);
+      setTimeout(() => setResetOk(false), 2500);
+      showSuccess('Berhasil!', `Layout ${pageName} berhasil di-reset ke default.`);
+    } catch {
+      showError('Gagal!', 'Gagal reset layout sertifikat.');
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const handleResetAll = async () => {
+    try {
+      setResetting(true);
+      setShowResetModal(false);
       const clean: LayoutState = JSON.parse(JSON.stringify(DEFAULT_LAYOUT));
       setLayout(clean);
       setSample(PRESETS.nabila);
       await api.put('/admin/certificates/template/layout', { fields: clean });
       setResetOk(true);
       setTimeout(() => setResetOk(false), 2500);
-      showSuccess('Berhasil!', 'Layout berhasil di-reset ke default.');
-    } catch { showError('Gagal!', 'Gagal reset layout sertifikat.'); }
-    finally { setResetting(false); }
+      showSuccess('Berhasil!', 'Seluruh template sertifikat berhasil di-reset ke default.');
+    } catch {
+      showError('Gagal!', 'Gagal reset layout sertifikat.');
+    } finally {
+      setResetting(false);
+    }
   };
 
   const handleResetField = (key: string) => {
@@ -846,7 +899,7 @@ export default function CertificateTemplateAdminPage() {
             <Ico.Download /> <span className="hidden lg:inline">{downloading ? 'Mengunduh...' : 'Unduh PDF'}</span>
           </button>
 
-          <button onClick={handleReset} disabled={resetting} title="Reset semua posisi ke default" className={`flex items-center gap-1.5 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg border transition ${resetOk ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`}>
+          <button onClick={() => setShowResetModal(true)} disabled={resetting} title="Reset posisi tata letak ke default" className={`flex items-center gap-1.5 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg border transition ${resetOk ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}`}>
             <Ico.Reset /> <span className="hidden xl:inline">{resetOk ? 'Direset!' : 'Reset'}</span>
           </button>
 
@@ -1545,6 +1598,105 @@ export default function CertificateTemplateAdminPage() {
           </div>
         </aside>
       </div>
+
+      {/* ── Modal: Konfirmasi & Pilihan Lingkup Reset ──────────────────── */}
+      {showResetModal && (
+        <ModalPortal>
+          <div
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadein"
+            onClick={() => setShowResetModal(false)}
+          >
+            <div
+              className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-7 relative my-auto animate-fadeup text-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Modal */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <Ico.Reset />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-white leading-tight">
+                      Reset Layout Sertifikat
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Pilih lingkup pengaturan tata letak yang ingin dikembalikan ke default:
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowResetModal(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition"
+                  title="Tutup dialog"
+                >
+                  <Ico.Close />
+                </button>
+              </div>
+
+              {/* Pilihan Opsi Reset */}
+              <div className="py-5 space-y-3">
+                {/* Opsi 1: Reset Halaman Aktif Saja */}
+                <button
+                  type="button"
+                  onClick={handleResetCurrentPage}
+                  className="w-full text-left p-4 rounded-2xl border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 hover:border-blue-500/50 transition group flex items-start gap-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                    <Ico.Edit />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm text-blue-200 group-hover:text-blue-100">
+                        Reset {activeSide === 'back' ? 'Halaman Belakang' : 'Halaman Depan'} Saja
+                      </span>
+                      <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        Direkomendasikan
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      {activeSide === 'back'
+                        ? 'Hanya mengembalikan posisi elemen Halaman Belakang (Nama Peserta Belakang, Nomor Registrasi Belakang, Judul Kurikulum). Halaman Depan tetap aman.'
+                        : 'Hanya mengembalikan posisi elemen Halaman Depan (Nama, Nomor Seri, Ribbon, Grade, QR Code). Halaman Belakang tetap aman.'}
+                    </p>
+                  </div>
+                </button>
+
+                {/* Opsi 2: Reset Seluruh Template */}
+                <button
+                  type="button"
+                  onClick={handleResetAll}
+                  className="w-full text-left p-4 rounded-2xl border border-slate-700/80 bg-slate-800/40 hover:bg-rose-500/10 hover:border-rose-500/30 transition group flex items-start gap-3.5 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-slate-700/50 text-slate-400 group-hover:bg-rose-500/20 group-hover:text-rose-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                    <Ico.Reset />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-bold text-sm text-slate-200 group-hover:text-rose-200">
+                      Reset Seluruh Template (Semua Halaman)
+                    </span>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      Mengembalikan seluruh tata letak (baik Halaman Depan maupun Halaman Belakang) ke setelan awal pabrik.
+                    </p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Footer */}
+              <div className="pt-3 border-t border-slate-800 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowResetModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }
