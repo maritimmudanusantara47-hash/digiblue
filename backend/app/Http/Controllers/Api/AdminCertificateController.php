@@ -341,16 +341,16 @@ class AdminCertificateController extends Controller
             'fs_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
             'fs_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
             'fs_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
-            'fs_back_name' => ['top' => 25.0, 'left' => 32.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: Nama'],
-            'fs_back_reg_no' => ['top' => 29.5, 'left' => 57.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: No. Reg'],
+            'fs_back_name' => ['top' => 26.8, 'left' => 29.2, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: Nama'],
+            'fs_back_reg_no' => ['top' => 31.2, 'left' => 54.5, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: No. Reg'],
 
             // Alias ct_
             'ct_recipient_name' => ['top' => 70.0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
             'ct_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
             'ct_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
             'ct_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
-            'ct_back_name' => ['top' => 25.0, 'left' => 32.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: Nama'],
-            'ct_back_reg_no' => ['top' => 29.5, 'left' => 57.0, 'font_size' => 13.0, 'label' => 'Critical Thinking Belakang: No. Reg'],
+            'ct_back_name' => ['top' => 26.8, 'left' => 29.2, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: Nama'],
+            'ct_back_reg_no' => ['top' => 31.2, 'left' => 54.5, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: No. Reg'],
         ];
     }
 
