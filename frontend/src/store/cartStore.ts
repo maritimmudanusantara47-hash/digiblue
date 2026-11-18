@@ -12,13 +12,14 @@ export interface CartItem {
   levelName?: string | null;
   batchId?: number | null;
   batchName?: string | null;
+  scheduleSelected?: boolean;
 }
 
 interface CartStore {
   items: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (courseId: number) => void;
-  updateBatch: (courseId: number, batchId: number | null, batchName?: string | null) => void;
+  updateBatch: (courseId: number, batchId: number | null, batchName?: string | null, scheduleSelected?: boolean) => void;
   updateItemPrice: (courseId: number, price: number) => void;
   clearCart: () => void;
   isInCart: (courseId: number) => boolean;
@@ -44,11 +45,11 @@ export const useCartStore = create<CartStore>()(
         }));
       },
 
-      updateBatch: (courseId, batchId, batchName = null) => {
+      updateBatch: (courseId, batchId, batchName = null, scheduleSelected = batchId !== null) => {
         set((state) => ({
           items: state.items.map((i) =>
             i.courseId === courseId
-              ? { ...i, batchId: batchId || null, batchName: batchName || null }
+              ? { ...i, batchId: batchId || null, batchName: batchName || null, scheduleSelected }
               : i
           ),
         }));

@@ -64,7 +64,7 @@ export default function StudentCartPage() {
       await Promise.all(
         currentItems.map(async (item) => {
           try {
-            const res = await api.get(`/courses/${item.courseId}/batches?active_only=true`);
+            const res = await api.get(`/courses/${item.courseId}/batches?active_only=true&open_only=true&limit=1`);
             if (isSubscribed) {
               newBatches[item.courseId] = res.data.data ?? [];
             }
@@ -77,6 +77,11 @@ export default function StudentCartPage() {
         })
       );
       if (isSubscribed) {
+        currentItems.forEach((item) => {
+          if (item.batchId && !(newBatches[item.courseId] ?? []).some((batch) => batch.id === item.batchId)) {
+            useCartStore.getState().updateBatch(item.courseId, null, null, false);
+          }
+        });
         setBatchesMap(newBatches);
         setBatchesErrorMap(newErrors);
         setLoadingBatches(false);
@@ -133,7 +138,7 @@ export default function StudentCartPage() {
   };
 
   const handleCheckout = async () => {
-    const unselectedCourse = items.find((item) => !item.batchId);
+    const unselectedCourse = items.find((item) => !(item.scheduleSelected ?? !!item.batchId));
     if (unselectedCourse) {
       showWarning(
         'Pilih Angkatan Terlebih Dahulu',
@@ -246,7 +251,7 @@ export default function StudentCartPage() {
   }
 
   const totalPrice = getTotalPrice();
-  const hasUnselectedBatch = items.some((item) => !item.batchId);
+  const hasUnselectedBatch = items.some((item) => !(item.scheduleSelected ?? !!item.batchId));
 
   return (
     <div className="space-y-8 animate-fadeup pb-8">
@@ -363,7 +368,7 @@ export default function StudentCartPage() {
                         </label>
 
                         {/* Badge Status Pemilihan Angkatan */}
-                        {item.batchId ? (
+                        {(item.scheduleSelected ?? !!item.batchId) ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                             <span>✓</span>
                             <span>Angkatan Terpilih</span>
@@ -377,9 +382,9 @@ export default function StudentCartPage() {
                       </div>
 
                       {loadingBatches ? (
-                        <div className="flex items-center gap-2.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 w-full max-w-sm animate-pulse">
+                        <div className="flex items-center gap-2.5 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-600 w-full max-w-sm">
                           <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin shrink-0" />
-                          <span className="font-medium">Memuat daftar angkatan tersedia...</span>
+                            <span className="font-medium">Memuat jadwal angkatan tersedia...</span>
                         </div>
                       ) : batchesErrorMap[item.courseId] ? (
                         <div className="flex items-center justify-between gap-2 px-3 py-2 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 w-full max-w-sm">
@@ -394,12 +399,16 @@ export default function StudentCartPage() {
                         </div>
                       ) : (
                         <select
-                          value={item.batchId ?? ''}
+                          value={(item.scheduleSelected ?? !!item.batchId) ? (item.batchId ? String(item.batchId) : 'self-paced') : ''}
                           onChange={(e) => {
                             const val = e.target.value;
+                            if (val === 'self-paced') {
+                              updateBatch(item.courseId, null, null, true);
+                              return;
+                            }
                             const selectedId = val ? Number(val) : null;
                             const matched = itemBatches.find((b) => b.id === selectedId);
-                            updateBatch(item.courseId, selectedId, matched?.batch_name ?? null);
+                            updateBatch(item.courseId, selectedId, matched?.batch_name ?? null, !!selectedId);
                           }}
                           className={`w-full max-w-sm px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer focus:outline-none focus:ring-2 ${
                             !item.batchId
@@ -410,6 +419,7 @@ export default function StudentCartPage() {
                           <option value="" disabled>
                             -- Pilih Jadwal & Angkatan Belajar --
                           </option>
+                          <option value="self-paced">Jalur Mandiri (Self-Paced / Mulai Sekarang)</option>
                           {itemBatches.map((b) => {
                             const dateRange =
                               b.start_date && b.end_date
@@ -424,9 +434,9 @@ export default function StudentCartPage() {
                         </select>
                       )}
                       <p className="text-[11px] mt-1.5">
-                        {item.batchId ? (
+                        {(item.scheduleSelected ?? !!item.batchId) ? (
                           <span className="text-emerald-700 font-medium">
-                            Anda terdaftar pada sesi angkatan terbimbing bersama fasilitator.
+                            {item.batchId ? 'Anda terdaftar pada sesi angkatan terbimbing bersama fasilitator.' : 'Anda memilih jalur mandiri dan dapat mulai belajar sekarang.'}
                           </span>
                         ) : (
                           <span className="text-amber-700 font-medium">

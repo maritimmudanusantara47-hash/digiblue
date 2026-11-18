@@ -31,6 +31,21 @@ class AdminBatchController extends Controller
             $query->where('is_active', true);
         }
 
+        // Filter untuk dropdown checkout siswa: hanya batch yang pendaftarannya masih buka atau belajarnya belum berakhir
+        if ($request->boolean('open_only')) {
+            $today = now()->toDateString();
+            $query->where(function ($q) use ($today) {
+                $q->whereNull('registration_end_date')->orWhere('registration_end_date', '>=', $today);
+            })->where(function ($q) use ($today) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $today);
+            });
+        }
+
+        if ($request->has('limit')) {
+            $limit = max(1, (int) $request->query('limit'));
+            $query->limit($limit);
+        }
+
         $batches = $query->get();
 
         return response()->json(['data' => $batches]);
