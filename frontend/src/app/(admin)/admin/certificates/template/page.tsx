@@ -596,6 +596,23 @@ export default function CertificateTemplateAdminPage() {
   const [zoomMode, setZoomMode] = useState<'fit' | number>('fit');
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
 
+  // Refs untuk sinkronisasi state dengan keyboard event listener (mencegah stale closures)
+  const selectedKeyRef = useRef(selectedKey);
+  const layoutRef = useRef(layout);
+  const editModeRef = useRef(editMode);
+
+  useEffect(() => {
+    selectedKeyRef.current = selectedKey;
+  }, [selectedKey]);
+
+  useEffect(() => {
+    layoutRef.current = layout;
+  }, [layout]);
+
+  useEffect(() => {
+    editModeRef.current = editMode;
+  }, [editMode]);
+
   useEffect(() => {
     api.get('/admin/certificates/template/layout').then(res => {
       if (res.data?.data && Object.keys(res.data.data).length > 0)
