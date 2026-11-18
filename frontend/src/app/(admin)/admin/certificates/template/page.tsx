@@ -47,6 +47,7 @@ const DEFAULT_LAYOUT: LayoutState = {
   meta_block: { top: 138.0, font_size: 10.5, label: 'Grade, Tanggal & Tempat' },
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
+  validity_block: { top: 195.5, left: 16.5, font_size: 7.5, label: 'Masa Berlaku Sertifikat' },
   back_title: { top: 20.0, font_size: 15.0, label: 'Judul Halaman Belakang' },
 
   // Field Study Layout
@@ -512,6 +513,7 @@ const FIELD_LIST_FRONT = [
   { key: 'meta_block', label: 'Grade, Tanggal & Tempat' },
   { key: 'qr_left', label: 'QR Kiri' },
   { key: 'qr_right', label: 'QR Kanan' },
+  { key: 'validity_block', label: 'Masa Berlaku Sertifikat' },
 ];
 
 const FIELD_LIST_BACK = [
@@ -538,6 +540,7 @@ const FRONT_FIELDS = [
   'meta_block',
   'qr_left',
   'qr_right',
+  'validity_block',
   'fs_recipient_name',
   'fs_course_title',
   'fs_date_participation',
@@ -727,6 +730,15 @@ export default function CertificateTemplateAdminPage() {
   };
 
   const sel = layout[selectedKey];
+  const validityStart = new Date(sample.date);
+  const validityEnd = new Date(validityStart);
+  validityEnd.setFullYear(validityEnd.getFullYear() + 3);
+  const formatValidityDate = (date: Date, locale: string) =>
+    new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  const validityStartId = formatValidityDate(validityStart, 'id-ID');
+  const validityEndId = formatValidityDate(validityEnd, 'id-ID');
+  const validityStartEn = formatValidityDate(validityStart, 'en-GB');
+  const validityEndEn = formatValidityDate(validityEnd, 'en-GB');
 
   return (
     <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden select-none">
@@ -1054,6 +1066,16 @@ export default function CertificateTemplateAdminPage() {
                         <div><strong>Grade:</strong> {sample.grade}</div>
                         <div><strong>Date of issue:</strong> {sample.date}</div>
                         <div><strong>Place of issue:</strong> {sample.place}</div>
+                      </div>
+
+                      {/* Certificate Validity */}
+                      <div
+                        onClick={() => { setSelectedKey('validity_block'); setEditMode(true); setMobilePanelOpen(true); }}
+                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'validity_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
+                        style={{ top: mmToPx(layout.validity_block?.top ?? 195.5), left: mmToPx(layout.validity_block?.left ?? 16.5), right: mmToPx(16.5), fontSize: `${(layout.validity_block?.font_size ?? 7.5) * (SCALE / 3.4)}px`, lineHeight: 1.35, color: '#1f2937', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                      >
+                        <div>Sertifikat ini berlaku dari {validityStartId} sampai {validityEndId}</div>
+                        <div>This certificate is valid from {validityStartEn} until {validityEndEn}</div>
                       </div>
 
                       {/* QR Left */}
