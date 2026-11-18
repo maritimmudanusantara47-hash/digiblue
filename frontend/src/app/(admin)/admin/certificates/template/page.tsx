@@ -54,8 +54,8 @@ const DEFAULT_LAYOUT: LayoutState = {
   fs_course_title: { top: 108.5, font_size: 19.0, label: 'Judul Pelatihan (Depan)' },
   fs_date_participation: { top: 134.5, font_size: 14.0, label: 'Tanggal Partisipasi (Depan)' },
   fs_date_issue: { top: 141.5, font_size: 14.0, label: 'Tempat & Tanggal Terbit (Depan)' },
-  fs_back_name: { top: 26.8, left: 29.2, font_size: 11.5, label: 'Nama Peserta (Belakang)' },
-  fs_back_reg_no: { top: 31.2, left: 54.5, font_size: 11.5, label: 'Nomor Registrasi (Belakang)' },
+  fs_back_name: { top: 26.7, left: 29.2, font_size: 11.5, label: 'Nama Peserta (Belakang)' },
+  fs_back_reg_no: { top: 30.9, left: 54.5, font_size: 11.5, label: 'Nomor Registrasi (Belakang)' },
 };
 
 interface PresetItem {
@@ -1110,16 +1110,22 @@ export default function CertificateTemplateAdminPage() {
                           offsetNameLeft = 2.5;
                           offsetRegTop = -1.0;
                           offsetRegLeft = 2.5;
-                        } else if (track === 'blue-business-development' || track === 'blue-data-intelligence') {
-                          offsetNameTop = 1.2;
-                          offsetNameLeft = 0;
-                          offsetRegTop = 1.4;
-                          offsetRegLeft = 0;
+                        } else if ([
+                          'blue-energy',
+                          'blue-circular-economy',
+                          'blue-community-development',
+                          'blue-business-development',
+                          'blue-data-intelligence',
+                        ].includes(track)) {
+                          offsetNameTop = -1.1;
+                          offsetNameLeft = -2.0;
+                          offsetRegTop = 0.4;
+                          offsetRegLeft = -6.5;
                         }
 
-                        const computedNameTop = (layout.fs_back_name?.top ?? 26.8) + offsetNameTop;
+                        const computedNameTop = (layout.fs_back_name?.top ?? 26.7) + offsetNameTop;
                         const computedNameLeft = (layout.fs_back_name?.left ?? 29.2) + offsetNameLeft;
-                        const computedRegTop = (layout.fs_back_reg_no?.top ?? 31.2) + offsetRegTop;
+                        const computedRegTop = (layout.fs_back_reg_no?.top ?? 30.9) + offsetRegTop;
                         const computedRegLeft = (layout.fs_back_reg_no?.left ?? 54.5) + offsetRegLeft;
 
                         return (
