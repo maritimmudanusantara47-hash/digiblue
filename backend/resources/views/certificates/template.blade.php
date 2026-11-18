@@ -138,6 +138,16 @@
             color: #111827;
         }
 
+        .f-validity-block {
+            position: absolute;
+            left: 16.5mm;
+            right: 16.5mm;
+            line-height: 1.35;
+            font-family: 'Poppins', 'DejaVu Sans', sans-serif;
+            color: #1f2937;
+            z-index: 3;
+        }
+
         /* ── QR Codes with Clean Framed Card ── */
         .f-qr-left {
             position: absolute;
@@ -299,6 +309,25 @@
         $btTop = $L['back_title']['top'] ?? 20.0;
         $btFs  = $L['back_title']['font_size'] ?? 15.0;
 
+        $vTop  = $L['validity_block']['top'] ?? 195.5;
+        $vLeft = $L['validity_block']['left'] ?? 16.5;
+        $vFs   = $L['validity_block']['font_size'] ?? 7.5;
+
+        $issueCarbon = \Carbon\Carbon::parse($certificate->date_of_issue ?? now());
+        $validUntilCarbon = $issueCarbon->copy()->addYears(3);
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        $pubDateId = $issueCarbon->format('j') . ' ' . ($bulanIndo[(int)$issueCarbon->format('n')] ?? $issueCarbon->format('F')) . ' ' . $issueCarbon->format('Y');
+        $validUntilId = $validUntilCarbon->format('j') . ' ' . ($bulanIndo[(int)$validUntilCarbon->format('n')] ?? $validUntilCarbon->format('F')) . ' ' . $validUntilCarbon->format('Y');
+
+        $pubDateEn = $issueCarbon->format('j F Y');
+        $validUntilEn = $validUntilCarbon->format('j F Y');
+
         if (empty($templateBase64)) {
             $tplName = $isFoundation ? 'template_foundation.png' : 'template_CBEc.png';
             $tplFile = resource_path("images/{$tplName}");
@@ -359,6 +388,11 @@
                     <img class="f-qr-img" src="data:image/svg+xml;base64,{{ $qrImageBase64 }}" alt="QR Code Right">
                 </div>
             @endif
+
+            <div class="f-validity-block" style="top: {{ $vTop }}mm; left: {{ $vLeft }}mm; font-size: {{ $vFs }}pt;">
+                <div>Sertifikat ini berlaku dari {{ $pubDateId }} sampai {{ $validUntilId }}</div>
+                <div>This certificate is valid from {{ $pubDateEn }} until {{ $validUntilEn }}</div>
+            </div>
 
         </div>
     </div>
