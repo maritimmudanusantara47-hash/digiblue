@@ -26,6 +26,8 @@ export default function StudentCartPage() {
   const [mounted, setMounted] = useState(false);
   const [batchesMap, setBatchesMap] = useState<Record<number, BatchOption[]>>({});
   const [loadingBatches, setLoadingBatches] = useState(false);
+  const [batchesErrorMap, setBatchesErrorMap] = useState<Record<number, boolean>>({});
+  const [refreshKey, setRefreshKey] = useState(0);
   const [processingCheckout, setProcessingCheckout] = useState(false);
 
   useEffect(() => {
@@ -40,9 +42,11 @@ export default function StudentCartPage() {
 
     let isSubscribed = true;
     setLoadingBatches(true);
+    setBatchesErrorMap({});
 
     const fetchBatches = async () => {
       const newBatches: Record<number, BatchOption[]> = {};
+      const newErrors: Record<number, boolean> = {};
 
       try {
         const coursesRes = await api.get('/courses');
@@ -67,12 +71,14 @@ export default function StudentCartPage() {
           } catch {
             if (isSubscribed) {
               newBatches[item.courseId] = [];
+              newErrors[item.courseId] = true;
             }
           }
         })
       );
       if (isSubscribed) {
         setBatchesMap(newBatches);
+        setBatchesErrorMap(newErrors);
         setLoadingBatches(false);
       }
     };
@@ -82,7 +88,7 @@ export default function StudentCartPage() {
     return () => {
       isSubscribed = false;
     };
-  }, [mounted, courseIdsKey]);
+  }, [mounted, courseIdsKey, refreshKey]);
 
   // Helper pemuatan Midtrans Snap jika belum siap di DOM
   const ensureSnapLoaded = (): Promise<void> => {
@@ -127,6 +133,15 @@ export default function StudentCartPage() {
   };
 
   const handleCheckout = async () => {
+    const unselectedCourse = items.find((item) => !item.batchId);
+    if (unselectedCourse) {
+      showWarning(
+        'Pilih Angkatan Terlebih Dahulu',
+        `Silakan tentukan jadwal/angkatan untuk kursus "${unselectedCourse.title}" terlebih dahulu sebelum melakukan pembayaran.`
+      );
+      return;
+    }
+
     const token = Cookies.get('auth_token');
     const isAuth = isAuthenticated || !!token;
 
@@ -231,6 +246,7 @@ export default function StudentCartPage() {
   }
 
   const totalPrice = getTotalPrice();
+  const hasUnselectedBatch = items.some((item) => !item.batchId);
 
   return (
     <div className="space-y-8 animate-fadeup pb-8">
@@ -340,13 +356,42 @@ export default function StudentCartPage() {
 
                     {/* Dropdown Pemilihan Batch / Angkatan */}
                     <div className="mt-4 pt-4 border-t border-slate-100">
-                      <label className="block text-xs font-bold text-slate-600 mb-1.5 flex items-center gap-1.5">
-                        <Icon name="timer" size={14} className="text-sky-500" />
-                        <span>Pilihan Jadwal / Angkatan:</span>
-                      </label>
+                      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <Icon name="timer" size={14} className="text-sky-500" />
+                          <span>Pilihan Jadwal / Angkatan:</span>
+                        </label>
+
+                        {/* Badge Status Pemilihan Angkatan */}
+                        {item.batchId ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                            <span>✓</span>
+                            <span>Angkatan Terpilih</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-300 animate-pulse shadow-2xs">
+                            <span>⚠️</span>
+                            <span>Wajib Pilih Angkatan</span>
+                          </span>
+                        )}
+                      </div>
 
                       {loadingBatches ? (
-                        <div className="h-9 bg-slate-100 rounded-lg animate-pulse w-full max-w-sm" />
+                        <div className="flex items-center gap-2.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 w-full max-w-sm animate-pulse">
+                          <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                          <span className="font-medium">Memuat daftar angkatan tersedia...</span>
+                        </div>
+                      ) : batchesErrorMap[item.courseId] ? (
+                        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 w-full max-w-sm">
+                          <span className="truncate">Gagal memuat jadwal angkatan.</span>
+                          <button
+                            type="button"
+                            onClick={() => setRefreshKey((k) => k + 1)}
+                            className="text-[11px] font-bold text-rose-700 underline hover:text-rose-900 shrink-0 cursor-pointer"
+                          >
+                            Coba lagi
+                          </button>
+                        </div>
                       ) : (
                         <select
                           value={item.batchId ?? ''}
@@ -356,9 +401,15 @@ export default function StudentCartPage() {
                             const matched = itemBatches.find((b) => b.id === selectedId);
                             updateBatch(item.courseId, selectedId, matched?.batch_name ?? null);
                           }}
-                          className="w-full max-w-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all cursor-pointer"
+                          className={`w-full max-w-sm px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer focus:outline-none focus:ring-2 ${
+                            !item.batchId
+                              ? 'border-2 border-amber-400 bg-amber-50/25 text-amber-950 focus:ring-amber-500/20 focus:border-amber-500'
+                              : 'border border-slate-200 bg-slate-50 text-slate-800 focus:ring-sky-500/20 focus:border-sky-500'
+                          }`}
                         >
-                          <option value="">Jalur Mandiri (Self-Paced / Mulai Sekarang)</option>
+                          <option value="" disabled>
+                            -- Pilih Jadwal & Angkatan Belajar --
+                          </option>
                           {itemBatches.map((b) => {
                             const dateRange =
                               b.start_date && b.end_date
@@ -372,10 +423,16 @@ export default function StudentCartPage() {
                           })}
                         </select>
                       )}
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        {item.batchId
-                          ? 'Anda terdaftar pada sesi angkatan terbimbing bersama fasilitator.'
-                          : 'Akses instan 24/7 dan belajar mandiri dengan kecepatan Anda sendiri.'}
+                      <p className="text-[11px] mt-1.5">
+                        {item.batchId ? (
+                          <span className="text-emerald-700 font-medium">
+                            Anda terdaftar pada sesi angkatan terbimbing bersama fasilitator.
+                          </span>
+                        ) : (
+                          <span className="text-amber-700 font-medium">
+                            Silakan tentukan angkatan belajar di atas agar jadwal dan fasilitator Anda tercatat.
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -453,13 +510,22 @@ export default function StudentCartPage() {
               {/* Tombol Lanjut ke Pembayaran */}
               <button
                 onClick={handleCheckout}
-                disabled={processingCheckout || items.length === 0}
-                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 active:scale-[0.99] text-white font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={processingCheckout || items.length === 0 || hasUnselectedBatch || loadingBatches}
+                className={`w-full py-3.5 px-5 rounded-2xl font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                  hasUnselectedBatch || processingCheckout || items.length === 0 || loadingBatches
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none border border-slate-300/60'
+                    : 'bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 active:scale-[0.99] text-white shadow-md hover:shadow-lg cursor-pointer'
+                }`}
               >
                 {processingCheckout ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     <span>Menyiapkan Pembayaran...</span>
+                  </>
+                ) : hasUnselectedBatch ? (
+                  <>
+                    <Icon name="alarm-clock" size={17} />
+                    <span>Pilih Angkatan untuk Melanjutkan</span>
                   </>
                 ) : (
                   <>
@@ -468,6 +534,14 @@ export default function StudentCartPage() {
                   </>
                 )}
               </button>
+
+              {/* Teks Pembantu / Warning jika masih ada angkatan belum dipilih */}
+              {hasUnselectedBatch && items.length > 0 && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2 text-amber-800 text-[11px] leading-relaxed">
+                  <span className="text-amber-600 font-bold shrink-0 mt-0.5">⚠️</span>
+                  <span>Pastikan Anda telah memilih jadwal angkatan untuk seluruh kursus di atas.</span>
+                </div>
+              )}
 
               {/* Jaminan Keamanan & Metode Pembayaran */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
