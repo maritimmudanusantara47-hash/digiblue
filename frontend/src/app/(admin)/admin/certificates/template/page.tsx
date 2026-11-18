@@ -600,6 +600,7 @@ export default function CertificateTemplateAdminPage() {
   const selectedKeyRef = useRef(selectedKey);
   const layoutRef = useRef(layout);
   const editModeRef = useRef(editMode);
+  const showResetModalRef = useRef(showResetModal);
 
   useEffect(() => {
     selectedKeyRef.current = selectedKey;
@@ -612,6 +613,80 @@ export default function CertificateTemplateAdminPage() {
   useEffect(() => {
     editModeRef.current = editMode;
   }, [editMode]);
+
+  useEffect(() => {
+    showResetModalRef.current = showResetModal;
+  }, [showResetModal]);
+
+  // Keyboard navigation handler untuk menggeser posisi teks dengan arrow keys (Tiket 1811)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Hanya proses jika tombol panah yang ditekan
+      const ARROW_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+      if (!ARROW_KEYS.includes(e.key)) return;
+
+      // 2. Safety Guard: Jangan aktif jika modal reset sedang terbuka atau sedang fokus di elemen input form
+      if (showResetModalRef.current) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
+        return;
+      }
+
+      // 3. Cek apakah ada elemen sertifikat yang sedang aktif
+      const currentKey = selectedKeyRef.current;
+      if (!currentKey) return;
+
+      const currentLayout = layoutRef.current;
+      const currentField = currentLayout[currentKey];
+      if (!currentField) return;
+
+      // 4. Cegah scrolling default pada halaman web
+      e.preventDefault();
+
+      // 5. Tentukan besaran geser (0.5 mm biasa, 5 mm dengan tombol Shift)
+      const step = e.shiftKey ? 5 : 0.5;
+      const round = (val: number) => Math.round(val * 10) / 10;
+
+      // 6. Update koordinat posisi
+      setLayout(prev => {
+        const item = prev[currentKey];
+        if (!item) return prev;
+
+        const updated = { ...item };
+
+        if (e.key === 'ArrowUp') {
+          updated.top = round(Math.max(0, updated.top - step));
+        } else if (e.key === 'ArrowDown') {
+          updated.top = round(updated.top + step);
+        } else if (e.key === 'ArrowLeft') {
+          if (typeof updated.left === 'number') {
+            updated.left = round(Math.max(0, updated.left - step));
+          } else if (typeof updated.right === 'number') {
+            updated.right = round(updated.right + step);
+          }
+        } else if (e.key === 'ArrowRight') {
+          if (typeof updated.left === 'number') {
+            updated.left = round(updated.left + step);
+          } else if (typeof updated.right === 'number') {
+            updated.right = round(Math.max(0, updated.right - step));
+          }
+        }
+
+        return { ...prev, [currentKey]: updated };
+      });
+
+      // Aktifkan mode edit otomatis agar feedback visual terlihat
+      if (!editModeRef.current) {
+        setEditMode(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     api.get('/admin/certificates/template/layout').then(res => {
@@ -960,8 +1035,14 @@ export default function CertificateTemplateAdminPage() {
           className="flex-1 overflow-auto p-3 sm:p-5 flex flex-col items-center justify-between gap-3 bg-[#0a0a0f] relative"
         >
           {editMode && (
-            <div className="flex items-center gap-2 text-[11px] sm:text-xs text-blue-300 bg-blue-950/60 border border-blue-800/60 px-3 py-1.5 rounded-lg shadow-sm">
-              <Ico.Edit /> Klik teks di sertifikat atau pilih menu di kanan untuk menggeser posisi
+            <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2.5 text-[11px] sm:text-xs text-blue-300 bg-blue-950/60 border border-blue-800/60 px-3 py-1.5 rounded-lg shadow-sm text-center sm:text-left">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Ico.Edit /> Klik teks di sertifikat atau pilih menu di kanan untuk menggeser posisi
+              </span>
+              <span className="hidden sm:inline text-blue-500">•</span>
+              <span className="text-amber-300 font-normal">
+                💡 <strong>Tips:</strong> Gunakan tombol panah pada keyboard untuk menggeser posisi dengan presisi (tahan <kbd className="px-1 py-0.5 bg-blue-900/60 border border-blue-700/60 rounded text-[10px] font-mono text-white">Shift</kbd> untuk geser cepat).
+              </span>
             </div>
           )}
 
