@@ -118,12 +118,12 @@
         $iTop = $L['fs_date_issue']['top'] ?? 141.5;
         $iFs = $L['fs_date_issue']['font_size'] ?? 14.0;
 
-        $bnTop = $L['fs_back_name']['top'] ?? 26.7;
-        $bnLeft = $L['fs_back_name']['left'] ?? 29.2;
+        $bnTop = $L['fs_back_name']['top'] ?? 25.5;
+        $bnLeft = $L['fs_back_name']['left'] ?? 16.5;
         $bnFs = $L['fs_back_name']['font_size'] ?? 11.5;
 
-        $brTop = $L['fs_back_reg_no']['top'] ?? 30.9;
-        $brLeft = $L['fs_back_reg_no']['left'] ?? 54.5;
+        $brTop = $L['fs_back_reg_no']['top'] ?? 30.8;
+        $brLeft = $L['fs_back_reg_no']['left'] ?? 16.5;
         $brFs = $L['fs_back_reg_no']['font_size'] ?? 11.5;
 
         $issueCarbon = \Carbon\Carbon::parse($certificate->date_of_issue);
@@ -143,31 +143,6 @@
             || str_contains(strtolower($levelName), 'foundation')
             || strtolower($levelCode) === 'fnd'
             || strtolower($levelCode) === 'foundation';
-
-        $isGroupB = in_array($rawCourseSlug, [
-            'blue-energy',
-            'blue-circular-economy',
-            'blue-community-development',
-            'blue-business-development',
-            'blue-data-intelligence',
-        ])
-            || str_contains(strtolower($rawCourseTitle), 'energy')
-            || str_contains(strtolower($rawCourseTitle), 'circular')
-            || str_contains(strtolower($rawCourseTitle), 'community')
-            || str_contains(strtolower($rawCourseTitle), 'business development')
-            || str_contains(strtolower($rawCourseTitle), 'data intelligence');
-
-        if ($isFoundation) {
-            $bnTop += -1.4;
-            $bnLeft += 2.5;
-            $brTop += -1.0;
-            $brLeft += 2.5;
-        } elseif ($isGroupB) {
-            $bnTop += -1.1;
-            $bnLeft += -2.0;
-            $brTop += 0.4;
-            $brLeft += -6.5;
-        }
 
         if ($isFoundation) {
             $displayCourseTitle = 'International Blue Economist Certification Training Course';
@@ -225,14 +200,17 @@
                 alt="Field Study Curriculum Structure Back">
 
             <div class="overlay">
-                {{-- Name after "Name : " --}}
+                {{-- Clean mask covering Canva's uneven label text --}}
+                <div style="position: absolute; top: 23.5mm; left: 14mm; width: 240mm; height: 14.5mm; background: #F8F8F8;"></div>
+
+                {{-- Name --}}
                 <div class="fs-back-text" style="top: {{ $bnTop }}mm; left: {{ $bnLeft }}mm; font-size: {{ $bnFs }}pt;">
-                    {{ $user->name }}
+                    <span style="font-weight: normal; color: #111827;">Name : </span><strong>{{ $user->name }}</strong>
                 </div>
 
-                {{-- Registration Number after "Registration Number : " --}}
+                {{-- Registration Number --}}
                 <div class="fs-back-text" style="top: {{ $brTop }}mm; left: {{ $brLeft }}mm; font-size: {{ $brFs }}pt;">
-                    {{ $regNo }}
+                    <span style="font-weight: normal; color: #111827;">Registration Number : </span><strong>{{ $regNo }}</strong>
                 </div>
             </div>
         </div>
