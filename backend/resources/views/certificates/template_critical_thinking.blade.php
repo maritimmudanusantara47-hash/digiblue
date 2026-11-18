@@ -118,13 +118,19 @@
         $iTop = $L['ct_date_issue']['top'] ?? $L['fs_date_issue']['top'] ?? 141.5;
         $iFs = $L['ct_date_issue']['font_size'] ?? $L['fs_date_issue']['font_size'] ?? 14.0;
 
-        $bnTop = $L['ct_back_name']['top'] ?? $L['fs_back_name']['top'] ?? 25.0;
-        $bnLeft = $L['ct_back_name']['left'] ?? $L['fs_back_name']['left'] ?? 32.0;
-        $bnFs = $L['ct_back_name']['font_size'] ?? $L['fs_back_name']['font_size'] ?? 13.0;
+        $bnTop = $L['ct_back_name']['top'] ?? $L['fs_back_name']['top'] ?? 26.8;
+        $bnLeft = $L['ct_back_name']['left'] ?? $L['fs_back_name']['left'] ?? 29.2;
+        $bnFs = $L['ct_back_name']['font_size'] ?? $L['fs_back_name']['font_size'] ?? 11.5;
 
-        $brTop = $L['ct_back_reg_no']['top'] ?? $L['fs_back_reg_no']['top'] ?? 29.5;
-        $brLeft = $L['ct_back_reg_no']['left'] ?? $L['fs_back_reg_no']['left'] ?? 57.0;
-        $brFs = $L['ct_back_reg_no']['font_size'] ?? $L['fs_back_reg_no']['font_size'] ?? 13.0;
+        $brTop = $L['ct_back_reg_no']['top'] ?? $L['fs_back_reg_no']['top'] ?? 31.2;
+        $brLeft = $L['ct_back_reg_no']['left'] ?? $L['fs_back_reg_no']['left'] ?? 54.5;
+        $brFs = $L['ct_back_reg_no']['font_size'] ?? $L['fs_back_reg_no']['font_size'] ?? 11.5;
+
+        // Critical Thinking template background geometry matches Foundation
+        $bnTop += -1.4;
+        $bnLeft += 2.5;
+        $brTop += -1.0;
+        $brLeft += 2.5;
 
         $issueCarbon = \Carbon\Carbon::parse($certificate->date_of_issue);
         $issueDateFormatted = $issueCarbon->format('j F Y');

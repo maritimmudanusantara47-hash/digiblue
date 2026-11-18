@@ -118,13 +118,13 @@
         $iTop = $L['fs_date_issue']['top'] ?? 141.5;
         $iFs = $L['fs_date_issue']['font_size'] ?? 14.0;
 
-        $bnTop = $L['fs_back_name']['top'] ?? 25.0;
-        $bnLeft = $L['fs_back_name']['left'] ?? 32.0;
-        $bnFs = $L['fs_back_name']['font_size'] ?? 13.0;
+        $bnTop = $L['fs_back_name']['top'] ?? 26.8;
+        $bnLeft = $L['fs_back_name']['left'] ?? 29.2;
+        $bnFs = $L['fs_back_name']['font_size'] ?? 11.5;
 
-        $brTop = $L['fs_back_reg_no']['top'] ?? 29.5;
-        $brLeft = $L['fs_back_reg_no']['left'] ?? 57.0;
-        $brFs = $L['fs_back_reg_no']['font_size'] ?? 13.0;
+        $brTop = $L['fs_back_reg_no']['top'] ?? 31.2;
+        $brLeft = $L['fs_back_reg_no']['left'] ?? 54.5;
+        $brFs = $L['fs_back_reg_no']['font_size'] ?? 11.5;
 
         $issueCarbon = \Carbon\Carbon::parse($certificate->date_of_issue);
         $issueDateFormatted = $issueCarbon->format('j F Y');
@@ -134,6 +134,7 @@
 
         $partDate = $participationDate ?? ('20 May – ' . $issueCarbon->format('j F Y'));
 
+        $rawCourseSlug = $course->slug ?? '';
         $rawCourseTitle = $course->title ?? '';
         $levelName = $course->certificationLevel->name ?? '';
         $levelCode = $course->certificationLevel->code ?? '';
@@ -142,6 +143,20 @@
             || str_contains(strtolower($levelName), 'foundation')
             || strtolower($levelCode) === 'fnd'
             || strtolower($levelCode) === 'foundation';
+
+        $isBizDevOrDataIntel = in_array($rawCourseSlug, ['blue-business-development', 'blue-data-intelligence'])
+            || str_contains(strtolower($rawCourseTitle), 'business development')
+            || str_contains(strtolower($rawCourseTitle), 'data intelligence');
+
+        if ($isFoundation) {
+            $bnTop += -1.4;
+            $bnLeft += 2.5;
+            $brTop += -1.0;
+            $brLeft += 2.5;
+        } elseif ($isBizDevOrDataIntel) {
+            $bnTop += 1.2;
+            $brTop += 1.4;
+        }
 
         if ($isFoundation) {
             $displayCourseTitle = 'International Blue Economist Certification Training Course';
