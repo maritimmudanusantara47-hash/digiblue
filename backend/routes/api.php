@@ -124,7 +124,9 @@ Route::prefix('v1')->group(function () {
             // Batch Angkatan Management (Admin)
             Route::get('batches',                           [AdminBatchController::class, 'index']);
             Route::get('batches/template',                  [AdminBatchController::class, 'template']);
+            Route::post('batches/bulk',                     [AdminBatchController::class, 'bulkStore']);
             Route::post('courses/{courseId}/batches',       [AdminBatchController::class, 'store']);
+            Route::post('batches',                          [AdminBatchController::class, 'store']);
             Route::patch('batches/{id}',                    [AdminBatchController::class, 'update']);
             Route::delete('batches/{id}',                   [AdminBatchController::class, 'destroy']);
 

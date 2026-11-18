@@ -6,7 +6,13 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
 import { showSuccess, showError } from '@/lib/swal';
 
-interface Course { id: number; title: string }
+interface Course {
+  id: number;
+  title: string;
+  certification_level?: { id: number; code: string; name: string };
+  certificationLevel?: { id: number; code: string; name: string };
+  certification_level_id?: number;
+}
 interface CourseBatch {
   id: number;
   course_id: number;
@@ -43,6 +49,12 @@ export default function AdminBatchesPage() {
   const [loading, setLoading] = useState(true);
   const [filterCourse, setFilterCourse] = useState('');
   const [filterActive, setFilterActive] = useState('');
+
+  // Target count helpers
+  const specCoursesCount = courses.filter(
+    c => (c.certification_level?.code ?? c.certificationLevel?.code) === 'SPEC'
+  ).length || 12;
+  const allCoursesCount = courses.length || (specCoursesCount + 1);
 
   // Modal
   const [mode, setMode] = useState<ModalMode>(null);
@@ -331,39 +343,81 @@ export default function AdminBatchesPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.course_id || !form.batch_name) {
-      setError('Kursus dan nama batch wajib diisi.');
+      setError('Target kursus dan nama batch wajib diisi.');
       return;
     }
+
+    if (form.registration_start_date && form.registration_end_date && form.registration_end_date < form.registration_start_date) {
+      setError('Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.');
+      return;
+    }
+
+    if (form.start_date && form.end_date && form.end_date < form.start_date) {
+      setError('Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.');
+      return;
+    }
+
     setSaving(true);
     setError('');
     try {
-      const payload = {
-        course_id: Number(form.course_id),
-        batch_name: form.batch_name,
-        batch_code: form.batch_code || null,
-        registration_start_date: form.registration_start_date || null,
-        registration_end_date: form.registration_end_date || null,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-        field_trip_date: form.field_trip_date || null,
-        is_active: form.is_active,
-      };
-      if (mode === 'create') {
-        await api.post(`/admin/courses/${form.course_id}/batches`, payload);
+      const isBulk = mode === 'create' && (form.course_id === 'all_specialization' || form.course_id === 'all_courses');
+      let resMessage = '';
+
+      if (isBulk) {
+        const payload = {
+          target_scope: form.course_id,
+          batch_name: form.batch_name,
+          batch_code: form.batch_code || null,
+          registration_start_date: form.registration_start_date || null,
+          registration_end_date: form.registration_end_date || null,
+          start_date: form.start_date || null,
+          end_date: form.end_date || null,
+          field_trip_date: form.field_trip_date || null,
+          is_active: form.is_active,
+        };
+        const res = await api.post('/admin/batches/bulk', payload);
+        resMessage = res.data?.message ?? `Batch berhasil dibuat untuk ${form.course_id === 'all_specialization' ? `${specCoursesCount} kursus spesialisasi` : 'semua kursus'}.`;
+      } else if (mode === 'create') {
+        const payload = {
+          course_id: Number(form.course_id),
+          batch_name: form.batch_name,
+          batch_code: form.batch_code || null,
+          registration_start_date: form.registration_start_date || null,
+          registration_end_date: form.registration_end_date || null,
+          start_date: form.start_date || null,
+          end_date: form.end_date || null,
+          field_trip_date: form.field_trip_date || null,
+          is_active: form.is_active,
+        };
+        const res = await api.post(`/admin/courses/${form.course_id}/batches`, payload);
+        resMessage = res.data?.message ?? 'Batch angkatan baru berhasil dibuat.';
       } else {
-        await api.patch(`/admin/batches/${editId}`, payload);
+        const payload = {
+          course_id: Number(form.course_id),
+          batch_name: form.batch_name,
+          batch_code: form.batch_code || null,
+          registration_start_date: form.registration_start_date || null,
+          registration_end_date: form.registration_end_date || null,
+          start_date: form.start_date || null,
+          end_date: form.end_date || null,
+          field_trip_date: form.field_trip_date || null,
+          is_active: form.is_active,
+        };
+        const res = await api.patch(`/admin/batches/${editId}`, payload);
+        resMessage = res.data?.message ?? 'Data batch angkatan berhasil diperbarui.';
       }
+
       closeModal();
       await fetchBatches();
       await fetchAllBatches();
-      showSuccess(
-        'Berhasil!',
-        mode === 'create'
-          ? 'Batch angkatan baru berhasil dibuat.'
-          : 'Data batch angkatan berhasil diperbarui.'
-      );
+      showSuccess('Berhasil!', resMessage);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const errData = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
+      let msg = errData?.message;
+      if (errData?.errors) {
+        const firstErr = Object.values(errData.errors)[0]?.[0];
+        if (firstErr) msg = firstErr;
+      }
       setError(msg ?? 'Gagal menyimpan batch.');
       showError('Gagal Menyimpan!', msg ?? 'Terjadi kesalahan saat menyimpan data batch.');
     } finally {
@@ -549,19 +603,69 @@ export default function AdminBatchesPage() {
 
             {/* Body */}
             <form onSubmit={handleSave} className="flex flex-col gap-4">
-              {/* Kursus */}
+              {/* Kursus / Target Kursus */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-navy-dark">Kursus <span className="text-rose-500">*</span></label>
+                <label className="text-xs font-bold text-navy-dark">
+                  {mode === 'create' ? 'Target Kursus' : 'Kursus'} <span className="text-rose-500">*</span>
+                </label>
                 <select
                   required
+                  id="select-course-target"
                   value={form.course_id}
                   onChange={e => setForm(f => ({ ...f, course_id: e.target.value }))}
                   className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                 >
-                  <option value="">— Pilih Kursus —</option>
-                  {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                  <option value="">— {mode === 'create' ? 'Pilih Target Kursus' : 'Pilih Kursus'} —</option>
+                  {mode === 'create' && (
+                    <optgroup label="⚡ Preset Otomatis (Bulk Apply)">
+                      <option value="all_specialization">
+                        Semua Kursus Spesialisasi ({specCoursesCount} Tracks) — Rekomendasi
+                      </option>
+                      <option value="all_courses">
+                        Semua Kursus (Foundation + {specCoursesCount} Spesialisasi)
+                      </option>
+                    </optgroup>
+                  )}
+                  <optgroup label={mode === 'create' ? '🎯 Satu Kursus Spesifik' : 'Daftar Kursus'}>
+                    {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                  </optgroup>
                 </select>
               </div>
+
+              {/* Callout Info Biru untuk Pilihan Massal (Bulk Apply) */}
+              {mode === 'create' && form.course_id === 'all_specialization' && (
+                <div
+                  id="callout-all-specialization"
+                  className="bg-sky-50 border border-sky-200 text-sky-900 text-xs px-4 py-3 rounded-2xl flex items-start gap-2.5 shadow-xs animate-fadein"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon name="info" size={15} />
+                  </div>
+                  <div className="leading-relaxed">
+                    <p className="font-bold text-sky-950">Mode Pembuatan Massal (Bulk Apply):</p>
+                    <p className="mt-0.5 text-sky-800">
+                      Batch ini akan otomatis dibuatkan untuk <strong>{specCoursesCount} kursus spesialisasi</strong> secara bersamaan dengan tanggal dan jadwal yang sama persis.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {mode === 'create' && form.course_id === 'all_courses' && (
+                <div
+                  id="callout-all-courses"
+                  className="bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs px-4 py-3 rounded-2xl flex items-start gap-2.5 shadow-xs animate-fadein"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon name="info" size={15} />
+                  </div>
+                  <div className="leading-relaxed">
+                    <p className="font-bold text-indigo-950">Mode Pembuatan Massal (Seluruh Kursus):</p>
+                    <p className="mt-0.5 text-indigo-800">
+                      Batch ini akan otomatis dibuatkan untuk <strong>seluruh {allCoursesCount} kursus</strong> (Foundation + Spesialisasi) secara bersamaan.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Nama & Kode */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -779,7 +883,15 @@ export default function AdminBatchesPage() {
                   {saving ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
-                      <span>{mode === 'create' ? 'Membuat...' : 'Menyimpan...'}</span>
+                      <span>
+                        {mode === 'create'
+                          ? form.course_id === 'all_specialization'
+                            ? `Membuat ${specCoursesCount} Batch...`
+                            : form.course_id === 'all_courses'
+                            ? `Membuat ${allCoursesCount} Batch...`
+                            : 'Membuat Batch...'
+                          : 'Menyimpan...'}
+                      </span>
                     </>
                   ) : (
                     <>

@@ -35,8 +35,8 @@ class AdminBatchTemplateTest extends TestCase
         $this->admin->assignRole('admin');
 
         $level = CertificationLevel::create([
+            'code'        => 'BSC',
             'name'        => 'Basic Level',
-            'slug'        => 'basic-level',
             'order_index' => 1,
             'is_active'   => true,
         ]);
