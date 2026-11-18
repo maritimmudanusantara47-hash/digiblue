@@ -334,6 +334,7 @@ class AdminCertificateController extends Controller
             'meta_block' => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
             'qr_left' => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
             'qr_right' => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
+            'validity_block' => ['top' => 195.5, 'left' => 16.5, 'font_size' => 7.5, 'label' => 'Masa Berlaku Sertifikat (Pojok Kiri Bawah)'],
             'back_title' => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
 
             // Critical Thinking & Field Study / Completion template fields
