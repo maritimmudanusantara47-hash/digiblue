@@ -55,8 +55,8 @@ const DEFAULT_LAYOUT: LayoutState = {
   fs_course_title: { top: 108.5, font_size: 19.0, label: 'Judul Pelatihan (Depan)' },
   fs_date_participation: { top: 134.5, font_size: 14.0, label: 'Tanggal Partisipasi (Depan)' },
   fs_date_issue: { top: 141.5, font_size: 14.0, label: 'Tempat & Tanggal Terbit (Depan)' },
-  fs_back_name: { top: 26.7, left: 29.2, font_size: 11.5, label: 'Nama Peserta (Belakang)' },
-  fs_back_reg_no: { top: 30.9, left: 54.5, font_size: 11.5, label: 'Nomor Registrasi (Belakang)' },
+  fs_back_name: { top: 25.5, left: 16.5, font_size: 11.5, label: 'Nama Peserta (Belakang)' },
+  fs_back_reg_no: { top: 30.8, left: 16.5, font_size: 11.5, label: 'Nomor Registrasi (Belakang)' },
 };
 
 interface PresetItem {
@@ -1119,55 +1119,47 @@ export default function CertificateTemplateAdminPage() {
                           : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>;
                       })()}
 
-                      {/* Track-specific calibrated offset for Field Study / Critical Thinking */}
+                      {/* Standardized Field Study / Critical Thinking Back Info */}
                       {(() => {
-                        const track = sample.trackSlug || 'foundation';
-                        let offsetNameTop = 0;
-                        let offsetNameLeft = 0;
-                        let offsetRegTop = 0;
-                        let offsetRegLeft = 0;
-
-                        if (track === 'foundation' || sample.type === 'critical_thinking') {
-                          offsetNameTop = -1.4;
-                          offsetNameLeft = 2.5;
-                          offsetRegTop = -1.0;
-                          offsetRegLeft = 2.5;
-                        } else if ([
-                          'blue-energy',
-                          'blue-circular-economy',
-                          'blue-community-development',
-                          'blue-business-development',
-                          'blue-data-intelligence',
-                        ].includes(track)) {
-                          offsetNameTop = -1.1;
-                          offsetNameLeft = -2.0;
-                          offsetRegTop = 0.4;
-                          offsetRegLeft = -6.5;
-                        }
-
-                        const computedNameTop = (layout.fs_back_name?.top ?? 26.7) + offsetNameTop;
-                        const computedNameLeft = (layout.fs_back_name?.left ?? 29.2) + offsetNameLeft;
-                        const computedRegTop = (layout.fs_back_reg_no?.top ?? 30.9) + offsetRegTop;
-                        const computedRegLeft = (layout.fs_back_reg_no?.left ?? 54.5) + offsetRegLeft;
+                        const computedNameTop = layout.fs_back_name?.top ?? 25.5;
+                        const computedNameLeft = layout.fs_back_name?.left ?? 16.5;
+                        const computedRegTop = layout.fs_back_reg_no?.top ?? 30.8;
+                        const computedRegLeft = layout.fs_back_reg_no?.left ?? 16.5;
 
                         return (
                           <>
+                            {/* Clean mask covering Canva's uneven label text */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: mmToPx(23.5),
+                                left: mmToPx(14.0),
+                                width: mmToPx(240.0),
+                                height: mmToPx(14.5),
+                                backgroundColor: '#F8F8F8',
+                                pointerEvents: 'none',
+                                zIndex: 5,
+                              }}
+                            />
+
                             {/* Back Name */}
                             <div
                               onClick={() => { setSelectedKey('fs_back_name'); setEditMode(true); setMobilePanelOpen(true); }}
                               className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                              style={{ top: mmToPx(computedNameTop), left: mmToPx(computedNameLeft), fontSize: `${(layout.fs_back_name?.font_size ?? 11.5) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                              style={{ top: mmToPx(computedNameTop), left: mmToPx(computedNameLeft), fontSize: `${(layout.fs_back_name?.font_size ?? 11.5) * (SCALE / 3.4)}px`, color: '#111827', fontFamily: "Arial, sans-serif", zIndex: 10 }}
                             >
-                              {sample.name}
+                              <span style={{ fontWeight: 400 }}>Name : </span>
+                              <strong style={{ fontWeight: 700 }}>{sample.name}</strong>
                             </div>
 
                             {/* Back Registration Number */}
                             <div
                               onClick={() => { setSelectedKey('fs_back_reg_no'); setEditMode(true); setMobilePanelOpen(true); }}
                               className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_reg_no' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                              style={{ top: mmToPx(computedRegTop), left: mmToPx(computedRegLeft), fontSize: `${(layout.fs_back_reg_no?.font_size ?? 11.5) * (SCALE / 3.4)}px`, fontWeight: 600, color: '#000000', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                              style={{ top: mmToPx(computedRegTop), left: mmToPx(computedRegLeft), fontSize: `${(layout.fs_back_reg_no?.font_size ?? 11.5) * (SCALE / 3.4)}px`, color: '#111827', fontFamily: "Arial, sans-serif", zIndex: 10 }}
                             >
-                              {sample.regNo || 'CBETC001062026'}
+                              <span style={{ fontWeight: 400 }}>Registration Number : </span>
+                              <strong style={{ fontWeight: 700 }}>{sample.regNo || 'CBETC001062026'}</strong>
                             </div>
                           </>
                         );
