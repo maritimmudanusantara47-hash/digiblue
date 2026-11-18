@@ -172,9 +172,13 @@ class AdminBatchController extends Controller
         $createdBatches = DB::transaction(function () use ($courseIds, $batchData) {
             $batches = [];
             foreach ($courseIds as $cid) {
-                $batches[] = CourseBatch::create(array_merge($batchData, [
-                    'course_id' => $cid,
-                ]));
+                $batches[] = CourseBatch::updateOrCreate(
+                    [
+                        'course_id'  => $cid,
+                        'batch_name' => $batchData['batch_name'],
+                    ],
+                    $batchData
+                );
             }
             return $batches;
         });

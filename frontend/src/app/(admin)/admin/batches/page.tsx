@@ -346,6 +346,17 @@ export default function AdminBatchesPage() {
       setError('Target kursus dan nama batch wajib diisi.');
       return;
     }
+
+    if (form.registration_start_date && form.registration_end_date && form.registration_end_date < form.registration_start_date) {
+      setError('Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.');
+      return;
+    }
+
+    if (form.start_date && form.end_date && form.end_date < form.start_date) {
+      setError('Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.');
+      return;
+    }
+
     setSaving(true);
     setError('');
     try {
@@ -401,7 +412,12 @@ export default function AdminBatchesPage() {
       await fetchAllBatches();
       showSuccess('Berhasil!', resMessage);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const errData = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
+      let msg = errData?.message;
+      if (errData?.errors) {
+        const firstErr = Object.values(errData.errors)[0]?.[0];
+        if (firstErr) msg = firstErr;
+      }
       setError(msg ?? 'Gagal menyimpan batch.');
       showError('Gagal Menyimpan!', msg ?? 'Terjadi kesalahan saat menyimpan data batch.');
     } finally {

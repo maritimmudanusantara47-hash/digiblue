@@ -148,6 +148,35 @@ class AdminBatchBulkTest extends TestCase
             ->assertJsonValidationErrors(['registration_end_date']);
     }
 
+    public function test_bulk_creation_is_idempotent_and_updates_if_batch_already_exists(): void
+    {
+        Sanctum::actingAs($this->admin);
+
+        $payload = [
+            'target_scope' => 'all_specialization',
+            'batch_name'   => 'Batch 19',
+            'batch_code'   => 'B19',
+            'start_date'   => '2026-10-01',
+            'end_date'     => '2026-10-31',
+            'is_active'    => true,
+        ];
+
+        // Call bulk once
+        $res1 = $this->postJson('/api/v1/admin/batches/bulk', $payload);
+        $res1->assertStatus(201);
+        $this->assertDatabaseCount('course_batches', 3);
+
+        // Call bulk again with updated dates -> should update existing without creating duplicate rows
+        $payload['end_date'] = '2026-11-15';
+        $res2 = $this->postJson('/api/v1/admin/batches/bulk', $payload);
+        $res2->assertStatus(201);
+        $this->assertDatabaseCount('course_batches', 3);
+
+        $batch = CourseBatch::where('batch_name', 'Batch 19')->first();
+        $this->assertNotNull($batch);
+        $this->assertEquals('2026-11-15', $batch->end_date->format('Y-m-d'));
+    }
+
     public function test_unauthorized_for_guests(): void
     {
         $payload = [
