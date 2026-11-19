@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uji Coba Template Sertifikat Full Element (Tanpa PNG)</title>
+  <!-- Google Fonts: Poppins (Clean Modern Sans) & UnifrakturMaguntia (Authentic Gothic Blackletter for Certificate Title) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset & Page Setup (A4 Landscape: 297mm x 210mm) ── */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0f172a;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 15px;
+      color: #334155;
+    }
+
+    .toolbar {
+      width: 100%;
+      max-width: 1120px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1e293b;
+      padding: 12px 20px;
+      border-radius: 12px;
+      color: #f8fafc;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .toolbar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar .badge {
+      background: #10b981;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .toolbar .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+    .btn-secondary {
+      background: #334155;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    /* ── The Certificate Canvas Container (A4 Landscape Exact Ratio: 297/210 ≈ 1.414) ── */
+    .cert-viewport {
+      width: 1120px;
+      height: calc(1120px * (210 / 297)); /* ~792px */
+      background: #ffffff;
+      position: relative;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+      border-radius: 4px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── 1. Corner Geometric Vectors (Top-Left & Bottom-Right) ── */
+    .corner-vector {
+      position: absolute;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .corner-tl {
+      top: 0;
+      left: 0;
+      width: 175px;
+      height: 185px;
+    }
+
+    .corner-br {
+      bottom: 0;
+      right: 0;
+      width: 175px;
+      height: 185px;
+      transform: rotate(180deg);
+    }
+
+    /* ── 2. Outer Border Frame ── */
+    .cert-frame {
+      position: absolute;
+      top: 36px;
+      left: 42px;
+      right: 42px;
+      bottom: 36px;
+      border: 1.2px solid #222222;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── 3. Certificate Inner Content Layout ── */
+    .cert-body {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 60px 30px;
+      z-index: 3;
+      text-align: center;
+    }
+
+    /* Serial Number (Top-Right) */
+    .cert-serial {
+      position: absolute;
+      top: 48px;
+      right: 58px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #1e293b;
+      letter-spacing: 0.3px;
+    }
+
+    /* Logo Header (TBE Monogram + Brand Text) */
+    .logo-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tbe-monogram {
+      height: 52px;
+      width: auto;
+    }
+
+    .brand-text {
+      text-align: left;
+      line-height: 1.15;
+    }
+    .brand-text .title {
+      font-family: 'Poppins', serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: #153476;
+      letter-spacing: -0.2px;
+    }
+    .brand-text .sub {
+      font-size: 9.5px;
+      font-weight: 400;
+      color: #173874;
+      letter-spacing: 0.5px;
+    }
+
+    /* Certificate of Competence Heading */
+    .cert-title {
+      font-family: 'UnifrakturMaguntia', 'MedievalSharp', serif;
+      font-size: 50px;
+      line-height: 1.1;
+      color: #213a77;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 0 rgba(33, 58, 119, 0.15);
+    }
+
+    .cert-subtitle {
+      font-size: 14.5px;
+      font-weight: 500;
+      color: #0f172a;
+      margin-bottom: 24px;
+    }
+
+    /* Recipient Name & Underline Accent */
+    .recipient-name {
+      font-size: 34px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+
+    .name-underline {
+      width: 60%;
+      height: 3.5px;
+      background: #2554a5;
+      border-radius: 2px;
+      margin-bottom: 16px;
+    }
+
+    .req-text {
+      font-size: 13px;
+      color: #1e293b;
+      font-weight: 400;
+      margin-bottom: 18px;
+    }
+
+    /* ── 4. Gold Chevron Ribbon (Pure CSS / Vector) ── */
+    .gold-ribbon {
+      width: 88%;
+      height: 48px;
+      background: linear-gradient(90deg, #e5a420 0%, #f6bd3b 15%, #f9c74f 50%, #f6bd3b 85%, #e5a420 100%);
+      clip-path: polygon(
+        24px 0%,
+        calc(100% - 24px) 0%,
+        100% 50%,
+        calc(100% - 24px) 100%,
+        24px 100%,
+        0% 50%
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 35px;
+      box-shadow: 0 3px 10px rgba(229, 164, 32, 0.25);
+      margin-bottom: 12px;
+    }
+
+    .gold-ribbon span {
+      font-size: 21px;
+      font-weight: 700;
+      color: #173874;
+      letter-spacing: 0.2px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Level Area */
+    .level-label {
+      font-size: 13.5px;
+      color: #1e293b;
+      margin-bottom: 2px;
+    }
+    .level-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #000000;
+      margin-bottom: 8px;
+    }
+
+    .privilege-text {
+      font-size: 11.5px;
+      color: #334155;
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+
+    /* ── 5. Meta Block & QR Codes Row ── */
+    .meta-row {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .qr-badge {
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-badge svg {
+      width: 100%;
+      height: 100%;
+    }
+    .qr-left {
+      left: 175px;
+    }
+    .qr-right {
+      right: 175px;
+    }
+
+    .meta-block {
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #1f2937;
+      background: #f8fafc;
+      padding: 6px 18px;
+      border-radius: 6px;
+      min-width: 290px;
+    }
+    .meta-block strong {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    /* ── 6. Footer Signatures & Emblem ── */
+    .footer-section {
+      width: 100%;
+      max-width: 900px;
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .footer-logo .mini-tbe {
+      height: 32px;
+    }
+    .footer-logo .text {
+      font-family: 'Poppins', serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: #173874;
+    }
+
+    .signatures-grid {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 30px;
+    }
+
+    .sig-col {
+      width: 44%;
+      text-align: center;
+    }
+
+    .sig-line {
+      height: 38px; /* Ruang untuk tanda tangan digital / basah */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sig-line svg {
+      opacity: 0.85;
+    }
+
+    .sig-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.25;
+    }
+    .sig-role {
+      font-size: 10px;
+      font-weight: 400;
+      color: #334155;
+      line-height: 1.3;
+    }
+
+    /* Print Optimization: A4 Landscape Exact Fit */
+    @media print {
+      body {
+        background: none;
+        padding: 0;
+      }
+      .toolbar {
+        display: none;
+      }
+      .cert-viewport {
+        box-shadow: none;
+        border-radius: 0;
+        width: 297mm;
+        height: 210mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar Pengujian -->
+  <div class="toolbar">
+    <h1>
+      <span>Template Sertifikat Digiblue: Full Vector Elements</span>
+      <span class="badge">100% Bebas PNG</span>
+    </h1>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="toggleCornerStyle()">Ganti Corak Sudut</button>
+      <button class="btn btn-primary" onclick="window.print()">Cetak / Simpan PDF</button>
+    </div>
+  </div>
+
+  <!-- Viewport Sertifikat A4 Landscape -->
+  <div class="cert-viewport" id="certificateCanvas">
+
+    <!-- 1. CORNER GEOMETRIC ACCENTS (SVG Vector Asli, Super Tajam di Semua Resolusi) -->
+    <!-- Top-Left Corner -->
+    <svg class="corner-vector corner-tl" viewBox="0 0 175 185" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Dark Blue Main Wedge -->
+      <polygon points="0,0 175,0 0,185" fill="#0284c7" />
+      <!-- Vivid Orange Overlay -->
+      <polygon points="0,0 120,0 0,135" fill="#f97316" />
+      <!-- Deep Blue Base Wedge -->
+      <polygon points="0,0 60,0 0,70" fill="#0369a1" />
+      <!-- Amber/Gold Accent Slivers -->
+      <polygon points="120,0 155,0 0,165 0,135" fill="#f59e0b" opacity="0.9" />
+    </svg>
+
+    <!-- Bottom-Right Corner (Rotated 180deg) -->
+    <svg class="corner-vector corner-br" viewBox="0 0 175 185" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 175,0 0,185" fill="#0284c7" />
+      <polygon points="0,0 120,0 0,135" fill="#f97316" />
+      <polygon points="0,0 60,0 0,70" fill="#0369a1" />
+      <polygon points="120,0 155,0 0,165 0,135" fill="#f59e0b" opacity="0.9" />
+    </svg>
+
+    <!-- 2. OUTER RECTANGLE FRAME -->
+    <div class="cert-frame"></div>
+
+    <!-- 3. CERTIFICATE BODY -->
+    <div class="cert-body">
+
+      <!-- Serial Number Top-Right -->
+      <div class="cert-serial">
+        Certificate Serial No. <strong>CBEC/BTR/ID/IX/20260001</strong>
+      </div>
+
+      <!-- Header TBE Monogram Logo (Pure Vector SVG) -->
+      <div class="logo-header">
+        <svg class="tbe-monogram" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Monogram TBE stylized -->
+          <path d="M10 20 H70 V32 H48 V90 H32 V32 H10 Z" fill="#153476" />
+          <path d="M48 20 H88 C105 20 115 28 115 40 C115 48 110 54 102 57 C112 60 118 68 118 78 C118 90 105 90 88 90 H48 V20 Z M64 32 V50 H84 C92 50 98 46 98 41 C98 36 92 32 84 32 Z M64 60 V78 H86 C94 78 100 74 100 69 C100 64 94 60 86 60 Z" fill="#153476" />
+          <path d="M105 20 H150 V32 H121 V50 H145 V62 H121 V78 H150 V90 H105 Z" fill="#153476" />
+        </svg>
+        <div class="brand-text">
+          <div class="title">The Blue<br>Economist</div>
+          <div class="sub">International<br>Association</div>
+        </div>
+      </div>
+
+      <!-- Main Title: Certificate of Competence -->
+      <h2 class="cert-title">Certificate of Competence</h2>
+      <p class="cert-subtitle">This is to certify:</p>
+
+      <!-- Recipient Name & Underline Accent -->
+      <h3 class="recipient-name">Nabila Azzahro Widodo</h3>
+      <div class="name-underline"></div>
+
+      <!-- Recognition Text -->
+      <p class="req-text">have successfully completed the requirements to be recognized as a:</p>
+
+      <!-- 4. Gold Chevron Ribbon (Pure CSS Polygon with Linear Gradient) -->
+      <div class="gold-ribbon">
+        <span>Certified Blue Economist in Blue Tourism - CBEc. (Tour.)</span>
+      </div>
+
+      <!-- Level -->
+      <div class="level-label">Level:</div>
+      <div class="level-value">Blue Tourism Specialization</div>
+
+      <!-- Privilege Statement -->
+      <p class="privilege-text">with all the rights, honours and privileges thereto appertaining.</p>
+
+      <!-- 5. Meta Block & QR Codes -->
+      <div class="meta-row">
+        <!-- Left QR Code -->
+        <div class="qr-badge qr-left">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" fill="#fff" />
+            <path d="M10 10 H40 V40 H10 Z M18 18 V32 H32 V18 Z" fill="#0f172a" />
+            <rect x="22" y="22" width="6" height="6" fill="#0f172a" />
+            <path d="M60 10 H90 V40 H60 Z M68 18 V32 H82 V18 Z" fill="#0f172a" />
+            <rect x="72" y="22" width="6" height="6" fill="#0f172a" />
+            <path d="M10 60 H40 V90 H10 Z M18 68 V82 H32 V68 Z" fill="#0f172a" />
+            <rect x="22" y="72" width="6" height="6" fill="#0f172a" />
+            <rect x="50" y="15" width="5" height="10" fill="#0f172a" />
+            <rect x="50" y="55" width="10" height="5" fill="#0f172a" />
+            <rect x="70" y="55" width="15" height="5" fill="#0f172a" />
+            <rect x="60" y="70" width="10" height="15" fill="#0f172a" />
+            <rect x="80" y="75" width="10" height="10" fill="#0f172a" />
+          </svg>
+        </div>
+
+        <!-- Centered Meta Block (Grade, Issue, Expiry, Place) -->
+        <div class="meta-block">
+          <div><strong>Grade:</strong> Excellent</div>
+          <div><strong>Date of Issue:</strong> October 1, 2026</div>
+          <div><strong>Date of Expiry:</strong> September 30, 2029</div>
+          <div><strong>Place of Issue:</strong> Jakarta</div>
+        </div>
+
+        <!-- Right QR Code -->
+        <div class="qr-badge qr-right">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" fill="#fff" />
+            <path d="M10 10 H40 V40 H10 Z M18 18 V32 H32 V18 Z" fill="#0f172a" />
+            <rect x="22" y="22" width="6" height="6" fill="#0f172a" />
+            <path d="M60 10 H90 V40 H60 Z M68 18 V32 H82 V18 Z" fill="#0f172a" />
+            <rect x="72" y="22" width="6" height="6" fill="#0f172a" />
+            <path d="M10 60 H40 V90 H10 Z M18 68 V82 H32 V68 Z" fill="#0f172a" />
+            <rect x="22" y="72" width="6" height="6" fill="#0f172a" />
+            <rect x="50" y="15" width="5" height="10" fill="#0f172a" />
+            <rect x="50" y="55" width="10" height="5" fill="#0f172a" />
+            <rect x="70" y="55" width="15" height="5" fill="#0f172a" />
+            <rect x="60" y="70" width="10" height="15" fill="#0f172a" />
+            <rect x="80" y="75" width="10" height="10" fill="#0f172a" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- 6. Footer Section: Signatures & Emblem -->
+      <div class="footer-section">
+        <div class="footer-logo">
+          <svg class="mini-tbe" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 20 H70 V32 H48 V90 H32 V32 H10 Z" fill="#153476" />
+            <path d="M48 20 H88 C105 20 115 28 115 40 C115 48 110 54 102 57 C112 60 118 68 118 78 C118 90 105 90 88 90 H48 V20 Z M64 32 V50 H84 C92 50 98 46 98 41 C98 36 92 32 84 32 Z M64 60 V78 H86 C94 78 100 74 100 69 C100 64 94 60 86 60 Z" fill="#153476" />
+            <path d="M105 20 H150 V32 H121 V50 H145 V62 H121 V78 H150 V90 H105 Z" fill="#153476" />
+          </svg>
+          <span class="text">The Blue Economist</span>
+        </div>
+
+        <div class="signatures-grid">
+          <!-- Left Signatory -->
+          <div class="sig-col">
+            <div class="sig-line">
+              <!-- Digital signature SVG illustration -->
+              <svg width="120" height="32" viewBox="0 0 120 32" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round">
+                <path d="M10 24 C25 8 35 30 45 15 C55 4 60 26 75 14 C90 6 100 20 110 18" />
+              </svg>
+            </div>
+            <div class="sig-name">Prof. Dr. Nurul Taufiqu Rochman, MEng, PhD, CBEc</div>
+            <div class="sig-role">President</div>
+            <div class="sig-role">The Blue Economist International Association</div>
+          </div>
+
+          <!-- Right Signatory -->
+          <div class="sig-col">
+            <div class="sig-line">
+              <svg width="120" height="32" viewBox="0 0 120 32" fill="none" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round">
+                <path d="M12 20 C22 10 30 25 45 12 C55 3 65 25 80 16 C95 10 105 18 112 22" />
+              </svg>
+            </div>
+            <div class="sig-name">Leena Ndahafa Kadhila, MSc, MBA, CBEc</div>
+            <div class="sig-role">Director of Blue Economy Education and Social Affairs</div>
+            <div class="sig-role">The Blue Economist International Association</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 0;
+    const themes = [
+      { name: 'Original', primary: '#0284c7', orange: '#f97316', dark: '#0369a1', gold: '#f59e0b' },
+      { name: 'Royal Emerald', primary: '#059669', orange: '#d97706', dark: '#064e3b', gold: '#f59e0b' },
+      { name: 'Midnight Navy', primary: '#1e3a8a', orange: '#ea580c', dark: '#0f172a', gold: '#eab308' }
+    ];
+
+    function toggleCornerStyle() {
+      currentTheme = (currentTheme + 1) % themes.length;
+      const t = themes[currentTheme];
+      const svgs = document.querySelectorAll('.corner-vector');
+      svgs.forEach(svg => {
+        const polygons = svg.querySelectorAll('polygon');
+        if (polygons.length >= 4) {
+          polygons[0].setAttribute('fill', t.primary);
+          polygons[1].setAttribute('fill', t.orange);
+          polygons[2].setAttribute('fill', t.dark);
+          polygons[3].setAttribute('fill', t.gold);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
