@@ -269,14 +269,15 @@ export default function AdminCertificatesPage() {
 
   const handleResyncAll = async () => {
     const isConfirmed = await showConfirm(
-      'Sinkronkan Semua?',
-      t('msg_resync_confirm') || 'Sinkronkan ulang semua sertifikat yang gagal?',
-      'Ya, Sinkronkan'
+      'Sinkronkan Semua ke TBE?',
+      'Kirim ulang seluruh payload sertifikat ke The Blue Economist?',
+      'Ya, Sinkronkan Semua'
     );
     if (!isConfirmed) return;
     try {
-      await api.post('/admin/certificates/resync-failed');
-      showSuccess('Berhasil!', 'Sinkronisasi ulang berhasil dimulai.');
+      const res = await api.post('/admin/certificates/resync-failed?force=1');
+      const msg = res.data?.message || 'Sinkronisasi ulang seluruh sertifikat berhasil.';
+      showSuccess('Berhasil!', msg);
       fetchData();
     } catch {
       showError('Gagal!', t('msg_resync_fail'));

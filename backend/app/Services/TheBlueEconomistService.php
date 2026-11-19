@@ -132,14 +132,17 @@ class TheBlueEconomistService
     }
 
     /**
-     * Re-sync semua sertifikat yang statusnya 'failed'
+     * Re-sync semua sertifikat yang statusnya 'failed' atau paksa semua jika $forceAll = true
      */
-    public function resyncFailed(): array
+    public function resyncFailed(bool $forceAll = false): array
     {
-        $failed = Certificate::where('sync_status', 'failed')->get();
+        $certs = $forceAll
+            ? Certificate::all()
+            : Certificate::where('sync_status', 'failed')->get();
+
         $results = ['success' => 0, 'failed' => 0];
 
-        foreach ($failed as $cert) {
+        foreach ($certs as $cert) {
             $this->syncCertificate($cert) ? $results['success']++ : $results['failed']++;
         }
 

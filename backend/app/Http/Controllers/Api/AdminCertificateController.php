@@ -150,10 +150,11 @@ class AdminCertificateController extends Controller
         ]);
     }
 
-    /** Re-sync semua sertifikat yang gagal */
-    public function resyncFailed(): JsonResponse
+    /** Re-sync semua sertifikat yang gagal (atau force semua jika query param ?force=1) */
+    public function resyncFailed(Request $request): JsonResponse
     {
-        $results = $this->tbeService->resyncFailed();
+        $force = $request->boolean('force', false);
+        $results = $this->tbeService->resyncFailed($force);
 
         return response()->json([
             'message' => "Re-sync selesai. Berhasil: {$results['success']}, Gagal: {$results['failed']}.",
