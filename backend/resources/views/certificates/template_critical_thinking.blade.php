@@ -107,15 +107,19 @@
         $L = $layout ?? [];
 
         $nTop = $L['ct_recipient_name']['top'] ?? $L['fs_recipient_name']['top'] ?? 70.0;
+        $nLeft = $L['ct_recipient_name']['left'] ?? $L['fs_recipient_name']['left'] ?? 0;
         $nFs = $L['ct_recipient_name']['font_size'] ?? $L['fs_recipient_name']['font_size'] ?? 33.0;
 
         $tTop = $L['ct_course_title']['top'] ?? $L['fs_course_title']['top'] ?? 108.5;
+        $tLeft = $L['ct_course_title']['left'] ?? $L['fs_course_title']['left'] ?? 0;
         $tFs = $L['ct_course_title']['font_size'] ?? $L['fs_course_title']['font_size'] ?? 19.0;
 
         $pTop = $L['ct_date_participation']['top'] ?? $L['fs_date_participation']['top'] ?? 134.5;
+        $pLeft = $L['ct_date_participation']['left'] ?? $L['fs_date_participation']['left'] ?? 0;
         $pFs = $L['ct_date_participation']['font_size'] ?? $L['fs_date_participation']['font_size'] ?? 14.0;
 
         $iTop = $L['ct_date_issue']['top'] ?? $L['fs_date_issue']['top'] ?? 141.5;
+        $iLeft = $L['ct_date_issue']['left'] ?? $L['fs_date_issue']['left'] ?? 0;
         $iFs = $L['ct_date_issue']['font_size'] ?? $L['fs_date_issue']['font_size'] ?? 14.0;
 
         $bnTop = $L['ct_back_name']['top'] ?? $L['fs_back_name']['top'] ?? 25.5;
@@ -144,22 +148,22 @@
 
         <div class="overlay">
             {{-- Recipient Name --}}
-            <div class="fs-name" style="top: {{ $nTop }}mm; font-size: {{ $nFs }}pt;">
+            <div class="fs-name" style="top: {{ $nTop }}mm; left: {{ $nLeft }}mm; width: 297mm; font-size: {{ $nFs }}pt;">
                 {{ $user->name }}
             </div>
 
             {{-- Training Course Title --}}
-            <div class="fs-title" style="top: {{ $tTop }}mm; font-size: {{ $tFs }}pt;">
+            <div class="fs-title" style="top: {{ $tTop }}mm; left: {{ 15 + $tLeft }}mm; right: {{ 15 - $tLeft }}mm; font-size: {{ $tFs }}pt;">
                 INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE
             </div>
 
             {{-- Date of Participation (with clean background matching template to blend seamlessly) --}}
-            <div class="fs-part-date" style="top: {{ $pTop }}mm; font-size: {{ $pFs }}pt;">
+            <div class="fs-part-date" style="top: {{ $pTop }}mm; left: {{ $pLeft }}mm; width: 297mm; font-size: {{ $pFs }}pt;">
                 <span style="background: #F8F8F8; padding: 0 4mm;">on {{ $partDate }}</span>
             </div>
 
             {{-- Place & Issue Date (with clean background matching template to blend seamlessly) --}}
-            <div class="fs-issue-date" style="top: {{ $iTop }}mm; font-size: {{ $iFs }}pt;">
+            <div class="fs-issue-date" style="top: {{ $iTop }}mm; left: {{ $iLeft }}mm; width: 297mm; font-size: {{ $iFs }}pt;">
                 <span style="background: #F8F8F8; padding: 0 4mm;">{{ $placeShort }}, {{ $issueDateFormatted }}</span>
             </div>
         </div>

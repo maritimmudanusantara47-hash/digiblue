@@ -345,27 +345,27 @@ class AdminCertificateController extends Controller
     {
         return [
             'serial_no' => ['top' => 13.0, 'right' => 16.5, 'width' => 105, 'font_size' => 11.0, 'label' => 'Nomor Seri'],
-            'recipient_name' => ['top' => 69.5, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
-            'ribbon_text' => ['top' => 100.5, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
-            'level_value' => ['top' => 124.5, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
-            'meta_block' => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal Terbit, Expiry, & Tempat'],
+            'recipient_name' => ['top' => 69.5, 'left' => 0, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
+            'ribbon_text' => ['top' => 100.5, 'left' => 0, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
+            'level_value' => ['top' => 124.5, 'left' => 0, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
+            'meta_block' => ['top' => 138.2, 'left' => 103.5, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal Terbit, Expiry, & Tempat'],
             'qr_left' => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
             'qr_right' => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
-            'back_title' => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
+            'back_title' => ['top' => 20.0, 'left' => 0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
 
             // Critical Thinking & Field Study / Completion template fields
-            'fs_recipient_name' => ['top' => 70.0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
-            'fs_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
-            'fs_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
-            'fs_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
+            'fs_recipient_name' => ['top' => 70.0, 'left' => 0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
+            'fs_course_title' => ['top' => 108.5, 'left' => 0, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
+            'fs_date_participation' => ['top' => 134.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
+            'fs_date_issue' => ['top' => 141.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
             'fs_back_name' => ['top' => 26.8, 'left' => 29.2, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: Nama'],
             'fs_back_reg_no' => ['top' => 31.2, 'left' => 54.5, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: No. Reg'],
 
             // Alias ct_
-            'ct_recipient_name' => ['top' => 70.0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
-            'ct_course_title' => ['top' => 108.5, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
-            'ct_date_participation' => ['top' => 134.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
-            'ct_date_issue' => ['top' => 141.5, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
+            'ct_recipient_name' => ['top' => 70.0, 'left' => 0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
+            'ct_course_title' => ['top' => 108.5, 'left' => 0, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
+            'ct_date_participation' => ['top' => 134.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
+            'ct_date_issue' => ['top' => 141.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
             'ct_back_name' => ['top' => 26.8, 'left' => 29.2, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: Nama'],
             'ct_back_reg_no' => ['top' => 31.2, 'left' => 54.5, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: No. Reg'],
         ];

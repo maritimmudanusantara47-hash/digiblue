@@ -272,9 +272,11 @@
         $sFs    = $L['serial_no']['font_size'] ?? 11.0;
 
         $nTop = $L['recipient_name']['top'] ?? 69.5;
+        $nLeft = $L['recipient_name']['left'] ?? 0;
         $nFs  = $L['recipient_name']['font_size'] ?? 32.5;
 
         $rTop = $L['ribbon_text']['top'] ?? 99.0;
+        $rLeft = $L['ribbon_text']['left'] ?? 0;
         $rFs  = $L['ribbon_text']['font_size'] ?? 22.5;
         if (mb_strlen($ribbonText) > 65) {
             $rFs = min($rFs, 17.5);
@@ -284,9 +286,11 @@
         $rH   = $L['ribbon_text']['height'] ?? 14.0;
 
         $lTop = $L['level_value']['top'] ?? 122.8;
+        $lLeft = $L['level_value']['left'] ?? 0;
         $lFs  = $L['level_value']['font_size'] ?? 14.5;
 
         $mTop = $L['meta_block']['top'] ?? 138.0;
+        $mLeft = $L['meta_block']['left'] ?? 103.5;
         $mFs  = $L['meta_block']['font_size'] ?? 10.5;
 
         $qlTop  = $L['qr_left']['top'] ?? 147.5;
@@ -297,6 +301,7 @@
         $qrLeft = $L['qr_right']['left'] ?? 196.4;
 
         $btTop = $L['back_title']['top'] ?? 20.0;
+        $btLeft = $L['back_title']['left'] ?? 0;
         $btFs  = $L['back_title']['font_size'] ?? 15.0;
 
         $issueCarbon = \Carbon\Carbon::parse($certificate->date_of_issue ?? now());
@@ -335,22 +340,22 @@
             </div>
 
             {{-- Recipient Name --}}
-            <div class="f-name" style="top: {{ $nTop }}mm; font-size: {{ $nFs }}pt;">
+            <div class="f-name" style="top: {{ $nTop }}mm; left: {{ $nLeft }}mm; width: 297mm; font-size: {{ $nFs }}pt;">
                 {{ $user->name }}
             </div>
 
             {{-- Gold Ribbon Specialization Text --}}
-            <div class="f-ribbon" style="top: {{ $rTop }}mm; height: {{ $rH }}mm; line-height: {{ $rH }}mm; font-size: {{ $rFs }}pt;">
+            <div class="f-ribbon" style="top: {{ $rTop }}mm; left: {{ 20 + $rLeft }}mm; right: {{ 20 - $rLeft }}mm; height: {{ $rH }}mm; line-height: {{ $rH }}mm; font-size: {{ $rFs }}pt;">
                 {{ $ribbonText }}
             </div>
 
             {{-- Level Value --}}
-            <div class="f-level" style="top: {{ $lTop }}mm; font-size: {{ $lFs }}pt;">
+            <div class="f-level" style="top: {{ $lTop }}mm; left: {{ $lLeft }}mm; width: 297mm; font-size: {{ $lFs }}pt;">
                 {{ $levelDisplay }}
             </div>
 
             {{-- Grade, Date of Issue, Date of Expiry, Place of Issue block --}}
-            <div class="f-meta-block" style="top: {{ $mTop }}mm; font-size: {{ $mFs }}pt;">
+            <div class="f-meta-block" style="top: {{ $mTop }}mm; left: {{ $mLeft }}mm; font-size: {{ $mFs }}pt;">
                 <div class="meta-line"><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
                 <div class="meta-line"><strong>Date of Issue:</strong> {{ $issueCarbon->format('F j, Y') }}</div>
                 <div class="meta-line"><strong>Date of Expiry:</strong> {{ $dateOfExpiryFormatted }}</div>
@@ -383,7 +388,7 @@
 
         @if(! ($hasCustomBackTemplate ?? false))
         <div class="overlay">
-            <div class="back-title-block" style="top: {{ $btTop }}mm;">
+            <div class="back-title-block" style="top: {{ $btTop }}mm; left: {{ 20 + $btLeft }}mm; right: {{ 20 - $btLeft }}mm;">
                 @if($isFoundation)
                     <div class="back-title" style="font-size: {{ $btFs }}pt;">List of Competency Units of Certified Blue Economist (CBEc)</div>
                     <div class="back-subtitle" style="font-size: {{ max(10, $btFs - 2.0) }}pt;">Foundation Level</div>
