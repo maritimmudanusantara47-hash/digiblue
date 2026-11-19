@@ -250,6 +250,23 @@ export default function AdminCertificatesPage() {
     }
   };
 
+  const handleDeleteCert = async (cert: Certificate) => {
+    const isConfirmed = await showConfirm(
+      'Hapus Sertifikat?',
+      `Hapus sertifikat ${cert.serial_number} (${cert.user?.name ?? 'Peserta'})? Status kursus akan dikembalikan agar dapat diterbitkan ulang jika diperlukan.`,
+      'Ya, Hapus'
+    );
+    if (!isConfirmed) return;
+    try {
+      await api.delete(`/admin/certificates/${cert.id}`);
+      showSuccess('Berhasil!', 'Sertifikat berhasil dihapus.');
+      fetchData();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showError('Gagal!', msg || 'Gagal menghapus sertifikat.');
+    }
+  };
+
   const handleResyncAll = async () => {
     const isConfirmed = await showConfirm(
       'Sinkronkan Semua?',
@@ -463,17 +480,31 @@ export default function AdminCertificatesPage() {
                           <Icon name="search-1" size={16} className="mr-1.5" />{t('btn_verify')}
                         </a>
 
-                        {/* Sync TBE */}
-                        {cert.sync_status !== 'synced' && (
-                          <button
-                            onClick={() => handleSync(cert.id)}
-                            disabled={syncing === cert.id}
-                            className="btn btn-primary btn-sm text-xs px-2 py-1"
-                            title={t('tooltip_push')}
-                          >
-                            {syncing === cert.id ? '...' : t('btn_sync')}
-                          </button>
-                        )}
+                        {/* Sync / Re-sync TBE */}
+                        <button
+                          type="button"
+                          onClick={() => handleSync(cert.id)}
+                          disabled={syncing === cert.id}
+                          className={`btn btn-sm text-xs px-2 py-1 flex items-center gap-1 transition-colors ${
+                            cert.sync_status === 'synced'
+                              ? 'btn-secondary text-slate-600 hover:text-navy hover:border-slate-300'
+                              : 'btn-primary'
+                          }`}
+                          title={cert.sync_status === 'synced' ? 'Kirim ulang payload ke The Blue Economist' : t('tooltip_push')}
+                        >
+                          <Icon name="refresh-circle-1-clockwise" size={13} className={syncing === cert.id ? 'animate-spin' : ''} />
+                          <span>{syncing === cert.id ? '...' : cert.sync_status === 'synced' ? 'Sync Ulang' : t('btn_sync')}</span>
+                        </button>
+
+                        {/* Hapus Sertifikat */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCert(cert)}
+                          className="btn btn-sm text-xs px-2 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors"
+                          title="Hapus sertifikat (reset agar dapat diterbitkan ulang)"
+                        >
+                          <Icon name="trash" size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>

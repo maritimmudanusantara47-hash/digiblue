@@ -122,6 +122,22 @@ class AdminCertificateController extends Controller
         return response()->json(['message' => __('api.sertifikat_berhasil_diperbarui'), 'data' => $cert]);
     }
 
+    /** Hapus sertifikat (jika salah terbit atau ingin reset untuk terbit ulang) */
+    public function destroy(int $id): JsonResponse
+    {
+        $cert = Certificate::findOrFail($id);
+
+        if ($cert->enrollment) {
+            $cert->enrollment->update(['status' => 'in_progress']);
+        }
+
+        $cert->delete();
+
+        return response()->json([
+            'message' => 'Sertifikat berhasil dihapus. Enrollment dapat diterbitkan ulang.',
+        ]);
+    }
+
     /** Sinkronisasi satu sertifikat ke The Blue Economist */
     public function syncToTBE(int $id): JsonResponse
     {

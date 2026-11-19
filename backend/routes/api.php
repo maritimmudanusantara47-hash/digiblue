@@ -159,6 +159,7 @@ Route::prefix('v1')->group(function () {
             Route::get('certificates/next-serial',       [AdminCertificateController::class, 'getNextSerial']); // Ambil estimasi serial berikutnya
             Route::post('certificates',                  [AdminCertificateController::class, 'issue']);        // Terbitkan sertifikat
             Route::patch('certificates/{id}',            [AdminCertificateController::class, 'update']);       // Override nomor seri
+            Route::delete('certificates/{id}',           [AdminCertificateController::class, 'destroy']);      // Hapus sertifikat
             Route::post('certificates/{id}/sync',        [AdminCertificateController::class, 'syncToTBE']);    // Push ke The Blue Economist
             Route::post('certificates/resync-failed',    [AdminCertificateController::class, 'resyncFailed']); // Re-sync semua yg gagal
             Route::get('certificates/export',            [AdminCertificateController::class, 'export']);       // Export Excel

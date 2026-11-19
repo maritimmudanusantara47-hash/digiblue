@@ -41,6 +41,6 @@ return [
     'the_blue_economist' => [
         'url' => env('THE_BLUE_ECONOMIST_API_URL', 'https://backend.theblueeconomist.org'),
         'key' => env('THE_BLUE_ECONOMIST_API_KEY', 'digiblue_secret_sync_key_2026'),
-        'auto_publish' => env('THE_BLUE_ECONOMIST_AUTO_PUBLISH', false),
+        'auto_publish' => env('THE_BLUE_ECONOMIST_AUTO_PUBLISH', true),
     ],
 ];
