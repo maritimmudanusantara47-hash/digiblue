@@ -41,22 +41,33 @@ type LayoutState = Record<string, FieldConfig>;
 
 const DEFAULT_LAYOUT: LayoutState = {
   serial_no: { top: 13.0, right: 16.5, width: 105, font_size: 11.0, label: 'Nomor Seri (Top-Right)' },
-  recipient_name: { top: 69.5, font_size: 32.5, label: 'Nama Peserta' },
-  ribbon_text: { top: 99.0, height: 14.0, font_size: 22.5, label: 'Teks Ribbon' },
-  level_value: { top: 122.8, font_size: 14.5, label: 'Level Sertifikasi' },
-  meta_block: { top: 138.0, font_size: 10.5, label: 'Grade, Tanggal Terbit, Expiry & Tempat' },
+  recipient_name: { top: 69.5, left: 0, font_size: 32.5, label: 'Nama Peserta' },
+  ribbon_text: { top: 99.0, left: 0, height: 14.0, font_size: 22.5, label: 'Teks Ribbon' },
+  level_value: { top: 122.8, left: 0, font_size: 14.5, label: 'Level Sertifikasi' },
+  meta_block: { top: 138.0, left: 103.5, font_size: 10.5, label: 'Grade, Tanggal Terbit, Expiry & Tempat' },
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
-  back_title: { top: 20.0, font_size: 15.0, label: 'Judul Halaman Belakang' },
+  back_title: { top: 20.0, left: 0, font_size: 15.0, label: 'Judul Halaman Belakang' },
 
   // Field Study Layout
-  fs_recipient_name: { top: 70.0, font_size: 33.0, label: 'Nama Peserta (Depan)' },
-  fs_course_title: { top: 108.5, font_size: 19.0, label: 'Judul Pelatihan (Depan)' },
-  fs_date_participation: { top: 134.5, font_size: 14.0, label: 'Tanggal Partisipasi (Depan)' },
-  fs_date_issue: { top: 141.5, font_size: 14.0, label: 'Tempat & Tanggal Terbit (Depan)' },
+  fs_recipient_name: { top: 70.0, left: 0, font_size: 33.0, label: 'Nama Peserta (Depan)' },
+  fs_course_title: { top: 108.5, left: 0, font_size: 19.0, label: 'Judul Pelatihan (Depan)' },
+  fs_date_participation: { top: 134.5, left: 0, font_size: 14.0, label: 'Tanggal Partisipasi (Depan)' },
+  fs_date_issue: { top: 141.5, left: 0, font_size: 14.0, label: 'Tempat & Tanggal Terbit (Depan)' },
   fs_back_name: { top: 25.5, left: 16.5, font_size: 11.5, label: 'Nama Peserta (Belakang)' },
   fs_back_reg_no: { top: 30.8, left: 16.5, font_size: 11.5, label: 'Nomor Registrasi (Belakang)' },
 };
+
+const CENTER_FIELDS = [
+  'recipient_name',
+  'ribbon_text',
+  'level_value',
+  'back_title',
+  'fs_recipient_name',
+  'fs_course_title',
+  'fs_date_participation',
+  'fs_date_issue',
+];
 
 interface PresetItem {
   type: 'specialization' | 'foundation' | 'critical_thinking' | 'field_study';
@@ -660,13 +671,19 @@ export default function CertificateTemplateAdminPage() {
         } else if (e.key === 'ArrowDown') {
           updated.top = round(updated.top + step);
         } else if (e.key === 'ArrowLeft') {
-          if (typeof updated.left === 'number') {
+          if (CENTER_FIELDS.includes(currentKey)) {
+            const currentOffset = updated.left ?? 0;
+            updated.left = round(Math.max(-50, currentOffset - step));
+          } else if (typeof updated.left === 'number') {
             updated.left = round(Math.max(0, updated.left - step));
           } else if (typeof updated.right === 'number') {
             updated.right = round(updated.right + step);
           }
         } else if (e.key === 'ArrowRight') {
-          if (typeof updated.left === 'number') {
+          if (CENTER_FIELDS.includes(currentKey)) {
+            const currentOffset = updated.left ?? 0;
+            updated.left = round(Math.min(50, currentOffset + step));
+          } else if (typeof updated.left === 'number') {
             updated.left = round(updated.left + step);
           } else if (typeof updated.right === 'number') {
             updated.right = round(Math.max(0, updated.right - step));
@@ -1082,7 +1099,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_recipient_name?.top ?? 70.0), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.fs_recipient_name?.font_size ?? 33.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_recipient_name?.top ?? 70.0), left: mmToPx(layout.fs_recipient_name?.left ?? 0), right: mmToPx(-(layout.fs_recipient_name?.left ?? 0)), height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.fs_recipient_name?.font_size ?? 33.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         {sample.name}
                       </div>
@@ -1091,7 +1108,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_course_title'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_course_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_course_title?.top ?? 108.5), left: mmToPx(15), right: mmToPx(15), textAlign: 'center', fontSize: `${(layout.fs_course_title?.font_size ?? 19.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#133e7c', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_course_title?.top ?? 108.5), left: mmToPx(15 + (layout.fs_course_title?.left ?? 0)), right: mmToPx(15 - (layout.fs_course_title?.left ?? 0)), textAlign: 'center', fontSize: `${(layout.fs_course_title?.font_size ?? 19.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#133e7c', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         {sample.courseTitle || 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE'}
                       </div>
@@ -1100,7 +1117,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_date_participation'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_participation' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_date_participation?.top ?? 134.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_participation?.font_size ?? 14.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_date_participation?.top ?? 134.5), left: mmToPx(layout.fs_date_participation?.left ?? 0), right: mmToPx(-(layout.fs_date_participation?.left ?? 0)), textAlign: 'center', fontSize: `${(layout.fs_date_participation?.font_size ?? 14.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         <span className="px-2" style={{ backgroundColor: '#F8F8F8' }}>on {sample.dateParticipation || '20 May – 11 June 2026'}</span>
                       </div>
@@ -1109,7 +1126,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_date_issue'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_date_issue' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_date_issue?.top ?? 141.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.fs_date_issue?.font_size ?? 14.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.fs_date_issue?.top ?? 141.5), left: mmToPx(layout.fs_date_issue?.left ?? 0), right: mmToPx(-(layout.fs_date_issue?.left ?? 0)), textAlign: 'center', fontSize: `${(layout.fs_date_issue?.font_size ?? 14.0) * (SCALE / 3.4)}px`, fontWeight: 400, color: '#000000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         <span className="px-2" style={{ backgroundColor: '#F8F8F8' }}>{sample.dateIssue || 'Jakarta, 11 June 2026'}</span>
                       </div>
@@ -1137,7 +1154,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('recipient_name'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'recipient_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.recipient_name?.top ?? 69.5), left: 0, right: 0, height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 32.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.recipient_name?.top ?? 69.5), left: mmToPx(layout.recipient_name?.left ?? 0), right: mmToPx(-(layout.recipient_name?.left ?? 0)), height: mmToPx(16), lineHeight: `${mmToPx(16)}px`, textAlign: 'center', fontSize: `${(layout.recipient_name?.font_size ?? 32.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         {sample.name}
                       </div>
@@ -1146,7 +1163,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20), right: mmToPx(20), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20 + (layout.ribbon_text?.left ?? 0)), right: mmToPx(20 - (layout.ribbon_text?.left ?? 0)), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
                       >
                         {sample.ribbon}
                       </div>
@@ -1155,7 +1172,7 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('level_value'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'level_value' ? 'ring-2 ring-blue-500 bg-blue-50/30 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: 0, right: 0, textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                        style={{ top: mmToPx(layout.level_value?.top ?? 124.5), left: mmToPx(layout.level_value?.left ?? 0), right: mmToPx(-(layout.level_value?.left ?? 0)), textAlign: 'center', fontSize: `${(layout.level_value?.font_size ?? 14.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#000', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
                       >
                         {sample.level}
                       </div>
@@ -1166,7 +1183,7 @@ export default function CertificateTemplateAdminPage() {
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                         style={{
                           top: mmToPx(layout.meta_block?.top ?? 138.0),
-                          left: mmToPx(103.5),
+                          left: mmToPx(layout.meta_block?.left ?? 103.5),
                           width: mmToPx(90),
                           backgroundColor: '#F8F8F8',
                           textAlign: 'center',
@@ -1293,8 +1310,8 @@ export default function CertificateTemplateAdminPage() {
                                 className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'back_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded p-1.5' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                                 style={{
                                   top: mmToPx(layout.back_title?.top ?? 20.0),
-                                  left: mmToPx(20),
-                                  right: mmToPx(20),
+                                  left: mmToPx(20 + (layout.back_title?.left ?? 0)),
+                                  right: mmToPx(20 - (layout.back_title?.left ?? 0)),
                                   textAlign: 'center',
                                   fontFamily: "'Poppins', sans-serif",
                                   zIndex: 10,
@@ -1473,12 +1490,24 @@ export default function CertificateTemplateAdminPage() {
                 {typeof sel.left === 'number' && (
                   <div>
                     <div className="flex justify-between text-[11px] mb-1.5">
-                      <span className="text-slate-400">Posisi Horizontal (Left)</span>
-                      <span className="font-mono text-blue-400 font-bold">{sel.left} mm</span>
+                      <span className="text-slate-400">
+                        {CENTER_FIELDS.includes(selectedKey) ? 'Offset Horizontal (Tengah)' : 'Posisi Horizontal (Left)'}
+                      </span>
+                      <span className="font-mono text-blue-400 font-bold">
+                        {CENTER_FIELDS.includes(selectedKey)
+                          ? `${(sel.left ?? 0) > 0 ? `+${sel.left}` : (sel.left ?? 0)} mm`
+                          : `${sel.left ?? 0} mm`}
+                      </span>
                     </div>
-                    <input type="range" min="10" max="250" step="0.5" value={sel.left ?? 0}
+                    <input
+                      type="range"
+                      min={CENTER_FIELDS.includes(selectedKey) ? "-50" : "10"}
+                      max={CENTER_FIELDS.includes(selectedKey) ? "50" : "250"}
+                      step="0.5"
+                      value={sel.left ?? 0}
                       onChange={e => updateField(selectedKey, 'left', parseFloat(e.target.value))}
-                      className="w-full accent-blue-500 h-1.5 cursor-pointer" />
+                      className="w-full accent-blue-500 h-1.5 cursor-pointer"
+                    />
                   </div>
                 )}
 
