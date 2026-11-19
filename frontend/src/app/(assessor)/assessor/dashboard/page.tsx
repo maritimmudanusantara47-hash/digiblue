@@ -205,10 +205,8 @@ export default function AssessorDashboard() {
         </div>
       </div>
 
-      {/* Main Grid: Recent Submissions & Assessor Guide */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Recent Submissions List (8 cols) */}
-        <div className="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
+      {/* Recent Submissions List (Full Width) */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
             <div>
               <h2 className="text-lg font-bold text-[#07192C] font-heading">
@@ -287,47 +285,6 @@ export default function AssessorDashboard() {
             </div>
           )}
         </div>
-
-        {/* Right Column: Assessor Guidelines & Accreditation Standard (4 cols) */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-[#07192C] rounded-3xl p-6 text-white relative overflow-hidden shadow-xl border border-slate-800">
-            <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-sky-500/10 blur-2xl pointer-events-none" />
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 font-bold text-sm shrink-0 shadow-xs">
-                ★
-              </div>
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-400 block font-heading">
-                  Panduan Penilai
-                </span>
-                <span className="text-[11px] text-slate-300">
-                  Standar Akreditasi Global
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-300/90 leading-relaxed mb-4">
-              Evaluasi dilakukan secara objektif dengan parameter pemahaman konseptual Blue Economy, kedalaman studi kasus, dan logika analisis keberlanjutan laut.
-            </p>
-
-            <ul className="space-y-2.5 pt-4 border-t border-white/10 text-xs text-slate-300">
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">•</span>
-                <span>Skala nilai standar kelulusan: minimal 70/100 (Grade B).</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">•</span>
-                <span>Wajib melampirkan catatan kualitatif untuk setiap esai studi kasus.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-amber-400 font-bold">•</span>
-                <span>Sertifikat terbit otomatis setelah nilai diverifikasi oleh Admin.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

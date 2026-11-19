@@ -183,6 +183,25 @@ class SubmissionController extends Controller
             'graded_at'        => in_array($content->content_type, ['pdf_module', 'video_embed', 'field_study']) ? now() : null,
         ]);
 
+        // Notifikasi ke Asesor & Admin jika tugas butuh penilaian (Esai, Video, Critical Thinking)
+        if (in_array($content->content_type, ['essay_task', 'oral_video_task', 'critical_thinking'])) {
+            try {
+                $taskTypeLabel = match ($content->content_type) {
+                    'oral_video_task'   => 'Video Ujian Lisan',
+                    'critical_thinking' => 'Tugas Berpikir Kritis',
+                    default             => 'Tugas Esai',
+                };
+                $courseTitle = $content->section->course->title ?? 'Kursus';
+                $notifService = app(\App\Services\NotificationService::class);
+                $notifTitle = "Tugas Baru: {$taskTypeLabel}";
+                $notifMsg = "Peserta {$user->name} mengumpulkan {$content->title} pada kursus {$courseTitle}.";
+                $notifService->notifyAssessors($notifTitle, $notifMsg, 'new_submission', '/assessor/submissions', 'pen-to-square');
+                $notifService->notifyAdmins($notifTitle, $notifMsg, 'new_submission', '/assessor/submissions', 'pen-to-square');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Notification trigger new_submission error: " . $e->getMessage());
+            }
+        }
+
         $responseData = $submission->toArray();
         if ($content->content_type === 'mcq_quiz') {
             $responseData['correct_count'] = $correctCount;
@@ -270,6 +289,27 @@ class SubmissionController extends Controller
             'graded_at'         => now(),
             'status'            => 'graded',
         ]);
+
+        // Kirim notifikasi ke Peserta bahwa tugasnya telah dinilai
+        try {
+            $courseSlug = $submission->content->section->course->slug ?? '';
+            $courseTitle = $submission->content->section->course->title ?? 'Kursus';
+            $contentTitle = $submission->content->title ?? 'Tugas';
+            $scoreText = $validated['score'];
+            $feedbackText = !empty($validated['assessor_feedback']) ? " Catatan penilai: \"{$validated['assessor_feedback']}\"" : "";
+            $actionUrl = $courseSlug ? "/student/courses/{$courseSlug}" : "/student/dashboard";
+
+            app(\App\Services\NotificationService::class)->send(
+                $submission->user_id,
+                "Tugas Dinilai: {$contentTitle}",
+                "Tugas modul '{$contentTitle}' ({$courseTitle}) telah dinilai dengan nilai {$scoreText}.{$feedbackText}",
+                'submission_graded',
+                $actionUrl,
+                'pencil-1'
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Notification trigger submission_graded error: " . $e->getMessage());
+        }
 
         // Auto-issue sertifikat jika semua tugas peserta kini sudah dinilai dan eligible
         $courseId = $submission->content->section->course_id ?? 0;

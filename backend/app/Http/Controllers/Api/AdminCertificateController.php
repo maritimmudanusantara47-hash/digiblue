@@ -94,6 +94,21 @@ class AdminCertificateController extends Controller
         // Update enrollment status ke completed
         $enrollment->update(['status' => 'completed']);
 
+        // Notifikasi ke Peserta bahwa sertifikat resmi telah diterbitkan oleh Admin
+        try {
+            $courseTitle = $enrollment->course->title ?? 'Kursus Kompetensi';
+            app(\App\Services\NotificationService::class)->send(
+                $enrollment->user_id,
+                "Selamat! Sertifikat Resmi Anda Telah Terbit",
+                "Sertifikat kompetensi '{$courseTitle}' (No: {$certificate->serial_number}) telah resmi diterbitkan oleh Admin. Silakan periksa di menu Sertifikat Anda.",
+                'certificate_issued',
+                '/student/certificates',
+                'certificate-badge-1'
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Notification trigger manual certificate_issued error: " . $e->getMessage());
+        }
+
         // Langsung push ke The Blue Economist
         $syncResult = $this->tbeService->syncCertificate($certificate);
 

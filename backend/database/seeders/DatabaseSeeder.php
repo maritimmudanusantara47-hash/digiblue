@@ -16,8 +16,10 @@ class DatabaseSeeder extends Seeder
             CertificationLevelSeeder::class,
             CourseSeeder::class,
             CourseContentSeeder::class,
+            CourseBatchSeeder::class,
             AdminUserSeeder::class,
             StudentUserSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

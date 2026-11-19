@@ -75,6 +75,19 @@ class EnrollmentController extends Controller
             'paid_at'         => null,
         ]);
 
+        // Notifikasi ke Super Admin mengenai pendaftaran baru
+        try {
+            app(\App\Services\NotificationService::class)->notifyAdmins(
+                "Pendaftaran Kursus Baru",
+                "Peserta {$user->name} baru saja mendaftar kursus '{$targetCourse->title}'.",
+                'new_enrollment',
+                '/admin/enrollments',
+                'clipboard'
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Notification trigger new_enrollment error: " . $e->getMessage());
+        }
+
         return response()->json([
             'message' => 'Pendaftaran berhasil. Silakan selesaikan pembayaran.',
             'data'    => $enrollment->load(['course', 'batch']),
@@ -163,6 +176,25 @@ class EnrollmentController extends Controller
             'status'          => $validated['status'] ?? 'active',
         ]);
 
+        // Notifikasi ke peserta jika status langsung aktif
+        if ($enrollment->status === 'active') {
+            try {
+                $enrollment->load(['course']);
+                $cTitle = $enrollment->course->title ?? 'Kursus';
+                $cSlug = $enrollment->course->slug ?? '';
+                app(\App\Services\NotificationService::class)->send(
+                    $enrollment->user_id,
+                    "Akses Kursus Telah Aktif",
+                    "Akses untuk kursus '{$cTitle}' Anda telah aktif. Selamat belajar!",
+                    'enrollment_activated',
+                    $cSlug ? "/student/courses/{$cSlug}" : "/student/dashboard",
+                    'book-1'
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Notification trigger manual enroll active error: " . $e->getMessage());
+            }
+        }
+
         return response()->json([
             'message' => 'Enrollment manual berhasil dibuat.',
             'data'    => $enrollment->load(['user', 'course.certificationLevel', 'batch']),
@@ -179,6 +211,7 @@ class EnrollmentController extends Controller
         ]);
 
         $enrollment = Enrollment::findOrFail($id);
+        $oldStatus = $enrollment->status;
 
         $payload = [
             'status' => $validated['status'],
@@ -193,6 +226,25 @@ class EnrollmentController extends Controller
         }
 
         $enrollment->update($payload);
+
+        // Notifikasi ke peserta jika status berubah menjadi aktif
+        if ($oldStatus !== 'active' && $validated['status'] === 'active') {
+            try {
+                $enrollment->load(['course']);
+                $cTitle = $enrollment->course->title ?? 'Kursus';
+                $cSlug = $enrollment->course->slug ?? '';
+                app(\App\Services\NotificationService::class)->send(
+                    $enrollment->user_id,
+                    "Akses Kursus Telah Diaktifkan",
+                    "Akses pembelajaran untuk kursus '{$cTitle}' Anda kini telah diaktifkan oleh Admin. Selamat belajar!",
+                    'enrollment_activated',
+                    $cSlug ? "/student/courses/{$cSlug}" : "/student/dashboard",
+                    'book-1'
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Notification trigger updateStatus active error: " . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Status enrollment berhasil diperbarui.',

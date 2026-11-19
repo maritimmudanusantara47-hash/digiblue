@@ -33,6 +33,19 @@ class AuthController extends Controller
 
         $user->assignRole('student');
 
+        // Notifikasi ke Super Admin mengenai registrasi user baru
+        try {
+            app(\App\Services\NotificationService::class)->notifyAdmins(
+                "Pengguna Baru Terdaftar",
+                "Peserta {$user->name} ({$user->email}) baru saja mendaftar di DigiBlueCamp.",
+                'system',
+                '/admin/users',
+                'user-4'
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Notification trigger new user registered error: " . $e->getMessage());
+        }
+
         // Kirim email notifikasi verifikasi akun otomatis
         try {
             $user->sendEmailVerificationNotification();

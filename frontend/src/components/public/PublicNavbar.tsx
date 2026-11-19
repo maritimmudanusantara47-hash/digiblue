@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { useAuthStore } from '@/store/authStore';
 import { useCartCount } from '@/store/cartStore';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import NotificationBell from '@/components/NotificationBell';
 
 export default function PublicNavbar() {
   const t = useTranslations('LandingPage');
@@ -125,6 +126,8 @@ export default function PublicNavbar() {
                 </span>
               )}
             </Link>
+
+            {isAuthenticated && <NotificationBell />}
 
             {isAuthenticated ? (
               <Link

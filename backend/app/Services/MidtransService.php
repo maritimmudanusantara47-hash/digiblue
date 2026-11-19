@@ -195,21 +195,29 @@ class MidtransService
                 if ($fraudStatus === 'accept') {
                     $isPaid = true;
                     foreach ($enrollments as $enrollment) {
+                        $wasAlreadyPaid = $enrollment->payment_status === 'paid' || in_array($enrollment->status, ['active', 'completed']);
                         $enrollment->update([
                             'status'         => 'active',
                             'payment_status' => 'paid',
                             'paid_at'        => $enrollment->paid_at ?? now(),
                         ]);
+                        if (!$wasAlreadyPaid) {
+                            $this->sendPaymentSuccessNotifications($enrollment);
+                        }
                     }
                 }
             } elseif ($trxStatus === 'settlement') {
                 $isPaid = true;
                 foreach ($enrollments as $enrollment) {
+                    $wasAlreadyPaid = $enrollment->payment_status === 'paid' || in_array($enrollment->status, ['active', 'completed']);
                     $enrollment->update([
                         'status'         => 'active',
                         'payment_status' => 'paid',
                         'paid_at'        => $enrollment->paid_at ?? now(),
                     ]);
+                    if (!$wasAlreadyPaid) {
+                        $this->sendPaymentSuccessNotifications($enrollment);
+                    }
                 }
             } elseif (in_array($trxStatus, ['cancel', 'deny', 'expire'])) {
                 foreach ($enrollments as $enrollment) {
@@ -297,6 +305,9 @@ class MidtransService
                         'payment_status' => 'paid',
                         'paid_at'        => $enrollment->paid_at ?? now(),
                     ]);
+                    if (!$isAlreadyPaid) {
+                        $this->sendPaymentSuccessNotifications($enrollment);
+                    }
                 }
             } elseif ($transactionStatus === 'settlement') {
                 // Lunas (QRIS, VA Bank, GoPay, dsb)
@@ -305,6 +316,9 @@ class MidtransService
                     'payment_status' => 'paid',
                     'paid_at'        => $enrollment->paid_at ?? now(),
                 ]);
+                if (!$isAlreadyPaid) {
+                    $this->sendPaymentSuccessNotifications($enrollment);
+                }
             } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
                 if (!$isAlreadyPaid) {
                     $enrollment->update([
@@ -327,5 +341,41 @@ class MidtransService
             'order_id' => $orderId,
             'count'    => $enrollments->count(),
         ];
+    }
+
+    /**
+     * Kirim notifikasi pembayaran sukses ke Peserta dan Admin.
+     */
+    protected function sendPaymentSuccessNotifications(Enrollment $enrollment): void
+    {
+        try {
+            $enrollment->loadMissing(['course', 'user']);
+            $courseTitle = $enrollment->course->title ?? 'Kursus';
+            $courseSlug  = $enrollment->course->slug ?? '';
+            $userName    = $enrollment->user->name ?? 'Peserta';
+
+            $notifService = app(NotificationService::class);
+
+            // Ke Peserta
+            $notifService->send(
+                $enrollment->user_id,
+                "Pembayaran Berhasil! Kursus Aktif",
+                "Pembayaran Anda untuk kursus '{$courseTitle}' telah terverifikasi lunas. Akses materi belajar kini telah terbuka penuh.",
+                'enrollment_activated',
+                $courseSlug ? "/student/courses/{$courseSlug}" : "/student/dashboard",
+                'check-circle-1'
+            );
+
+            // Ke Admin
+            $notifService->notifyAdmins(
+                "Pembayaran Kursus Diterima",
+                "Peserta {$userName} telah menyelesaikan pembayaran untuk kursus '{$courseTitle}'.",
+                'payment_received',
+                '/admin/enrollments',
+                'credit-card-multiple'
+            );
+        } catch (\Throwable $e) {
+            Log::warning("Notification trigger payment success error: " . $e->getMessage());
+        }
     }
 }

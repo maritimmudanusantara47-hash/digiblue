@@ -188,6 +188,20 @@ export interface Certificate {
   created_at: string;
 }
 
+export interface UserNotification {
+  id: number;
+  user_id: number;
+  title: string;
+  message: string;
+  type: string;
+  icon?: string | null;
+  action_url?: string | null;
+  is_read: boolean;
+  read_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── Generic API Response Wrapper ────────────────────────────────────────────
 export interface ApiResponse<T> {
   data: T;

@@ -179,6 +179,28 @@ class PaymentController extends Controller
                 $enrollments[] = $enrollment;
             }
 
+            try {
+                $courseTitles = collect($items)->map(fn($it) => $courses[$it['course_id']]->title ?? 'Kursus')->join(', ');
+                $notifService = app(\App\Services\NotificationService::class);
+                $notifService->notifyAdmins(
+                    "Pendaftaran Kursus Baru (Gratis)",
+                    "Peserta {$user->name} baru saja mendaftar kursus gratis: {$courseTitles}.",
+                    'new_enrollment',
+                    '/admin/enrollments',
+                    'clipboard'
+                );
+                $notifService->send(
+                    $user->id,
+                    "Pendaftaran Kursus Berhasil!",
+                    "Akses Anda untuk kursus {$courseTitles} kini telah aktif. Selamat belajar!",
+                    'enrollment_activated',
+                    '/student/dashboard',
+                    'book-1'
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Notification trigger free checkout error: " . $e->getMessage());
+            }
+
             return response()->json([
                 'message' => 'Pendaftaran berhasil. Semua kursus gratis telah aktif!',
                 'data'    => [
@@ -215,6 +237,20 @@ class PaymentController extends Controller
                 $updateData
             );
             $enrollments[] = $enrollment;
+        }
+
+        // Notifikasi ke Super Admin mengenai checkout kursus baru
+        try {
+            $courseTitles = collect($items)->map(fn($it) => $courses[$it['course_id']]->title ?? 'Kursus')->join(', ');
+            app(\App\Services\NotificationService::class)->notifyAdmins(
+                "Pendaftaran Kursus Baru",
+                "Peserta {$user->name} mendaftar kursus: {$courseTitles}. Menunggu penyelesaian pembayaran.",
+                'new_enrollment',
+                '/admin/enrollments',
+                'clipboard'
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Notification trigger cart checkout error: " . $e->getMessage());
         }
 
         try {

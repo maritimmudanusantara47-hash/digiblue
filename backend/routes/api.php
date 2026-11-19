@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\AdminBatchController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\ModuleNoteController;
+use App\Http\Controllers\Api\NotificationController;
 
 // ─── Public Routes ───────────────────────────────────────────────────────────
 Route::prefix('v1')->group(function () {
@@ -72,6 +73,14 @@ Route::prefix('v1')->group(function () {
         Route::get('module-notes',           [ModuleNoteController::class, 'index']);
         Route::post('module-notes',          [ModuleNoteController::class, 'store']);
         Route::delete('module-notes/{id}',   [ModuleNoteController::class, 'destroy']);
+
+        // Notifikasi In-App
+        Route::prefix('notifications')->group(function () {
+            Route::get('/',              [NotificationController::class, 'index']);
+            Route::patch('{id}/read',    [NotificationController::class, 'markAsRead']);
+            Route::post('mark-all-read', [NotificationController::class, 'markAllAsRead']);
+            Route::delete('{id}',        [NotificationController::class, 'destroy']);
+        });
 
         // Sertifikat Peserta
         Route::get('certificates',          [CertificateController::class, 'index']);
