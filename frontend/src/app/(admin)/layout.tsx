@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import NotificationBell from '@/components/NotificationBell';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
@@ -123,10 +124,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Content Viewport */}
-      <main className="flex-1 min-w-0 p-6 sm:p-8 lg:p-10 max-w-[calc(100vw-256px)] xl:max-w-[calc(100vw-288px)]">
-        {children}
-      </main>
+      {/* Main Content Viewport with Header */}
+      <div className="flex-1 min-w-0 flex flex-col max-w-[calc(100vw-256px)] xl:max-w-[calc(100vw-288px)]">
+        <header className="sticky top-0 z-20 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 sm:px-8 lg:px-10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-xs uppercase tracking-wider text-slate-400 font-mono">
+              Admin Console
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+          </div>
+        </header>
+
+        <main className="flex-1 p-6 sm:p-8 lg:p-10">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

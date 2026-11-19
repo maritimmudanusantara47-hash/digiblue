@@ -363,6 +363,30 @@ class CertificateService
 
         $enrollment->update(['status' => 'completed']);
 
+        // Notifikasi ke Peserta & Admin bahwa sertifikat resmi telah terbit
+        try {
+            $user = $enrollment->user;
+            $courseTitle = $course->title ?? 'Kursus Kompetensi';
+            $notifService = app(NotificationService::class);
+            $notifService->send(
+                $enrollment->user_id,
+                "Selamat! Sertifikat Resmi Anda Telah Terbit",
+                "Sertifikat kompetensi '{$courseTitle}' (No: {$serials['serial_number']}) telah resmi diterbitkan. Anda kini dapat mengunduhnya.",
+                'certificate_issued',
+                '/student/certificates',
+                'certificate-badge-1'
+            );
+            $notifService->notifyAdmins(
+                "Sertifikat Baru Diterbitkan",
+                "Sertifikat {$serials['serial_number']} ({$courseTitle}) otomatis terbit untuk peserta {$user->name}.",
+                'certificate_issued',
+                '/admin/certificates',
+                'certificate-badge-1'
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Notification trigger certificate_issued error: " . $e->getMessage());
+        }
+
         // Sinkronisasi otomatis ke The Blue Economist via Queue Job (asinkron)
         try {
             \App\Jobs\SyncCertificateToTBEJob::dispatch($certificate);

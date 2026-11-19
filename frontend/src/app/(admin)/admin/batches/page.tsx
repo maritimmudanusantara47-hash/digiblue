@@ -548,7 +548,7 @@ export default function AdminBatchesPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1.5">
+                    <div className="flex items-center gap-1.5">
                       <button
                         type="button"
                         id={`btn-edit-batch-${b.id}`}
@@ -556,7 +556,7 @@ export default function AdminBatchesPage() {
                         title="Edit Batch"
                         className="p-1.5 rounded-lg hover:bg-sky-50 text-sky-600 transition-colors cursor-pointer"
                       >
-                        <Icon name="pencil-1" size={15} />
+                        <Icon name="pencil-1" size={18} />
                       </button>
                       <button
                         type="button"
@@ -565,7 +565,7 @@ export default function AdminBatchesPage() {
                         title="Hapus Batch"
                         className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors cursor-pointer"
                       >
-                        <Icon name="trash-3" size={15} />
+                        <Icon name="trash-3" size={18} />
                       </button>
                     </div>
                   </td>
