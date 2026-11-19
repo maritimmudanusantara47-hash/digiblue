@@ -798,7 +798,7 @@ function CourseCard({
       </div>
 
       {/* CTA Button */}
-      {!enrollment || enrollment.status === "cancelled" ? (
+      {!enrollment || enrollment.status === "cancelled" || enrollment.status === "payment_pending" ? (
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -860,43 +860,6 @@ function CourseCard({
             <span>Beli Sekarang</span>
           </button>
         </div>
-      ) : enrollment.status === "payment_pending" ? (
-        <button
-          id={`pay-${course.id}`}
-          onClick={() => onPay(enrollment.id)}
-          disabled={isPaying}
-          className="btn w-full text-sm font-semibold text-center bg-amber-500 hover:bg-amber-600 text-white shadow-sm flex items-center justify-center gap-2"
-        >
-          {isPaying ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg
-                className="animate-spin h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                />
-              </svg>
-              {t("btn_midtrans")}
-            </span>
-          ) : (
-            <>
-              <Icon name="credit-card-multiple" size={16} className="mr-1.5" />
-              {t("btn_pay_now")}
-            </>
-          )}
-        </button>
       ) : enrollment.status === "completed" ? (
         <Link
           href={`/student/courses/${course.slug}`}

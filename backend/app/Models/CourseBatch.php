@@ -17,6 +17,7 @@ class CourseBatch extends Model
         'start_date',
         'end_date',
         'field_trip_date',
+        'certificate_issue_date',
         'is_active',
     ];
 
@@ -26,6 +27,7 @@ class CourseBatch extends Model
         'start_date'              => 'date',
         'end_date'                => 'date',
         'field_trip_date'         => 'date',
+        'certificate_issue_date'  => 'date',
         'is_active'               => 'boolean',
     ];
 

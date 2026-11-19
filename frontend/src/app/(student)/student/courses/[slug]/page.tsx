@@ -59,10 +59,23 @@ interface EnrollInfo {
   enrollment_type: string;
   attended_field_trip: boolean;
   batch_id?: number | null;
-  batch?: { id: number; batch_name: string; batch_code?: string | null } | null;
+  batch?: { id: number; batch_name: string; batch_code?: string | null; certificate_issue_date?: string | null } | null;
 }
 interface CertificateInfo { id: number; serial_number: string; serial_url_key: string; grade: string }
-interface PageData { enrollment: EnrollInfo; course: CourseData; sections: Section[]; certificate?: CertificateInfo | null }
+interface EligibilityInfo {
+  eligible: boolean;
+  coursework_completed?: boolean;
+  scheduled_release_date?: string;
+  batch_name?: string;
+  reason?: string | null;
+}
+interface PageData {
+  enrollment: EnrollInfo;
+  course: CourseData;
+  sections: Section[];
+  certificate?: CertificateInfo | null;
+  eligibility?: EligibilityInfo | null;
+}
 interface Submission {
   id?: number;
   content_id: number;
@@ -356,7 +369,7 @@ export default function StudentCoursePage() {
             </div>
           </div>
 
-          {progressPct === 100 && (
+          {progressPct === 100 && data?.certificate && (
             <button
               type="button"
               onClick={() => router.push('/student/certificates')}
@@ -401,7 +414,7 @@ export default function StudentCoursePage() {
             <p className="text-xs text-slate-400 mt-1">{completedCount}/{totalContents} selesai</p>
 
             {/* Banner Sertifikat Siap di Sidebar */}
-            {progressPct === 100 && (
+            {progressPct === 100 && data?.certificate && (
               <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col gap-2">
                 <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold">
                   <Icon name="check-circle-1" size={14} className="text-emerald-600" />
@@ -465,39 +478,71 @@ export default function StudentCoursePage() {
 
       {/* ── Main Content Area ──────────────────────────────────────────────── */}
       <main className={`flex-1 min-w-0 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300 ${isSidebarOpen ? '' : 'max-w-7xl mx-auto w-full'}`}>
-        {/* Banner Selamat & Sertifikat Terbit Otomatis */}
+        {/* Banner Selamat & Sertifikat Terbit Otomatis vs Menunggu Jadwal Batch */}
         {progressPct === 100 && (
-          <div className="mb-6 p-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeup border border-emerald-400/30">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
-                <Icon name="certificate-badge-1" size={26} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider bg-white/25 px-2.5 py-0.5 rounded-full">
-                    Selesai 100%
-                  </span>
-                  <span className="text-xs text-emerald-100 font-medium">
-                    Semua Syarat Kelulusan Terpenuhi
-                  </span>
+          data?.certificate ? (
+            <div className="mb-6 p-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeup border border-emerald-400/30">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                  <Icon name="certificate-badge-1" size={26} />
                 </div>
-                <h3 className="font-extrabold text-base sm:text-lg mt-0.5">
-                  Selamat! Sertifikat Resmi Kamu Telah Terbit Otomatis
-                </h3>
-                <p className="text-xs sm:text-sm text-emerald-100 mt-0.5">
-                  Kamu telah menuntaskan seluruh materi kursus. Sertifikat digital siap diunduh dan diverifikasi.
-                </p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider bg-white/25 px-2.5 py-0.5 rounded-full">
+                      Selesai 100%
+                    </span>
+                    <span className="text-xs text-emerald-100 font-medium">
+                      Semua Syarat Kelulusan Terpenuhi
+                    </span>
+                  </div>
+                  <h3 className="font-extrabold text-base sm:text-lg mt-0.5">
+                    Selamat! Sertifikat Resmi Kamu Telah Terbit Otomatis
+                  </h3>
+                  <p className="text-xs sm:text-sm text-emerald-100 mt-0.5">
+                    Kamu telah menuntaskan seluruh materi kursus. Sertifikat digital siap diunduh dan diverifikasi.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push('/student/certificates')}
+                className="py-2.5 px-5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md flex-shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Icon name="certificate-badge-1" size={16} />
+                <span>Buka Sertifikat Saya</span>
+              </button>
+            </div>
+          ) : (
+            <div className="mb-6 p-5 bg-gradient-to-r from-[#07192C] via-[#0d2a4a] to-[#12365e] rounded-2xl text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeup border border-sky-400/20">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-inner border border-white/15">
+                  <Icon name="hourglass" size={24} className="text-sky-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider bg-sky-400/20 text-sky-200 border border-sky-400/30 px-2.5 py-0.5 rounded-full">
+                      Materi Tuntas 100%
+                    </span>
+                    {enrollment?.batch && (
+                      <span className="text-xs text-sky-200 font-semibold">
+                        {enrollment.batch.batch_name}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-extrabold text-base sm:text-lg mt-0.5 text-white">
+                    Seluruh Tugas Selesai! Menunggu Jadwal Terbit Sertifikat
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
+                    {data?.eligibility?.reason ?? (
+                      enrollment?.batch?.certificate_issue_date
+                        ? `Sertifikat resmi untuk angkatan kamu dijadwalkan terbit pada ${new Date(enrollment.batch.certificate_issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                        : 'Sertifikat resmi sedang dalam proses verifikasi akhir oleh tim akademik.'
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push('/student/certificates')}
-              className="py-2.5 px-5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md flex-shrink-0 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Icon name="certificate-badge-1" size={16} />
-              <span>Buka Sertifikat Saya</span>
-            </button>
-          </div>
+          )
         )}
         {activeContent ? (
           <ContentViewer

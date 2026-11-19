@@ -20,6 +20,7 @@ class ContentController extends Controller
         $query = Enrollment::with([
             'course.certificationLevel',
             'course.sections.contents.quizQuestions.options',
+            'batch:id,course_id,batch_name,batch_code,certificate_issue_date',
         ]);
 
         if (!method_exists($user, 'hasRole') || !$user->hasRole('admin')) {
@@ -73,10 +74,16 @@ class ContentController extends Controller
             $certificate = $enrollment->certificate()->first();
         }
 
+        $eligibility = $certService->isEligibleForCertificate($enrollment);
+
         return response()->json([
             'data' => [
-                'enrollment'  => $enrollment->only(['id', 'status', 'attended_field_trip', 'enrollment_type']),
+                'enrollment'  => array_merge(
+                    $enrollment->only(['id', 'status', 'attended_field_trip', 'enrollment_type', 'batch_id']),
+                    ['batch' => $enrollment->batch]
+                ),
                 'certificate' => $certificate,
+                'eligibility' => $eligibility,
                 'course'      => [
                     'id'    => $enrollment->course->id,
                     'title' => $enrollment->course->title,

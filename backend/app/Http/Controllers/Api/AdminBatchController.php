@@ -108,6 +108,7 @@ class AdminBatchController extends Controller
             'start_date'              => 'nullable|date',
             'end_date'                => 'nullable|date|after_or_equal:start_date',
             'field_trip_date'         => 'nullable|date',
+            'certificate_issue_date'  => 'nullable|date',
             'is_active'               => 'boolean',
         ], [
             'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',
@@ -142,6 +143,7 @@ class AdminBatchController extends Controller
             'start_date'              => 'nullable|date',
             'end_date'                => 'nullable|date|after_or_equal:start_date',
             'field_trip_date'         => 'nullable|date',
+            'certificate_issue_date'  => 'nullable|date',
             'is_active'               => 'boolean',
         ], [
             'target_scope.required'                => 'Target cakupan kursus wajib dipilih.',
@@ -181,6 +183,7 @@ class AdminBatchController extends Controller
             'start_date'              => $validated['start_date'] ?? null,
             'end_date'                => $validated['end_date'] ?? null,
             'field_trip_date'         => $validated['field_trip_date'] ?? null,
+            'certificate_issue_date'  => $validated['certificate_issue_date'] ?? null,
             'is_active'               => $validated['is_active'] ?? true,
         ];
 
@@ -229,6 +232,7 @@ class AdminBatchController extends Controller
             'start_date'              => 'nullable|date',
             'end_date'                => 'nullable|date' . ($learnStart ? '|after_or_equal:' . $learnStart : ''),
             'field_trip_date'         => 'nullable|date',
+            'certificate_issue_date'  => 'nullable|date',
             'is_active'               => 'boolean',
         ], [
             'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',

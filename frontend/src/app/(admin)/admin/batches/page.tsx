@@ -23,6 +23,7 @@ interface CourseBatch {
   start_date: string | null;
   end_date: string | null;
   field_trip_date: string | null;
+  certificate_issue_date: string | null;
   is_active: boolean;
   enrollments_count: number;
   course?: Course;
@@ -39,6 +40,7 @@ const emptyForm = {
   start_date: '',
   end_date: '',
   field_trip_date: '',
+  certificate_issue_date: '',
   is_active: true,
 };
 
@@ -143,6 +145,7 @@ export default function AdminBatchesPage() {
       start_date: toInputDate(b.start_date),
       end_date: toInputDate(b.end_date),
       field_trip_date: toInputDate(b.field_trip_date),
+      certificate_issue_date: toInputDate(b.certificate_issue_date),
       is_active: b.is_active,
     });
     setError('');
@@ -200,6 +203,7 @@ export default function AdminBatchesPage() {
           updated.start_date = toInputDate(match.start_date);
           updated.end_date = toInputDate(match.end_date);
           updated.field_trip_date = toInputDate(match.field_trip_date);
+          updated.certificate_issue_date = toInputDate(match.certificate_issue_date);
         }
       } else {
         setReferenceBatch(null);
@@ -239,6 +243,7 @@ export default function AdminBatchesPage() {
             updated.start_date = toInputDate(match.start_date);
             updated.end_date = toInputDate(match.end_date);
             updated.field_trip_date = toInputDate(match.field_trip_date);
+            updated.certificate_issue_date = toInputDate(match.certificate_issue_date);
           }
         }
       }
@@ -285,6 +290,7 @@ export default function AdminBatchesPage() {
                 start_date: toInputDate(template.start_date),
                 end_date: toInputDate(template.end_date),
                 field_trip_date: toInputDate(template.field_trip_date),
+                certificate_issue_date: toInputDate(template.certificate_issue_date),
               };
             }
             return f;
@@ -309,6 +315,7 @@ export default function AdminBatchesPage() {
       start_date: toInputDate(referenceBatch.start_date),
       end_date: toInputDate(referenceBatch.end_date),
       field_trip_date: toInputDate(referenceBatch.field_trip_date),
+      certificate_issue_date: toInputDate(referenceBatch.certificate_issue_date),
     }));
   };
 
@@ -373,6 +380,7 @@ export default function AdminBatchesPage() {
           start_date: form.start_date || null,
           end_date: form.end_date || null,
           field_trip_date: form.field_trip_date || null,
+          certificate_issue_date: form.certificate_issue_date || null,
           is_active: form.is_active,
         };
         const res = await api.post('/admin/batches/bulk', payload);
@@ -387,6 +395,7 @@ export default function AdminBatchesPage() {
           start_date: form.start_date || null,
           end_date: form.end_date || null,
           field_trip_date: form.field_trip_date || null,
+          certificate_issue_date: form.certificate_issue_date || null,
           is_active: form.is_active,
         };
         const res = await api.post(`/admin/courses/${form.course_id}/batches`, payload);
@@ -401,6 +410,7 @@ export default function AdminBatchesPage() {
           start_date: form.start_date || null,
           end_date: form.end_date || null,
           field_trip_date: form.field_trip_date || null,
+          certificate_issue_date: form.certificate_issue_date || null,
           is_active: form.is_active,
         };
         const res = await api.patch(`/admin/batches/${editId}`, payload);
@@ -502,6 +512,7 @@ export default function AdminBatchesPage() {
                 <th className="px-4 py-3 text-left font-semibold">Kode</th>
                 <th className="px-4 py-3 text-left font-semibold">Periode Belajar</th>
                 <th className="px-4 py-3 text-left font-semibold">Field Trip</th>
+                <th className="px-4 py-3 text-left font-semibold">Terbit Sertifikat</th>
                 <th className="px-4 py-3 text-center font-semibold">Peserta</th>
                 <th className="px-4 py-3 text-center font-semibold">Status</th>
                 <th className="px-4 py-3 text-left font-semibold">Aksi</th>
@@ -509,9 +520,9 @@ export default function AdminBatchesPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={9} className="px-4 py-16 text-center text-slate-400">Memuat data batch...</td></tr>
+                <tr><td colSpan={10} className="px-4 py-16 text-center text-slate-400">Memuat data batch...</td></tr>
               ) : displayed.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-16 text-center text-slate-400">
+                <tr><td colSpan={10} className="px-4 py-16 text-center text-slate-400">
                   <Icon name="info" size={32} className="mx-auto mb-2 opacity-40" />
                   <p>Belum ada batch. Klik &ldquo;Tambah Batch Baru&rdquo; untuk membuat.</p>
                 </td></tr>
@@ -535,6 +546,16 @@ export default function AdminBatchesPage() {
                     ) : '—'}
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-500">{fmtDate(b.field_trip_date)}</td>
+                  <td className="px-4 py-3 text-xs text-slate-500">
+                    {b.certificate_issue_date ? (
+                      <span className="inline-flex items-center gap-1 font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200 text-[11px]">
+                        <Icon name="certificate-badge-1" size={11} className="text-sky-600" />
+                        {fmtDate(b.certificate_issue_date)}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-[11px]">Otomatis</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <span className="badge bg-blue-50 text-blue-700 border-blue-200 text-xs">
                       {b.enrollments_count ?? 0}
@@ -839,6 +860,24 @@ export default function AdminBatchesPage() {
                   onChange={e => setForm(f => ({ ...f, field_trip_date: e.target.value }))}
                   className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                 />
+              </div>
+
+              {/* Tanggal Terbit Sertifikat Resmi */}
+              <div className="flex flex-col gap-1.5 bg-sky-50/60 p-3.5 rounded-2xl border border-sky-200/70">
+                <div className="flex items-center gap-1.5">
+                  <Icon name="certificate-badge-1" size={15} className="text-sky-700" />
+                  <label className="text-xs font-bold text-sky-950">Tanggal Terbit Sertifikat Resmi (Batch)</label>
+                  <span className="text-[10px] font-semibold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">Jadwal Rilis</span>
+                </div>
+                <input
+                  type="date"
+                  value={form.certificate_issue_date}
+                  onChange={e => setForm(f => ({ ...f, certificate_issue_date: e.target.value }))}
+                  className="w-full px-4 py-2 text-sm border border-sky-300 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                />
+                <p className="text-[11px] text-slate-500 leading-tight">
+                  Tentukan kapan sertifikat angkatan ini akan terbit resmi. Walaupun siswa menyelesaikan tugas sebelum tanggal ini, sertifikat baru akan terbit saat tanggal ini tiba. Kosongkan jika ingin sertifikat langsung terbit otomatis saat tugas tuntas.
+                </p>
               </div>
 
               {/* Aktif */}

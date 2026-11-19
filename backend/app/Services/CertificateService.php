@@ -309,6 +309,23 @@ class CertificateService
             }
         }
 
+        // Cek apakah enrollment terikat pada Batch tertentu
+        if ($enrollment->batch_id) {
+            $batch = $enrollment->batch ?? \App\Models\CourseBatch::find($enrollment->batch_id);
+            if ($batch && $batch->certificate_issue_date) {
+                $releaseDate = \Carbon\Carbon::parse($batch->certificate_issue_date)->startOfDay();
+                if (now()->startOfDay()->lt($releaseDate)) {
+                    return [
+                        'eligible'               => false,
+                        'coursework_completed'   => true,
+                        'scheduled_release_date' => $batch->certificate_issue_date->toDateString(),
+                        'batch_name'             => $batch->batch_name,
+                        'reason'                 => "Seluruh materi & tugas telah tuntas! Sertifikat resmi untuk {$batch->batch_name} dijadwalkan terbit pada " . $releaseDate->locale('id')->isoFormat('D MMMM Y') . '.',
+                    ];
+                }
+            }
+        }
+
         return ['eligible' => true, 'reason' => null];
     }
 
@@ -344,7 +361,17 @@ class CertificateService
             $grade = 'Good';
         }
 
-        $dateObj   = now();
+        // Tentukan tanggal terbit sertifikat:
+        // - Untuk batch: gunakan tanggal resmi certificate_issue_date dari batch jika diset admin
+        // - Untuk self-paced: otomatis mengikuti kapan menyelesaikan task (now())
+        $dateObj = now();
+        if ($enrollment->batch_id) {
+            $batch = $enrollment->batch ?? \App\Models\CourseBatch::find($enrollment->batch_id);
+            if ($batch && $batch->certificate_issue_date) {
+                $dateObj = \Carbon\Carbon::parse($batch->certificate_issue_date);
+            }
+        }
+
         $year      = (int)$dateObj->format('Y');
         $trackCode = $this->getTrackCode($course);
         $sequence  = $this->getNextSequence($year, $trackCode);
