@@ -44,10 +44,9 @@ const DEFAULT_LAYOUT: LayoutState = {
   recipient_name: { top: 69.5, font_size: 32.5, label: 'Nama Peserta' },
   ribbon_text: { top: 99.0, height: 14.0, font_size: 22.5, label: 'Teks Ribbon' },
   level_value: { top: 122.8, font_size: 14.5, label: 'Level Sertifikasi' },
-  meta_block: { top: 138.0, font_size: 10.5, label: 'Grade, Tanggal & Tempat' },
+  meta_block: { top: 138.0, font_size: 10.5, label: 'Grade, Tanggal Terbit, Expiry & Tempat' },
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
-  validity_block: { top: 195.5, left: 16.5, font_size: 7.5, label: 'Masa Berlaku Sertifikat' },
   back_title: { top: 20.0, font_size: 15.0, label: 'Judul Halaman Belakang' },
 
   // Field Study Layout
@@ -68,11 +67,28 @@ interface PresetItem {
   level: string;
   grade: string;
   date: string;
+  dateExpiry?: string;
   place: string;
   courseTitle: string;
   dateParticipation: string;
   dateIssue: string;
   regNo: string;
+}
+
+function computeExpiryDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const clean = dateStr.replace(/^[A-Za-z\s]+,\s*/, '').trim();
+  const d = new Date(clean);
+  if (!isNaN(d.getTime())) {
+    d.setFullYear(d.getFullYear() + 3);
+    d.setDate(d.getDate() - 1);
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+  return '';
 }
 
 function toRomanMonth(m: number): string {
@@ -510,10 +526,9 @@ const FIELD_LIST_FRONT = [
   { key: 'ribbon_text', label: 'Teks Ribbon' },
   { key: 'serial_no', label: 'Nomor Seri' },
   { key: 'level_value', label: 'Level Sertifikasi' },
-  { key: 'meta_block', label: 'Grade, Tanggal & Tempat' },
+  { key: 'meta_block', label: 'Grade, Tanggal Terbit, Expiry & Tempat' },
   { key: 'qr_left', label: 'QR Kiri' },
   { key: 'qr_right', label: 'QR Kanan' },
-  { key: 'validity_block', label: 'Masa Berlaku Sertifikat' },
 ];
 
 const FIELD_LIST_BACK = [
@@ -540,7 +555,6 @@ const FRONT_FIELDS = [
   'meta_block',
   'qr_left',
   'qr_right',
-  'validity_block',
   'fs_recipient_name',
   'fs_course_title',
   'fs_date_participation',
@@ -730,15 +744,6 @@ export default function CertificateTemplateAdminPage() {
   };
 
   const sel = layout[selectedKey];
-  const validityStart = new Date(sample.date);
-  const validityEnd = new Date(validityStart);
-  validityEnd.setFullYear(validityEnd.getFullYear() + 3);
-  const formatValidityDate = (date: Date, locale: string) =>
-    new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-  const validityStartId = formatValidityDate(validityStart, 'id-ID');
-  const validityEndId = formatValidityDate(validityEnd, 'id-ID');
-  const validityStartEn = formatValidityDate(validityStart, 'en-GB');
-  const validityEndEn = formatValidityDate(validityEnd, 'en-GB');
 
   return (
     <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden select-none">
@@ -1061,21 +1066,24 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.meta_block?.top ?? 138.2), left: mmToPx(103.5), width: mmToPx(90), height: mmToPx(18.5), backgroundColor: '#F8F8F8', textAlign: 'center', fontSize: `${(layout.meta_block?.font_size ?? 11.5) * (SCALE / 3.4)}px`, lineHeight: 1.55, color: '#111827', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
+                        style={{
+                          top: mmToPx(layout.meta_block?.top ?? 138.0),
+                          left: mmToPx(103.5),
+                          width: mmToPx(90),
+                          backgroundColor: '#F8F8F8',
+                          textAlign: 'center',
+                          fontSize: `${(layout.meta_block?.font_size ?? 10.5) * (SCALE / 3.4)}px`,
+                          lineHeight: 1.4,
+                          color: '#111827',
+                          fontFamily: "'Poppins', sans-serif",
+                          zIndex: 10,
+                          padding: '2px 0',
+                        }}
                       >
                         <div><strong>Grade:</strong> {sample.grade}</div>
-                        <div><strong>Date of issue:</strong> {sample.date}</div>
-                        <div><strong>Place of issue:</strong> {sample.place}</div>
-                      </div>
-
-                      {/* Certificate Validity */}
-                      <div
-                        onClick={() => { setSelectedKey('validity_block'); setEditMode(true); setMobilePanelOpen(true); }}
-                        className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'validity_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.validity_block?.top ?? 195.5), left: mmToPx(layout.validity_block?.left ?? 16.5), right: mmToPx(16.5), fontSize: `${(layout.validity_block?.font_size ?? 7.5) * (SCALE / 3.4)}px`, lineHeight: 1.35, color: '#1f2937', fontFamily: "'Poppins', sans-serif", zIndex: 10 }}
-                      >
-                        <div>Sertifikat ini berlaku dari {validityStartId} sampai {validityEndId}</div>
-                        <div>This certificate is valid from {validityStartEn} until {validityEndEn}</div>
+                        <div><strong>Date of Issue:</strong> {sample.date}</div>
+                        <div><strong>Date of Expiry:</strong> {sample.dateExpiry || computeExpiryDate(sample.date)}</div>
+                        <div><strong>Place of Issue:</strong> {sample.place}</div>
                       </div>
 
                       {/* QR Left */}
@@ -1591,11 +1599,11 @@ export default function CertificateTemplateAdminPage() {
                         </div>
                       </div>
 
-                      {/* Date of issue & Place of issue */}
+                      {/* Date of Issue & Date of Expiry */}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-[11px] text-slate-500">Date of issue</label>
+                            <label className="text-[11px] text-slate-500">Date of Issue</label>
                             <button
                               type="button"
                               onClick={() => {
@@ -1603,7 +1611,7 @@ export default function CertificateTemplateAdminPage() {
                                 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                                 const todayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
                                 const newSerial = syncSerialWithDate(sample.serial, todayDate);
-                                setSample({ ...sample, date: todayDate, serial: newSerial });
+                                setSample({ ...sample, date: todayDate, serial: newSerial, dateExpiry: computeExpiryDate(todayDate) });
                               }}
                               className="text-[10px] text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer flex items-center gap-1"
                               title="Set tanggal ke hari ini dan update otomatis bulan/tahun nomor serial"
@@ -1617,20 +1625,43 @@ export default function CertificateTemplateAdminPage() {
                             onChange={e => {
                               const newDate = e.target.value;
                               const newSerial = syncSerialWithDate(sample.serial, newDate);
-                              setSample({ ...sample, date: newDate, serial: newSerial });
+                              setSample({ ...sample, date: newDate, serial: newSerial, dateExpiry: computeExpiryDate(newDate) });
                             }}
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] text-slate-500 block mb-1">Place of issue</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px] text-slate-500">Date of Expiry</label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSample({ ...sample, dateExpiry: computeExpiryDate(sample.date) });
+                              }}
+                              className="text-[10px] text-blue-400 hover:text-blue-300 font-medium transition cursor-pointer"
+                              title="Hitung otomatis (+3 tahun -1 hari)"
+                            >
+                              Auto
+                            </button>
+                          </div>
                           <input
                             type="text"
-                            value={sample.place}
-                            onChange={e => setSample({ ...sample, place: e.target.value })}
+                            value={sample.dateExpiry ?? computeExpiryDate(sample.date)}
+                            onChange={e => setSample({ ...sample, dateExpiry: e.target.value })}
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
                           />
                         </div>
+                      </div>
+
+                      {/* Place of Issue */}
+                      <div>
+                        <label className="text-[11px] text-slate-500 block mb-1">Place of Issue</label>
+                        <input
+                          type="text"
+                          value={sample.place}
+                          onChange={e => setSample({ ...sample, place: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                        />
                       </div>
                     </>
                   )}

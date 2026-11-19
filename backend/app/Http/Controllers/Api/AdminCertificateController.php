@@ -331,10 +331,9 @@ class AdminCertificateController extends Controller
             'recipient_name' => ['top' => 69.5, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
             'ribbon_text' => ['top' => 100.5, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
             'level_value' => ['top' => 124.5, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
-            'meta_block' => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal, & Tempat Terbit'],
+            'meta_block' => ['top' => 138.2, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal Terbit, Expiry, & Tempat'],
             'qr_left' => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
             'qr_right' => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
-            'validity_block' => ['top' => 195.5, 'left' => 16.5, 'font_size' => 7.5, 'label' => 'Masa Berlaku Sertifikat (Pojok Kiri Bawah)'],
             'back_title' => ['top' => 20.0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
 
             // Critical Thinking & Field Study / Completion template fields

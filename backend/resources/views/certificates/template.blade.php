@@ -138,16 +138,6 @@
             color: #111827;
         }
 
-        .f-validity-block {
-            position: absolute;
-            left: 16.5mm;
-            right: 16.5mm;
-            line-height: 1.35;
-            font-family: 'Poppins', 'DejaVu Sans', sans-serif;
-            color: #1f2937;
-            z-index: 3;
-        }
-
         /* ── QR Codes with Clean Framed Card ── */
         .f-qr-left {
             position: absolute;
@@ -309,24 +299,15 @@
         $btTop = $L['back_title']['top'] ?? 20.0;
         $btFs  = $L['back_title']['font_size'] ?? 15.0;
 
-        $vTop  = $L['validity_block']['top'] ?? 195.5;
-        $vLeft = $L['validity_block']['left'] ?? 16.5;
-        $vFs   = $L['validity_block']['font_size'] ?? 7.5;
-
         $issueCarbon = \Carbon\Carbon::parse($certificate->date_of_issue ?? now());
-        $validUntilCarbon = $issueCarbon->copy()->addYears(3);
+        $expiryCarbon = isset($certificate->valid_until)
+            ? \Carbon\Carbon::parse($certificate->valid_until)
+            : (isset($certificate->date_of_expiry)
+                ? \Carbon\Carbon::parse($certificate->date_of_expiry)
+                : $issueCarbon->copy()->addYears(3)->subDay());
+        $dateOfExpiryFormatted = $expiryCarbon->format('F j, Y');
 
-        $bulanIndo = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
 
-        $pubDateId = $issueCarbon->format('j') . ' ' . ($bulanIndo[(int)$issueCarbon->format('n')] ?? $issueCarbon->format('F')) . ' ' . $issueCarbon->format('Y');
-        $validUntilId = $validUntilCarbon->format('j') . ' ' . ($bulanIndo[(int)$validUntilCarbon->format('n')] ?? $validUntilCarbon->format('F')) . ' ' . $validUntilCarbon->format('Y');
-
-        $pubDateEn = $issueCarbon->format('j F Y');
-        $validUntilEn = $validUntilCarbon->format('j F Y');
 
         if (empty($templateBase64)) {
             $tplName = $isFoundation ? 'template_foundation.png' : 'template_CBEc.png';
@@ -368,11 +349,12 @@
                 {{ $levelDisplay }}
             </div>
 
-            {{-- Grade, Date, Place block --}}
+            {{-- Grade, Date of Issue, Date of Expiry, Place of Issue block --}}
             <div class="f-meta-block" style="top: {{ $mTop }}mm; font-size: {{ $mFs }}pt;">
                 <div class="meta-line"><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
-                <div class="meta-line"><strong>Date of issue:</strong> {{ \Carbon\Carbon::parse($certificate->date_of_issue)->format('F j, Y') }}</div>
-                <div class="meta-line"><strong>Place of issue:</strong> {{ $certificate->place_of_issue ?? 'Jakarta' }}</div>
+                <div class="meta-line"><strong>Date of Issue:</strong> {{ $issueCarbon->format('F j, Y') }}</div>
+                <div class="meta-line"><strong>Date of Expiry:</strong> {{ $dateOfExpiryFormatted }}</div>
+                <div class="meta-line"><strong>Place of Issue:</strong> {{ $certificate->place_of_issue ?? 'Jakarta' }}</div>
             </div>
 
             {{-- Left QR Code --}}
@@ -389,10 +371,7 @@
                 </div>
             @endif
 
-            <div class="f-validity-block" style="top: {{ $vTop }}mm; left: {{ $vLeft }}mm; font-size: {{ $vFs }}pt;">
-                <div>Sertifikat ini berlaku dari {{ $pubDateId }} sampai {{ $validUntilId }}</div>
-                <div>This certificate is valid from {{ $pubDateEn }} until {{ $validUntilEn }}</div>
-            </div>
+
 
         </div>
     </div>
