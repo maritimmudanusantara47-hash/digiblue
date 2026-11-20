@@ -662,3 +662,86 @@ function getSingleModuleTemplate(courseTitle: string, isEn: boolean): Certificat
 function getDefaultSpecTemplate(courseTitle: string, isEn: boolean): CertificateTemplate {
   return getSpecializationTemplate(courseTitle, isEn);
 }
+
+/**
+ * Standarisasi format penamaan file unduhan PDF sertifikat untuk Admin dan User:
+ * - Competence:          Certificate-Competence-{CourseName}-{UserName}-{SerialNumber}.pdf
+ * - Field Study:         Certificate-Completion-Field-Study-{CourseName}-{UserName}-{RegNo}.pdf
+ * - Critical Thinking:   Certificate-Completion-Critical-Thinking-{CourseName}-{UserName}-{RegNo}.pdf
+ */
+export function generateCertificateDownloadFileName(
+  course?: { title?: string; slug?: string } | null,
+  userName?: string | null,
+  type?: 'critical_thinking' | 'field_study' | string | null,
+  code?: string | null
+): string {
+  const courseSlug = course?.slug ?? '';
+  const courseTitle = course?.title ?? '';
+  const combined = `${courseSlug} ${courseTitle}`.toLowerCase();
+
+  let cleanCourse = 'Foundation';
+  if (combined.includes('foundation')) {
+    cleanCourse = 'Foundation';
+  } else {
+    const specMap: Record<string, string> = {
+      'blue-business-development': 'Blue-Business-Development',
+      'blue-carbon': 'Blue-Carbon',
+      'blue-community-development': 'Blue-Community-Development',
+      'blue-circular-economy': 'Blue-Circular-Economy',
+      'blue-data-intelligence': 'Blue-Data-Intelligence',
+      'blue-energy': 'Blue-Energy',
+      'blue-farming': 'Blue-Farming',
+      'blue-finance': 'Blue-Finance',
+      'blue-food': 'Blue-Food',
+      'blue-port': 'Blue-Port',
+      'blue-shipping': 'Blue-Shipping',
+      'blue-tourism': 'Blue-Tourism',
+    };
+
+    let matched: string | null = null;
+    for (const [k, v] of Object.entries(specMap)) {
+      if (combined.includes(k) || combined.includes(k.replace(/-/g, ' '))) {
+        matched = v;
+        break;
+      }
+    }
+
+    if (matched) {
+      cleanCourse = matched;
+    } else if (courseSlug) {
+      cleanCourse = courseSlug
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .split('-')
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join('-');
+    } else {
+      cleanCourse = 'Specialization';
+    }
+  }
+
+  let cleanUser = (userName ?? 'Peserta')
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  if (!cleanUser) {
+    cleanUser = 'Peserta';
+  }
+
+  const cleanCode = (code ?? '')
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const codeSuffix = cleanCode ? `-${cleanCode}` : '';
+
+  if (type === 'field_study') {
+    return `Certificate-Completion-Field-Study-${cleanCourse}-${cleanUser}${codeSuffix}.pdf`;
+  }
+  if (type === 'critical_thinking') {
+    return `Certificate-Completion-Critical-Thinking-${cleanCourse}-${cleanUser}${codeSuffix}.pdf`;
+  }
+
+  return `Certificate-Competence-${cleanCourse}-${cleanUser}${codeSuffix}.pdf`;
+}
+

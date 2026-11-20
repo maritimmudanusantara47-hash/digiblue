@@ -179,6 +179,7 @@ export interface Certificate {
   user: User;
   serial_number: string;   // e.g. 'CBEC/ID/IX/20260166'
   serial_url_key: string;  // e.g. 'CBECIDIX20260166HBB'
+  cbetc_reg_no?: string;
   grade: string;
   date_of_issue: string;
   place_of_issue: string;

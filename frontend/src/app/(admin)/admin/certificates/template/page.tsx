@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { showSuccess, showError } from '@/lib/swal';
+import { generateCertificateDownloadFileName } from '@/lib/certificateTemplates';
 import ModalPortal from '@/components/common/ModalPortal';
 
 /* ─── Icons ─────────────────────────────────────────────────────── */
@@ -933,14 +934,23 @@ export default function CertificateTemplateAdminPage() {
       const serialParam = sample.serial ? `&serial=${encodeURIComponent(sample.serial)}` : '';
       const trackParam = sample.trackSlug ? `&track=${sample.trackSlug}` : '&track=foundation';
       let endpoint = `/admin/certificates/0/download?sample=1${nameParam}${regNoParam}${serialParam}${trackParam}`;
-      let filename = 'Contoh-Sertifikat.pdf';
       if (sample.type === 'field_study') {
         endpoint = `/admin/certificates/0/download?type=field_study${trackParam}&sample=1${nameParam}${regNoParam}${serialParam}`;
-        filename = `Contoh-Sertifikat-Field-Study-${sample.trackSlug || 'foundation'}.pdf`;
       } else if (sample.type === 'critical_thinking') {
         endpoint = `/admin/certificates/0/download?type=critical_thinking${trackParam}&sample=1${nameParam}${regNoParam}${serialParam}`;
-        filename = `Contoh-Sertifikat-Critical-Thinking-${sample.trackSlug || 'foundation'}.pdf`;
       }
+      const targetCode = (sample.type === 'field_study' || sample.type === 'critical_thinking')
+        ? (sample.regNo || 'CBETC001062026')
+        : (sample.serial || 'CBEC-ID-VI-20260001');
+      const filename = generateCertificateDownloadFileName(
+        {
+          slug: sample.trackSlug || 'foundation',
+          title: sample.trackSlug ? sample.trackSlug.replace(/-/g, ' ') : 'Foundation',
+        },
+        sample.name || 'Diana Supriati',
+        sample.type,
+        targetCode
+      );
       const res = await api.get(endpoint, { responseType: 'blob' });
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const a = document.createElement('a');

@@ -266,8 +266,7 @@ class AdminCertificateController extends Controller
             'hasCustomBackTemplate' => $hasCustomBackTemplate,
         ])->setPaper('a4', 'landscape');
 
-        $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";
-        $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+        $filename = $this->certService->generateCertificateFileName($cert);
 
         return $pdf->download($filename);
     }
@@ -341,8 +340,7 @@ class AdminCertificateController extends Controller
             'curriculum' => $curriculum,
         ])->setPaper('a4', 'landscape');
 
-        $filename = "Sertifikat_Critical_Thinking_{$cert->user->name}_{$cert->serial_number}.pdf";
-        $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+        $filename = $this->certService->generateCertificateFileName($cert, 'critical_thinking', $regNo);
 
         return $pdf->download($filename);
     }
@@ -415,8 +413,7 @@ class AdminCertificateController extends Controller
             'curriculum' => $curriculum,
         ])->setPaper('a4', 'landscape');
 
-        $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
-        $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+        $filename = $this->certService->generateCertificateFileName($cert, 'field_study', $regNo);
 
         return $pdf->download($filename);
     }

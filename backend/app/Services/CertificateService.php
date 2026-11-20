@@ -514,4 +514,81 @@ class CertificateService
 
         return $curriculum;
     }
+
+    /**
+     * Generate format nama file download PDF yang rapi dan konsisten:
+     * - Competence:          Certificate-Competence-{CourseName}-{UserName}-{SerialNumber}.pdf
+     * - Field Study:         Certificate-Completion-Field-Study-{CourseName}-{UserName}-{RegNo}.pdf
+     * - Critical Thinking:   Certificate-Completion-Critical-Thinking-{CourseName}-{UserName}-{RegNo}.pdf
+     */
+    public function generateCertificateFileName(Certificate $cert, ?string $type = null, ?string $code = null): string
+    {
+        $course = $cert->enrollment?->course;
+        $courseTitle = $course?->title ?? '';
+        $courseSlug = $course?->slug ?? '';
+        $userName = $cert->user?->name ?? 'Peserta';
+
+        $cleanCourse = 'Foundation';
+        $combined = strtolower($courseSlug . ' ' . $courseTitle);
+        if (str_contains($combined, 'foundation')) {
+            $cleanCourse = 'Foundation';
+        } else {
+            $specMap = [
+                'blue-business-development' => 'Blue-Business-Development',
+                'blue-carbon'               => 'Blue-Carbon',
+                'blue-community-development'=> 'Blue-Community-Development',
+                'blue-circular-economy'     => 'Blue-Circular-Economy',
+                'blue-data-intelligence'    => 'Blue-Data-Intelligence',
+                'blue-energy'               => 'Blue-Energy',
+                'blue-farming'              => 'Blue-Farming',
+                'blue-finance'              => 'Blue-Finance',
+                'blue-food'                 => 'Blue-Food',
+                'blue-port'                 => 'Blue-Port',
+                'blue-shipping'             => 'Blue-Shipping',
+                'blue-tourism'              => 'Blue-Tourism',
+            ];
+
+            $matched = null;
+            foreach ($specMap as $k => $v) {
+                if (str_contains($combined, $k) || str_contains($combined, str_replace('-', ' ', $k))) {
+                    $matched = $v;
+                    break;
+                }
+            }
+
+            if ($matched) {
+                $cleanCourse = $matched;
+            } elseif (!empty($courseSlug)) {
+                $cleanCourse = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $courseSlug))), '-');
+            } else {
+                $cleanCourse = 'Specialization';
+            }
+        }
+
+        $cleanUser = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $userName), '-');
+        if (empty($cleanUser)) {
+            $cleanUser = 'Peserta';
+        }
+
+        if (empty($code)) {
+            if ($type === 'field_study' || $type === 'critical_thinking') {
+                $code = $this->getCbetcRegNoForCertificate($cert);
+            } else {
+                $code = $cert->serial_number ?? '';
+            }
+        }
+
+        $cleanCode = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $code), '-');
+        $codeSuffix = !empty($cleanCode) ? "-{$cleanCode}" : '';
+
+        if ($type === 'field_study') {
+            return "Certificate-Completion-Field-Study-{$cleanCourse}-{$cleanUser}{$codeSuffix}.pdf";
+        }
+
+        if ($type === 'critical_thinking') {
+            return "Certificate-Completion-Critical-Thinking-{$cleanCourse}-{$cleanUser}{$codeSuffix}.pdf";
+        }
+
+        return "Certificate-Competence-{$cleanCourse}-{$cleanUser}{$codeSuffix}.pdf";
+    }
 }

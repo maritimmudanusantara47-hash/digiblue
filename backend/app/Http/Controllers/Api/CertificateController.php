@@ -33,7 +33,7 @@ class CertificateController extends Controller
             $this->certService->autoIssueCertificateIfEligible($enrollment);
         }
 
-        $certs = Certificate::with(['enrollment.course.certificationLevel'])
+        $certs = Certificate::with(['user', 'enrollment.course.certificationLevel'])
             ->where('user_id', $user->id)
             ->orderByDesc('date_of_issue')
             ->get();
@@ -138,8 +138,7 @@ class CertificateController extends Controller
                 'curriculum'          => $curriculum,
             ])->setPaper('a4', 'landscape');
 
-            $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
-            $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+            $filename = $this->certService->generateCertificateFileName($cert, 'field_study', $regNo);
 
             if ($request->query('stream') === '1') {
                 return $pdf->stream($filename);
@@ -200,8 +199,7 @@ class CertificateController extends Controller
                 'curriculum'          => $curriculum,
             ])->setPaper('a4', 'landscape');
 
-            $filename = "Sertifikat_Critical_Thinking_{$cert->user->name}_{$cert->serial_number}.pdf";
-            $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+            $filename = $this->certService->generateCertificateFileName($cert, 'critical_thinking', $regNo);
 
             if ($request->query('stream') === '1') {
                 return $pdf->stream($filename);
@@ -261,8 +259,7 @@ class CertificateController extends Controller
             'hasCustomBackTemplate' => $hasCustomBackTemplate,
         ])->setPaper('a4', 'landscape');
 
-        $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";
-        $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+        $filename = $this->certService->generateCertificateFileName($cert);
 
         if ($request->query('stream') === '1') {
             return $pdf->stream($filename);
