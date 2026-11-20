@@ -352,7 +352,7 @@ export default function StudentCoursePage() {
           </div>
         </div>
 
-        {/* Right side: Progress & Certificate */}
+        {/* Right side: Progress */}
         <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
           <div className="hidden sm:flex items-center gap-3">
             <div className="text-right">
@@ -368,17 +368,6 @@ export default function StudentCoursePage() {
               />
             </div>
           </div>
-
-          {progressPct === 100 && data?.certificate && (
-            <button
-              type="button"
-              onClick={() => router.push('/student/certificates')}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
-            >
-              <Icon name="certificate-badge-1" size={14} />
-              <span className="hidden sm:inline">Sertifikat Terbit</span>
-            </button>
-          )}
         </div>
       </header>
 
@@ -412,27 +401,6 @@ export default function StudentCoursePage() {
                 style={{ width: `${progressPct}%` }} />
             </div>
             <p className="text-xs text-slate-400 mt-1">{completedCount}/{totalContents} selesai</p>
-
-            {/* Banner Sertifikat Siap di Sidebar */}
-            {progressPct === 100 && data?.certificate && (
-              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-col gap-2">
-                <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold">
-                  <Icon name="check-circle-1" size={14} className="text-emerald-600" />
-                  <span>Kursus Tuntas 100%!</span>
-                </div>
-                <p className="text-[11px] text-emerald-700 leading-tight">
-                  Selamat! Sertifikat kamu telah diterbitkan secara otomatis.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => router.push('/student/certificates')}
-                  className="w-full py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-sm"
-                >
-                  <Icon name="certificate-badge-1" size={14} />
-                  <span>Lihat Sertifikat</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
