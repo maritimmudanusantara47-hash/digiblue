@@ -113,7 +113,7 @@ const DEFAULT_LAYOUT: LayoutState = {
   recipient_name: { top: 69.5, left: 0, font_size: 32.5, label: 'Nama Peserta' },
   ribbon_text: { top: 99.0, left: 0, height: 14.0, font_size: 22.5, label: 'Teks Ribbon' },
   level_value: { top: 122.8, left: 0, font_size: 14.5, label: 'Level Sertifikasi' },
-  meta_block: { top: 138.0, left: 103.5, font_size: 10.5, label: 'Grade, Tanggal Terbit, Expiry & Tempat' },
+  meta_block: { top: 137.5, left: 98.5, font_size: 8.5, label: 'Grade, Tanggal Terbit, Expiry & Tempat' },
   qr_left: { top: 147.5, left: 67.0, size: 26, label: 'QR Kiri' },
   qr_right: { top: 147.5, left: 196.4, size: 26, label: 'QR Kanan' },
   back_title: { top: 20.0, left: 0, font_size: 15.0, label: 'Judul Halaman Belakang' },
@@ -930,15 +930,16 @@ export default function CertificateTemplateAdminPage() {
       setDownloading(true);
       const nameParam = `&name=${encodeURIComponent(sample.name || 'Diana Supriati')}`;
       const regNoParam = `&reg_no=${encodeURIComponent(sample.regNo || 'CBETC001062026')}`;
-      let endpoint = `/admin/certificates/0/download?sample=1${nameParam}${regNoParam}`;
+      const serialParam = sample.serial ? `&serial=${encodeURIComponent(sample.serial)}` : '';
+      const trackParam = sample.trackSlug ? `&track=${sample.trackSlug}` : '&track=foundation';
+      let endpoint = `/admin/certificates/0/download?sample=1${nameParam}${regNoParam}${serialParam}${trackParam}`;
       let filename = 'Contoh-Sertifikat.pdf';
       if (sample.type === 'field_study') {
-        const trackParam = sample.trackSlug ? `&track=${sample.trackSlug}` : '&track=foundation';
-        endpoint = `/admin/certificates/0/download?type=field_study${trackParam}&sample=1${nameParam}${regNoParam}`;
+        endpoint = `/admin/certificates/0/download?type=field_study${trackParam}&sample=1${nameParam}${regNoParam}${serialParam}`;
         filename = `Contoh-Sertifikat-Field-Study-${sample.trackSlug || 'foundation'}.pdf`;
       } else if (sample.type === 'critical_thinking') {
-        endpoint = `/admin/certificates/0/download?type=critical_thinking&sample=1${nameParam}${regNoParam}`;
-        filename = 'Contoh-Sertifikat-Critical-Thinking.pdf';
+        endpoint = `/admin/certificates/0/download?type=critical_thinking${trackParam}&sample=1${nameParam}${regNoParam}${serialParam}`;
+        filename = `Contoh-Sertifikat-Critical-Thinking-${sample.trackSlug || 'foundation'}.pdf`;
       }
       const res = await api.get(endpoint, { responseType: 'blob' });
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
@@ -1302,17 +1303,17 @@ style={{
                         onClick={() => { setSelectedKey('meta_block'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'meta_block' ? 'ring-2 ring-blue-500 bg-blue-50/50 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                         style={{
-                          top: mmToPx(layout.meta_block?.top ?? 138.0),
-                          left: mmToPx(layout.meta_block?.left ?? 103.5),
-                          width: mmToPx(90),
-                          backgroundColor: '#F8F8F8',
+                          top: mmToPx(layout.meta_block?.top ?? 137.5),
+                          left: mmToPx(layout.meta_block?.left ?? 98.5),
+                          width: mmToPx(100),
+                          backgroundColor: 'transparent',
                           textAlign: 'center',
-                          fontSize: `${(layout.meta_block?.font_size ?? 10.5) * (SCALE / 3.4)}px`,
-                          lineHeight: 1.4,
+                          fontSize: `${(Math.min(layout.meta_block?.font_size ?? 8.5, 8.8)) * (SCALE / 3.4)}px`,
+                          lineHeight: 1.25,
                           color: '#111827',
                           fontFamily: "'Poppins', sans-serif",
                           zIndex: 10,
-                          padding: '2px 0',
+                          padding: 0,
                         }}
                       >
                         <div><strong>Grade:</strong> {sample.grade}</div>

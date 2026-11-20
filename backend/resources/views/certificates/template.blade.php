@@ -10,21 +10,27 @@
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        @page { margin: 0; size: A4 landscape; }
+        @page { margin: 0; size: 297mm 210mm landscape; }
 
-        body {
+        html, body {
             margin: 0;
             padding: 0;
+            width: 297mm;
+            height: 210mm;
             font-family: 'Poppins', 'DejaVu Sans', Arial, Helvetica, sans-serif;
             background: #ffffff;
+            -webkit-print-color-adjust: exact;
         }
 
         .cert-page {
             width: 297mm;
-            height: 209.5mm;
+            height: 210mm;
+            max-height: 210mm;
             position: relative;
             overflow: hidden;
+            page-break-inside: avoid;
             page-break-after: always;
+            box-sizing: border-box;
         }
 
         .cert-page:last-child {
@@ -36,6 +42,7 @@
             top: 0; left: 0;
             width: 297mm;
             height: 210mm;
+            display: block;
             z-index: 1;
         }
 
@@ -95,6 +102,8 @@
             color: #173874;
             letter-spacing: 0.1px;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             z-index: 3;
         }
 
@@ -115,14 +124,14 @@
         /* ── Grade, Date of issue, Place of issue ── */
         .f-meta-block {
             position: absolute;
-            top: 138.0mm;
-            left: 103.5mm;
-            width: 90mm;
+            top: 137.5mm;
+            left: 98.5mm;
+            width: 100.0mm;
             background: transparent;
             text-align: center;
-            font-size: 10.5pt;
+            font-size: 8.5pt;
             font-family: 'Poppins', 'DejaVu Sans', sans-serif;
-            line-height: 1.35;
+            line-height: 1.25;
             color: #1f2937;
             z-index: 3;
         }
@@ -130,7 +139,7 @@
         .f-meta-block .meta-line {
             margin: 0;
             padding: 0;
-            line-height: 1.35;
+            line-height: 1.25;
         }
 
         .f-meta-block strong {
@@ -207,10 +216,12 @@
     @php
         // Dynamic course/level text formatting
         $courseTitle = $course->title ?? '';
+        $courseSlug  = $course->slug ?? '';
         $levelName   = $level->name ?? '';
         $levelCode   = $level->code ?? '';
 
         $isFoundation = str_contains(strtolower($courseTitle), 'foundation')
+            || str_contains(strtolower($courseSlug), 'foundation')
             || str_contains(strtolower($levelName), 'foundation')
             || strtolower($levelCode) === 'fnd'
             || strtolower($levelCode) === 'foundation';
@@ -221,26 +232,38 @@
         } else {
             $specMap = [
                 'blue business development'   => ['title' => 'Blue Business Development',   'acronym' => 'CBEc. (BizDev.)'],
+                'blue-business-development'  => ['title' => 'Blue Business Development',   'acronym' => 'CBEc. (BizDev.)'],
                 'blue carbon'                 => ['title' => 'Blue Carbon',                 'acronym' => 'CBEc. (Carb.)'],
+                'blue-carbon'                 => ['title' => 'Blue Carbon',                 'acronym' => 'CBEc. (Carb.)'],
                 'blue community development'  => ['title' => 'Blue Community Development',  'acronym' => 'CBEc. (CommDev.)'],
+                'blue-community-development' => ['title' => 'Blue Community Development',  'acronym' => 'CBEc. (CommDev.)'],
                 'blue circular economy'       => ['title' => 'Blue Circular Economy',       'acronym' => 'CBEc. (CirEc.)'],
+                'blue-circular-economy'      => ['title' => 'Blue Circular Economy',       'acronym' => 'CBEc. (CirEc.)'],
                 'blue data intelligence'      => ['title' => 'Blue Data Intelligence',      'acronym' => 'CBEc. (DataIntel.)'],
+                'blue-data-intelligence'     => ['title' => 'Blue Data Intelligence',      'acronym' => 'CBEc. (DataIntel.)'],
                 'blue energy'                 => ['title' => 'Blue Energy',                 'acronym' => 'CBEc. (Ener.)'],
+                'blue-energy'                => ['title' => 'Blue Energy',                 'acronym' => 'CBEc. (Ener.)'],
                 'blue farming'                => ['title' => 'Blue Farming',                'acronym' => 'CBEc. (Farm.)'],
+                'blue-farming'               => ['title' => 'Blue Farming',                'acronym' => 'CBEc. (Farm.)'],
                 'blue finance'                => ['title' => 'Blue Finance',                'acronym' => 'CBEc. (Fin.)'],
+                'blue-finance'               => ['title' => 'Blue Finance',                'acronym' => 'CBEc. (Fin.)'],
                 'blue food'                   => ['title' => 'Blue Food',                   'acronym' => 'CBEc. (Food.)'],
+                'blue-food'                  => ['title' => 'Blue Food',                   'acronym' => 'CBEc. (Food.)'],
                 'blue port'                   => ['title' => 'Blue Port',                   'acronym' => 'CBEc. (Port.)'],
+                'blue-port'                  => ['title' => 'Blue Port',                   'acronym' => 'CBEc. (Port.)'],
                 'blue shipping'               => ['title' => 'Blue Shipping',               'acronym' => 'CBEc. (Ship.)'],
+                'blue-shipping'              => ['title' => 'Blue Shipping',               'acronym' => 'CBEc. (Ship.)'],
                 'blue tourism'                => ['title' => 'Blue Tourism',                'acronym' => 'CBEc. (Tour.)'],
+                'blue-tourism'               => ['title' => 'Blue Tourism',                'acronym' => 'CBEc. (Tour.)'],
             ];
 
-            if (preg_match('/^Certified Blue Economist in .+ - CBEc\.\s*\([^)]+\)/iu', $courseTitle)) {
+            if (preg_match('/^Certified Blue Economist in .+/iu', $courseTitle)) {
                 $ribbonText = $courseTitle;
             } else {
                 $matched = null;
-                $lowerTitle = strtolower($courseTitle);
+                $searchStr = strtolower($courseTitle . ' ' . $courseSlug);
                 foreach ($specMap as $key => $info) {
-                    if (str_contains($lowerTitle, $key)) {
+                    if (str_contains($searchStr, $key)) {
                         $matched = $info;
                         break;
                     }
@@ -249,7 +272,7 @@
                 if ($matched) {
                     $ribbonText = "Certified Blue Economist in {$matched['title']} - {$matched['acronym']}";
                 } else {
-                    $cleanName = preg_replace('/^(Certified Blue Economist|CBEc Specialization|CBEc)\s*(in|—|-)?\s*/iu', '', $courseTitle);
+                    $cleanName = preg_replace('/^(International Blue Economist Certification Training Course|Certified Blue Economist|CBEc Specialization|CBEc)\s*(in|—|-)?\s*/iu', '', $courseTitle);
                     $cleanName = trim(str_replace(['—', '-'], '', $cleanName));
                     if (empty($cleanName)) {
                         $cleanName = $levelName ?: 'Specialization';
@@ -278,10 +301,13 @@
         $rTop = $L['ribbon_text']['top'] ?? 99.0;
         $rLeft = $L['ribbon_text']['left'] ?? 0;
         $rFs  = $L['ribbon_text']['font_size'] ?? 22.5;
-        if (mb_strlen($ribbonText) > 65) {
-            $rFs = min($rFs, 17.5);
-        } elseif (mb_strlen($ribbonText) > 52) {
-            $rFs = min($rFs, 19.5);
+        $rLen = mb_strlen($ribbonText);
+        if ($rLen > 75) {
+            $rFs = min($rFs, 15.0);
+        } elseif ($rLen > 60) {
+            $rFs = min($rFs, 17.0);
+        } elseif ($rLen > 48) {
+            $rFs = min($rFs, 19.0);
         }
         $rH   = $L['ribbon_text']['height'] ?? 14.0;
 
@@ -289,9 +315,9 @@
         $lLeft = $L['level_value']['left'] ?? 0;
         $lFs  = $L['level_value']['font_size'] ?? 14.5;
 
-        $mTop = $L['meta_block']['top'] ?? 138.0;
-        $mLeft = $L['meta_block']['left'] ?? 103.5;
-        $mFs  = $L['meta_block']['font_size'] ?? 10.5;
+        $mTop = $L['meta_block']['top'] ?? 137.5;
+        $mLeft = $L['meta_block']['left'] ?? 98.5;
+        $mFs  = min($L['meta_block']['font_size'] ?? 8.5, 8.8);
 
         $qlTop  = $L['qr_left']['top'] ?? 147.5;
         $qlLeft = $L['qr_left']['left'] ?? 67.0;
@@ -355,7 +381,7 @@
             </div>
 
             {{-- Grade, Date of Issue, Date of Expiry, Place of Issue block --}}
-            <div class="f-meta-block" style="top: {{ $mTop }}mm; left: {{ $mLeft }}mm; font-size: {{ $mFs }}pt;">
+            <div class="f-meta-block" style="top: {{ $mTop }}mm; left: {{ $mLeft }}mm; width: 100mm; font-size: {{ $mFs }}pt;">
                 <div class="meta-line"><strong>Grade:</strong> {{ $certificate->grade ?? 'Excellent' }}</div>
                 <div class="meta-line"><strong>Date of Issue:</strong> {{ $issueCarbon->format('F j, Y') }}</div>
                 <div class="meta-line"><strong>Date of Expiry:</strong> {{ $dateOfExpiryFormatted }}</div>

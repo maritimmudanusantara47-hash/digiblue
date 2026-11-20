@@ -306,8 +306,9 @@ class AdminCertificateController extends Controller
             $courseSlug = $cert->enrollment->course->slug ?? '';
         }
 
-        if ($isFoundation && file_exists(resource_path('images/template_fs_back_blank.png'))) {
-            $backTemplatePath = resource_path('images/template_fs_back_blank.png');
+        $blankBackPath = resource_path('images/template_fs_back_blank.png');
+        if (file_exists($blankBackPath)) {
+            $backTemplatePath = $blankBackPath;
         } else {
             $backTemplatePath = file_exists(resource_path('images/template_critical_thinking_back.png'))
                 ? resource_path('images/template_critical_thinking_back.png')
@@ -326,12 +327,7 @@ class AdminCertificateController extends Controller
             ? 'certificates.template_critical_thinking'
             : 'certificates.template_field_study';
 
-        $currPath = storage_path('app/cert_curriculum.json');
-        $allCurriculum = file_exists($currPath)
-            ? json_decode(file_get_contents($currPath), true)
-            : $this->defaultCurriculum();
-        $currKey = $isFoundation ? 'foundation' : ($courseSlug ?: 'foundation');
-        $curriculum = $allCurriculum[$currKey] ?? ($allCurriculum['foundation'] ?? null);
+        $curriculum = $this->certService->getCurriculumForCourse($cert->enrollment->course, 'critical_thinking');
 
         $pdf = Pdf::loadView($viewName, [
             'certificate' => $cert,
@@ -405,12 +401,7 @@ class AdminCertificateController extends Controller
             ? 'certificates.template_field_study'
             : 'certificates.template_critical_thinking';
 
-        $currPath = storage_path('app/cert_curriculum.json');
-        $allCurriculum = file_exists($currPath)
-            ? json_decode(file_get_contents($currPath), true)
-            : $this->defaultCurriculum();
-        $currKey = $isFoundation ? 'foundation' : ($courseSlug ?: 'foundation');
-        $curriculum = $allCurriculum[$currKey] ?? ($allCurriculum['foundation'] ?? null);
+        $curriculum = $this->certService->getCurriculumForCourse($cert->enrollment->course, 'field_study');
 
         $pdf = Pdf::loadView($viewName, [
             'certificate' => $cert,
@@ -434,36 +425,76 @@ class AdminCertificateController extends Controller
     private function sampleCertificate(Request $request): Certificate
     {
         $track = $request->query('track', 'foundation');
+        $type = $request->query('type');
         $isFnd = ($track === 'foundation');
-        $trackTitle = $isFnd
-            ? 'International Blue Economist Certification Training Course'
-            : 'International Blue Economist Certification Training Course - ' . ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $track)) . ' Specialization';
+        
+        $specMap = [
+            'blue-business-development' => ['title' => 'Blue Business Development', 'acronym' => 'CBEc. (BizDev.)', 'code' => 'BZD'],
+            'blue-carbon'               => ['title' => 'Blue Carbon',               'acronym' => 'CBEc. (Carb.)',    'code' => 'BCB'],
+            'blue-community-development'=> ['title' => 'Blue Community Development','acronym' => 'CBEc. (CommDev.)', 'code' => 'BCD'],
+            'blue-circular-economy'     => ['title' => 'Blue Circular Economy',     'acronym' => 'CBEc. (CirEc.)',   'code' => 'BCE'],
+            'blue-data-intelligence'    => ['title' => 'Blue Data Intelligence',    'acronym' => 'CBEc. (DataIntel.)','code' => 'BDI'],
+            'blue-energy'               => ['title' => 'Blue Energy',               'acronym' => 'CBEc. (Ener.)',    'code' => 'BEC'],
+            'blue-farming'              => ['title' => 'Blue Farming',              'acronym' => 'CBEc. (Farm.)',    'code' => 'BFM'],
+            'blue-finance'              => ['title' => 'Blue Finance',              'acronym' => 'CBEc. (Fin.)',     'code' => 'BFN'],
+            'blue-food'                 => ['title' => 'Blue Food',                 'acronym' => 'CBEc. (Food.)',    'code' => 'BFD'],
+            'blue-port'                 => ['title' => 'Blue Port',                 'acronym' => 'CBEc. (Port.)',    'code' => 'BPT'],
+            'blue-shipping'             => ['title' => 'Blue Shipping',             'acronym' => 'CBEc. (Ship.)',    'code' => 'BSP'],
+            'blue-tourism'              => ['title' => 'Blue Tourism',              'acronym' => 'CBEc. (Tour.)',    'code' => 'BTR'],
+        ];
+
+        if ($type === 'critical_thinking' || $type === 'field_study') {
+            $trackTitle = $isFnd
+                ? 'International Blue Economist Certification Training Course'
+                : 'International Blue Economist Certification Training Course - ' . ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $track)) . ' Specialization';
+            $levelCode = $isFnd ? 'FND' : 'SPEC';
+            $levelName = $isFnd ? 'Foundation Level' : 'Specialization Level';
+            $serialNumber = $request->query('reg_no', $request->query('serial', 'CBETC001062026'));
+        } else {
+            // Certificate of Competence
+            if ($isFnd) {
+                $trackTitle = 'Certified Blue Economist (CBEc) — Foundation Level';
+                $levelCode = 'FND';
+                $levelName = 'Foundation Level';
+                $serialNumber = $request->query('serial', 'CBEC/ID/VI/20260001');
+            } else {
+                $spec = $specMap[$track] ?? [
+                    'title' => ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $track)),
+                    'acronym' => 'CBEc. (Spec.)',
+                    'code' => 'SPEC',
+                ];
+                $trackTitle = "Certified Blue Economist in {$spec['title']} - {$spec['acronym']}";
+                $levelCode = 'SPEC';
+                $levelName = 'Specialization Level';
+                $serialNumber = $request->query('serial', "CBEC/{$spec['code']}/ID/VI/20260001");
+            }
+        }
 
         $course = new Course([
             'title' => $trackTitle,
             'slug' => $track,
         ]);
         $level = new CertificationLevel([
-            'name' => 'Certified Blue Economist',
-            'code' => 'CBEc',
+            'name' => $levelName,
+            'code' => $levelCode,
         ]);
         $course->setRelation('certificationLevel', $level);
 
         $enrollment = new Enrollment();
         $enrollment->setRelation('course', $course);
 
-        $sampleName = $request->query('name', 'Diana Supriati');
+        $sampleName = $request->query('name', 'Nabila Azzahro Widodo');
         $user = new User([
             'name' => $sampleName,
             'email' => 'sample@digibluecamp.id',
         ]);
 
-        $sampleRegNo = $request->query('reg_no', 'CBETC001062026');
         $cert = new Certificate([
-            'serial_number' => $sampleRegNo,
+            'serial_number' => $serialNumber,
             'serial_url_key' => 'sample-preview-cert',
             'date_of_issue' => now()->toDateString(),
             'place_of_issue' => 'Jakarta, Indonesia',
+            'grade' => 'Excellent',
         ]);
         $cert->id = 1;
         $cert->setRelation('user', $user);
@@ -484,7 +515,7 @@ class AdminCertificateController extends Controller
             'recipient_name' => ['top' => 69.5, 'left' => 0, 'font_size' => 32.5, 'label' => 'Nama Peserta'],
             'ribbon_text' => ['top' => 100.5, 'left' => 0, 'height' => 14.0, 'font_size' => 22.5, 'color' => '#173874', 'label' => 'Teks Spesialisasi (Ribbon Emas)'],
             'level_value' => ['top' => 124.5, 'left' => 0, 'font_size' => 14.5, 'label' => 'Level Sertifikasi'],
-            'meta_block' => ['top' => 138.2, 'left' => 103.5, 'font_size' => 11.5, 'label' => 'Info Grade, Tanggal Terbit, Expiry, & Tempat'],
+            'meta_block' => ['top' => 137.5, 'left' => 98.5, 'width' => 100, 'font_size' => 8.5, 'label' => 'Info Grade, Tanggal Terbit, Expiry, & Tempat'],
             'qr_left' => ['top' => 147.5, 'left' => 67.0, 'size' => 26, 'label' => 'Barcode / QR Kiri'],
             'qr_right' => ['top' => 147.5, 'left' => 196.4, 'size' => 26, 'label' => 'Barcode / QR Kanan'],
             'back_title' => ['top' => 20.0, 'left' => 0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],

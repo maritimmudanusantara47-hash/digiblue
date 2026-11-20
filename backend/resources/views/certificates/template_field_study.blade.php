@@ -13,23 +13,29 @@
 
         @page {
             margin: 0;
-            size: A4 landscape;
+            size: 297mm 210mm landscape;
         }
 
-        body {
+        html, body {
             margin: 0;
             padding: 0;
+            width: 297mm;
+            height: 210mm;
             font-family: Arial, Helvetica, sans-serif;
             background: #F8F8F8;
+            -webkit-print-color-adjust: exact;
         }
 
         .cert-page {
             width: 297mm;
-            height: 209.5mm;
+            height: 210mm;
+            max-height: 210mm;
             position: relative;
             overflow: hidden;
             background: #F8F8F8;
+            page-break-inside: avoid;
             page-break-after: always;
+            box-sizing: border-box;
         }
 
         .cert-page:last-child {
@@ -42,6 +48,7 @@
             left: 0;
             width: 297mm;
             height: 210mm;
+            display: block;
             z-index: 1;
         }
 
@@ -122,6 +129,8 @@
             font-family: Arial, Helvetica, sans-serif;
             color: #000000;
             border: 0.35mm solid #000000;
+            background-color: #FFFFFF;
+            z-index: 3;
         }
 
         .fs-table th {
@@ -140,7 +149,7 @@
             border: 0.35mm solid #000000;
             vertical-align: middle;
             padding: 1.5mm 2.5mm;
-            background-color: transparent;
+            background-color: #FFFFFF;
             font-weight: normal;
         }
 

@@ -427,4 +427,91 @@ class CertificateService
 
         return $certificate;
     }
+
+    /**
+     * Default curriculum data for certificates of completion (Field Study / Critical Thinking)
+     */
+    public function defaultCurriculum(): array
+    {
+        return [
+            'foundation' => [
+                'title' => 'CURRICULUM STRUCTURE',
+                'modules' => [
+                    [
+                        'no' => 1,
+                        'title' => 'Integrated Blue Economy and Ocean Governance',
+                        'topics' => [
+                            'Integrated frameworks and global principles of blue economy governance',
+                            'Cross-sector coordination among fisheries, energy, and maritime industries',
+                            'Inclusive and transparent governance models for sustainable ocean management',
+                            'Best practices in policy implementation and stakeholder collaboration',
+                            'Indonesia\'s role in global ocean governance initiatives',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 2,
+                        'title' => 'Blue Industry and ESG Alignment',
+                        'topics' => [
+                            'ESG (Environmental, Social, and Governance) principles in marine-based sectors',
+                            'Sustainability standards and responsible business frameworks in blue industries',
+                            'ESG-driven innovations across fisheries, aquaculture, shipping, and tourism',
+                            'Risk management and sustainability reporting mechanisms',
+                            'Investment trends and opportunities in ESG-aligned blue enterprises',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 3,
+                        'title' => 'Blue Ecosystem and Resources Valuation',
+                        'topics' => [
+                            'Assessment of key ecosystem services in marine and coastal environments',
+                            'Valuation methods to quantify the economic and ecological benefits of blue ecosystems',
+                            'Natural capital accounting into sustainable ocean policies and strategies',
+                            'Real-world examples of ecosystem-based management and valuation',
+                            'Valuation outcomes to inform blue economy investment and conservation planning',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 4,
+                        'title' => 'Blue Economy Field Study',
+                        'topics' => [
+                            'Practical insights into sustainable marine and coastal resource management through direct field observation, case studies, and applied learning activities',
+                            'Systems thinking for sustainable marine and coastal development',
+                            'Problem-solving for real-world blue economy challenges',
+                        ],
+                        'hours' => '15',
+                    ],
+                ],
+                'total_hours' => '30',
+                'total_credits' => '1.5 ECTS',
+            ],
+        ];
+    }
+
+    /**
+     * Dapatkan data kurikulum untuk kursus tertentu (dengan penyesuaian Field Study / Critical Thinking)
+     */
+    public function getCurriculumForCourse(?\App\Models\Course $course, string $type = 'field_study'): array
+    {
+        $currPath = storage_path('app/cert_curriculum.json');
+        $allCurriculum = file_exists($currPath)
+            ? json_decode(file_get_contents($currPath), true)
+            : $this->defaultCurriculum();
+
+        $courseSlug = $course->slug ?? 'foundation';
+        $courseTitle = strtolower($course->title ?? '');
+        $isFoundation = str_contains($courseSlug, 'foundation') || str_contains($courseTitle, 'foundation');
+
+        $currKey = $isFoundation ? 'foundation' : $courseSlug;
+        $curriculum = $allCurriculum[$currKey] ?? ($allCurriculum['foundation'] ?? $this->defaultCurriculum()['foundation']);
+
+        // Jika tipe Critical Thinking, sesuaikan judul modul ke-4
+        if ($type === 'critical_thinking' && isset($curriculum['modules'][3])) {
+            $curriculum['modules'][3]['title'] = 'Blue Economy Critical Thinking';
+        }
+
+        return $curriculum;
+    }
 }
