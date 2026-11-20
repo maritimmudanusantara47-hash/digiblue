@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import VerifyCertificateClient, { VerificationResult } from './VerifyCertificateClient';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+
 export async function generateMetadata({
   params,
 }: {
@@ -10,7 +12,7 @@ export async function generateMetadata({
   const { serialKey } = await params;
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/verify/${encodeURIComponent(serialKey)}`,
+      `${API_BASE}/verify/${encodeURIComponent(serialKey)}`,
       { cache: 'no-store' }
     );
     if (res.ok) {
@@ -47,7 +49,7 @@ export default async function VerifyPage({
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/verify/${encodeURIComponent(serialKey)}`,
+      `${API_BASE}/verify/${encodeURIComponent(serialKey)}`,
       { cache: 'no-store' }
     );
     if (res.ok) {

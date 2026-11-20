@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             StudentUserSeeder::class,
             NotificationSeeder::class,
+            CertificateSeeder::class,
         ]);
     }
 }

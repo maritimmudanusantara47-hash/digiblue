@@ -176,6 +176,8 @@ Route::prefix('v1')->group(function () {
             // Template Layout Designer
             Route::get('certificates/template/layout',   [AdminCertificateController::class, 'getLayout']);    // Ambil konfigurasi posisi field
             Route::put('certificates/template/layout',   [AdminCertificateController::class, 'saveLayout']);   // Simpan konfigurasi posisi field
+            Route::get('certificates/template/curriculum', [AdminCertificateController::class, 'getCurriculum']); // Ambil data kurikulum dinamis
+            Route::put('certificates/template/curriculum', [AdminCertificateController::class, 'saveCurriculum']); // Simpan data kurikulum dinamis
             Route::get('certificates/template/image',    [AdminCertificateController::class, 'getTemplateImage']); // Template image sebagai base64
         });
     });
