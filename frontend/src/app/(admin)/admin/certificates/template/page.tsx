@@ -36,6 +36,7 @@ interface FieldConfig {
   font_size?: number;
   size?: number;
   label: string;
+  prefix?: string;
 }
 type LayoutState = Record<string, FieldConfig>;
 
@@ -50,12 +51,13 @@ const DEFAULT_LAYOUT: LayoutState = {
   back_title: { top: 20.0, left: 0, font_size: 15.0, label: 'Judul Halaman Belakang' },
 
   // Field Study Layout
-  fs_recipient_name: { top: 70.0, left: 0, font_size: 33.0, label: 'Nama Peserta (Depan)' },
+fs_recipient_name: { top: 70.0, left: 0, font_size: 33.0, label: 'Nama Peserta (Depan)' },
   fs_course_title: { top: 108.5, left: 0, font_size: 19.0, label: 'Judul Pelatihan (Depan)' },
   fs_date_participation: { top: 134.5, left: 0, font_size: 14.0, label: 'Tanggal Partisipasi (Depan)' },
   fs_date_issue: { top: 141.5, left: 0, font_size: 14.0, label: 'Tempat & Tanggal Terbit (Depan)' },
-  fs_back_name: { top: 25.5, left: 16.5, font_size: 11.5, label: 'Nama Peserta (Belakang)' },
-  fs_back_reg_no: { top: 30.8, left: 16.5, font_size: 11.5, label: 'Nomor Registrasi (Belakang)' },
+  fs_back_title: { top: 14.5, left: 0, font_size: 16.0, label: 'Judul Kurikulum (Belakang)' },
+  fs_back_name: { top: 25.5, left: 19.0, font_size: 11.0, label: 'Nama Peserta (Belakang)', prefix: 'Name : ' },
+  fs_back_reg_no: { top: 30.8, left: 19.0, font_size: 11.0, label: 'Nomor Registrasi (Belakang)', prefix: 'Registration Number : ' }
 };
 
 const CENTER_FIELDS = [
@@ -554,6 +556,7 @@ const FIELD_LIST_FS_FRONT = [
 ];
 
 const FIELD_LIST_FS_BACK = [
+  { key: 'fs_back_title', label: 'Judul Kurikulum (Belakang)' },
   { key: 'fs_back_name', label: 'Nama Peserta (Belakang)' },
   { key: 'fs_back_reg_no', label: 'Nomor Registrasi (Belakang)' },
 ];
@@ -574,12 +577,16 @@ const FRONT_FIELDS = [
 
 const BACK_FIELDS = [
   'back_title',
+  'fs_back_title',
   'fs_back_name',
   'fs_back_reg_no',
 ];
 
 export default function CertificateTemplateAdminPage() {
   const [layout, setLayout] = useState<LayoutState>(DEFAULT_LAYOUT);
+  const [curricula, setCurricula] = useState<Record<string, CurriculumData>>({
+    foundation: DEFAULT_FOUNDATION_CURRICULUM,
+  });
   const [templateImg, setTemplateImg] = useState<string | null>(null);
   const [templateImgSpec, setTemplateImgSpec] = useState<string | null>(null);
   const [templateImgFound, setTemplateImgFound] = useState<string | null>(null);
@@ -599,7 +606,7 @@ export default function CertificateTemplateAdminPage() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sample, setSample] = useState<PresetItem>(PRESETS.spec_tourism || PRESETS.nabila);
-  const [openSection, setOpenSection] = useState<'fields' | 'preview' | null>('fields');
+  const [openSection, setOpenSection] = useState<'fields' | 'preview' | 'curriculum' | null>('fields');
 
   // Multi-device responsive states & auto-fit zoom
   const mainRef = useRef<HTMLDivElement>(null);
@@ -711,6 +718,17 @@ export default function CertificateTemplateAdminPage() {
         setLayout(prev => ({ ...prev, ...res.data.data }));
     }).catch(() => { });
 
+    api.get('/admin/certificates/template/curriculum').then(res => {
+      if (res.data?.data) {
+        const data = res.data.data;
+        if (data.foundation) {
+          setCurricula(data);
+        } else if (data.modules) {
+          setCurricula({ foundation: data });
+        }
+      }
+    }).catch(() => { });
+
     api.get('/admin/certificates/template/image').then(res => {
       const { base64, mime_type, foundation_base64, back_base64, back_mime_type, field_study_front_base64, field_study_back_base64, critical_thinking_front_base64, critical_thinking_back_base64, specialization_backs, field_study_backs } = res.data.data;
       if (base64) {
@@ -775,11 +793,14 @@ export default function CertificateTemplateAdminPage() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await api.put('/admin/certificates/template/layout', { fields: layout });
+      await Promise.all([
+        api.put('/admin/certificates/template/layout', { fields: layout }),
+        api.put('/admin/certificates/template/curriculum', { curriculum: curricula }),
+      ]);
       setSavedOk(true);
       setTimeout(() => setSavedOk(false), 2500);
-      showSuccess('Tersimpan', 'Layout sertifikat berhasil disimpan.');
-    } catch { showError('Gagal!', 'Gagal menyimpan layout sertifikat.'); }
+      showSuccess('Tersimpan', 'Layout dan kurikulum sertifikat berhasil disimpan.');
+    } catch { showError('Gagal!', 'Gagal menyimpan konfigurasi sertifikat.'); }
     finally { setSaving(false); }
   };
 
@@ -839,13 +860,23 @@ export default function CertificateTemplateAdminPage() {
   const handleDownload = async () => {
     try {
       setDownloading(true);
-      const isCt = sample.type === 'critical_thinking' || sample.type === 'field_study';
-      const endpoint = isCt ? '/admin/certificates/1/download?type=critical_thinking' : '/admin/certificates/1/download';
+      const nameParam = `&name=${encodeURIComponent(sample.name || 'Diana Supriati')}`;
+      const regNoParam = `&reg_no=${encodeURIComponent(sample.regNo || 'CBETC001062026')}`;
+      let endpoint = `/admin/certificates/0/download?sample=1${nameParam}${regNoParam}`;
+      let filename = 'Contoh-Sertifikat.pdf';
+      if (sample.type === 'field_study') {
+        const trackParam = sample.trackSlug ? `&track=${sample.trackSlug}` : '&track=foundation';
+        endpoint = `/admin/certificates/0/download?type=field_study${trackParam}&sample=1${nameParam}${regNoParam}`;
+        filename = `Contoh-Sertifikat-Field-Study-${sample.trackSlug || 'foundation'}.pdf`;
+      } else if (sample.type === 'critical_thinking') {
+        endpoint = `/admin/certificates/0/download?type=critical_thinking&sample=1${nameParam}${regNoParam}`;
+        filename = 'Contoh-Sertifikat-Critical-Thinking.pdf';
+      }
       const res = await api.get(endpoint, { responseType: 'blob' });
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = isCt ? 'Contoh-Sertifikat-Critical-Thinking.pdf' : 'Contoh-Sertifikat.pdf';
+      a.download = filename;
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     } catch { showError('Gagal!', 'Gagal mengunduh PDF contoh.'); }
@@ -853,6 +884,16 @@ export default function CertificateTemplateAdminPage() {
   };
 
   const sel = layout[selectedKey];
+const activeTrackKey = (sample.type === 'field_study' && sample.trackSlug) ? sample.trackSlug : 'foundation';
+  const curData = curricula[activeTrackKey] || curricula.foundation || DEFAULT_FOUNDATION_CURRICULUM;
+  const validityStart = new Date(sample.date);
+  const validityEnd = new Date(validityStart);
+  validityEnd.setFullYear(validityEnd.getFullYear() + 3);
+  const formatValidityDate = (date: Date, locale: string) => {
+    return date.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+  const validityEndId = formatValidityDate(validityEnd, 'id-ID');
+  const validityEndEn = formatValidityDate(validityEnd, 'en-GB');
 
   return (
     <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden select-none">
@@ -1108,7 +1149,18 @@ export default function CertificateTemplateAdminPage() {
                       <div
                         onClick={() => { setSelectedKey('fs_course_title'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_course_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.fs_course_title?.top ?? 108.5), left: mmToPx(15 + (layout.fs_course_title?.left ?? 0)), right: mmToPx(15 - (layout.fs_course_title?.left ?? 0)), textAlign: 'center', fontSize: `${(layout.fs_course_title?.font_size ?? 19.0) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#133e7c', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+style={{
+                          top: mmToPx(layout.fs_course_title?.top ?? 108.5),
+                          left: mmToPx(14 + (layout.fs_course_title?.left ?? 0)),
+                          right: mmToPx(14 - (layout.fs_course_title?.left ?? 0)),
+                          textAlign: 'center',
+                          fontSize: `${((sample.courseTitle?.length ?? 0) > 90 ? 14.5 : ((sample.courseTitle?.length ?? 0) > 75 ? 15.5 : (layout.fs_course_title?.font_size ?? 19.0))) * (SCALE / 3.4)}px`,
+                          fontWeight: 700,
+                          color: '#133e7c',
+                          fontFamily: "'Arial MT Pro', Arial, sans-serif",
+                          whiteSpace: 'nowrap',
+                          zIndex: 10,
+                        }}
                       >
                         {sample.courseTitle || 'INTERNATIONAL BLUE ECONOMIST CERTIFICATION TRAINING COURSE'}
                       </div>
@@ -1231,58 +1283,134 @@ export default function CertificateTemplateAdminPage() {
                   {(sample.type === 'critical_thinking' || sample.type === 'field_study') ? (
                     <>
                       {(() => {
-                        const customFsBack = (sample.type === 'field_study' && sample.trackSlug && fsBacks[sample.trackSlug])
-                          ? `data:image/png;base64,${fsBacks[sample.trackSlug]}`
-                          : null;
-                        const activeBack = sample.type === 'field_study'
-                          ? (customFsBack || templateImgFsBack || templateImgCtBack)
-                          : (templateImgCtBack || templateImgFsBack);
-                        return activeBack
-                          ? <img src={activeBack} alt={sample.type === 'field_study' ? 'Template Field Study Belakang' : 'Template Critical Thinking Belakang'} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                          : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>;
-                      })()}
-
-                      {/* Standardized Field Study / Critical Thinking Back Info */}
-                      {(() => {
-                        const computedNameTop = layout.fs_back_name?.top ?? 25.5;
-                        const computedNameLeft = layout.fs_back_name?.left ?? 16.5;
-                        const computedRegTop = layout.fs_back_reg_no?.top ?? 30.8;
-                        const computedRegLeft = layout.fs_back_reg_no?.left ?? 16.5;
+                        const blankFsBack = fsBacks['blank'] ? `data:image/png;base64,${fsBacks['blank']}` : null;
+                        const activeBack = blankFsBack || templateImgFsBack || templateImgCtBack;
 
                         return (
                           <>
-                            {/* Clean mask covering Canva's uneven label text */}
+                            {activeBack
+                              ? <img src={activeBack} alt={sample.type === 'field_study' ? 'Template Field Study Belakang' : 'Template Critical Thinking Belakang'} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                              : <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Memuat template belakang...</div>}
+
+                            {/* Curriculum Structure Title */}
                             <div
+                              onClick={() => { setSelectedKey('fs_back_title'); setEditMode(true); setMobilePanelOpen(true); }}
+                              className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_title' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
                               style={{
-                                position: 'absolute',
-                                top: mmToPx(23.5),
-                                left: mmToPx(14.0),
-                                width: mmToPx(240.0),
-                                height: mmToPx(14.5),
-                                backgroundColor: '#F8F8F8',
-                                pointerEvents: 'none',
-                                zIndex: 5,
+                                top: mmToPx(layout.fs_back_title?.top ?? 14.5),
+                                left: 0,
+                                right: 0,
+                                textAlign: 'center',
+                                fontSize: `${(layout.fs_back_title?.font_size ?? 16.0) * (SCALE / 3.4)}px`,
+                                color: '#000000',
+                                fontWeight: 700,
+                                fontFamily: "Arial, sans-serif",
+                                letterSpacing: '0.5px',
+                                zIndex: 10,
                               }}
-                            />
+                            >
+                              {curData.title || 'CURRICULUM STRUCTURE'}
+                            </div>
 
                             {/* Back Name */}
                             <div
                               onClick={() => { setSelectedKey('fs_back_name'); setEditMode(true); setMobilePanelOpen(true); }}
                               className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_name' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                              style={{ top: mmToPx(computedNameTop), left: mmToPx(computedNameLeft), fontSize: `${(layout.fs_back_name?.font_size ?? 11.5) * (SCALE / 3.4)}px`, color: '#111827', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                              style={{
+                                top: mmToPx(layout.fs_back_name?.top ?? 25.5),
+                                left: mmToPx(layout.fs_back_name?.left ?? 19.0),
+                                fontSize: `${(layout.fs_back_name?.font_size ?? 11.0) * (SCALE / 3.4)}px`,
+                                color: '#111827',
+                                fontFamily: "Arial, sans-serif",
+                                zIndex: 10,
+                              }}
                             >
-                              <span style={{ fontWeight: 400 }}>Name : </span>
-                              <strong style={{ fontWeight: 700 }}>{sample.name}</strong>
+                              <span style={{ fontWeight: 400 }}>{layout.fs_back_name?.prefix ?? 'Name : '}</span>
+                              <span style={{ fontWeight: 400 }}>{sample.name}</span>
                             </div>
 
                             {/* Back Registration Number */}
                             <div
                               onClick={() => { setSelectedKey('fs_back_reg_no'); setEditMode(true); setMobilePanelOpen(true); }}
                               className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'fs_back_reg_no' ? 'ring-2 ring-blue-500 bg-blue-50/20 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                              style={{ top: mmToPx(computedRegTop), left: mmToPx(computedRegLeft), fontSize: `${(layout.fs_back_reg_no?.font_size ?? 11.5) * (SCALE / 3.4)}px`, color: '#111827', fontFamily: "Arial, sans-serif", zIndex: 10 }}
+                              style={{
+                                top: mmToPx(layout.fs_back_reg_no?.top ?? 30.8),
+                                left: mmToPx(layout.fs_back_reg_no?.left ?? 19.0),
+                                fontSize: `${(layout.fs_back_reg_no?.font_size ?? 11.0) * (SCALE / 3.4)}px`,
+                                color: '#111827',
+                                fontFamily: "Arial, sans-serif",
+                                zIndex: 10,
+                              }}
                             >
-                              <span style={{ fontWeight: 400 }}>Registration Number : </span>
-                              <strong style={{ fontWeight: 700 }}>{sample.regNo || 'CBETC001062026'}</strong>
+                              <span style={{ fontWeight: 400 }}>{layout.fs_back_reg_no?.prefix ?? 'Registration Number : '}</span>
+                              <span style={{ fontWeight: 400 }}>{sample.regNo || 'CBETC001062026'}</span>
+                            </div>
+
+                            {/* Back Curriculum Table - Locked Position (Canva Parity Safe Height) */}
+                            <div
+                              onClick={() => { setOpenSection('curriculum'); setMobilePanelOpen(true); }}
+                              className={`absolute cursor-pointer transition-all ${openSection === 'curriculum' ? 'ring-2 ring-emerald-500 bg-emerald-50/5 rounded' : 'hover:ring-1 hover:ring-blue-300'}`}
+                              style={{
+                                top: mmToPx(38.0),
+                                left: mmToPx(19.0),
+                                width: mmToPx(259.0),
+                                fontFamily: "Arial, sans-serif",
+                                zIndex: 10,
+                              }}
+                              title="Klik untuk mengedit isi kurikulum (Posisi tabel dikunci)"
+                            >
+                              <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #000000', color: '#000000', tableLayout: 'fixed' }}>
+                                <colgroup>
+                                  <col style={{ width: '3.5%' }} />
+                                  <col style={{ width: '21.8%' }} />
+                                  <col style={{ width: '63.8%' }} />
+                                  <col style={{ width: '10.9%' }} />
+                                </colgroup>
+                                <thead>
+                                  <tr style={{ height: `${mmToPx(9.5)}px` }}>
+                                    <th style={{ backgroundColor: '#1B75BC', color: '#FFFFFF', fontWeight: 400, border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', padding: `0 ${mmToPx(1.5)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>No.</th>
+                                    <th style={{ backgroundColor: '#1B75BC', color: '#FFFFFF', fontWeight: 400, border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', padding: `0 ${mmToPx(1.5)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>Module</th>
+                                    <th style={{ backgroundColor: '#1B75BC', color: '#FFFFFF', fontWeight: 400, border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', padding: `0 ${mmToPx(1.5)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>Topic</th>
+                                    <th style={{ backgroundColor: '#1B75BC', color: '#FFFFFF', fontWeight: 400, border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', padding: `0 ${mmToPx(1.5)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>Hours</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(() => {
+                                    const modCount = curData.modules.length;
+                                    const summaryH = modCount === 4 ? 12.5 : 13.5;
+                                    return (
+                                      <>
+                                        {curData.modules.map((m, idx) => {
+                                          const isCompact = modCount === 4 && idx === 3;
+                                          const rowHMm = modCount === 4 ? (isCompact ? 21.0 : 25.5) : 31.0;
+                                          return (
+                                            <tr key={idx} style={{ height: `${mmToPx(rowHMm)}px` }}>
+                                              <td style={{ border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', height: `${mmToPx(rowHMm)}px`, padding: 0, fontSize: `${9.5 * (SCALE / 3.4)}px`, fontWeight: 400 }}>{m.no || idx + 1}</td>
+                                              <td style={{ border: '1px solid #000000', fontWeight: 400, verticalAlign: 'middle', height: `${mmToPx(rowHMm)}px`, padding: `${mmToPx(1.5)}px ${mmToPx(2.5)}px`, lineHeight: 1.32, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>{m.title}</td>
+                                              <td style={{ border: '1px solid #000000', verticalAlign: 'middle', height: `${mmToPx(rowHMm)}px`, padding: `${mmToPx(1.5)}px ${mmToPx(2.5)}px`, fontSize: `${9.2 * (SCALE / 3.4)}px`, fontWeight: 400 }}>
+                                                <ul style={{ margin: 0, paddingLeft: `${mmToPx(3.5)}px`, listStyleType: 'disc', lineHeight: 1.38 }}>
+                                                  {m.topics.map((top, tIdx) => (
+                                                    <li key={tIdx} style={{ marginBottom: tIdx === m.topics.length - 1 ? 0 : `${mmToPx(0.45)}px` }}>{top}</li>
+                                                  ))}
+                                                </ul>
+                                              </td>
+                                              <td style={{ border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', fontWeight: 400, height: `${mmToPx(rowHMm)}px`, padding: 0, fontSize: `${10.0 * (SCALE / 3.4)}px` }}>{m.hours}</td>
+                                            </tr>
+                                          );
+                                        })}
+                                        <tr style={{ height: `${mmToPx(summaryH)}px` }}>
+                                          <td colSpan={3} style={{ border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', fontWeight: 700, height: `${mmToPx(summaryH)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>Total Hours</td>
+                                          <td style={{ border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', fontWeight: 700, height: `${mmToPx(summaryH)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>{curData.total_hours}</td>
+                                        </tr>
+                                        <tr style={{ height: `${mmToPx(summaryH)}px` }}>
+                                          <td colSpan={3} style={{ border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', fontWeight: 700, height: `${mmToPx(summaryH)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>Total Credits</td>
+                                          <td style={{ border: '1px solid #000000', textAlign: 'center', verticalAlign: 'middle', fontWeight: 700, height: `${mmToPx(summaryH)}px`, fontSize: `${9.5 * (SCALE / 3.4)}px` }}>{curData.total_credits}</td>
+                                        </tr>
+                                      </>
+                                    );
+                                  })()}
+                                </tbody>
+                              </table>
                             </div>
                           </>
                         );
@@ -1435,6 +1563,233 @@ export default function CertificateTemplateAdminPage() {
               </div>
             )}
 
+            {/* Section: Isi Kurikulum (Tabel Belakang) */}
+            {activeSide === 'back' && (sample.type === 'field_study' || sample.type === 'critical_thinking') && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setOpenSection(openSection === 'curriculum' ? null : 'curriculum')}
+                  className="w-full flex items-center justify-between px-4 py-3 text-xs font-semibold text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/40 transition bg-emerald-950/25 border-b border-emerald-800/40"
+                >
+                  <span className="flex items-center gap-2">
+                    <Ico.Edit /> Isi Kurikulum ({sample.level || activeTrackKey})
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] bg-emerald-900/80 border border-emerald-700/60 text-emerald-300 px-1.5 py-0.5 rounded font-medium">
+                      Posisi Terkunci
+                    </span>
+                    <span className={`transition-transform ${openSection === 'curriculum' ? 'rotate-180' : ''}`}>
+                      <Ico.ChevronDown />
+                    </span>
+                  </div>
+                </button>
+
+                {openSection === 'curriculum' && (
+                  <div className="px-4 py-4 space-y-4 bg-slate-900/60">
+                    <div className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700/60 text-[11px] text-slate-300 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-white flex items-center gap-1.5">
+                          <Ico.Info /> Kurikulum {sample.level || activeTrackKey}
+                        </p>
+                        <span className="text-[9px] bg-blue-900/60 border border-blue-700/50 text-blue-300 px-1.5 py-0.5 rounded font-mono">
+                          {activeTrackKey}
+                        </span>
+                      </div>
+                      <p className="text-slate-400">
+                        Posisi tabel dikunci rapi agar tidak terpotong atau berundak. Anda dapat mengedit judul, modul, topik materi (1 baris = 1 bullet), jam pelajaran, dan total ECTS langsung di bawah ini.
+                      </p>
+                    </div>
+
+                    {/* Judul Kurikulum */}
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1 font-medium">Judul Kurikulum</label>
+                      <input
+                        type="text"
+                        value={curData.title}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setCurricula(prev => ({
+                            ...prev,
+                            [activeTrackKey]: { ...curData, title: val }
+                          }));
+                        }}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                        placeholder="CURRICULUM STRUCTURE"
+                      />
+                    </div>
+
+                    {/* Daftar Modul */}
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-200">Daftar Modul ({curData.modules.length})</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextNo = curData.modules.length + 1;
+                            const newMod: CurriculumModule = {
+                              no: nextNo,
+                              title: `Module ${nextNo}`,
+                              topics: ['Materi / topik pembelajaran baru...'],
+                              hours: '5 Hours',
+                            };
+                            setCurricula(prev => ({
+                              ...prev,
+                              [activeTrackKey]: {
+                                ...curData,
+                                modules: [...curData.modules, newMod]
+                              }
+                            }));
+                          }}
+                          className="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium transition cursor-pointer flex items-center gap-1"
+                        >
+                          + Tambah Modul
+                        </button>
+                      </div>
+
+                      {curData.modules.map((m, idx) => (
+                        <div key={idx} className="p-3 bg-slate-800/70 border border-slate-700 rounded-xl space-y-2.5 relative">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-emerald-400">
+                              Modul #{m.no || idx + 1}
+                            </span>
+                            {curData.modules.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedMods = curData.modules
+                                    .filter((_, i) => i !== idx)
+                                    .map((mod, i) => ({ ...mod, no: i + 1 }));
+                                  setCurricula(prev => ({
+                                    ...prev,
+                                    [activeTrackKey]: { ...curData, modules: updatedMods }
+                                  }));
+                                }}
+                                className="text-[10px] text-red-400 hover:text-red-300 transition cursor-pointer"
+                                title="Hapus modul ini"
+                              >
+                                Hapus
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Module Title */}
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-0.5">Nama Modul</label>
+                            <input
+                              type="text"
+                              value={m.title}
+                              onChange={e => {
+                                const updatedMods = [...curData.modules];
+                                updatedMods[idx] = { ...m, title: e.target.value };
+                                setCurricula(prev => ({
+                                  ...prev,
+                                  [activeTrackKey]: { ...curData, modules: updatedMods }
+                                }));
+                              }}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500"
+                            />
+                          </div>
+
+                          {/* Module Hours */}
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-0.5">Jam Pelajaran</label>
+                            <input
+                              type="text"
+                              value={m.hours}
+                              onChange={e => {
+                                const updatedMods = [...curData.modules];
+                                updatedMods[idx] = { ...m, hours: e.target.value };
+                                setCurricula(prev => ({
+                                  ...prev,
+                                  [activeTrackKey]: { ...curData, modules: updatedMods }
+                                }));
+                              }}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500"
+                              placeholder="5 Hours"
+                            />
+                          </div>
+
+                          {/* Module Topics (1 line = 1 bullet) */}
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-0.5">
+                              Topik / Silabus Materi <span className="text-slate-500 font-normal">(1 baris = 1 poin bullet)</span>
+                            </label>
+                            <textarea
+                              rows={4}
+                              value={m.topics.join('\n')}
+                              onChange={e => {
+                                const lines = e.target.value.split('\n');
+                                const updatedMods = [...curData.modules];
+                                updatedMods[idx] = { ...m, topics: lines };
+                                setCurricula(prev => ({
+                                  ...prev,
+                                  [activeTrackKey]: { ...curData, modules: updatedMods }
+                                }));
+                              }}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500 leading-relaxed font-sans"
+                              placeholder="Ketik topik materi per baris..."
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Total Hours & Total Credits */}
+                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800">
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-0.5">Total Hours</label>
+                        <input
+                          type="text"
+                          value={curData.total_hours}
+                          onChange={e => {
+                            setCurricula(prev => ({
+                              ...prev,
+                              [activeTrackKey]: { ...curData, total_hours: e.target.value }
+                            }));
+                          }}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                          placeholder="15"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-0.5">Total Credits</label>
+                        <input
+                          type="text"
+                          value={curData.total_credits}
+                          onChange={e => {
+                            setCurricula(prev => ({
+                              ...prev,
+                              [activeTrackKey]: { ...curData, total_credits: e.target.value }
+                            }));
+                          }}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                          placeholder="0.75 ECTS"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Reset Kurikulum ke Default */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        api.get('/admin/certificates/template/curriculum').then(res => {
+                          if (res.data?.data?.[activeTrackKey]) {
+                            setCurricula(prev => ({
+                              ...prev,
+                              [activeTrackKey]: res.data.data[activeTrackKey]
+                            }));
+                          }
+                        }).catch(() => {});
+                      }}
+                      className="w-full text-[11px] text-slate-500 hover:text-amber-400 flex items-center justify-center gap-1.5 pt-2 transition cursor-pointer"
+                    >
+                      <Ico.Reset /> Muat ulang kurikulum standar trek ini
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Section: Field Selector */}
             <div>
               <button onClick={() => setOpenSection(openSection === 'fields' ? null : 'fields')}
@@ -1474,6 +1829,117 @@ export default function CertificateTemplateAdminPage() {
                     <span className="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded font-mono">mm</span>
                   </div>
                 </div>
+
+                {/* Direct Text Input for Selected Field */}
+                {selectedKey === 'fs_back_name' && (
+                  <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 space-y-2.5">
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1 font-medium">Teks Label Awalan (Prefix)</label>
+                      <input
+                        type="text"
+                        value={layout.fs_back_name?.prefix ?? 'Name : '}
+                        onChange={e => setLayout(prev => ({
+                          ...prev,
+                          fs_back_name: { ...prev.fs_back_name, prefix: e.target.value }
+                        }))}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-semibold"
+                        placeholder="Name : "
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1 font-medium">Nama Peserta (Simulasi Tampilan)</label>
+                      <input
+                        type="text"
+                        value={sample.name}
+                        onChange={e => setSample({ ...sample, name: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-bold text-blue-200"
+                        placeholder="Nama Peserta..."
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                        ℹ️ Saat siswa asli mengunduh sertifikat, nama otomatis terisi dari akun siswa.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedKey === 'fs_back_reg_no' && (
+                  <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 space-y-2.5">
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1 font-medium">Teks Label Awalan (Prefix)</label>
+                      <input
+                        type="text"
+                        value={layout.fs_back_reg_no?.prefix ?? 'Registration Number : '}
+                        onChange={e => setLayout(prev => ({
+                          ...prev,
+                          fs_back_reg_no: { ...prev.fs_back_reg_no, prefix: e.target.value }
+                        }))}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-semibold"
+                        placeholder="Registration Number : "
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1 font-medium">Nomor Registrasi (Simulasi Tampilan)</label>
+                      <input
+                        type="text"
+                        value={sample.regNo || ''}
+                        onChange={e => setSample({ ...sample, regNo: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono font-bold text-blue-200"
+                        placeholder="CBETC001062026"
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                        ℹ️ Saat siswa asli mengunduh sertifikat, nomor registrasi di-generate otomatis oleh sistem.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {(selectedKey === 'recipient_name' || selectedKey === 'fs_recipient_name') && (
+                  <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 space-y-1.5">
+                    <label className="text-[10px] text-slate-400 block font-medium">Nama Peserta (Simulasi Tampilan)</label>
+                    <input
+                      type="text"
+                      value={sample.name}
+                      onChange={e => setSample({ ...sample, name: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 font-bold text-blue-200"
+                    />
+                  </div>
+                )}
+
+                {selectedKey === 'fs_course_title' && (
+                  <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 space-y-1.5">
+                    <label className="text-[10px] text-slate-400 block font-medium">Judul Pelatihan (Simulasi Tampilan)</label>
+                    <input
+                      type="text"
+                      value={sample.courseTitle || ''}
+                      onChange={e => setSample({ ...sample, courseTitle: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                {selectedKey === 'fs_date_participation' && (
+                  <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 space-y-1.5">
+                    <label className="text-[10px] text-slate-400 block font-medium">Tanggal Partisipasi (Simulasi Tampilan)</label>
+                    <input
+                      type="text"
+                      value={sample.dateParticipation || ''}
+                      onChange={e => setSample({ ...sample, dateParticipation: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                {selectedKey === 'fs_date_issue' && (
+                  <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 space-y-1.5">
+                    <label className="text-[10px] text-slate-400 block font-medium">Tempat &amp; Tanggal Terbit (Simulasi Tampilan)</label>
+                    <input
+                      type="text"
+                      value={sample.dateIssue || ''}
+                      onChange={e => setSample({ ...sample, dateIssue: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
 
                 {/* Top */}
                 <div>

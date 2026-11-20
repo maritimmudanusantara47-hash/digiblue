@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\Enrollment;
+use App\Models\Course;
+use App\Models\CertificationLevel;
+use App\Models\User;
 use App\Services\CertificateService;
 use App\Services\TheBlueEconomistService;
 use App\Exports\CertificatesExport;
@@ -186,14 +189,30 @@ class AdminCertificateController extends Controller
     /** Admin: Download PDF sertifikat */
     public function download(Request $request, int $id)
     {
-        $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])->findOrFail($id);
+        if ($id <= 0 || $request->boolean('sample') || $request->filled('name')) {
+            $cert = $this->sampleCertificate($request);
+        } else {
+            try {
+                $cert = Certificate::with(['user', 'enrollment.course.certificationLevel'])->find($id);
+            } catch (\Throwable $e) {
+                $cert = null;
+            }
+
+            if (! $cert) {
+                $cert = $this->sampleCertificate($request);
+            }
+        }
+
+        if ($request->filled('name') && $cert && $cert->user) {
+            $cert->user->name = $request->query('name');
+        }
 
         if ($request->query('type') === 'field_study') {
-            return $this->downloadFieldStudy($cert);
+            return $this->downloadFieldStudy($cert, $request);
         }
 
         if ($request->query('type') === 'critical_thinking') {
-            return $this->downloadCriticalThinking($cert);
+            return $this->downloadCriticalThinking($cert, $request);
         }
 
         $verificationUrl = config('app.tbe_base_url', 'https://theblueeconomist.org')
@@ -254,8 +273,9 @@ class AdminCertificateController extends Controller
     }
 
     /** Download PDF Critical Thinking (Certificate of Completion) */
-    public function downloadCriticalThinking(Certificate $cert)
+    public function downloadCriticalThinking(Certificate $cert, ?Request $request = null)
     {
+        $req = $request ?? request();
         $layoutPath = storage_path('app/cert_layout.json');
         $layout = file_exists($layoutPath)
             ? json_decode(file_get_contents($layoutPath), true)
@@ -270,30 +290,59 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($frontTemplatePath))
             : null;
 
-        $backTemplatePath = file_exists(resource_path('images/template_critical_thinking_back.png'))
-            ? resource_path('images/template_critical_thinking_back.png')
-            : (file_exists(resource_path('images/template_field_study_back.png'))
-                ? resource_path('images/template_field_study_back.png')
-                : resource_path('images/Foundation (2).png'));
+        $requestedTrack = $req->query('track');
+        $rawCourseTitle = $cert->enrollment->course->title ?? '';
+        $levelName = $cert->enrollment->course->certificationLevel->name ?? '';
+        $levelCode = $cert->enrollment->course->certificationLevel->code ?? '';
+
+        if ($requestedTrack) {
+            $courseSlug = $requestedTrack;
+            $isFoundation = ($courseSlug === 'foundation');
+        } else {
+            $isFoundation = str_contains(strtolower($rawCourseTitle), 'foundation')
+                || str_contains(strtolower($levelName), 'foundation')
+                || strtolower($levelCode) === 'fnd'
+                || strtolower($levelCode) === 'foundation';
+            $courseSlug = $cert->enrollment->course->slug ?? '';
+        }
+
+        if ($isFoundation && file_exists(resource_path('images/template_fs_back_blank.png'))) {
+            $backTemplatePath = resource_path('images/template_fs_back_blank.png');
+        } else {
+            $backTemplatePath = file_exists(resource_path('images/template_critical_thinking_back.png'))
+                ? resource_path('images/template_critical_thinking_back.png')
+                : (file_exists(resource_path('images/template_field_study_back.png'))
+                    ? resource_path('images/template_field_study_back.png')
+                    : resource_path('images/Foundation (2).png'));
+        }
         $backBase64 = file_exists($backTemplatePath)
             ? base64_encode(file_get_contents($backTemplatePath))
             : null;
 
         $customDate = request()->query('date') ? new \DateTime(request()->query('date')) : null;
-        $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
+        $regNo = $req->query('reg_no') ?: $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
 
         $viewName = view()->exists('certificates.template_critical_thinking')
             ? 'certificates.template_critical_thinking'
             : 'certificates.template_field_study';
 
+        $currPath = storage_path('app/cert_curriculum.json');
+        $allCurriculum = file_exists($currPath)
+            ? json_decode(file_get_contents($currPath), true)
+            : $this->defaultCurriculum();
+        $currKey = $isFoundation ? 'foundation' : ($courseSlug ?: 'foundation');
+        $curriculum = $allCurriculum[$currKey] ?? ($allCurriculum['foundation'] ?? null);
+
         $pdf = Pdf::loadView($viewName, [
             'certificate' => $cert,
             'user' => $cert->user,
             'course' => $cert->enrollment->course,
+            'courseSlug' => $courseSlug,
             'regNo' => $regNo,
             'templateFrontBase64' => $frontBase64,
             'templateBackBase64' => $backBase64,
             'layout' => $layout,
+            'curriculum' => $curriculum,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_Critical_Thinking_{$cert->user->name}_{$cert->serial_number}.pdf";
@@ -303,8 +352,9 @@ class AdminCertificateController extends Controller
     }
 
     /** Download PDF Field Study */
-    public function downloadFieldStudy(Certificate $cert)
+    public function downloadFieldStudy(Certificate $cert, ?Request $request = null)
     {
+        $req = $request ?? request();
         $layoutPath = storage_path('app/cert_layout.json');
         $layout = file_exists($layoutPath)
             ? json_decode(file_get_contents($layoutPath), true)
@@ -317,38 +367,109 @@ class AdminCertificateController extends Controller
             ? base64_encode(file_get_contents($frontTemplatePath))
             : null;
 
-        $courseSlug = $cert->enrollment->course->slug ?? '';
-        $specFsBackPath = resource_path("images/template_fs_back_{$courseSlug}.png");
-        $backTemplatePath = file_exists($specFsBackPath)
-            ? $specFsBackPath
-            : (file_exists(resource_path('images/template_field_study_back.png'))
-                ? resource_path('images/template_field_study_back.png')
-                : resource_path('images/Foundation (2).png'));
+        $requestedTrack = $req->query('track');
+        $rawCourseTitle = $cert->enrollment->course->title ?? '';
+        $levelName = $cert->enrollment->course->certificationLevel->name ?? '';
+        $levelCode = $cert->enrollment->course->certificationLevel->code ?? '';
+
+        if ($requestedTrack) {
+            $courseSlug = $requestedTrack;
+            $isFoundation = ($courseSlug === 'foundation');
+        } else {
+            $isFoundation = str_contains(strtolower($rawCourseTitle), 'foundation')
+                || str_contains(strtolower($levelName), 'foundation')
+                || strtolower($levelCode) === 'fnd'
+                || strtolower($levelCode) === 'foundation';
+            $courseSlug = $cert->enrollment->course->slug ?? '';
+        }
+
+        $blankBackPath = resource_path('images/template_fs_back_blank.png');
+        if (file_exists($blankBackPath)) {
+            $backTemplatePath = $blankBackPath;
+        } else {
+            $specFsBackPath = resource_path("images/template_fs_back_{$courseSlug}.png");
+            $backTemplatePath = file_exists($specFsBackPath)
+                ? $specFsBackPath
+                : (file_exists(resource_path('images/template_field_study_back.png'))
+                    ? resource_path('images/template_field_study_back.png')
+                    : resource_path('images/Foundation (2).png'));
+        }
         $backBase64 = file_exists($backTemplatePath)
             ? base64_encode(file_get_contents($backTemplatePath))
             : null;
 
         $customDate = request()->query('date') ? new \DateTime(request()->query('date')) : null;
-        $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
+        $regNo = $req->query('reg_no') ?: $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
 
         $viewName = view()->exists('certificates.template_field_study')
             ? 'certificates.template_field_study'
             : 'certificates.template_critical_thinking';
 
+        $currPath = storage_path('app/cert_curriculum.json');
+        $allCurriculum = file_exists($currPath)
+            ? json_decode(file_get_contents($currPath), true)
+            : $this->defaultCurriculum();
+        $currKey = $isFoundation ? 'foundation' : ($courseSlug ?: 'foundation');
+        $curriculum = $allCurriculum[$currKey] ?? ($allCurriculum['foundation'] ?? null);
+
         $pdf = Pdf::loadView($viewName, [
             'certificate' => $cert,
             'user' => $cert->user,
             'course' => $cert->enrollment->course,
+            'courseSlug' => $courseSlug,
             'regNo' => $regNo,
             'templateFrontBase64' => $frontBase64,
             'templateBackBase64' => $backBase64,
             'layout' => $layout,
+            'curriculum' => $curriculum,
         ])->setPaper('a4', 'landscape');
 
         $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
         $filename = str_replace(['/', ' '], ['_', '_'], $filename);
 
         return $pdf->download($filename);
+    }
+
+    /** Buat mock certificate untuk keperluan preview unduh PDF di Template Designer saat database kosong */
+    private function sampleCertificate(Request $request): Certificate
+    {
+        $track = $request->query('track', 'foundation');
+        $isFnd = ($track === 'foundation');
+        $trackTitle = $isFnd
+            ? 'International Blue Economist Certification Training Course'
+            : 'International Blue Economist Certification Training Course - ' . ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $track)) . ' Specialization';
+
+        $course = new Course([
+            'title' => $trackTitle,
+            'slug' => $track,
+        ]);
+        $level = new CertificationLevel([
+            'name' => 'Certified Blue Economist',
+            'code' => 'CBEc',
+        ]);
+        $course->setRelation('certificationLevel', $level);
+
+        $enrollment = new Enrollment();
+        $enrollment->setRelation('course', $course);
+
+        $sampleName = $request->query('name', 'Diana Supriati');
+        $user = new User([
+            'name' => $sampleName,
+            'email' => 'sample@digibluecamp.id',
+        ]);
+
+        $sampleRegNo = $request->query('reg_no', 'CBETC001062026');
+        $cert = new Certificate([
+            'serial_number' => $sampleRegNo,
+            'serial_url_key' => 'sample-preview-cert',
+            'date_of_issue' => now()->toDateString(),
+            'place_of_issue' => 'Jakarta, Indonesia',
+        ]);
+        $cert->id = 1;
+        $cert->setRelation('user', $user);
+        $cert->setRelation('enrollment', $enrollment);
+
+        return $cert;
     }
 
     /* ──────────────────────────────────────────────
@@ -369,21 +490,111 @@ class AdminCertificateController extends Controller
             'back_title' => ['top' => 20.0, 'left' => 0, 'font_size' => 15.0, 'label' => 'Judul Halaman Belakang'],
 
             // Critical Thinking & Field Study / Completion template fields
+            // Critical Thinking & Field Study / Completion template fields
             'fs_recipient_name' => ['top' => 70.0, 'left' => 0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
             'fs_course_title' => ['top' => 108.5, 'left' => 0, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
             'fs_date_participation' => ['top' => 134.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
             'fs_date_issue' => ['top' => 141.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
-            'fs_back_name' => ['top' => 26.8, 'left' => 29.2, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: Nama'],
-            'fs_back_reg_no' => ['top' => 31.2, 'left' => 54.5, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: No. Reg'],
+            'fs_back_title' => ['top' => 14.5, 'left' => 0, 'font_size' => 16.0, 'label' => 'Field Study Belakang: Judul Kurikulum'],
+            'fs_back_name' => ['top' => 25.5, 'left' => 19.0, 'font_size' => 11.0, 'label' => 'Field Study Belakang: Nama', 'prefix' => 'Name : '],
+            'fs_back_reg_no' => ['top' => 30.8, 'left' => 19.0, 'font_size' => 11.0, 'label' => 'Field Study Belakang: No. Reg', 'prefix' => 'Registration Number : '],
 
             // Alias ct_
             'ct_recipient_name' => ['top' => 70.0, 'left' => 0, 'font_size' => 33.0, 'label' => 'Critical Thinking: Nama Peserta'],
             'ct_course_title' => ['top' => 108.5, 'left' => 0, 'font_size' => 19.0, 'label' => 'Critical Thinking: Judul Pelatihan'],
             'ct_date_participation' => ['top' => 134.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tanggal Partisipasi'],
             'ct_date_issue' => ['top' => 141.5, 'left' => 0, 'font_size' => 14.0, 'label' => 'Critical Thinking: Tempat & Tanggal Terbit'],
-            'ct_back_name' => ['top' => 26.8, 'left' => 29.2, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: Nama'],
-            'ct_back_reg_no' => ['top' => 31.2, 'left' => 54.5, 'font_size' => 11.5, 'label' => 'Critical Thinking Belakang: No. Reg'],
+            'ct_back_title' => ['top' => 14.5, 'left' => 0, 'font_size' => 16.0, 'label' => 'Field Study Belakang: Judul Kurikulum'],
+            'ct_back_name' => ['top' => 25.5, 'left' => 19.0, 'font_size' => 11.0, 'label' => 'Field Study Belakang: Nama', 'prefix' => 'Name : '],
+            'ct_back_reg_no' => ['top' => 30.8, 'left' => 19.0, 'font_size' => 11.0, 'label' => 'Field Study Belakang: No. Reg', 'prefix' => 'Registration Number : '],
         ];
+    }
+
+    /** Default curriculum data */
+    private function defaultCurriculum(): array
+    {
+        return [
+            'foundation' => [
+                'title' => 'CURRICULUM STRUCTURE',
+                'modules' => [
+                    [
+                        'no' => 1,
+                        'title' => 'Integrated Blue Economy and Ocean Governance',
+                        'topics' => [
+                            'Integrated frameworks and global principles of blue economy governance',
+                            'Cross-sector coordination among fisheries, energy, and maritime industries',
+                            'Inclusive and transparent governance models for sustainable ocean management',
+                            'Best practices in policy implementation and stakeholder collaboration',
+                            'Indonesia\'s role in global ocean governance initiatives',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 2,
+                        'title' => 'Blue Industry and ESG Alignment',
+                        'topics' => [
+                            'ESG (Environmental, Social, and Governance) principles in marine-based sectors',
+                            'Sustainability standards and responsible business frameworks in blue industries',
+                            'ESG-driven innovations across fisheries, aquaculture, shipping, and tourism',
+                            'Risk management and sustainability reporting mechanisms',
+                            'Investment trends and opportunities in ESG-aligned blue enterprises',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 3,
+                        'title' => 'Blue Ecosystem and Resources Valuation',
+                        'topics' => [
+                            'Assessment of key ecosystem services in marine and coastal environments',
+                            'Valuation methods to quantify the economic and ecological benefits of blue ecosystems',
+                            'Natural capital accounting into sustainable ocean policies and strategies',
+                            'Real-world examples of ecosystem-based management and valuation',
+                            'Valuation outcomes to inform blue economy investment and conservation planning',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 4,
+                        'title' => 'Blue Economy Field Study',
+                        'topics' => [
+                            'Practical insights into sustainable marine and coastal resource management through direct field observation, case studies, and applied learning activities',
+                            'Systems thinking for sustainable marine and coastal development',
+                            'Problem-solving for real-world blue economy challenges',
+                        ],
+                        'hours' => '15',
+                    ],
+                ],
+                'total_hours' => '30',
+                'total_credits' => '1.5 ECTS',
+            ],
+        ];
+    }
+
+    /** Ambil kurikulum saat ini */
+    public function getCurriculum(): JsonResponse
+    {
+        $path = storage_path('app/cert_curriculum.json');
+        $curriculum = file_exists($path)
+            ? json_decode(file_get_contents($path), true)
+            : $this->defaultCurriculum();
+
+        return response()->json(['data' => $curriculum]);
+    }
+
+    /** Simpan kurikulum baru */
+    public function saveCurriculum(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'curriculum' => 'required|array',
+        ]);
+
+        $path = storage_path('app/cert_curriculum.json');
+        file_put_contents($path, json_encode($validated['curriculum'], JSON_PRETTY_PRINT));
+
+        return response()->json([
+            'message' => 'Kurikulum sertifikat berhasil disimpan.',
+            'data' => $validated['curriculum'],
+        ]);
     }
 
     /** Ambil layout konfigurasi saat ini */
