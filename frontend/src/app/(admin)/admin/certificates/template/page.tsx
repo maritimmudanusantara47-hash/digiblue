@@ -40,6 +40,74 @@ interface FieldConfig {
 }
 type LayoutState = Record<string, FieldConfig>;
 
+interface CurriculumModule {
+  no: number;
+  title: string;
+  topics: string[];
+  hours: string;
+}
+
+interface CurriculumData {
+  title: string;
+  modules: CurriculumModule[];
+  total_hours: string;
+  total_credits: string;
+}
+
+const DEFAULT_FOUNDATION_CURRICULUM: CurriculumData = {
+  title: 'CURRICULUM STRUCTURE',
+  modules: [
+    {
+      no: 1,
+      title: 'Integrated Blue Economy and Ocean Governance',
+      topics: [
+        'Integrated frameworks and global principles of blue economy governance',
+        'Cross-sector coordination among fisheries, energy, and maritime industries',
+        'Inclusive and transparent governance models for sustainable ocean management',
+        'Best practices in policy implementation and stakeholder collaboration',
+        "Indonesia's role in global ocean governance initiatives",
+      ],
+      hours: '5',
+    },
+    {
+      no: 2,
+      title: 'Blue Industry and ESG Alignment',
+      topics: [
+        'ESG (Environmental, Social, and Governance) principles in marine-based sectors',
+        'Sustainability standards and responsible business frameworks in blue industries',
+        'ESG-driven innovations across fisheries, aquaculture, shipping, and tourism',
+        'Risk management and sustainability reporting mechanisms',
+        'Investment trends and opportunities in ESG-aligned blue enterprises',
+      ],
+      hours: '5',
+    },
+    {
+      no: 3,
+      title: 'Blue Ecosystem and Resources Valuation',
+      topics: [
+        'Assessment of key ecosystem services in marine and coastal environments',
+        'Valuation methods to quantify the economic and ecological benefits of blue ecosystems',
+        'Natural capital accounting into sustainable ocean policies and strategies',
+        'Real-world examples of ecosystem-based management and valuation',
+        'Valuation outcomes to inform blue economy investment and conservation planning',
+      ],
+      hours: '5',
+    },
+    {
+      no: 4,
+      title: 'Blue Economy Field Study',
+      topics: [
+        'Practical insights into sustainable marine and coastal resource management through direct field observation, case studies, and applied learning activities',
+        'Systems thinking for sustainable marine and coastal development',
+        'Problem-solving for real-world blue economy challenges',
+      ],
+      hours: '15',
+    },
+  ],
+  total_hours: '30',
+  total_credits: '1.5 ECTS',
+};
+
 const DEFAULT_LAYOUT: LayoutState = {
   serial_no: { top: 13.0, right: 16.5, width: 105, font_size: 11.0, label: 'Nomor Seri (Top-Right)' },
   recipient_name: { top: 69.5, left: 0, font_size: 32.5, label: 'Nama Peserta' },
