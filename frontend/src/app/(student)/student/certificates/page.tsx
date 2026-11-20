@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import type { Certificate } from '@/types';
 import { useTranslations } from 'next-intl';
 import { showError } from '@/lib/swal';
+import { generateCertificateDownloadFileName } from '@/lib/certificateTemplates';
 
 export default function StudentCertificatesPage() {
   const [certs, setCerts]     = useState<Certificate[]>([]);
@@ -40,12 +41,16 @@ export default function StudentCertificatesPage() {
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      const prefix = type === 'field_study'
-        ? 'Sertifikat-Field-Study'
-        : type === 'critical_thinking'
-        ? 'Sertifikat-Critical-Thinking'
-        : 'Sertifikat';
-      link.setAttribute('download', `${prefix}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
+      const targetCode = (type === 'critical_thinking' || type === 'field_study')
+        ? (cert.cbetc_reg_no || cert.serial_number)
+        : cert.serial_number;
+      const filename = generateCertificateDownloadFileName(
+        cert.enrollment?.course,
+        cert.user?.name || cert.enrollment?.user?.name,
+        type,
+        targetCode
+      );
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {

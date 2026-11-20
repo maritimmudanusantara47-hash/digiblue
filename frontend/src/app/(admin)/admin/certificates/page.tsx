@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import type { Certificate } from '@/types';
 import { useTranslations } from 'next-intl';
 import { showSuccess, showError, showWarning, showConfirm } from '@/lib/swal';
+import { generateCertificateDownloadFileName } from '@/lib/certificateTemplates';
 
 interface EnrollmentOption {
   id: number;
@@ -213,12 +214,16 @@ export default function AdminCertificatesPage() {
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href  = url;
-      const prefix = type === 'field_study'
-        ? 'Sertifikat-Field-Study'
-        : type === 'critical_thinking'
-        ? 'Sertifikat-Critical-Thinking'
-        : 'Sertifikat';
-      link.setAttribute('download', `${prefix}-${cert.user?.name ?? 'Peserta'}-${cert.serial_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf`);
+      const targetCode = (type === 'critical_thinking' || type === 'field_study')
+        ? (cert.cbetc_reg_no || cert.serial_number)
+        : cert.serial_number;
+      const filename = generateCertificateDownloadFileName(
+        cert.enrollment?.course,
+        cert.user?.name || cert.enrollment?.user?.name,
+        type,
+        targetCode
+      );
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {

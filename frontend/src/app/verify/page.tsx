@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Icon from '@/components/Icon';
 import ModalPortal from '@/components/common/ModalPortal';
 import api from '@/lib/api';
+import { generateCertificateDownloadFileName } from '@/lib/certificateTemplates';
 import { useTranslations } from 'next-intl';
 import {
   RenderedCertificateSheet,
@@ -125,9 +126,16 @@ export default function VerifyPortalPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const safeName = (result.data?.recipient_name || 'Sertifikat').replace(/[/\\?%*:|"<>]/g, '_');
-      const safeSerial = (result.data?.serial_number || key).replace(/[/\\?%*:|"<>]/g, '_');
-      link.setAttribute('download', `Sertifikat_${safeName}_${safeSerial}.pdf`);
+      const filename = generateCertificateDownloadFileName(
+        {
+          slug: result.data?.specialization,
+          title: result.data?.specialization || result.data?.program_name,
+        },
+        result.data?.recipient_name,
+        undefined,
+        result.data?.serial_number || key
+      );
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {

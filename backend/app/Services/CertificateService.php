@@ -427,4 +427,168 @@ class CertificateService
 
         return $certificate;
     }
+
+    /**
+     * Default curriculum data for certificates of completion (Field Study / Critical Thinking)
+     */
+    public function defaultCurriculum(): array
+    {
+        return [
+            'foundation' => [
+                'title' => 'CURRICULUM STRUCTURE',
+                'modules' => [
+                    [
+                        'no' => 1,
+                        'title' => 'Integrated Blue Economy and Ocean Governance',
+                        'topics' => [
+                            'Integrated frameworks and global principles of blue economy governance',
+                            'Cross-sector coordination among fisheries, energy, and maritime industries',
+                            'Inclusive and transparent governance models for sustainable ocean management',
+                            'Best practices in policy implementation and stakeholder collaboration',
+                            'Indonesia\'s role in global ocean governance initiatives',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 2,
+                        'title' => 'Blue Industry and ESG Alignment',
+                        'topics' => [
+                            'ESG (Environmental, Social, and Governance) principles in marine-based sectors',
+                            'Sustainability standards and responsible business frameworks in blue industries',
+                            'ESG-driven innovations across fisheries, aquaculture, shipping, and tourism',
+                            'Risk management and sustainability reporting mechanisms',
+                            'Investment trends and opportunities in ESG-aligned blue enterprises',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 3,
+                        'title' => 'Blue Ecosystem and Resources Valuation',
+                        'topics' => [
+                            'Assessment of key ecosystem services in marine and coastal environments',
+                            'Valuation methods to quantify the economic and ecological benefits of blue ecosystems',
+                            'Natural capital accounting into sustainable ocean policies and strategies',
+                            'Real-world examples of ecosystem-based management and valuation',
+                            'Valuation outcomes to inform blue economy investment and conservation planning',
+                        ],
+                        'hours' => '5',
+                    ],
+                    [
+                        'no' => 4,
+                        'title' => 'Blue Economy Field Study',
+                        'topics' => [
+                            'Practical insights into sustainable marine and coastal resource management through direct field observation, case studies, and applied learning activities',
+                            'Systems thinking for sustainable marine and coastal development',
+                            'Problem-solving for real-world blue economy challenges',
+                        ],
+                        'hours' => '15',
+                    ],
+                ],
+                'total_hours' => '30',
+                'total_credits' => '1.5 ECTS',
+            ],
+        ];
+    }
+
+    /**
+     * Dapatkan data kurikulum untuk kursus tertentu (dengan penyesuaian Field Study / Critical Thinking)
+     */
+    public function getCurriculumForCourse(?\App\Models\Course $course, string $type = 'field_study'): array
+    {
+        $currPath = storage_path('app/cert_curriculum.json');
+        $allCurriculum = file_exists($currPath)
+            ? json_decode(file_get_contents($currPath), true)
+            : $this->defaultCurriculum();
+
+        $courseSlug = $course->slug ?? 'foundation';
+        $courseTitle = strtolower($course->title ?? '');
+        $isFoundation = str_contains($courseSlug, 'foundation') || str_contains($courseTitle, 'foundation');
+
+        $currKey = $isFoundation ? 'foundation' : $courseSlug;
+        $curriculum = $allCurriculum[$currKey] ?? ($allCurriculum['foundation'] ?? $this->defaultCurriculum()['foundation']);
+
+        // Jika tipe Critical Thinking, sesuaikan judul modul ke-4
+        if ($type === 'critical_thinking' && isset($curriculum['modules'][3])) {
+            $curriculum['modules'][3]['title'] = 'Blue Economy Critical Thinking';
+        }
+
+        return $curriculum;
+    }
+
+    /**
+     * Generate format nama file download PDF yang rapi dan konsisten:
+     * - Competence:          Certificate-Competence-{CourseName}-{UserName}-{SerialNumber}.pdf
+     * - Field Study:         Certificate-Completion-Field-Study-{CourseName}-{UserName}-{RegNo}.pdf
+     * - Critical Thinking:   Certificate-Completion-Critical-Thinking-{CourseName}-{UserName}-{RegNo}.pdf
+     */
+    public function generateCertificateFileName(Certificate $cert, ?string $type = null, ?string $code = null): string
+    {
+        $course = $cert->enrollment?->course;
+        $courseTitle = $course?->title ?? '';
+        $courseSlug = $course?->slug ?? '';
+        $userName = $cert->user?->name ?? 'Peserta';
+
+        $cleanCourse = 'Foundation';
+        $combined = strtolower($courseSlug . ' ' . $courseTitle);
+        if (str_contains($combined, 'foundation')) {
+            $cleanCourse = 'Foundation';
+        } else {
+            $specMap = [
+                'blue-business-development' => 'Blue-Business-Development',
+                'blue-carbon'               => 'Blue-Carbon',
+                'blue-community-development'=> 'Blue-Community-Development',
+                'blue-circular-economy'     => 'Blue-Circular-Economy',
+                'blue-data-intelligence'    => 'Blue-Data-Intelligence',
+                'blue-energy'               => 'Blue-Energy',
+                'blue-farming'              => 'Blue-Farming',
+                'blue-finance'              => 'Blue-Finance',
+                'blue-food'                 => 'Blue-Food',
+                'blue-port'                 => 'Blue-Port',
+                'blue-shipping'             => 'Blue-Shipping',
+                'blue-tourism'              => 'Blue-Tourism',
+            ];
+
+            $matched = null;
+            foreach ($specMap as $k => $v) {
+                if (str_contains($combined, $k) || str_contains($combined, str_replace('-', ' ', $k))) {
+                    $matched = $v;
+                    break;
+                }
+            }
+
+            if ($matched) {
+                $cleanCourse = $matched;
+            } elseif (!empty($courseSlug)) {
+                $cleanCourse = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $courseSlug))), '-');
+            } else {
+                $cleanCourse = 'Specialization';
+            }
+        }
+
+        $cleanUser = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $userName), '-');
+        if (empty($cleanUser)) {
+            $cleanUser = 'Peserta';
+        }
+
+        if (empty($code)) {
+            if ($type === 'field_study' || $type === 'critical_thinking') {
+                $code = $this->getCbetcRegNoForCertificate($cert);
+            } else {
+                $code = $cert->serial_number ?? '';
+            }
+        }
+
+        $cleanCode = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $code), '-');
+        $codeSuffix = !empty($cleanCode) ? "-{$cleanCode}" : '';
+
+        if ($type === 'field_study') {
+            return "Certificate-Completion-Field-Study-{$cleanCourse}-{$cleanUser}{$codeSuffix}.pdf";
+        }
+
+        if ($type === 'critical_thinking') {
+            return "Certificate-Completion-Critical-Thinking-{$cleanCourse}-{$cleanUser}{$codeSuffix}.pdf";
+        }
+
+        return "Certificate-Competence-{$cleanCourse}-{$cleanUser}{$codeSuffix}.pdf";
+    }
 }

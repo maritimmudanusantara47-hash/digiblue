@@ -9,6 +9,7 @@ import Icon from '@/components/Icon';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ModalPortal from '@/components/common/ModalPortal';
 import api from '@/lib/api';
+import { generateCertificateDownloadFileName } from '@/lib/certificateTemplates';
 import {
   RenderedCertificateSheet,
   resolveTemplateImages,
@@ -78,9 +79,16 @@ export default function VerifyCertificateClient({
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const safeName = (data?.recipient_name || 'Sertifikat').replace(/[/\\?%*:|"<>]/g, '_');
-      const safeSerial = (data?.serial_number || key).replace(/[/\\?%*:|"<>]/g, '_');
-      link.setAttribute('download', `Sertifikat_${safeName}_${safeSerial}.pdf`);
+      const filename = generateCertificateDownloadFileName(
+        {
+          slug: data?.specialization,
+          title: data?.specialization || data?.program_name,
+        },
+        data?.recipient_name,
+        undefined,
+        data?.serial_number || key
+      );
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {

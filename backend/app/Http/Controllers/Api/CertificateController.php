@@ -33,7 +33,7 @@ class CertificateController extends Controller
             $this->certService->autoIssueCertificateIfEligible($enrollment);
         }
 
-        $certs = Certificate::with(['enrollment.course.certificationLevel'])
+        $certs = Certificate::with(['user', 'enrollment.course.certificationLevel'])
             ->where('user_id', $user->id)
             ->orderByDesc('date_of_issue')
             ->get();
@@ -108,9 +108,9 @@ class CertificateController extends Controller
                 : null;
 
             $courseSlug = $cert->enrollment->course->slug ?? '';
-            $specFsBackPath = resource_path("images/template_fs_back_{$courseSlug}.png");
-            $backTemplatePath = file_exists($specFsBackPath)
-                ? $specFsBackPath
+            $blankBackPath = resource_path('images/template_fs_back_blank.png');
+            $backTemplatePath = file_exists($blankBackPath)
+                ? $blankBackPath
                 : (file_exists(resource_path('images/template_field_study_back.png'))
                     ? resource_path('images/template_field_study_back.png')
                     : resource_path('images/Foundation (2).png'));
@@ -120,6 +120,7 @@ class CertificateController extends Controller
 
             $customDate = $request->query('date') ? new \DateTime($request->query('date')) : null;
             $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
+            $curriculum = $this->certService->getCurriculumForCourse($cert->enrollment->course, 'field_study');
 
             $viewName = view()->exists('certificates.template_field_study')
                 ? 'certificates.template_field_study'
@@ -129,14 +130,15 @@ class CertificateController extends Controller
                 'certificate'         => $cert,
                 'user'                => $cert->user,
                 'course'              => $cert->enrollment->course,
+                'courseSlug'          => $courseSlug,
                 'regNo'               => $regNo,
                 'templateFrontBase64' => $frontBase64,
                 'templateBackBase64'  => $backBase64,
                 'layout'              => $layout,
+                'curriculum'          => $curriculum,
             ])->setPaper('a4', 'landscape');
 
-            $filename = "Sertifikat_Field_Study_{$cert->user->name}_{$cert->serial_number}.pdf";
-            $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+            $filename = $this->certService->generateCertificateFileName($cert, 'field_study', $regNo);
 
             if ($request->query('stream') === '1') {
                 return $pdf->stream($filename);
@@ -166,10 +168,12 @@ class CertificateController extends Controller
                 ? base64_encode(file_get_contents($frontTemplatePath))
                 : null;
 
-            $backTemplatePath = file_exists(resource_path('images/template_critical_thinking_back.png'))
-                ? resource_path('images/template_critical_thinking_back.png')
-                : (file_exists(resource_path('images/template_field_study_back.png'))
-                    ? resource_path('images/template_field_study_back.png')
+            $courseSlug = $cert->enrollment->course->slug ?? '';
+            $blankBackPath = resource_path('images/template_fs_back_blank.png');
+            $backTemplatePath = file_exists($blankBackPath)
+                ? $blankBackPath
+                : (file_exists(resource_path('images/template_critical_thinking_back.png'))
+                    ? resource_path('images/template_critical_thinking_back.png')
                     : resource_path('images/Foundation (2).png'));
             $backBase64 = file_exists($backTemplatePath)
                 ? base64_encode(file_get_contents($backTemplatePath))
@@ -177,6 +181,7 @@ class CertificateController extends Controller
 
             $customDate = $request->query('date') ? new \DateTime($request->query('date')) : null;
             $regNo = $this->certService->getCbetcRegNoForCertificate($cert, $customDate);
+            $curriculum = $this->certService->getCurriculumForCourse($cert->enrollment->course, 'critical_thinking');
 
             $viewName = view()->exists('certificates.template_critical_thinking')
                 ? 'certificates.template_critical_thinking'
@@ -186,14 +191,15 @@ class CertificateController extends Controller
                 'certificate'         => $cert,
                 'user'                => $cert->user,
                 'course'              => $cert->enrollment->course,
+                'courseSlug'          => $courseSlug,
                 'regNo'               => $regNo,
                 'templateFrontBase64' => $frontBase64,
                 'templateBackBase64'  => $backBase64,
                 'layout'              => $layout,
+                'curriculum'          => $curriculum,
             ])->setPaper('a4', 'landscape');
 
-            $filename = "Sertifikat_Critical_Thinking_{$cert->user->name}_{$cert->serial_number}.pdf";
-            $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+            $filename = $this->certService->generateCertificateFileName($cert, 'critical_thinking', $regNo);
 
             if ($request->query('stream') === '1') {
                 return $pdf->stream($filename);
@@ -253,8 +259,7 @@ class CertificateController extends Controller
             'hasCustomBackTemplate' => $hasCustomBackTemplate,
         ])->setPaper('a4', 'landscape');
 
-        $filename = "Sertifikat_{$cert->user->name}_{$cert->serial_number}.pdf";
-        $filename = str_replace(['/', ' '], ['_', '_'], $filename);
+        $filename = $this->certService->generateCertificateFileName($cert);
 
         if ($request->query('stream') === '1') {
             return $pdf->stream($filename);
