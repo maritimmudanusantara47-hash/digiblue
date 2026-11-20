@@ -21,6 +21,7 @@ export default function NotificationBell({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [markingAll, setMarkingAll] = useState<boolean>(false);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Format relative time (Bahasa Indonesia)
@@ -146,6 +147,11 @@ export default function NotificationBell({
     }
   };
 
+  const toggleExpand = (id: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setExpandedId(prev => (prev === id ? null : id));
+  };
+
   // Helper styling icon sesuai tipe notifikasi
   const getNotificationIconMeta = (type: string, iconName?: string | null) => {
     switch (type) {
@@ -267,30 +273,54 @@ export default function NotificationBell({
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-1.5">
-                        <p
-                          className={`text-xs leading-snug line-clamp-1 ${
-                            !item.is_read ? 'font-bold text-[#07192C]' : 'font-semibold text-slate-700'
-                          }`}
-                        >
-                          {item.title}
-                        </p>
-                        <span className="text-[10px] text-slate-400 shrink-0 font-medium mt-0.5">
-                          {formatTimeAgo(item.created_at)}
-                        </span>
-                      </div>
+                      {(() => {
+                        const isExpanded = expandedId === item.id;
+                        return (
+                          <>
+                            <div className="flex items-start justify-between gap-1.5">
+                              <p
+                                title={item.title}
+                                className={`text-xs leading-snug break-words transition-all duration-200 ${
+                                  isExpanded ? 'line-clamp-none' : 'line-clamp-1 group-hover:line-clamp-none'
+                                } ${!item.is_read ? 'font-bold text-[#07192C]' : 'font-semibold text-slate-700'}`}
+                              >
+                                {item.title}
+                              </p>
+                              <span className="text-[10px] text-slate-400 shrink-0 font-medium mt-0.5">
+                                {formatTimeAgo(item.created_at)}
+                              </span>
+                            </div>
 
-                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                        {item.message}
-                      </p>
+                            <p
+                              title={item.message}
+                              className={`text-[11px] text-slate-500 mt-1 leading-relaxed transition-all duration-200 break-words ${
+                                isExpanded ? 'line-clamp-none' : 'line-clamp-2 group-hover:line-clamp-none'
+                              }`}
+                            >
+                              {item.message}
+                            </p>
 
-                      {/* Action URL Pill */}
-                      {item.action_url && (
-                        <div className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-sky-600 group-hover:text-sky-700">
-                          <span>Buka halaman</span>
-                          <Icon name="chevron-right" size={10} />
-                        </div>
-                      )}
+                            {/* Tombol Lihat Selengkapnya khusus tampilan Mobile / Touch Screen */}
+                            {item.message && item.message.length > 70 && (
+                              <button
+                                type="button"
+                                onClick={e => toggleExpand(item.id, e)}
+                                className="mt-1 text-[10px] font-bold text-sky-600 hover:text-sky-700 inline-block cursor-pointer sm:hidden"
+                              >
+                                {isExpanded ? 'Sembunyikan' : 'Lihat selengkapnya'}
+                              </button>
+                            )}
+
+                            {/* Action URL Pill */}
+                            {item.action_url && (
+                              <div className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-sky-600 group-hover:text-sky-700">
+                                <span>Buka halaman</span>
+                                <Icon name="chevron-right" size={10} />
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {/* Right Unread Indicator / Dismiss */}
@@ -301,7 +331,7 @@ export default function NotificationBell({
                       <button
                         type="button"
                         onClick={e => handleDeleteNotification(item.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+                        className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
                         title="Hapus"
                       >
                         <Icon name="trash" size={15} />
