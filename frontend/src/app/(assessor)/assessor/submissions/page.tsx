@@ -144,29 +144,32 @@ function AssessorSubmissionsContent() {
 
   return (
     <div className="animate-fadeup">
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-navy-dark">{t('title')}</h1>
+        <p className="text-slate-500 text-xs sm:text-sm mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Filter */}
-      <div className="card mb-6 flex gap-3 items-center">
-        {(['pending', 'graded', ''] as const).map((s) => (
-          <button
-            key={s}
-            id={`filter-${s || 'all'}`}
-            onClick={() => { setStatus(s); setPage(1); }}
-            className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'}`}
-          >
-            {s === 'pending' ? <><Icon name="hourglass" size={16} className="mr-1.5" />{t('opt_pending')}</> : s === 'graded' ? <><Icon name="check-circle-1" size={16} className="mr-1.5" />{t('opt_graded')}</> : t('opt_all')}
-          </button>
-        ))}
-        <span className="ml-auto text-slate-400 text-sm">{total} {t('lbl_task_count')}</span>
+      <div className="card mb-6 p-3 sm:p-4 flex flex-wrap gap-2.5 sm:gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-2 items-center">
+          {(['pending', 'graded', ''] as const).map((s) => (
+            <button
+              key={s}
+              id={`filter-${s || 'all'}`}
+              onClick={() => { setStatus(s); setPage(1); }}
+              className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'} text-xs`}
+            >
+              {s === 'pending' ? <><Icon name="hourglass" size={14} className="mr-1 sm:mr-1.5" />{t('opt_pending')}</> : s === 'graded' ? <><Icon name="check-circle-1" size={14} className="mr-1 sm:mr-1.5" />{t('opt_graded')}</> : t('opt_all')}
+            </button>
+          ))}
+        </div>
+        <span className="text-slate-400 text-xs sm:text-sm font-medium">{total} {t('lbl_task_count')}</span>
       </div>
 
-      {/* Table */}
+      {/* Submissions List Container */}
       <div className="card overflow-hidden p-0">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View (hidden on mobile < md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-navy text-white">
               <tr>
@@ -247,6 +250,86 @@ function AssessorSubmissionsContent() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Responsive Card View (< md) */}
+        <div className="block md:hidden divide-y divide-slate-100">
+          {loading ? (
+            <div className="p-8 text-center text-slate-400">
+              <div className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5 text-navy" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                <span className="text-xs">{t('msg_loading')}</span>
+              </div>
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 text-xs">
+              {statusFilter === 'pending' ? <><Icon name="party-spray" size={16} className="mr-1.5" />{t('msg_all_graded')}</> : t('msg_empty')}
+            </div>
+          ) : submissions.map((sub) => {
+            const maxScore = sub.content?.max_score && sub.content.max_score > 0 ? sub.content.max_score : 100;
+            return (
+              <div key={sub.id} className="p-4 bg-white hover:bg-slate-50/70 transition-colors flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-[#07192C] truncate">{sub.user?.name}</p>
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      {sub.user?.country ?? sub.user?.institution ?? sub.user?.email}
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border shrink-0 ${TYPE_BADGE[sub.content?.content_type] ?? 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                    {(getTypeLabel(t) as any)[sub.content?.content_type] ?? sub.content?.content_type}
+                  </span>
+                </div>
+
+                <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-100">
+                  <p className="font-semibold text-xs text-slate-800 line-clamp-2">
+                    {sub.content?.title}
+                  </p>
+                  {sub.file_share_url && (
+                    <span className="inline-flex items-center gap-1 text-[11px] text-sky-600 mt-1.5 font-medium">
+                      <Icon name="paperclip-1" size={12} />
+                      <span>Lampiran dokumen tersedia</span>
+                    </span>
+                  )}
+                  <span className="text-[10px] text-slate-400 block mt-1">
+                    Dikirim: {new Date(sub.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-medium block">Status Skor:</span>
+                    {sub.score !== null ? (
+                      <span className="font-bold text-sm text-[#07192C]">
+                        {sub.score}<span className="text-slate-400 font-normal text-xs">/{maxScore}</span>
+                      </span>
+                    ) : (
+                      <span className="text-amber-600 text-xs font-semibold">{t('lbl_not_graded')}</span>
+                    )}
+                  </div>
+
+                  <button
+                    id={`grade-btn-mob-${sub.id}`}
+                    onClick={() => {
+                      setGrading(sub);
+                      setScore(sub.score !== null ? String(sub.score) : '');
+                      setFeedback(sub.assessor_feedback ?? '');
+                    }}
+                    className="btn btn-sm btn-secondary text-xs px-3.5 py-1.5"
+                  >
+                    {sub.score !== null ? (
+                      <><Icon name="pencil-1" size={14} className="mr-1" />{t('btn_edit_grade')}</>
+                    ) : (
+                      <><Icon name="pen-to-square" size={14} className="mr-1" />{t('btn_grade')}</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-secondary btn-sm disabled:opacity-40"><Icon name="arrow-left" size={16} className="mr-1.5" />{t('btn_prev')}</button>
@@ -259,8 +342,8 @@ function AssessorSubmissionsContent() {
       {/* Grading Modal */}
       {grading && (
         <ModalPortal>
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto animate-fadeup p-6 sm:p-7 relative my-auto border border-slate-100">
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl max-h-[92vh] overflow-y-auto animate-fadeup p-4 sm:p-7 relative my-auto border border-slate-100">
               {/* Header */}
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
@@ -323,7 +406,7 @@ function AssessorSubmissionsContent() {
                         href={resolveFileUrl(grading.file_share_url)}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-navy text-white text-xs font-semibold hover:bg-navy-dark transition-all shadow-xs shrink-0"
+                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-navy text-white text-xs font-semibold hover:bg-navy-dark transition-all shadow-xs shrink-0 w-full sm:w-auto"
                       >
                         <Icon name="paperclip-1" size={14} />
                         <span>Buka / Unduh Berkas</span>
@@ -359,7 +442,7 @@ function AssessorSubmissionsContent() {
                       href={grading.video_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 text-navy text-sm font-semibold hover:underline bg-slate-50 px-4 py-2 rounded-full border border-slate-200 hover:border-slate-300 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 text-navy text-sm font-semibold hover:underline bg-slate-50 px-4 py-2 rounded-full border border-slate-200 hover:border-slate-300 transition-colors w-full sm:w-auto"
                     >
                       <Icon name="camera-movie-1" size={16} className="text-rose-600" />
                       <span>{t('btn_open_video')}</span>
@@ -410,18 +493,18 @@ function AssessorSubmissionsContent() {
                       placeholder={t('placeholder_feedback')}
                     />
                   </div>
-                  <div className="flex items-center justify-end gap-3 mt-4">
+                  <div className="flex flex-col-reverse sm:flex-row items-center sm:justify-end gap-2.5 sm:gap-3 mt-4">
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="px-5 py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-2.5 sm:py-2 text-sm font-semibold rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer text-center justify-center"
                     >
                       {t('btn_cancel')}
                     </button>
                     <button
                       type="submit"
                       disabled={saving}
-                      className="px-5 py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                      className="w-full sm:w-auto px-5 py-2.5 sm:py-2 text-sm font-semibold rounded-full bg-[#112a46] hover:bg-[#00162d] text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
                     >
                       {saving ? t('btn_saving') : <><Icon name="check-circle-1" size={16} /><span>{t('btn_save_grade')}</span></>}
                     </button>

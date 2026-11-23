@@ -281,7 +281,7 @@ function StudentDashboardContent() {
   const pendingCourses = enrollments.filter((e) => e.status === 'payment_pending');
 
   return (
-    <div className="space-y-8 animate-fadeup pb-8">
+    <div className="space-y-6 sm:space-y-8 animate-fadeup pb-8">
       {/* Just Verified Success Alert */}
       {justVerified && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/90 flex items-start justify-between gap-3 text-emerald-900 shadow-xs">
@@ -314,7 +314,7 @@ function StudentDashboardContent() {
               <Icon name="envelope-1" size={20} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-bold text-sm text-[#07192C]">Email Anda Belum Terverifikasi</h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900">Perhatian</span>
               </div>
@@ -339,11 +339,11 @@ function StudentDashboardContent() {
               )}
             </div>
           </div>
-          <div className="shrink-0 self-end md:self-center">
+          <div className="shrink-0 w-full sm:w-auto self-stretch sm:self-center">
             <button
               onClick={handleResendVerification}
               disabled={resendingEmail}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
+              className="w-full sm:w-auto justify-center px-4 py-2 rounded-xl text-xs font-bold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
             >
               {resendingEmail ? (
                 <>
@@ -362,33 +362,33 @@ function StudentDashboardContent() {
       )}
 
       {/* Student Welcome Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.04)]">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.04)]">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 text-sky-800 text-xs font-semibold mb-2.5">
-            <span className="w-2 h-2 rounded-full bg-sky-500" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-sky-800 text-xs font-semibold mb-2.5 flex-wrap">
+            <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
             <span>Portal Pembelajar Blue Economy</span>
             {user?.country && (
               <>
-                <span className="text-slate-300">•</span>
-                <span>{user.country}</span>
+                <span className="text-slate-300 hidden sm:inline">•</span>
+                <span className="text-slate-500 sm:text-sky-800">{user.country}</span>
               </>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#07192C] font-heading tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-[#07192C] font-heading tracking-tight">
             {t('title')} {user?.name?.split(' ')[0] ?? t('default_name')}
           </h1>
-          <p className="text-slate-500 text-sm mt-1 leading-relaxed max-w-xl">
+          <p className="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed max-w-xl">
             Tingkatkan keahlian maritim dan sertifikasi resmi Anda bersama The Blue Economist.
           </p>
         </div>
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((s) => (
           <div
             key={s.label}
-            className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-[0_4px_16px_-4px_rgba(7,25,44,0.03)] flex flex-col justify-between"
+            className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-[0_4px_16px_-4px_rgba(7,25,44,0.03)] flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${s.colorBadge}`}>
@@ -408,7 +408,7 @@ function StudentDashboardContent() {
       </div>
 
       {/* Kursus Saya (My Learning Track) */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
           <div>
             <h2 className="text-lg font-bold text-[#07192C] font-heading">
@@ -525,7 +525,7 @@ function StudentDashboardContent() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                  <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 flex-wrap justify-between sm:justify-end">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${badgeCfg.bg} ${badgeCfg.text} ${badgeCfg.border}`}>
                       {badgeCfg.label.startsWith('status_') ? t(badgeCfg.label as any) : badgeCfg.label}
                     </span>

@@ -139,13 +139,13 @@ export default function StudentCertificatesPage() {
               </div>
 
               {/* Footer actions */}
-              <div className="px-6 py-4 flex flex-col gap-2.5">
-                <div className="flex gap-3">
+              <div className="px-4 sm:px-6 py-4 flex flex-col gap-2.5">
+                <div className="flex gap-2.5 sm:gap-3">
                   <button
                     id={`download-cert-${cert.id}`}
                     onClick={() => handleDownload(cert)}
                     disabled={downloading === cert.id}
-                    className="btn btn-primary flex-1 text-sm"
+                    className="btn btn-primary flex-1 text-xs sm:text-sm px-3 sm:px-4 py-2.5"
                   >
                     {downloading === cert.id ? (
                       <span className="flex items-center justify-center gap-2">
@@ -153,16 +153,16 @@ export default function StudentCertificatesPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                         </svg>
-                        {t('btn_downloading')}
+                        <span>{t('btn_downloading')}</span>
                       </span>
-                    ) : <><Icon name="download-1" size={16} className="mr-1.5" />{t('btn_download')}</>}
+                    ) : <><Icon name="download-1" size={15} className="mr-1.5 shrink-0" /><span>{t('btn_download')}</span></>}
                   </button>
                   <button
                     id={`verify-cert-${cert.id}`}
                     onClick={() => handleVerify(cert)}
-                    className="btn btn-secondary text-sm px-4"
+                    className="btn btn-secondary text-xs sm:text-sm px-3.5 sm:px-4 py-2.5 shrink-0"
                   >
-                    <Icon name="link-2-angular-right" size={16} className="mr-1.5" />{t('btn_verify')}
+                    <Icon name="link-2-angular-right" size={15} className="mr-1.5 shrink-0" /><span>{t('btn_verify')}</span>
                   </button>
                 </div>
 
@@ -171,20 +171,20 @@ export default function StudentCertificatesPage() {
                     id={`download-fs-cert-${cert.id}`}
                     onClick={() => handleDownload(cert, 'field_study')}
                     disabled={downloadingCt === cert.id}
-                    className="btn btn-gold w-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 py-2 shadow-xs"
+                    className="btn btn-gold btn-multiline w-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 px-3 py-2.5 shadow-xs !whitespace-normal !h-auto min-w-0 max-w-full text-center"
                   >
-                    <Icon name="certificate-badge-1" size={16} />
-                    {downloadingCt === cert.id ? 'Mengunduh Field Study...' : 'Unduh Sertifikat Field Study (Completion)'}
+                    <Icon name="certificate-badge-1" size={16} className="shrink-0" />
+                    <span className="break-words leading-tight">{downloadingCt === cert.id ? t('btn_downloading_fs') : t('btn_download_fs')}</span>
                   </button>
                 ) : (cert.enrollment?.course?.certification_level?.code === 'FND' || cert.enrollment?.course?.title?.toLowerCase().includes('foundation')) ? (
                   <button
                     id={`download-ct-cert-${cert.id}`}
                     onClick={() => handleDownload(cert, 'critical_thinking')}
                     disabled={downloadingCt === cert.id}
-                    className="btn btn-gold w-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 py-2 shadow-xs"
+                    className="btn btn-gold btn-multiline w-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 px-3 py-2.5 shadow-xs !whitespace-normal !h-auto min-w-0 max-w-full text-center"
                   >
-                    <Icon name="certificate-badge-1" size={16} />
-                    {downloadingCt === cert.id ? 'Mengunduh Critical Thinking...' : 'Unduh Sertifikat Critical Thinking (Completion)'}
+                    <Icon name="certificate-badge-1" size={16} className="shrink-0" />
+                    <span className="break-words leading-tight">{downloadingCt === cert.id ? t('btn_downloading_ct') : t('btn_download_ct')}</span>
                   </button>
                 ) : null}
               </div>

@@ -85,6 +85,13 @@
     @apply inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold
            cursor-pointer transition-all duration-200 whitespace-nowrap select-none;
   }
+  .btn.btn-multiline,
+  .btn-multiline {
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+    height: auto !important;
+  }
   .btn-primary {
     background: linear-gradient(135deg, #1E3A5F 0%, #2A5298 100%);
     @apply text-white shadow-lg hover:-translate-y-0.5;
@@ -146,9 +153,8 @@
     background: #07192C;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     font-family: var(--font-heading);
-    @apply w-64 xl:w-72 h-screen sticky top-0 flex flex-col flex-shrink-0 z-30 overflow-hidden shadow-2xl;
+    @apply w-72 lg:w-64 xl:w-72 h-screen flex flex-col flex-shrink-0 overflow-hidden shadow-2xl;
     height: 100vh;
-    align-self: flex-start;
   }
   .sidebar-nav {
     font-family: var(--font-heading);
