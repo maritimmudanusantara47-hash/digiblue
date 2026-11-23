@@ -88,18 +88,18 @@ export default function AssessorDashboard() {
   const totalAssessed = (data?.pending_count ?? 0) + (data?.graded_count ?? 0);
 
   return (
-    <div className="space-y-8 animate-fadeup pb-8">
+    <div className="space-y-6 sm:space-y-8 animate-fadeup pb-8">
       {/* Assessor Welcome Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 text-amber-800 text-xs font-semibold mb-2.5">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-amber-800 text-xs font-semibold mb-2.5 flex-wrap">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
             <span>Penilai Resmi Blue Economy Terakreditasi</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#07192C] font-heading tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-[#07192C] font-heading tracking-tight">
             {t('title')}
           </h1>
-          <p className="text-slate-500 text-sm mt-1 leading-relaxed max-w-xl">
+          <p className="text-slate-500 text-xs sm:text-sm mt-1 leading-relaxed max-w-xl">
             {t('subtitle')}
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function AssessorDashboard() {
         <div className="flex items-center gap-3">
           <Link
             href="/assessor/submissions"
-            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#07192C] hover:bg-[#0284c7] transition-all shadow-xs flex items-center gap-2 font-heading"
+            className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#07192C] hover:bg-[#0284c7] transition-all shadow-xs flex items-center gap-2 font-heading"
           >
             <Icon name="pen-to-square" size={16} className="text-amber-400" />
             <span>Mulai Penilaian</span>
@@ -116,7 +116,7 @@ export default function AssessorDashboard() {
       </div>
 
       {/* KPI Metric Cards: 3 Balanced Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
         {/* Pending Submissions */}
         <Link
           href="/assessor/submissions"
@@ -206,7 +206,7 @@ export default function AssessorDashboard() {
       </div>
 
       {/* Recent Submissions List (Full Width) */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
             <div>
               <h2 className="text-lg font-bold text-[#07192C] font-heading">

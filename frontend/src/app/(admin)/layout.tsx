@@ -4,7 +4,7 @@ import Icon from '@/components/Icon';
 import NotificationBell from '@/components/NotificationBell';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Cookies from 'js-cookie';
 import { useAuthStore } from '@/store/authStore';
@@ -24,12 +24,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const t = useTranslations('AdminPortal');
   const pathname = usePathname();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch { }
     clearAuth();
     window.location.replace('/');
   };
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -54,12 +59,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 relative">
+      {/* Mobile Drawer Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Redesigned Executive Admin Sidebar */}
-      <aside className="sidebar">
+      <aside
+        className={`sidebar fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:sticky lg:top-0 lg:z-30 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         {/* Brand Crest Header */}
-        <div className="px-5 py-5 border-b border-white/10 flex-shrink-0">
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="px-5 py-5 border-b border-white/10 flex-shrink-0 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group" onClick={() => setSidebarOpen(false)}>
             <div className="w-10 h-10 rounded-xl bg-[#00162d] border border-sky-400/30 flex items-center justify-center p-2 shadow-xs group-hover:scale-105 transition-transform shrink-0">
               <Icon name="certificate-badge-1" size={20} className="text-amber-400" />
             </div>
@@ -72,6 +90,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </span>
             </div>
           </Link>
+
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 lg:hidden transition-colors cursor-pointer"
+            aria-label="Tutup menu"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Admin Identity Card */}
@@ -98,12 +127,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </span>
         </div>
 
-        {/* Navigation Menu (Strict: No items added or removed) */}
+        {/* Navigation Menu */}
         <nav className="sidebar-nav">
           {adminNav.map(item => (
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setSidebarOpen(false)}
               className={`sidebar-link ${pathname.startsWith(item.href) ? 'active' : ''}`}
             >
               <Icon name={item.icon} size={18} />
@@ -125,10 +155,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content Viewport with Header */}
-      <div className="flex-1 min-w-0 flex flex-col max-w-[calc(100vw-256px)] xl:max-w-[calc(100vw-288px)]">
-        <header className="sticky top-0 z-20 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 sm:px-8 lg:px-10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-xs uppercase tracking-wider text-slate-400 font-mono">
+      <div className="flex-1 min-w-0 flex flex-col w-full max-w-full lg:max-w-[calc(100vw-256px)] xl:max-w-[calc(100vw-288px)]">
+        <header className="sticky top-0 z-20 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 -ml-1 rounded-xl text-slate-700 hover:text-sky-600 hover:bg-slate-100 transition-colors lg:hidden focus:outline-none cursor-pointer"
+              aria-label="Buka menu navigasi"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <span className="font-bold text-xs uppercase tracking-wider text-slate-400 font-mono truncate">
               Admin Console
             </span>
           </div>
@@ -137,7 +177,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 p-6 sm:p-8 lg:p-10">
+        <main className="flex-1 p-4 sm:p-6 lg:p-10">
           {children}
         </main>
       </div>

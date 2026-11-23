@@ -521,6 +521,10 @@
     "btn_downloading": "Mengunduh...",
     "btn_download": "Download PDF",
     "btn_verify": "Verifikasi",
+    "btn_download_fs": "Sertifikat Field Study (Completion)",
+    "btn_downloading_fs": "Mengunduh Field Study...",
+    "btn_download_ct": "Sertifikat Critical Thinking (Completion)",
+    "btn_downloading_ct": "Mengunduh Critical Thinking...",
     "sync_synced": "Tersinkronisasi ke The Blue Economist",
     "sync_failed": "Gagal sinkronisasi",
     "sync_pending": "Menunggu sinkronisasi"

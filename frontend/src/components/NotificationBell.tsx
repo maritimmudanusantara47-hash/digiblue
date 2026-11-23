@@ -310,14 +310,6 @@ export default function NotificationBell({
                                 {isExpanded ? 'Sembunyikan' : 'Lihat selengkapnya'}
                               </button>
                             )}
-
-                            {/* Action URL Pill */}
-                            {item.action_url && (
-                              <div className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-sky-600 group-hover:text-sky-700">
-                                <span>Buka halaman</span>
-                                <Icon name="chevron-right" size={10} />
-                              </div>
-                            )}
                           </>
                         );
                       })()}
