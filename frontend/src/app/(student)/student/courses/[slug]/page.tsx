@@ -59,7 +59,20 @@ interface EnrollInfo {
   enrollment_type: string;
   attended_field_trip: boolean;
   batch_id?: number | null;
-  batch?: { id: number; batch_name: string; batch_code?: string | null; certificate_issue_date?: string | null } | null;
+  batch?: {
+    id: number;
+    batch_name: string;
+    batch_code?: string | null;
+    start_date?: string | null;
+    end_date?: string | null;
+    in_class_learning_date?: string | null;
+    exam_mcq_date?: string | null;
+    exam_essay_start_date?: string | null;
+    exam_essay_end_date?: string | null;
+    exam_presentation_date?: string | null;
+    field_trip_date?: string | null;
+    certificate_issue_date?: string | null;
+  } | null;
 }
 interface CertificateInfo { id: number; serial_number: string; serial_url_key: string; grade: string }
 interface EligibilityInfo {
@@ -378,16 +391,74 @@ export default function StudentCoursePage() {
           <aside className="w-80 lg:w-88 flex-shrink-0 border-r border-slate-200 bg-white overflow-y-auto h-full z-20 shadow-sm animate-fadein">
         {/* Course Info */}
         <div className="p-5 border-b border-slate-200">
-          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-            {enrollment?.batch ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                <Icon name="flag-1" size={10} />
-                {enrollment.batch.batch_name}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                Jalur Mandiri (Self-Paced)
-              </span>
+          <div className="flex flex-col gap-2 mb-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {enrollment?.batch ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <Icon name="flag-1" size={10} />
+                  {enrollment.batch.batch_name}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                  Jalur Mandiri (Self-Paced)
+                </span>
+              )}
+            </div>
+
+            {/* Timeline Ringkas Angkatan (Flyer Timeline) */}
+            {enrollment?.batch && (enrollment.batch.in_class_learning_date || enrollment.batch.exam_mcq_date || enrollment.batch.exam_essay_start_date) && (
+              <details className="group bg-slate-50 border border-slate-200/80 rounded-xl text-xs overflow-hidden transition-all">
+                <summary className="p-2.5 font-bold text-navy-dark text-[11px] flex items-center justify-between cursor-pointer select-none hover:bg-slate-100/60 transition-colors">
+                  <span className="flex items-center gap-1.5">
+                    <Icon name="calendar-days" size={12} className="text-indigo-600" />
+                    Jadwal & Timeline Angkatan
+                  </span>
+                  <span className="text-[10px] text-indigo-600 font-semibold group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div className="px-2.5 pb-2.5 pt-1 space-y-1.5 text-[11px] border-t border-slate-200/60 bg-white">
+                  {enrollment.batch.in_class_learning_date && (
+                    <div className="flex items-start justify-between gap-1">
+                      <span className="text-slate-500">In-Class Learning:</span>
+                      <span className="font-semibold text-slate-800 text-right">
+                        {new Date(enrollment.batch.in_class_learning_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
+                  {enrollment.batch.exam_mcq_date && (
+                    <div className="flex items-start justify-between gap-1">
+                      <span className="text-indigo-700 font-medium">Exam: Multiple-Choice:</span>
+                      <span className="font-bold text-indigo-900 text-right">
+                        {new Date(enrollment.batch.exam_mcq_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
+                  {enrollment.batch.exam_essay_start_date && (
+                    <div className="flex items-start justify-between gap-1">
+                      <span className="text-amber-800 font-medium">Exam: Case-Study Essay:</span>
+                      <span className="font-bold text-amber-900 text-right">
+                        {new Date(enrollment.batch.exam_essay_start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        {enrollment.batch.exam_essay_end_date ? ` – ${new Date(enrollment.batch.exam_essay_end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}` : ''}
+                      </span>
+                    </div>
+                  )}
+                  {enrollment.batch.exam_presentation_date && (
+                    <div className="flex items-start justify-between gap-1">
+                      <span className="text-purple-700 font-medium">Exam: Presentation:</span>
+                      <span className="font-bold text-purple-900 text-right">
+                        {new Date(enrollment.batch.exam_presentation_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
+                  {enrollment.batch.certificate_issue_date && (
+                    <div className="flex items-start justify-between gap-1 pt-1 border-t border-slate-100">
+                      <span className="text-sky-700 font-medium">Terbit Sertifikat:</span>
+                      <span className="font-bold text-sky-900 text-right">
+                        {new Date(enrollment.batch.certificate_issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </details>
             )}
           </div>
           <h2 className="font-extrabold text-navy-dark text-sm leading-snug line-clamp-2">{data.course.title}</h2>

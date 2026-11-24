@@ -74,7 +74,13 @@ export interface CourseBatch {
   registration_end_date?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  in_class_learning_date?: string | null;
+  exam_mcq_date?: string | null;
+  exam_essay_start_date?: string | null;
+  exam_essay_end_date?: string | null;
+  exam_presentation_date?: string | null;
   field_trip_date?: string | null;
+  certificate_issue_date?: string | null;
   is_active: boolean;
   enrollments_count?: number;
   course?: { id: number; title: string };
