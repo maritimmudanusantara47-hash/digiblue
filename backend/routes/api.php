@@ -57,6 +57,7 @@ Route::prefix('v1')->group(function () {
         Route::get('enrollments',           [EnrollmentController::class, 'index']);
         Route::post('enrollments',          [EnrollmentController::class, 'store']);          // Daftar kursus
         Route::delete('enrollments/{id}/cancel', [EnrollmentController::class, 'cancel']);   // Batalkan pesanan
+        Route::delete('enrollments/{id}',        [EnrollmentController::class, 'cancel']);   // Batalkan pesanan (support direct DELETE /enrollments/{id})
         Route::get('enrollments/{id}',      [EnrollmentController::class, 'show']);
         Route::get('enrollments/{id}/contents', [ContentController::class, 'index']);         // Daftar konten kursus
 

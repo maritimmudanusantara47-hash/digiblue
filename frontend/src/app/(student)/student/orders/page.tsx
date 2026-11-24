@@ -165,7 +165,7 @@ export default function StudentOrdersPage() {
 
     setCancellingId(enrollmentId);
     try {
-      await api.delete(`/enrollments/${enrollmentId}`);
+      await api.delete(`/enrollments/${enrollmentId}/cancel`);
       showSuccess('Pesanan Dibatalkan', `Pesanan untuk "${courseTitle}" telah dibatalkan.`);
       await loadOrders();
     } catch (err: unknown) {
