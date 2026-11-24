@@ -129,6 +129,7 @@ Route::prefix('v1')->group(function () {
             Route::get('enrollments',                       [EnrollmentController::class, 'adminIndex']);   // List semua enrollment
             Route::post('enrollments',                      [EnrollmentController::class, 'adminStore']);   // Manual enroll user
             Route::patch('enrollments/{id}/status',         [EnrollmentController::class, 'updateStatus']); // Ubah status
+            Route::patch('enrollments/{id}/field-trip',     [EnrollmentController::class, 'toggleFieldTrip']); // Centang kehadiran Field Trip
             Route::delete('enrollments/{id}',               [EnrollmentController::class, 'destroy']);      // Hapus enrollment
 
             // Batch Angkatan Management (Admin)

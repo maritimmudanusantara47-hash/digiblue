@@ -1294,7 +1294,22 @@ style={{
                       <div
                         onClick={() => { setSelectedKey('ribbon_text'); setEditMode(true); setMobilePanelOpen(true); }}
                         className={`absolute cursor-pointer transition-all ${editMode && selectedKey === 'ribbon_text' ? 'ring-2 ring-blue-500 bg-amber-400/10 rounded' : editMode ? 'hover:ring-1 hover:ring-blue-300' : ''}`}
-                        style={{ top: mmToPx(layout.ribbon_text?.top ?? 100.5), left: mmToPx(20 + (layout.ribbon_text?.left ?? 0)), right: mmToPx(20 - (layout.ribbon_text?.left ?? 0)), height: mmToPx(layout.ribbon_text?.height ?? 14), lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`, textAlign: 'center', fontSize: `${(layout.ribbon_text?.font_size ?? 22.5) * (SCALE / 3.4)}px`, fontWeight: 700, color: '#173874', fontFamily: "'Arial MT Pro', Arial, sans-serif", zIndex: 10 }}
+                        style={{
+                          top: mmToPx(layout.ribbon_text?.top ?? 100.5),
+                          left: mmToPx(30 + (layout.ribbon_text?.left ?? 0)),
+                          right: mmToPx(30 - (layout.ribbon_text?.left ?? 0)),
+                          height: mmToPx(layout.ribbon_text?.height ?? 14),
+                          lineHeight: `${mmToPx(layout.ribbon_text?.height ?? 14)}px`,
+                          textAlign: 'center',
+                          fontSize: `${((((sample.ribbon ?? '').length > 70) ? Math.min(layout.ribbon_text?.font_size ?? 22.5, 16.5) : (((sample.ribbon ?? '').length > 55) ? Math.min(layout.ribbon_text?.font_size ?? 22.5, 18.0) : (((sample.ribbon ?? '').length > 40) ? Math.min(layout.ribbon_text?.font_size ?? 22.5, 20.0) : (layout.ribbon_text?.font_size ?? 22.5))))) * (SCALE / 3.4)}px`,
+                          fontWeight: 700,
+                          color: '#173874',
+                          fontFamily: "'Arial MT Pro', Arial, sans-serif",
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          zIndex: 10,
+                        }}
                       >
                         {sample.ribbon}
                       </div>

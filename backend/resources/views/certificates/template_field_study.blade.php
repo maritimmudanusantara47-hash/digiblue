@@ -74,13 +74,15 @@
 
         .fs-title {
             position: absolute;
-            left: 14mm;
-            right: 14mm;
+            left: 15mm;
+            right: 15mm;
             text-align: center;
             font-weight: bold;
             color: #133e7c;
-            letter-spacing: 0.2px;
-            white-space: nowrap;
+            letter-spacing: 0.1px;
+            white-space: normal;
+            line-height: 1.25;
+            word-wrap: break-word;
         }
 
         .fs-part-date {
@@ -271,24 +273,50 @@
         if ($isFoundation) {
             $displayCourseTitle = 'International Blue Economist Certification Training Course';
         } else {
-            // Format judul spesialisasi: "International Blue Economist Certification Training Course - {Track} Specialization"
-            $specName = preg_replace('/^International Blue Economist Certification Training Course\s*[-–:]*\s*/i', '', $rawCourseTitle);
-            $specName = preg_replace('/^Certified Blue Economist in\s*/i', '', $specName);
-            $specName = preg_replace('/\s*\(CBEc\)/i', '', $specName);
-            $specName = trim($specName);
+            // Mapping resmi 12 spesialisasi agar selalu menghasilkan "{Track} Specialization"
+            $specMap = [
+                'blue-business-development'  => 'Blue Business Development',
+                'blue-carbon'                => 'Blue Carbon',
+                'the-blue-carbon'            => 'Blue Carbon',
+                'blue-community-development' => 'Blue Community Development',
+                'blue-circular-economy'      => 'Blue Circular Economy',
+                'blue-data-intelligence'     => 'Blue Data Intelligence',
+                'blue-energy'                => 'Blue Energy',
+                'blue-farming'               => 'Blue Farming',
+                'blue-finance'               => 'Blue Finance',
+                'blue-food'                  => 'Blue Food',
+                'blue-port'                  => 'Blue Port',
+                'blue-shipping'              => 'Blue Shipping',
+                'blue-tourism'               => 'Blue Tourism',
+            ];
 
-            if (empty($specName) || $specName === 'Foundation Level') {
-                $specName = ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $rawCourseSlug));
-            }
-
-            if (!empty($specName)) {
-                if (!str_contains(strtolower($specName), 'specialization')) {
-                    $specName .= ' Specialization';
+            $matchedSpec = $specMap[$rawCourseSlug] ?? null;
+            if (!$matchedSpec) {
+                $searchStr = strtolower($rawCourseTitle . ' ' . $rawCourseSlug);
+                foreach ($specMap as $k => $cleanTitle) {
+                    if (str_contains($searchStr, $k) || str_contains($searchStr, strtolower($cleanTitle))) {
+                        $matchedSpec = $cleanTitle;
+                        break;
+                    }
                 }
-                $displayCourseTitle = "International Blue Economist Certification Training Course - {$specName}";
-            } else {
-                $displayCourseTitle = 'International Blue Economist Certification Training Course';
             }
+
+            if ($matchedSpec) {
+                $specName = $matchedSpec;
+            } else {
+                // Fallback pembersihan jika track baru: hapus prefix CBEc, acronym, dsb.
+                $specName = preg_replace('/^(International Blue Economist Certification Training Course|Certified Blue Economist in|CBEc Specialization)\s*[-–:—]*\s*/iu', '', $rawCourseTitle);
+                $specName = preg_replace('/\s*[-–:]*\s*CBEc\..*$/i', '', $specName);
+                $specName = preg_replace('/\s*[-–:]*\s*\(CBEc.*?\)/i', '', $specName);
+                $specName = preg_replace('/\s*\(CBEc\)/i', '', $specName);
+                $specName = preg_replace('/\s*Specialization$/i', '', $specName);
+                $specName = trim($specName, " \t\n\r\0\x0B-–—");
+                if (empty($specName) || $specName === 'Foundation Level') {
+                    $specName = ucwords(str_replace(['blue-', '-'], ['Blue ', ' '], $rawCourseSlug));
+                }
+            }
+
+            $displayCourseTitle = "International Blue Economist Certification Training Course - {$specName} Specialization";
         }
     @endphp
 
@@ -308,7 +336,7 @@
             {{-- Training Course Title --}}
             @php
                 $tLen = strlen($displayCourseTitle);
-                $calculatedTitleFs = ($tLen > 90) ? 14.5 : (($tLen > 75) ? 15.5 : $tFs);
+                $calculatedTitleFs = ($tLen > 105) ? 13.5 : (($tLen > 90) ? 14.2 : (($tLen > 75) ? 15.0 : (($tLen > 55) ? 16.0 : $tFs)));
             @endphp
             <div class="fs-title" style="top: {{ $tTop }}mm; left: {{ 15 + $tLeft }}mm; right: {{ 15 - $tLeft }}mm; font-size: {{ $calculatedTitleFs }}pt;">
                 {{ $displayCourseTitle }}
