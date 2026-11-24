@@ -29,6 +29,8 @@ class AdminBatchController extends Controller
 
         if ($request->boolean('active_only')) {
             $query->where('is_active', true);
+        } elseif ($request->boolean('inactive_only')) {
+            $query->where('is_active', false);
         }
 
         // Filter untuk dropdown checkout siswa: hanya batch yang pendaftarannya masih buka atau belajarnya belum berakhir
@@ -44,6 +46,12 @@ class AdminBatchController extends Controller
         if ($request->has('limit')) {
             $limit = max(1, (int) $request->query('limit'));
             $query->limit($limit);
+        }
+
+        if ($request->boolean('paginate')) {
+            $perPage = max(1, (int) $request->query('per_page', 10));
+            $batches = $query->paginate($perPage);
+            return response()->json(['data' => $batches]);
         }
 
         $batches = $query->get();

@@ -80,21 +80,65 @@ export default function AdminBatchesPage() {
   const [deleteTarget, setDeleteTarget] = useState<CourseBatch | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [from, setFrom] = useState(0);
+  const [to, setTo] = useState(0);
+
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchBatches = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
+      params.set('paginate', '1');
+      params.set('page', String(currentPage));
+      params.set('per_page', String(perPage));
       if (filterCourse) params.set('course_id', filterCourse);
       if (filterActive === 'active') params.set('active_only', 'true');
+      if (filterActive === 'inactive') params.set('inactive_only', 'true');
       const res = await api.get(`/admin/batches?${params}`);
-      setBatches(res.data.data ?? []);
+      const payload = res.data.data;
+
+      if (payload && Array.isArray(payload.data)) {
+        setBatches(payload.data);
+        setCurrentPage(payload.current_page ?? 1);
+        setLastPage(payload.last_page ?? 1);
+        setTotal(payload.total ?? 0);
+        setFrom(payload.from ?? (payload.data.length > 0 ? (payload.current_page - 1) * perPage + 1 : 0));
+        setTo(payload.to ?? (payload.data.length > 0 ? (payload.current_page - 1) * perPage + payload.data.length : 0));
+      } else if (Array.isArray(payload)) {
+        setBatches(payload);
+        setTotal(payload.length);
+        setFrom(payload.length > 0 ? 1 : 0);
+        setTo(payload.length);
+        setLastPage(1);
+      } else {
+        setBatches([]);
+      }
     } catch {
       setBatches([]);
     } finally {
       setLoading(false);
     }
-  }, [filterCourse, filterActive]);
+  }, [filterCourse, filterActive, currentPage, perPage]);
+
+  const handleFilterCourseChange = (val: string) => {
+    setFilterCourse(val);
+    setCurrentPage(1);
+  };
+
+  const handleFilterActiveChange = (val: string) => {
+    setFilterActive(val);
+    setCurrentPage(1);
+  };
+
+  const handlePerPageChange = (val: number) => {
+    setPerPage(val);
+    setCurrentPage(1);
+  };
 
   const fetchAllBatches = useCallback(async () => {
     try {
@@ -122,6 +166,12 @@ export default function AdminBatchesPage() {
   const fmtDate = (d: string | null) => {
     if (!d) return '—';
     try { return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    catch { return d; }
+  };
+
+  const fmtShortDate = (d: string | null) => {
+    if (!d) return '—';
+    try { return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }); }
     catch { return d; }
   };
 
@@ -540,7 +590,7 @@ export default function AdminBatchesPage() {
           <select
             id="filter-course"
             value={filterCourse}
-            onChange={e => setFilterCourse(e.target.value)}
+            onChange={e => handleFilterCourseChange(e.target.value)}
             className="form-input py-2 text-sm"
           >
             <option value="">Semua Kursus</option>
@@ -551,7 +601,7 @@ export default function AdminBatchesPage() {
           <select
             id="filter-active"
             value={filterActive}
-            onChange={e => setFilterActive(e.target.value)}
+            onChange={e => handleFilterActiveChange(e.target.value)}
             className="form-input py-2 text-sm"
           >
             <option value="">Semua Status</option>
@@ -559,84 +609,102 @@ export default function AdminBatchesPage() {
             <option value="inactive">Non-aktif Saja</option>
           </select>
         </div>
-        <span className="text-slate-400 text-sm">{displayed.length} batch ditemukan</span>
+        <span className="text-slate-500 text-sm font-medium">
+          Total <strong className="text-navy-dark font-bold">{total}</strong> batch ditemukan
+        </span>
       </div>
 
       {/* Table */}
-      <div className="card overflow-hidden p-0">
+      <div className="card overflow-hidden p-0 border border-slate-200/80 shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-navy text-white">
+            <thead className="bg-[#001c38] text-white">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">#</th>
-                <th className="px-4 py-3 text-left font-semibold">Kursus</th>
-                <th className="px-4 py-3 text-left font-semibold">Nama Batch</th>
-                <th className="px-4 py-3 text-left font-semibold">Kode</th>
-                <th className="px-4 py-3 text-left font-semibold">Periode Belajar</th>
-                <th className="px-4 py-3 text-left font-semibold">Field Trip</th>
-                <th className="px-4 py-3 text-left font-semibold">Terbit Sertifikat</th>
-                <th className="px-4 py-3 text-center font-semibold">Peserta</th>
-                <th className="px-4 py-3 text-center font-semibold">Status</th>
-                <th className="px-4 py-3 text-left font-semibold">Aksi</th>
+                <th className="px-3.5 py-3.5 text-center font-semibold w-12 text-xs">#</th>
+                <th className="px-4 py-3.5 text-left font-semibold min-w-[200px] max-w-[280px] text-xs">Kursus</th>
+                <th className="px-4 py-3.5 text-left font-semibold whitespace-nowrap min-w-[110px] text-xs">Nama Batch</th>
+                <th className="px-3 py-3.5 text-center font-semibold whitespace-nowrap w-20 text-xs">Kode</th>
+                <th className="px-4 py-3.5 text-left font-semibold min-w-[270px] text-xs">Periode Belajar & Timeline</th>
+                <th className="px-4 py-3.5 text-left font-semibold whitespace-nowrap min-w-[110px] text-xs">Field Trip</th>
+                <th className="px-4 py-3.5 text-left font-semibold whitespace-nowrap min-w-[130px] text-xs">Terbit Sertifikat</th>
+                <th className="px-3 py-3.5 text-center font-semibold whitespace-nowrap w-20 text-xs">Peserta</th>
+                <th className="px-3 py-3.5 text-center font-semibold whitespace-nowrap w-24 text-xs">Status</th>
+                <th className="px-4 py-3.5 text-center font-semibold whitespace-nowrap w-20 text-xs">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={10} className="px-4 py-16 text-center text-slate-400">Memuat data batch...</td></tr>
-              ) : displayed.length === 0 ? (
+              ) : batches.length === 0 ? (
                 <tr><td colSpan={10} className="px-4 py-16 text-center text-slate-400">
                   <Icon name="info" size={32} className="mx-auto mb-2 opacity-40" />
                   <p>Belum ada batch. Klik &ldquo;Tambah Batch Baru&rdquo; untuk membuat.</p>
                 </td></tr>
-              ) : displayed.map((b, i) => (
-                <tr key={b.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 text-slate-400">{i + 1}</td>
+              ) : batches.map((b, i) => (
+                <tr key={b.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="px-3.5 py-3 text-center text-slate-400 font-medium text-xs">
+                    {(currentPage - 1) * perPage + i + 1}
+                  </td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-navy-dark text-xs leading-tight max-w-[220px] truncate" title={b.course?.title}>
+                    <p className="font-semibold text-navy-dark text-xs leading-snug line-clamp-2" title={b.course?.title}>
                       {b.course?.title ?? `Course #${b.course_id}`}
                     </p>
                   </td>
-                  <td className="px-4 py-3 font-semibold text-navy-dark">{b.batch_name}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 font-bold text-navy-dark whitespace-nowrap text-xs">{b.batch_name}</td>
+                  <td className="px-3 py-3 text-center whitespace-nowrap">
                     {b.batch_code ? (
-                      <span className="badge bg-indigo-100 text-indigo-700 border-indigo-300 text-[10px]">{b.batch_code}</span>
-                    ) : '—'}
+                      <span className="inline-block px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        {b.batch_code}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300 text-xs">—</span>
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
+                  <td className="px-4 py-3">
                     {b.start_date || b.end_date ? (
-                      <div>
-                        <span className="font-medium text-slate-700">{fmtDate(b.start_date)} — {fmtDate(b.end_date)}</span>
-                        {(b.exam_mcq_date || b.in_class_learning_date || b.exam_essay_start_date || b.exam_presentation_date) && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
+                      <div className="space-y-1">
+                        <div className="font-semibold text-slate-800 text-xs whitespace-nowrap">
+                          {fmtDate(b.start_date)} — {fmtDate(b.end_date)}
+                        </div>
+                        {(b.in_class_learning_date || b.exam_mcq_date || b.exam_essay_start_date || b.exam_presentation_date) && (
+                          <div className="grid grid-cols-2 gap-1 text-[10px] w-full max-w-[280px]">
                             {b.in_class_learning_date && (
-                              <span className="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200" title="Executive In-Class Learning">
-                                Class: {fmtDate(b.in_class_learning_date)}
+                              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200 whitespace-nowrap" title={`Executive In-Class Learning: ${fmtDate(b.in_class_learning_date)}`}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
+                                Class: {fmtShortDate(b.in_class_learning_date)}
                               </span>
                             )}
                             {b.exam_mcq_date && (
-                              <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200 font-semibold" title="Online Exam: Multiple-Choice Test">
-                                MCQ: {fmtDate(b.exam_mcq_date)}
+                              <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200 font-semibold whitespace-nowrap" title={`Online Exam MCQ: ${fmtDate(b.exam_mcq_date)}`}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                MCQ: {fmtShortDate(b.exam_mcq_date)}
                               </span>
                             )}
                             {b.exam_essay_start_date && (
-                              <span className="text-[10px] bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200" title="Online Exam: Case-Study Essay Submission">
-                                Essay: {fmtDate(b.exam_essay_start_date)}{b.exam_essay_end_date ? ` – ${fmtDate(b.exam_essay_end_date)}` : ''}
+                              <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200 whitespace-nowrap col-span-2" title={`Essay Submission: ${fmtDate(b.exam_essay_start_date)}${b.exam_essay_end_date ? ` – ${fmtDate(b.exam_essay_end_date)}` : ''}`}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                                Essay: {fmtShortDate(b.exam_essay_start_date)}{b.exam_essay_end_date ? ` – ${fmtShortDate(b.exam_essay_end_date)}` : ''}
                               </span>
                             )}
                             {b.exam_presentation_date && (
-                              <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200 font-medium" title="Online Exam: Essay Presentation">
-                                Pres: {fmtDate(b.exam_presentation_date)}
+                              <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200 font-medium whitespace-nowrap" title={`Essay Presentation: ${fmtDate(b.exam_presentation_date)}`}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
+                                Pres: {fmtShortDate(b.exam_presentation_date)}
                               </span>
                             )}
                           </div>
                         )}
                       </div>
-                    ) : '—'}
+                    ) : (
+                      <span className="text-slate-300 text-xs">—</span>
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">{fmtDate(b.field_trip_date)}</td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
+                  <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">
+                    {b.field_trip_date ? fmtDate(b.field_trip_date) : <span className="text-slate-300">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
                     {b.certificate_issue_date ? (
-                      <span className="inline-flex items-center gap-1 font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200 text-[11px]">
+                      <span className="inline-flex items-center gap-1 font-semibold text-sky-800 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200 text-[11px]">
                         <Icon name="certificate-badge-1" size={11} className="text-sky-600" />
                         {fmtDate(b.certificate_issue_date)}
                       </span>
@@ -644,20 +712,24 @@ export default function AdminBatchesPage() {
                       <span className="text-slate-400 text-[11px]">Otomatis</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="badge bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                  <td className="px-3 py-3 text-center whitespace-nowrap">
+                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold">
                       {b.enrollments_count ?? 0}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-3 text-center whitespace-nowrap">
                     {b.is_active ? (
-                      <span className="badge bg-emerald-100 text-emerald-700 border-emerald-300 text-[10px]">Aktif</span>
+                      <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300 text-[10px] font-semibold">
+                        Aktif
+                      </span>
                     ) : (
-                      <span className="badge bg-slate-100 text-slate-500 border-slate-300 text-[10px]">Non-aktif</span>
+                      <span className="inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-300 text-[10px] font-semibold">
+                        Non-aktif
+                      </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-1.5">
                       <button
                         type="button"
                         id={`btn-edit-batch-${b.id}`}
@@ -683,6 +755,72 @@ export default function AdminBatchesPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Footer */}
+        {total > 0 && (
+          <div className="px-4 py-3 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+              <span>
+                Menampilkan <strong className="text-navy-dark font-bold">{from}</strong> – <strong className="text-navy-dark font-bold">{to}</strong> dari <strong className="text-navy-dark font-bold">{total}</strong> batch
+              </span>
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 border-l border-slate-200 pl-3">
+                <span>Tampilkan</span>
+                <select
+                  value={perPage}
+                  onChange={e => handlePerPageChange(Number(e.target.value))}
+                  className="form-input py-1 px-2 text-xs rounded-lg border-slate-200 bg-white text-navy font-semibold outline-none cursor-pointer"
+                >
+                  <option value={10}>10 per halaman</option>
+                  <option value={25}>25 per halaman</option>
+                  <option value={50}>50 per halaman</option>
+                </select>
+              </div>
+            </div>
+
+            {lastPage > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  id="btn-prev-page"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1 || loading}
+                  className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
+                >
+                  <Icon name="arrow-left" size={14} className="mr-1" /> Prev
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {getPageNumbers(currentPage, lastPage).map((p, idx) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 font-medium">...</span>
+                    ) : (
+                      <button
+                        key={`page-${p}`}
+                        onClick={() => setCurrentPage(Number(p))}
+                        disabled={loading}
+                        className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                          currentPage === p
+                            ? 'bg-navy text-white shadow-sm'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-navy-dark'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  id="btn-next-page"
+                  onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))}
+                  disabled={currentPage >= lastPage || loading}
+                  className="btn btn-secondary btn-sm text-xs px-3 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100"
+                >
+                  Next <Icon name="arrow-right" size={14} className="ml-1" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Modal: Create / Edit Batch ─────────────────────────────────────── */}
@@ -1165,4 +1303,18 @@ export default function AdminBatchesPage() {
       )}
     </div>
   );
+}
+
+// ── Helper: Pagination Page Numbers ──────────────────────────────────────────
+function getPageNumbers(current: number, last: number): (number | string)[] {
+  if (last <= 7) {
+    return Array.from({ length: last }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, '...', last];
+  }
+  if (current >= last - 3) {
+    return [1, '...', last - 4, last - 3, last - 2, last - 1, last];
+  }
+  return [1, '...', current - 1, current, current + 1, '...', last];
 }
