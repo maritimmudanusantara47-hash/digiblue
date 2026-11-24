@@ -545,14 +545,6 @@ export default function StudentCartPage() {
                 )}
               </button>
 
-              {/* Teks Pembantu / Warning jika masih ada angkatan belum dipilih */}
-              {hasUnselectedBatch && items.length > 0 && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2 text-amber-800 text-[11px] leading-relaxed">
-                  <span className="text-amber-600 font-bold shrink-0 mt-0.5">⚠️</span>
-                  <span>Pastikan Anda telah memilih jadwal angkatan untuk seluruh kursus di atas.</span>
-                </div>
-              )}
-
               {/* Jaminan Keamanan & Metode Pembayaran */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
                 <div className="flex items-center gap-2 text-slate-700 text-xs font-bold">
