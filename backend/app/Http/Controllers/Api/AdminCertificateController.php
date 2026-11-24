@@ -342,6 +342,10 @@ class AdminCertificateController extends Controller
 
         $filename = $this->certService->generateCertificateFileName($cert, 'critical_thinking', $regNo);
 
+        if ($req->query('stream') === '1') {
+            return $pdf->stream($filename);
+        }
+
         return $pdf->download($filename);
     }
 
@@ -414,6 +418,10 @@ class AdminCertificateController extends Controller
         ])->setPaper('a4', 'landscape');
 
         $filename = $this->certService->generateCertificateFileName($cert, 'field_study', $regNo);
+
+        if ($req->query('stream') === '1') {
+            return $pdf->stream($filename);
+        }
 
         return $pdf->download($filename);
     }

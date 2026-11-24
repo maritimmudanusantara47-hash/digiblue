@@ -91,8 +91,8 @@
         .f-ribbon {
             position: absolute;
             top: 99.0mm;
-            left: 20mm;
-            right: 20mm;
+            left: 30mm;
+            right: 30mm;
             height: 14mm;
             line-height: 14mm;
             text-align: center;
@@ -302,12 +302,12 @@
         $rLeft = $L['ribbon_text']['left'] ?? 0;
         $rFs  = $L['ribbon_text']['font_size'] ?? 22.5;
         $rLen = mb_strlen($ribbonText);
-        if ($rLen > 75) {
-            $rFs = min($rFs, 15.0);
-        } elseif ($rLen > 60) {
-            $rFs = min($rFs, 17.0);
-        } elseif ($rLen > 48) {
-            $rFs = min($rFs, 19.0);
+        if ($rLen > 70) {
+            $rFs = min($rFs, 16.5);
+        } elseif ($rLen > 55) {
+            $rFs = min($rFs, 18.0);
+        } elseif ($rLen > 40) {
+            $rFs = min($rFs, 20.0);
         }
         $rH   = $L['ribbon_text']['height'] ?? 14.0;
 
@@ -371,7 +371,7 @@
             </div>
 
             {{-- Gold Ribbon Specialization Text --}}
-            <div class="f-ribbon" style="top: {{ $rTop }}mm; left: {{ 20 + $rLeft }}mm; right: {{ 20 - $rLeft }}mm; height: {{ $rH }}mm; line-height: {{ $rH }}mm; font-size: {{ $rFs }}pt;">
+            <div class="f-ribbon" style="top: {{ $rTop }}mm; left: {{ 30 + $rLeft }}mm; right: {{ 30 - $rLeft }}mm; height: {{ $rH }}mm; line-height: {{ $rH }}mm; font-size: {{ $rFs }}pt;">
                 {{ $ribbonText }}
             </div>
 
