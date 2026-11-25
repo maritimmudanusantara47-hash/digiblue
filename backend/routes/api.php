@@ -136,6 +136,8 @@ Route::prefix('v1')->group(function () {
             Route::get('batches',                           [AdminBatchController::class, 'index']);
             Route::get('batches/template',                  [AdminBatchController::class, 'template']);
             Route::post('batches/bulk',                     [AdminBatchController::class, 'bulkStore']);
+            Route::post('batches/sync-all-participants',    [AdminBatchController::class, 'syncAllParticipants']);
+            Route::post('batches/{id}/sync-participants',   [AdminBatchController::class, 'syncParticipants']);
             Route::post('courses/{courseId}/batches',       [AdminBatchController::class, 'store']);
             Route::post('batches',                          [AdminBatchController::class, 'store']);
             Route::patch('batches/{id}',                    [AdminBatchController::class, 'update']);

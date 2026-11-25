@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseBatch;
+use App\Models\Enrollment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -263,6 +264,82 @@ class AdminBatchController extends Controller
 
         return response()->json([
             'message' => 'Batch angkatan berhasil dihapus. Peserta di batch ini otomatis beralih ke jalur mandiri.',
+        ]);
+    }
+
+    /**
+     * Tautkan peserta kursus yang belum memiliki batch (jalur mandiri) ke batch ini.
+     */
+    public function syncParticipants(Request $request, int $id): JsonResponse
+    {
+        $batch = CourseBatch::with('course:id,title')->findOrFail($id);
+
+        $query = Enrollment::where('course_id', $batch->course_id)
+            ->whereNull('batch_id');
+
+        if ($request->boolean('include_cancelled', false)) {
+            // update semua termasuk cancelled
+        } else {
+            $query->whereNotIn('status', ['cancelled']);
+        }
+
+        $updatedCount = $query->update(['batch_id' => $batch->id]);
+
+        return response()->json([
+            'message' => $updatedCount > 0
+                ? "Berhasil menautkan {$updatedCount} peserta ke {$batch->batch_name} ({$batch->course?->title})."
+                : "Tidak ada peserta mandiri yang perlu ditautkan untuk kursus ini.",
+            'synced_count' => $updatedCount,
+            'batch'        => $batch->fresh()->loadCount('enrollments'),
+        ]);
+    }
+
+    /**
+     * Tautkan semua peserta jalur mandiri yang belum memiliki batch ke batch aktif terbaru masing-masing kursus.
+     */
+    public function syncAllParticipants(Request $request): JsonResponse
+    {
+        $batchName = $request->query('batch_name');
+
+        // Ambil batch aktif terbaru per course
+        $batchesQuery = CourseBatch::where('is_active', true)->orderByDesc('id');
+        if ($batchName) {
+            $batchesQuery->where('batch_name', $batchName);
+        }
+        $batches = $batchesQuery->get()->unique('course_id');
+
+        $totalSynced = 0;
+        $details = [];
+
+        DB::transaction(function () use ($batches, &$totalSynced, &$details, $request) {
+            foreach ($batches as $batch) {
+                $query = Enrollment::where('course_id', $batch->course_id)
+                    ->whereNull('batch_id');
+
+                if (!$request->boolean('include_cancelled', false)) {
+                    $query->whereNotIn('status', ['cancelled']);
+                }
+
+                $count = $query->update(['batch_id' => $batch->id]);
+
+                if ($count > 0) {
+                    $totalSynced += $count;
+                    $details[] = [
+                        'course_id'  => $batch->course_id,
+                        'batch_id'   => $batch->id,
+                        'batch_name' => $batch->batch_name,
+                        'count'      => $count,
+                    ];
+                }
+            }
+        });
+
+        return response()->json([
+            'message' => $totalSynced > 0
+                ? "Berhasil menautkan total {$totalSynced} peserta mandiri ke batch aktif kursus masing-masing."
+                : "Semua peserta sudah terhubung ke batch aktif masing-masing kursus.",
+            'total_synced' => $totalSynced,
+            'details'      => $details,
         ]);
     }
 }

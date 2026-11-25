@@ -4,7 +4,7 @@ import Icon from '@/components/Icon';
 import ModalPortal from '@/components/common/ModalPortal';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
-import { showSuccess, showError } from '@/lib/swal';
+import { showSuccess, showError, showConfirm } from '@/lib/swal';
 
 interface Course {
   id: number;
@@ -69,6 +69,10 @@ export default function AdminBatchesPage() {
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<CourseBatch | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Sync participants
+  const [syncingId, setSyncingId] = useState<number | null>(null);
+  const [syncingAll, setSyncingAll] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -503,6 +507,50 @@ export default function AdminBatchesPage() {
     }
   };
 
+  const handleSyncBatch = async (batch: CourseBatch) => {
+    const isConfirmed = await showConfirm(
+      'Tautkan Peserta Mandiri?',
+      `Apakah Anda ingin menautkan semua siswa jalur mandiri pada kursus "${batch.course?.title ?? 'ini'}" ke dalam ${batch.batch_name}?`,
+      'Ya, Tautkan'
+    );
+    if (!isConfirmed) return;
+
+    setSyncingId(batch.id);
+    try {
+      const res = await api.post(`/admin/batches/${batch.id}/sync-participants`);
+      await fetchBatches();
+      await fetchAllBatches();
+      showSuccess('Berhasil!', res.data?.message ?? 'Peserta berhasil ditautkan ke batch.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showError('Gagal!', msg ?? 'Gagal menautkan peserta ke batch.');
+    } finally {
+      setSyncingId(null);
+    }
+  };
+
+  const handleSyncAllBatches = async () => {
+    const isConfirmed = await showConfirm(
+      'Sinkronkan Semua Peserta Mandiri?',
+      'Sistem akan otomatis menautkan seluruh siswa yang terdaftar di jalur mandiri ke batch aktif kursus masing-masing. Lanjutkan?',
+      'Ya, Sinkronkan Semua'
+    );
+    if (!isConfirmed) return;
+
+    setSyncingAll(true);
+    try {
+      const res = await api.post('/admin/batches/sync-all-participants');
+      await fetchBatches();
+      await fetchAllBatches();
+      showSuccess('Selesai!', res.data?.message ?? 'Semua peserta mandiri berhasil ditautkan.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showError('Gagal!', msg ?? 'Gagal menyinkronkan peserta.');
+    } finally {
+      setSyncingAll(false);
+    }
+  };
+
   // Filter displayed batches (inactive filter)
   const displayed = filterActive === 'inactive'
     ? batches.filter(b => !b.is_active)
@@ -511,14 +559,27 @@ export default function AdminBatchesPage() {
   return (
     <div className="animate-fadeup">
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-navy-dark">Kelola Batch / Angkatan</h1>
           <p className="text-slate-500 text-sm mt-1">Atur angkatan peserta per kursus. Batch bersifat dinamis dan bisa ditambahkan setiap bulannya.</p>
         </div>
-        <button id="btn-add-batch" onClick={openCreate} className="btn btn-primary whitespace-nowrap">
-          <Icon name="add-circle" size={16} className="mr-1.5" /> Tambah Batch Baru
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            id="btn-sync-all-participants"
+            onClick={handleSyncAllBatches}
+            disabled={syncingAll}
+            className="btn btn-secondary whitespace-nowrap text-xs sm:text-sm font-semibold"
+            title="Tautkan semua siswa jalur mandiri ke batch aktif masing-masing kursus"
+          >
+            <Icon name="users-social" size={16} className={`mr-1.5 ${syncingAll ? 'animate-spin' : ''}`} />
+            {syncingAll ? 'Menyinkronkan...' : 'Sinkronkan Peserta Mandiri'}
+          </button>
+          <button id="btn-add-batch" onClick={openCreate} className="btn btn-primary whitespace-nowrap">
+            <Icon name="add-circle" size={16} className="mr-1.5" /> Tambah Batch Baru
+          </button>
+        </div>
       </div>
 
       {/* Toolbar */}
@@ -638,6 +699,16 @@ export default function AdminBatchesPage() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        type="button"
+                        id={`btn-sync-batch-${b.id}`}
+                        onClick={() => handleSyncBatch(b)}
+                        disabled={syncingId === b.id}
+                        title="Tautkan semua peserta jalur mandiri kursus ini ke batch ini"
+                        className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        <Icon name="users-social" size={18} className={syncingId === b.id ? 'animate-spin' : ''} />
+                      </button>
                       <button
                         type="button"
                         id={`btn-edit-batch-${b.id}`}
