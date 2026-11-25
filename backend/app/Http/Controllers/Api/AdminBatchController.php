@@ -115,18 +115,12 @@ class AdminBatchController extends Controller
             'registration_end_date'   => 'nullable|date|after_or_equal:registration_start_date',
             'start_date'              => 'nullable|date',
             'end_date'                => 'nullable|date|after_or_equal:start_date',
-            'in_class_learning_date'  => 'nullable|date',
-            'exam_mcq_date'           => 'nullable|date',
-            'exam_essay_start_date'   => 'nullable|date',
-            'exam_essay_end_date'     => 'nullable|date|after_or_equal:exam_essay_start_date',
-            'exam_presentation_date'  => 'nullable|date',
             'field_trip_date'         => 'nullable|date',
             'certificate_issue_date'  => 'nullable|date',
             'is_active'               => 'boolean',
         ], [
             'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',
             'end_date.after_or_equal'              => 'Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.',
-            'exam_essay_end_date.after_or_equal'   => 'Tenggat submit essay harus sama atau setelah tanggal mulai submit essay.',
         ]);
 
         $batch = CourseBatch::create($validated);
@@ -156,11 +150,6 @@ class AdminBatchController extends Controller
             'registration_end_date'   => 'nullable|date|after_or_equal:registration_start_date',
             'start_date'              => 'nullable|date',
             'end_date'                => 'nullable|date|after_or_equal:start_date',
-            'in_class_learning_date'  => 'nullable|date',
-            'exam_mcq_date'           => 'nullable|date',
-            'exam_essay_start_date'   => 'nullable|date',
-            'exam_essay_end_date'     => 'nullable|date|after_or_equal:exam_essay_start_date',
-            'exam_presentation_date'  => 'nullable|date',
             'field_trip_date'         => 'nullable|date',
             'certificate_issue_date'  => 'nullable|date',
             'is_active'               => 'boolean',
@@ -170,7 +159,6 @@ class AdminBatchController extends Controller
             'course_ids.required_if'               => 'Daftar kursus wajib dipilih jika memilih custom.',
             'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',
             'end_date.after_or_equal'              => 'Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.',
-            'exam_essay_end_date.after_or_equal'   => 'Tenggat submit essay harus sama atau setelah tanggal mulai submit essay.',
         ]);
 
         $scope = $validated['target_scope'];
@@ -202,11 +190,6 @@ class AdminBatchController extends Controller
             'registration_end_date'   => $validated['registration_end_date'] ?? null,
             'start_date'              => $validated['start_date'] ?? null,
             'end_date'                => $validated['end_date'] ?? null,
-            'in_class_learning_date'  => $validated['in_class_learning_date'] ?? null,
-            'exam_mcq_date'           => $validated['exam_mcq_date'] ?? null,
-            'exam_essay_start_date'   => $validated['exam_essay_start_date'] ?? null,
-            'exam_essay_end_date'     => $validated['exam_essay_end_date'] ?? null,
-            'exam_presentation_date'  => $validated['exam_presentation_date'] ?? null,
             'field_trip_date'         => $validated['field_trip_date'] ?? null,
             'certificate_issue_date'  => $validated['certificate_issue_date'] ?? null,
             'is_active'               => $validated['is_active'] ?? true,
@@ -247,7 +230,6 @@ class AdminBatchController extends Controller
 
         $regStart = $request->input('registration_start_date', $batch->registration_start_date ? $batch->registration_start_date->format('Y-m-d') : null);
         $learnStart = $request->input('start_date', $batch->start_date ? $batch->start_date->format('Y-m-d') : null);
-        $essayStart = $request->input('exam_essay_start_date', $batch->exam_essay_start_date ? $batch->exam_essay_start_date->format('Y-m-d') : null);
 
         $validated = $request->validate([
             'course_id'               => 'sometimes|required|exists:courses,id',
@@ -257,18 +239,12 @@ class AdminBatchController extends Controller
             'registration_end_date'   => 'nullable|date' . ($regStart ? '|after_or_equal:' . $regStart : ''),
             'start_date'              => 'nullable|date',
             'end_date'                => 'nullable|date' . ($learnStart ? '|after_or_equal:' . $learnStart : ''),
-            'in_class_learning_date'  => 'nullable|date',
-            'exam_mcq_date'           => 'nullable|date',
-            'exam_essay_start_date'   => 'nullable|date',
-            'exam_essay_end_date'     => 'nullable|date' . ($essayStart ? '|after_or_equal:' . $essayStart : ''),
-            'exam_presentation_date'  => 'nullable|date',
             'field_trip_date'         => 'nullable|date',
             'certificate_issue_date'  => 'nullable|date',
             'is_active'               => 'boolean',
         ], [
             'registration_end_date.after_or_equal' => 'Tanggal selesai registrasi harus sama atau setelah tanggal mulai registrasi.',
             'end_date.after_or_equal'              => 'Tanggal selesai belajar harus sama atau setelah tanggal mulai belajar.',
-            'exam_essay_end_date.after_or_equal'   => 'Tenggat submit essay harus sama atau setelah tanggal mulai submit essay.',
         ]);
 
         $batch->update($validated);
