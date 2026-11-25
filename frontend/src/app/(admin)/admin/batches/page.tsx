@@ -476,7 +476,7 @@ export default function AdminBatchesPage() {
           registration_end_date: form.registration_end_date || null,
           start_date: form.start_date || null,
           end_date: form.end_date || null,
-          in_class_learning_date: form.in_class_learning_date || null,
+          in_class_learning_date: form.start_date || null,
           exam_mcq_date: form.exam_mcq_date || null,
           exam_essay_start_date: form.exam_essay_start_date || null,
           exam_essay_end_date: form.exam_essay_end_date || null,
@@ -496,7 +496,7 @@ export default function AdminBatchesPage() {
           registration_end_date: form.registration_end_date || null,
           start_date: form.start_date || null,
           end_date: form.end_date || null,
-          in_class_learning_date: form.in_class_learning_date || null,
+          in_class_learning_date: form.start_date || null,
           exam_mcq_date: form.exam_mcq_date || null,
           exam_essay_start_date: form.exam_essay_start_date || null,
           exam_essay_end_date: form.exam_essay_end_date || null,
@@ -516,7 +516,7 @@ export default function AdminBatchesPage() {
           registration_end_date: form.registration_end_date || null,
           start_date: form.start_date || null,
           end_date: form.end_date || null,
-          in_class_learning_date: form.in_class_learning_date || null,
+          in_class_learning_date: form.start_date || null,
           exam_mcq_date: form.exam_mcq_date || null,
           exam_essay_start_date: form.exam_essay_start_date || null,
           exam_essay_end_date: form.exam_essay_end_date || null,
@@ -1077,41 +1077,41 @@ export default function AdminBatchesPage() {
                 </div>
               </div>
 
-              {/* ── Jadwal Ujian & Pembelajaran Eksekutif (Timeline Flyer) ── */}
-              <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 flex flex-col gap-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-                      <Icon name="calendar-days" size={14} />
+              {/* ── Pengaturan Jadwal Ujian & Evaluasi (Opsional) ── */}
+              <details
+                className="group border border-slate-200/90 rounded-2xl bg-slate-50/70 overflow-hidden transition-all shadow-2xs"
+                open={!!(form.exam_mcq_date || form.exam_essay_start_date || form.exam_essay_end_date || form.exam_presentation_date)}
+              >
+                <summary className="p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-slate-100/70 transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                      <Icon name="calendar-days" size={15} />
                     </div>
-                    <span className="text-xs font-bold text-navy-dark">
-                      Jadwal Ujian & Pembelajaran (Timeline Flyer)
-                    </span>
+                    <div>
+                      <span className="text-xs font-bold text-navy-dark block">
+                        Jadwal Ujian & Evaluasi (Opsional)
+                      </span>
+                      <p className="text-[10px] text-slate-500">
+                        Atur tanggal ujian MCQ, pengumpulan esai, dan presentasi jika ada
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                    Sesuai Flyer
-                  </span>
-                </div>
-
-                {/* In-Class Learning & Multiple-Choice Test */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-slate-500 inline-block"></span>
-                      Executive In-Class Learning
-                    </label>
-                    <input
-                      type="date"
-                      value={form.in_class_learning_date}
-                      onChange={e => setForm(f => ({ ...f, in_class_learning_date: e.target.value }))}
-                      className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
-                    />
+                  <div className="flex items-center gap-2">
+                    {(form.exam_mcq_date || form.exam_essay_start_date || form.exam_presentation_date) && (
+                      <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                        Terisi
+                      </span>
+                    )}
+                    <span className="text-xs text-indigo-600 font-semibold group-open:rotate-180 transition-transform">▼</span>
                   </div>
+                </summary>
 
+                <div className="p-4 pt-3 border-t border-slate-200/70 bg-white flex flex-col gap-3.5">
+                  {/* Multiple-Choice Test */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
-                      Online Exam: Multiple-Choice Test
+                      Ujian Pilihan Ganda (MCQ)
                     </label>
                     <input
                       type="date"
@@ -1120,51 +1120,51 @@ export default function AdminBatchesPage() {
                       className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                     />
                   </div>
-                </div>
 
-                {/* Case-Study Essay Submission */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Case-Study Essay Submission */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                        Pengumpulan Esai (Mulai)
+                      </label>
+                      <input
+                        type="date"
+                        value={form.exam_essay_start_date}
+                        onChange={e => setForm(f => ({ ...f, exam_essay_start_date: e.target.value }))}
+                        className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+                        Pengumpulan Esai (Batas Akhir)
+                      </label>
+                      <input
+                        type="date"
+                        value={form.exam_essay_end_date}
+                        onChange={e => setForm(f => ({ ...f, exam_essay_end_date: e.target.value }))}
+                        className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Case-Study Essay Presentation */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
-                      Case-Study Essay (Mulai Submit)
+                      <span className="w-2 h-2 rounded-full bg-purple-600 inline-block"></span>
+                      Presentasi Esai
                     </label>
                     <input
                       type="date"
-                      value={form.exam_essay_start_date}
-                      onChange={e => setForm(f => ({ ...f, exam_essay_start_date: e.target.value }))}
-                      className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
-                      Case-Study Essay (Deadline Submit)
-                    </label>
-                    <input
-                      type="date"
-                      value={form.exam_essay_end_date}
-                      onChange={e => setForm(f => ({ ...f, exam_essay_end_date: e.target.value }))}
+                      value={form.exam_presentation_date}
+                      onChange={e => setForm(f => ({ ...f, exam_presentation_date: e.target.value }))}
                       className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
                     />
                   </div>
                 </div>
-
-                {/* Case-Study Essay Presentation */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-navy-dark flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-purple-600 inline-block"></span>
-                    Online Exam: Case-Study Essay Presentation
-                  </label>
-                  <input
-                    type="date"
-                    value={form.exam_presentation_date}
-                    onChange={e => setForm(f => ({ ...f, exam_presentation_date: e.target.value }))}
-                    className="w-full px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy transition-all bg-white text-slate-700"
-                  />
-                </div>
-              </div>
+              </details>
 
               {/* Field Trip */}
               <div className="flex flex-col gap-1.5">
