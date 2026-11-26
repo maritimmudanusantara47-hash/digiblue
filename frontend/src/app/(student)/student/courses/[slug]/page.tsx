@@ -2,7 +2,7 @@
 
 import Icon from '@/components/Icon';
 import ModalPortal from '@/components/common/ModalPortal';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import api from '@/lib/api';
@@ -127,6 +127,38 @@ export default function StudentCoursePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [resendStatus, setResendStatus] = useState<{ message: string; dev_url?: string | null; success: boolean } | null>(null);
+
+  // Gesture tarik balik (swipe left to close) untuk drawer silabus di mobile
+  const touchStartX = useRef<number | null>(null);
+  const touchCurrentX = useRef<number | null>(null);
+
+  const handleDrawerTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchCurrentX.current = e.touches[0].clientX;
+  };
+
+  const handleDrawerTouchMove = (e: React.TouchEvent) => {
+    touchCurrentX.current = e.touches[0].clientX;
+  };
+
+  const handleDrawerTouchEnd = () => {
+    if (touchStartX.current !== null && touchCurrentX.current !== null) {
+      const diffX = touchCurrentX.current - touchStartX.current;
+      // Jika ditarik / digeser ke kiri lebih dari 40px, tutup silabus drawer
+      if (diffX < -40) {
+        setIsSidebarOpen(false);
+      }
+    }
+    touchStartX.current = null;
+    touchCurrentX.current = null;
+  };
+
+  // Pada tampilan mobile (< 1024px), default silabus tertutup agar materi langsung terbaca penuh
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  }, []);
 
   const handleResendVerification = async () => {
     setResendingEmail(true);
@@ -385,82 +417,125 @@ export default function StudentCoursePage() {
       </header>
 
       {/* ── Main Viewport (Sidebar + Reading Area) ── */}
-      <div className="flex-1 flex overflow-hidden w-full min-h-0">
-        {/* ── Sidebar Silabus (Bisa di-toggle / Collapsible) ───────────────────── */}
+      <div className="flex-1 flex overflow-hidden w-full min-h-0 relative">
+        {/* Mobile Backdrop Overlay - mencegah konten materi di kanan digeser-geser saat silabus terbuka */}
         {isSidebarOpen && (
-          <aside className="w-80 lg:w-88 flex-shrink-0 border-r border-slate-200 bg-white overflow-y-auto h-full z-20 shadow-sm animate-fadein">
-        {/* Course Info */}
-        <div className="p-5 border-b border-slate-200">
-          <div className="flex flex-col gap-2 mb-2">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {enrollment?.batch ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                  <Icon name="flag-1" size={10} />
-                  {enrollment.batch.batch_name}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                  Jalur Mandiri (Self-Paced)
-                </span>
-              )}
-            </div>
-          </div>
-          <h2 className="font-extrabold text-navy-dark text-sm leading-snug line-clamp-2">{data.course.title}</h2>
-          <div className="mt-3">
-            <div className="flex justify-between text-xs text-slate-400 mb-1">
-              <span>Progress Belajar</span>
-              <span className="font-semibold text-navy">{progressPct}%</span>
-            </div>
-            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-navy to-emerald-400 rounded-full transition-all duration-700"
-                style={{ width: `${progressPct}%` }} />
-            </div>
-            <p className="text-xs text-slate-400 mt-1">{completedCount}/{totalContents} selesai</p>
-          </div>
-        </div>
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 lg:hidden transition-opacity"
+            onClick={() => setIsSidebarOpen(false)}
+            onTouchMove={(e) => {
+              // Kunci gesture touch agar materi kanan tidak bisa digeser saat silabus terbuka
+              e.preventDefault();
+            }}
+            aria-hidden="true"
+          />
+        )}
 
-        {/* Content Nav */}
-        <nav className="py-2">
-          {data.sections.map(section => (
-            <div key={section.id} className="mb-2">
-              <div className="px-4 pt-3 pb-1">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{section.title}</p>
+        {/* ── Sidebar Silabus (Slide-Over Drawer di Mobile & Collapsible Sidebar di Desktop) ── */}
+        <aside
+          onTouchStart={handleDrawerTouchStart}
+          onTouchMove={handleDrawerTouchMove}
+          onTouchEnd={handleDrawerTouchEnd}
+          className={`
+            fixed inset-y-0 left-0 z-40 w-80 max-w-[85vw] bg-white border-r border-slate-200 overflow-y-auto h-full shadow-2xl transition-transform duration-300 ease-in-out
+            lg:static lg:z-20 lg:w-80 lg:max-w-none lg:shadow-none lg:transition-none lg:flex-shrink-0
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:hidden'}
+          `}
+        >
+          {/* Mobile Drag Handle & Close Button */}
+          <div className="lg:hidden px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+              <Icon name="arrow-left" size={14} />
+              <span>Tarik ke kiri untuk menutup</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer"
+              aria-label="Tutup Silabus"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Course Info */}
+          <div className="p-5 border-b border-slate-200">
+            <div className="flex flex-col gap-2 mb-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {enrollment?.batch ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <Icon name="flag-1" size={10} />
+                    {enrollment.batch.batch_name}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                    Jalur Mandiri (Self-Paced)
+                  </span>
+                )}
               </div>
-              {section.contents.map(content => {
-                const sub = submissions.get(content.id);
-                const isFieldStudyDone = content.content_type === 'field_study' && isFieldTrip;
-                const isDone = (sub?.score !== null && sub?.score !== undefined) || isFieldStudyDone;
-                const isPending = sub && !isDone; // submitted but not graded
-                const isSelected = activeContent?.id === content.id;
-
-                // Critical Thinking: lock if user attended field trip
-                const isLocked = content.content_type === 'critical_thinking' && isFieldTrip;
-                const meta = CONTENT_META[content.content_type] ?? CONTENT_META.pdf_module;
-
-                return (
-                  <button key={content.id}
-                    onClick={() => setActive(content)}
-                    className={`w-full text-left px-4 py-3 flex items-start gap-3 text-sm border-b border-slate-100 transition-all
-                      ${isSelected ? 'bg-navy text-white' : isLocked ? 'opacity-50 cursor-default hover:bg-slate-50' : 'hover:bg-slate-50 text-navy-dark'}`}>
-                    <span className="flex-shrink-0 mt-0.5"><Icon name={isLocked ? "locked-1" : meta.icon} size={18} /></span>
-                    <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold text-white' : 'text-navy-dark'}`}>
-                      {content.title}
-                      {isLocked && <span className="block text-[10px] text-slate-400 mt-0.5">Kamu mengikuti Field Study</span>}
-                    </span>
-                    <span className="flex-shrink-0 mt-0.5">
-                      {isDone ? <Icon name="check-circle-1" size={16} /> : isPending ? <Icon name="hourglass" size={16} /> : null}
-                    </span>
-                  </button>
-                );
-              })}
             </div>
-          ))}
-        </nav>
-      </aside>
-    )}
+            <h2 className="font-extrabold text-navy-dark text-sm leading-snug line-clamp-2">{data.course.title}</h2>
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Progress Belajar</span>
+                <span className="font-semibold text-navy">{progressPct}%</span>
+              </div>
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-navy to-emerald-400 rounded-full transition-all duration-700"
+                  style={{ width: `${progressPct}%` }} />
+              </div>
+              <p className="text-xs text-slate-400 mt-1">{completedCount}/{totalContents} selesai</p>
+            </div>
+          </div>
+
+          {/* Content Nav */}
+          <nav className="py-2">
+            {data.sections.map(section => (
+              <div key={section.id} className="mb-2">
+                <div className="px-4 pt-3 pb-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{section.title}</p>
+                </div>
+                {section.contents.map(content => {
+                  const sub = submissions.get(content.id);
+                  const isFieldStudyDone = content.content_type === 'field_study' && isFieldTrip;
+                  const isDone = (sub?.score !== null && sub?.score !== undefined) || isFieldStudyDone;
+                  const isPending = sub && !isDone; // submitted but not graded
+                  const isSelected = activeContent?.id === content.id;
+
+                  // Critical Thinking: lock if user attended field trip
+                  const isLocked = content.content_type === 'critical_thinking' && isFieldTrip;
+                  const meta = CONTENT_META[content.content_type] ?? CONTENT_META.pdf_module;
+
+                  return (
+                    <button key={content.id}
+                      onClick={() => {
+                        setActive(content);
+                        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                          setIsSidebarOpen(false);
+                        }
+                      }}
+                      className={`w-full text-left px-4 py-3 flex items-start gap-3 text-sm border-b border-slate-100 transition-all
+                        ${isSelected ? 'bg-navy text-white' : isLocked ? 'opacity-50 cursor-default hover:bg-slate-50' : 'hover:bg-slate-50 text-navy-dark'}`}>
+                      <span className="flex-shrink-0 mt-0.5"><Icon name={isLocked ? "locked-1" : meta.icon} size={18} /></span>
+                      <span className={`flex-1 text-xs leading-snug ${isSelected ? 'font-semibold text-white' : 'text-navy-dark'}`}>
+                        {content.title}
+                        {isLocked && <span className="block text-[10px] text-slate-400 mt-0.5">Kamu mengikuti Field Study</span>}
+                      </span>
+                      <span className="flex-shrink-0 mt-0.5">
+                        {isDone ? <Icon name="check-circle-1" size={16} /> : isPending ? <Icon name="hourglass" size={16} /> : null}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+        </aside>
 
       {/* ── Main Content Area ──────────────────────────────────────────────── */}
-      <main className={`flex-1 min-w-0 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300 ${isSidebarOpen ? '' : 'max-w-7xl mx-auto w-full'}`}>
+      <main className={`flex-1 min-w-0 h-full p-4 sm:p-6 lg:p-8 transition-all duration-300 w-full ${isSidebarOpen ? 'overflow-hidden lg:overflow-y-auto' : 'overflow-y-auto max-w-7xl mx-auto'}`}>
         {/* Banner Selamat & Sertifikat Terbit Otomatis vs Menunggu Jadwal Batch */}
         {progressPct === 100 && (
           data?.certificate ? (
