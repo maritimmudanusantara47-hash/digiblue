@@ -409,20 +409,29 @@ function StudentDashboardContent() {
 
       {/* Kursus Saya (My Learning Track) */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
-          <div>
-            <h2 className="text-lg font-bold text-[#07192C] font-heading">
-              {t('section_courses')}
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 mb-6 pb-4 border-b border-slate-100">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-[#07192C] font-heading">
+                {t('section_courses')}
+              </h2>
+              <Link
+                href="/student/catalog"
+                className="sm:hidden text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors inline-flex items-center gap-1 shrink-0 whitespace-nowrap group"
+              >
+                <span>{t('btn_add')}</span>
+                <Icon name="arrow-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
               {t('section_courses_desc')}
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
             <Link
               href="/student/catalog"
-              className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors inline-flex items-center gap-1 group"
+              className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors inline-flex items-center gap-1 shrink-0 whitespace-nowrap group"
             >
               <span>{t('btn_add')}</span>
               <Icon name="arrow-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
@@ -572,18 +581,27 @@ function StudentDashboardContent() {
       {/* Sertifikat Terbaru (Recent Certificates Showcase) */}
       {certificates.length > 0 && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(7,25,44,0.03)]">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-            <div>
-              <h2 className="text-lg font-bold text-[#07192C] font-heading">
-                {t('section_certs')}
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 mb-6 pb-4 border-b border-slate-100">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-bold text-[#07192C] font-heading">
+                  {t('section_certs')}
+                </h2>
+                <Link
+                  href="/student/certificates"
+                  className="sm:hidden text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors inline-flex items-center gap-1 shrink-0 whitespace-nowrap group"
+                >
+                  <span>{t('btn_view_all')}</span>
+                  <Icon name="arrow-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
                 Sertifikat digital terakreditasi resmi yang dapat Anda unduh dan diverifikasi secara publik
               </p>
             </div>
             <Link
               href="/student/certificates"
-              className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors inline-flex items-center gap-1 group"
+              className="hidden sm:inline-flex text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors items-center gap-1 shrink-0 whitespace-nowrap group"
             >
               <span>{t('btn_view_all')}</span>
               <Icon name="arrow-right" size={13} className="transition-transform group-hover:translate-x-0.5" />
